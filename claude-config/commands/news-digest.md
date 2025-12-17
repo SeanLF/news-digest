@@ -1,20 +1,18 @@
 # Daily News Digest
 
-Generate a personalized news digest.
+Generate a personalized news digest from CSV input files.
 
-## Input Data
+## Input Files
 
-@/app/data/input.json
-
-The input contains:
-- `previous_headlines`: Headlines from last 7 days (DO NOT repeat these)
-- `sources`: Source metadata (name, bias, perspective)
-- `articles`: Articles by source_id, each with {title, url, published, summary}
+Read all CSV files from `/app/data/claude_input/`:
+- `headlines.csv` - Previous headlines (DO NOT repeat these)
+- `sources.csv` - Source metadata (id, name, bias, perspective)
+- `articles_*.csv` - Articles split across files (source_id, title, url, published, summary)
 
 ## Processing Rules
 
 ### Deduplication (CRITICAL)
-1. DO NOT repeat stories from `previous_headlines`
+1. DO NOT repeat stories from headlines.csv
 2. Only re-include if MAJOR new development - mark with [UPDATE]
 3. Same story from different sources = same story
 
@@ -35,39 +33,54 @@ The input contains:
 
 ## Output
 
-Write to `/app/data/output/digest-TIMESTAMP.txt` (use `date -u '+%Y-%m-%d-%H%MZ'`):
+Write HTML to `/app/data/output/digest-TIMESTAMP.html` (use `date -u '+%Y-%m-%d-%H%MZ'`):
 
-```
-NEWS DIGEST
-===========
-[Day], [Month] [Day], [Year]
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Georgia, serif; max-width: 700px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+    h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+    h2 { color: #444; margin-top: 30px; border-bottom: 1px solid #ccc; }
+    .story { margin-bottom: 25px; }
+    .headline { font-weight: bold; font-size: 1.1em; }
+    .summary { margin: 8px 0; }
+    .why { color: #555; font-style: italic; }
+    .sources { font-size: 0.9em; color: #666; }
+    .sources a { color: #0066cc; }
+    .signal { margin: 8px 0; }
+    .signal a { color: #0066cc; }
+    .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 0.85em; color: #777; }
+  </style>
+</head>
+<body>
+  <h1>News Digest</h1>
+  <p>[Day], [Month] [Day], [Year]</p>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MUST KNOW
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <h2>Must Know</h2>
+  <div class="story">
+    <div class="headline">► HEADLINE [TODAY/BREAKING/UPDATE]</div>
+    <div class="summary">Summary paragraph...</div>
+    <div class="why">WHY IT MATTERS: ...</div>
+    <div class="sources">Sources: <a href="url">Source Name</a> (bias)</div>
+  </div>
 
-► HEADLINE [TODAY/BREAKING/UPDATE]
-  Summary paragraph...
-  WHY IT MATTERS: ...
-  Sources: Source Name (bias) <url>
+  <h2>Should Know</h2>
+  <div class="story">
+    <div class="headline">► HEADLINE</div>
+    <div class="summary">Summary...</div>
+    <div class="why">WHY IT MATTERS: ...</div>
+    <div class="sources">Sources: <a href="url">Source Name</a> (bias)</div>
+  </div>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SHOULD KNOW
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  <h2>Quick Signals</h2>
+  <div class="signal">• Signal headline — <a href="url">Source</a></div>
 
-► HEADLINE
-  Summary...
-  WHY IT MATTERS: ...
-  Sources: ...
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-QUICK SIGNALS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-• Signal headline — Source <url>
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Generated: YYYY-MM-DD HH:MM UTC | 28 sources
+  <div class="footer">Generated: YYYY-MM-DD HH:MM UTC | 28 sources</div>
+</body>
+</html>
 ```
 
 Write headlines to `/app/data/shown_headlines.json`:
