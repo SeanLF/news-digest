@@ -26,7 +26,7 @@ inspectable on the web.
 | [/issues](https://news-digest.seanfloyd.dev/issues) | Full archive |
 | [/stats](https://news-digest.seanfloyd.dev/stats) | Real subscriber and cost numbers, published |
 | [/sources](https://news-digest.seanfloyd.dev/sources) | Every feed, labelled by political bias and factuality |
-| [GitHub](https://github.com/SeanLF/claude-rss-news-digest) | Source (PolyForm Noncommercial 1.0.0) |
+| [GitHub](https://github.com/SeanLF/news-digest) | Source (PolyForm Noncommercial 1.0.0) |
 
 ## What to show
 
