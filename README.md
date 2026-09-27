@@ -40,8 +40,8 @@ The decisions behind this are in [the decision record](docs/2026-09-24-web-tier-
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/SeanLF/claude-rss-news-digest.git
-cd claude-rss-news-digest
+git clone https://github.com/SeanLF/news-digest.git
+cd news-digest
 cp .env.example .env
 ```
 
