@@ -20,6 +20,16 @@
     "region": "Middle East"
   },
   {
+    "id": "allafrica",
+    "name": "AllAfrica",
+    "url": "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf",
+    "bias": "center",
+    "factuality": "high",
+    "credibility": "high",
+    "perspective": "pan_african",
+    "region": "Africa"
+  },
+  {
     "id": "ars_technica",
     "name": "Ars Technica",
     "url": "https://feeds.arstechnica.com/arstechnica/index",
@@ -160,6 +170,16 @@
     "region": "Europe"
   },
   {
+    "id": "g1_mundo",
+    "name": "G1",
+    "url": "https://g1.globo.com/rss/g1/mundo/",
+    "bias": "lean-right",
+    "factuality": "high",
+    "credibility": "high",
+    "perspective": "brazilian",
+    "region": "S. America"
+  },
+  {
     "id": "globe_and_mail",
     "name": "Globe and Mail",
     "url": "https://www.theglobeandmail.com/arc/outboundfeeds/rss/category/world/",
@@ -200,6 +220,26 @@
     "region": "N. America"
   },
   {
+    "id": "jeune_afrique",
+    "name": "Jeune Afrique",
+    "url": "https://www.jeuneafrique.com/feed/",
+    "bias": "lean-left",
+    "factuality": "high",
+    "credibility": "high",
+    "perspective": "pan_african",
+    "region": "Africa"
+  },
+  {
+    "id": "la_tercera_mundo",
+    "name": "La Tercera",
+    "url": "https://www.latercera.com/arc/outboundfeeds/rss/category/mundo/?outputType=xml",
+    "bias": "lean-right",
+    "factuality": "high",
+    "credibility": "high",
+    "perspective": "chilean",
+    "region": "S. America"
+  },
+  {
     "id": "le_monde",
     "name": "Le Monde",
     "url": "https://www.lemonde.fr/rss/une.xml",
@@ -208,6 +248,16 @@
     "credibility": "high",
     "perspective": "french",
     "region": "Europe"
+  },
+  {
+    "id": "mexico_news_daily",
+    "name": "Mexico News Daily",
+    "url": "https://mexiconewsdaily.com/feed/",
+    "bias": "lean-left",
+    "factuality": "high",
+    "credibility": "high",
+    "perspective": "mexican",
+    "region": "N. America"
   },
   {
     "id": "nikkei_asia",
