@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { ArtifactStore, type Pointer } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
 import { assemble, clusterFor } from "./assemble.js";
@@ -84,7 +85,10 @@ describe("assemble: claims and articles that back nothing", () => {
   it("never removes on a check with no claims, nor empties a story", async () => {
     expect((await (await ledger({ pass: true }))(true)).selections.must_know[0]?.sources).toHaveLength(4);
     const none = [{ field: "summary", text: "x", supported_by: [] }];
+    const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
     expect((await (await ledger({ pass: true, claims: none }))(true)).selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+    expect(warn.mock.calls.some((c) => JSON.stringify(c[0]).includes("the check and its claims disagree"))).toBe(true);
+    warn.mockRestore();
   });
   it("drops a blanked why_it_matters' claims before deciding what backs nothing", async () => {
     const onlyWhy = [{ field: "why_it_matters", text: "w", supported_by: ["A2"] }, { field: "summary", text: "s", supported_by: ["A1"] }];

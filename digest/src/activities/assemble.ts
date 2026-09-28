@@ -84,13 +84,16 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
       const checkedClaims: Claim[] = repaired ? (recheckClaims.get(idKey) ?? []) : results.filter((r) => resultMatches(r, ids, normHeadline(story.headline))).flatMap((r) => r.claims ?? []);
       const liveClaims = checkedClaims.filter((c) => c.field !== "why_it_matters" || (tier === "must_know" && item.why_it_matters.trim() !== ""));
       const backed = new Set(liveClaims.flatMap((c) => c.supported_by));
-      if (opts.removeUnsupported && liveClaims.length && item.sources.some((x) => backed.has(x.article_id))) {
-        const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id));
-        if (unbacked.length && unbacked.length < item.sources.length) {
-          item.sources = item.sources.filter((x) => !unbacked.includes(x));
-          out.removed += unbacked.length;
-          log.info({ stage: "assemble", runId, headline: story.headline, removed: unbacked.map((x) => x.article_id), reason: "read in full, backs no claim" });
-        } else if (unbacked.length) log.warn({ stage: "assemble", runId, headline: story.headline, warning: "every source backs nothing; the check and its claims disagree, nothing removed" });
+      if (opts.removeUnsupported && liveClaims.length) {
+        if (!item.sources.some((x) => backed.has(x.article_id))) log.warn({ stage: "assemble", runId, headline: story.headline, warning: "no source backs any claim; the check and its claims disagree, nothing removed" });
+        else {
+          const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id));
+          if (unbacked.length) {
+            item.sources = item.sources.filter((x) => !unbacked.includes(x));
+            out.removed += unbacked.length;
+            log.info({ stage: "assemble", runId, headline: story.headline, removed: unbacked.map((x) => x.article_id), reason: "read in full, backs no claim" });
+          }
+        }
       }
       const remaining = new Set(item.sources.map((x) => x.article_id));
       if (liveClaims.length) (item as { claims?: Claim[] }).claims = liveClaims.map((c) => ({ ...c, supported_by: c.supported_by.filter((id) => remaining.has(id)) }));
