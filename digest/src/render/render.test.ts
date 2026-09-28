@@ -44,6 +44,11 @@ describe("resolution", () => {
     const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A3" }], reporting_varies: [{ source: "British Broadcasting Corp", angle: "a", bias: "center", article_id: "A3" }] }], should_know: [] };
     expect(resolveArticleIds(sel, index).must_know[0]!.reporting_varies).toEqual([{ source: "BBC", angle: "a", bias: "center" }]);
   });
+  it("names an angle from wire copy after the agency, as the sources box does", () => {
+    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }], reporting_varies: [{ source: "Straits Times", angle: "a", bias: "center", article_id: "A2" }] }], should_know: [] };
+    const fulltext = { A2: { text: "Deal signed LONDON, Sept 27 (AFP) - The deal" } };
+    expect(resolveArticleIds(sel, index, fulltext).must_know[0]!.reporting_varies?.[0]?.source).toBe("AFP");
+  });
   it("upgrades a decoded Google-News link and leaves the rest", () => {
     const sel: Selections = { must_know: [{ sources: [{ name: "Reuters", url: "https://news.google.com/rss/articles/X" }, { name: "BBC", url: "https://bbc.example/a" }] }], should_know: [] };
     expect(applyDecodedLinks(sel, { "https://news.google.com/rss/articles/X": "https://www.reuters.com/x" }).must_know[0]!.sources.map((s) => s.url)).toEqual(["https://www.reuters.com/x", "https://bbc.example/a"]);
