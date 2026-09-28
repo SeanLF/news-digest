@@ -21,6 +21,8 @@ export function stubActivities(): Activities {
     },
     planFulltext: () => Promise.resolve({ tasks: [["A1", "https://example.com/a1"]] }),
     storeFulltext: (runId) => Promise.resolve(ptr(runId, "article_fulltext.json")),
+    planFulltextTopup: () => Promise.resolve({ tasks: [], skip: "no_candidates" as const }),
+    storeFulltextTopup: (runId) => Promise.resolve(ptr(runId, "article_fulltext.json")),
     planStories: () => Promise.resolve({ plans: Array.from({ length: STORY_COUNT_STUB }, (_, i) => ({ index: i, tier: "must_know" as const, storyIds: ["A1"], contextIds: ["A1"] })) }),
     writeStory: (runId, plan) => Promise.resolve(ptr(runId, `draft_s${plan.index}.json`)),
     preheader: (runId) => Promise.resolve(ptr(runId, "preheader.txt")),
