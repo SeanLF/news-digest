@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { wireFromFullText } from "../prepare/wire.js";
-import type { Selections, Source, Story, ThreadContext } from "./common.js";
+import { AGENCY_LABELS, titleCase, type Selections, type Source, type Story, type ThreadContext } from "./common.js";
 
 // One article_index.json entry, as prepare writes it; wire_agency predates some archived indexes.
 const IndexEntry = z.object({ name: z.string(), url: z.string(), bias: z.string(), source_id: z.string(), original_title: z.string(), wire: z.boolean().optional(), wire_agency: z.string().nullable().optional() });
@@ -18,16 +18,18 @@ export function repostKey(title: string, sourceName: string): string {
 // article index; an id the index lacks is dropped, and so is a story left with no source.
 export function resolveArticleIds(selections: Selections, index: Record<string, unknown>, fulltext: Record<string, { text?: string }> = {}): Selections {
   let unresolved = 0;
+  const lookup = (id: string): Source | null => {
+    const meta = IndexEntry.safeParse(Object.hasOwn(index, id) ? index[id] : undefined);
+    if (!meta.success) return null;
+    const { name, url, bias, source_id, original_title, wire, wire_agency } = meta.data;
+    const fromBody = wire_agency ? null : wireFromFullText(Object.hasOwn(fulltext, id) ? fulltext[id]?.text : undefined);
+    return { name, url, bias, source_id, original_title, wire: wire ?? false, wire_agency: wire_agency ?? fromBody };
+  };
   const resolve = (src: Source): Source | null => {
     if (!src.article_id) return src;
-    const meta = IndexEntry.safeParse(Object.hasOwn(index, src.article_id) ? index[src.article_id] : undefined);
-    if (!meta.success) {
-      unresolved++;
-      return null;
-    }
-    const { name, url, bias, source_id, original_title, wire, wire_agency } = meta.data;
-    const fromBody = wire_agency ? null : wireFromFullText(Object.hasOwn(fulltext, src.article_id) ? fulltext[src.article_id]?.text : undefined);
-    return { name, url, bias, source_id, original_title, wire: wire ?? false, wire_agency: wire_agency ?? fromBody };
+    const found = lookup(src.article_id);
+    if (!found) unresolved++;
+    return found;
   };
   const tier = (stories: Story[]) =>
     stories.flatMap((item) => {
@@ -37,8 +39,11 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
         return [];
       }
       const varies = item.reporting_varies?.map(({ article_id, ...rv }) => {
-        const meta = article_id && Object.hasOwn(index, article_id) ? IndexEntry.safeParse(index[article_id]) : undefined;
-        return meta?.success ? { ...rv, source: meta.data.name } : rv;
+        const found = article_id ? lookup(article_id) : null;
+        if (!found) return rv;
+        const agency = found.wire_agency?.trim().toLowerCase();
+        const source = agency ? (AGENCY_LABELS[agency] ?? titleCase(agency)) : found.name;
+        return source ? { ...rv, source } : rv;
       });
       return [{ ...item, sources, ...(varies ? { reporting_varies: varies } : {}) }];
     });

@@ -77,5 +77,7 @@ describe("wire detection", () => {
     expect(wireFromFullText("The ECB (AP) - policymakers voted")).toBeNull();
     expect(wireFromFullText("PARIS SAINT-GERMAIN (AFP) - the club said")).toBeNull();
     expect(wireFromFullText("Storm hits coast MANILA (AP) — A storm")).toBeNull();
+    expect(wireFromFullText("the vote on Sept 24 (AP) - which side wins is unclear")).toBeNull();
+    expect(wireFromFullText("Officials said on Sept 24 (Reuters) - talks continue mid-article")).toBeNull();
   });
 });
