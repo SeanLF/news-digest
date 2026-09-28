@@ -131,7 +131,15 @@ export function attributeActivity(deps: AttributeDeps) {
     const stories: Record<string, StoryAttribution> = {};
     const queue = [...jobs];
     await Promise.all(Array.from({ length: MODEL_FANOUT_LIMIT }, async () => {
-      for (let job = queue.shift(); job; job = queue.shift()) stories[job.key] = await attribute(job);
+      for (let job = queue.shift(); job; job = queue.shift()) {
+        try {
+          stories[job.key] = await attribute(job);
+        } catch (e) {
+          if (deps.signal?.()?.aborted) throw e;
+          log.warn({ stage: "attribute", runId, headline: job.headline, warning: "attribution failed for this story; it shows the checker's list and nothing is removed", error: String(e) });
+          stories[job.key] = { complete: false, unverified: [], claims: [] };
+        }
+      }
     }));
     const text = JSON.stringify({ input, stories } satisfies AttributionDoc, null, 2);
     return force ? await store.replace(runId, ATTRIBUTION_OUTPUT, text) : await store.put(runId, ATTRIBUTION_OUTPUT, text);

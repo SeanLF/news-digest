@@ -55,7 +55,7 @@ const claims = [
   { field: "summary", text: "the Metz address", supported_by: ["A1", "A9"] },
   { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
 ];
-const attributed = (complete: boolean, backs: Record<string, string[]>, unverified: string[] = []) => ({ input: "x", stories: { "A1,A2,A3,A4|pope": { complete, unverified, claims: Object.entries(backs).map(([text, supported_by]) => ({ field: claims.find((c) => c.text === text)?.field ?? "summary", text, supported_by, differs: [] })) } } });
+const attributed = (complete: boolean, backs: Record<string, string[]>, unverified: string[] = [], differ: Record<string, string[]> = {}) => ({ input: "x", stories: { "A1,A2,A3,A4|pope": { complete, unverified, claims: Object.entries(backs).map(([text, supported_by]) => ({ field: claims.find((c) => c.text === text)?.field ?? "summary", text, supported_by, differs: (differ[text] ?? []).map((article_id) => ({ article_id, quote: "q", published: "" })) })) } } });
 async function ledger(result: Record<string, unknown>, resolution: unknown[] = [], attribution: unknown = attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"], w: ["A2"], s: ["A1"] })) {
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "clusters.json", JSON.stringify({ clusters: [] }));
@@ -119,6 +119,14 @@ describe("assemble: claims and articles that back nothing", () => {
   it("never removes an article said to back a claim whose quote could not be found in it", async () => {
     const { report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, ["A2"])))(true);
     expect(report.removed).toBe(0);
+  });
+  it("never removes an article that gives a different figure for a claim: it covers the story", async () => {
+    const { report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, [], { "the Metz address": ["A2"] })))(true);
+    expect(report.removed).toBe(0);
+  });
+  it("shows the checker's list, not a partial attribution, for a story whose attribution is incomplete", async () => {
+    const { selections } = await (await ledger({ pass: true, claims }, [], attributed(false, { "the Metz address": [], "the concessions call": [] })))(false);
+    expect(selections.must_know[0]?.claims?.map((c) => c.supported_by)).toEqual([["A1"], ["A1"]]);
   });
   it("takes a repaired story's claims from its recheck", async () => {
     const fixed = [{ field: "summary", text: "the fixed specific", supported_by: ["A2"] }];

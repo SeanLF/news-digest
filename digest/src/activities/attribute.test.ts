@@ -95,6 +95,14 @@ describe("attribute activity", () => {
     expect(await run(300, drafts, report, repair)).toEqual(p);
     expect(prompts).toHaveLength(2);
   });
+  it("marks a story whose call fails incomplete and keeps going, rather than failing every story", async () => {
+    const { store, drafts, report, repair } = await setup(CLAIMS);
+    const q = (() => {
+      throw new Error("budget exceeded");
+    }) as unknown as SdkQuery;
+    const p = await attributeActivity({ store, agentsDir: AGENTS, query: q })(300, drafts, report, repair);
+    expect(Object.values((await doc(store, p)).stories)).toEqual([{ complete: false, unverified: [], claims: [] }]);
+  });
   it("asks nothing for a story with no claims", async () => {
     const { store, drafts, report, repair } = await setup([]);
     const { q, prompts } = replying({});
