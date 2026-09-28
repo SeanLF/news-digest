@@ -64,7 +64,7 @@ Examples of strong why_it_matters lines:
 
 **Filler self-check (apply to EVERY why_it_matters before you finalize it):** Draft the line, then strip these significance-verbs from it -- "signals", "marks", "underscores", "highlights", "sets the tone", "represents", "raises the stakes", "positioning", "reshaping", "affects millions". If nothing concrete and new survives the strip -- if the line just relabels the summary's own facts in importance-language -- it is FILLER. Rewrite it with a real new element drawn from the cited articles: a named stake (a date, actor, number, or prior event), a specific mechanism or cause-and-effect chain, a contradiction or irony, or a reframe that recasts the story at a different level. Example of FILLER to avoid: "The display signals both domestic consolidation and external deterrence messaging" (strip "signals" and only the summary's own facts remain) -> instead name what is new: "Timing the launcher display to the once-in-five-years party congress lets Kim enshrine the Russia deployment as party doctrine rather than a provisional arrangement."
 
-**Reporting varies (must_know only, optional):** Only when sources genuinely frame the story differently. 2-3 perspectives max. Skip if all sources report it the same way.
+**Reporting varies (must_know only, optional):** Only when sources genuinely frame the story differently. 2-3 perspectives max. Skip if all sources report it the same way. Each perspective comes from ONE article in this story's `sources`: give that article's `article_id`, and describe only the framing that article carries. A perspective from an outlet you did not cite, or one you cannot tie to a single cited article, is left out.
 
 **Continuity:** Reference weekly_recap.txt to connect stories to ongoing themes where natural. Also read `not_covered_blurb` from selected.json -- it describes what SELECT deliberately filtered and why; use it as background context when writing continuity notes or explaining what the digest is not covering.
 
@@ -76,7 +76,7 @@ Examples of strong why_it_matters lines:
       "summary": "...",
       "why_it_matters": "...",
       "sources": [{"article_id": "A1"}, {"article_id": "A2"}],
-      "reporting_varies": [{"source": "...", "angle": "...", "bias": "..."}]
+      "reporting_varies": [{"article_id": "A2", "source": "...", "angle": "...", "bias": "..."}]
     }
   ],
   "should_know": [
@@ -91,7 +91,7 @@ Examples of strong why_it_matters lines:
 **Rules:**
 - Use Read and Grep only.
 - Use article_ids only -- never include URLs, source names, or bias labels in sources.
-- reporting_varies entries use plain strings (source name, angle, bias) -- these are NOT article references.
+- reporting_varies: `source`, `angle` and `bias` are plain display strings with no article ids in them; `article_id` names the cited article the perspective comes from and must be one of that story's `sources`.
 - Every article_id you reference must exist in articles_1.csv.
 - Every specific in your headline and summary (numbers, percentages, named people/orgs/places, dates, quoted figures) must be supported by at least one article_id you list in that story's `sources` -- that support may come from that article's CSV summary OR its full text in article_fulltext.json. If a detail comes from a particular article in the cluster, cite THAT article. A reader must be able to verify every claim from the listed sources alone -- do not rely on uncited cluster articles to back a specific.
 

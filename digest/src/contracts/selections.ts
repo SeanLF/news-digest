@@ -4,7 +4,7 @@ import { z } from "zod";
 export const PREHEADER_MAX_CHARS = 157;
 export const NOT_COVERED_BLURB_MAX_LEN = 500;
 const Source = z.object({ article_id: z.string().regex(/^A\d+$/) }).strict();
-const ReportingVaries = z.object({ source: z.string(), angle: z.string(), bias: z.string() }).strict();
+const ReportingVaries = z.object({ source: z.string(), angle: z.string(), bias: z.string(), article_id: z.string().optional() }).strict();
 const Story = z
   .object({
     headline: z.string(),

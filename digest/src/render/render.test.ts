@@ -40,6 +40,10 @@ describe("resolution", () => {
     const out = resolveArticleIds(sel, index, fulltext);
     expect(out.must_know[0]!.sources.map((s) => s.wire_agency ?? null)).toEqual(["afp", null]);
   });
+  it("names an angle's outlet from the index, not the writer's text", () => {
+    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A3" }], reporting_varies: [{ source: "British Broadcasting Corp", angle: "a", bias: "center", article_id: "A3" }] }], should_know: [] };
+    expect(resolveArticleIds(sel, index).must_know[0]!.reporting_varies).toEqual([{ source: "BBC", angle: "a", bias: "center" }]);
+  });
   it("upgrades a decoded Google-News link and leaves the rest", () => {
     const sel: Selections = { must_know: [{ sources: [{ name: "Reuters", url: "https://news.google.com/rss/articles/X" }, { name: "BBC", url: "https://bbc.example/a" }] }], should_know: [] };
     expect(applyDecodedLinks(sel, { "https://news.google.com/rss/articles/X": "https://www.reuters.com/x" }).must_know[0]!.sources.map((s) => s.url)).toEqual(["https://www.reuters.com/x", "https://bbc.example/a"]);

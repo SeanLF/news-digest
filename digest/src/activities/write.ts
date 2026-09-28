@@ -62,7 +62,7 @@ const DraftStory = z.object({
   summary: z.string(),
   why_it_matters: z.string().optional(),
   sources: z.array(z.object({ article_id: z.string() })),
-  reporting_varies: z.array(z.object({ source: z.string(), angle: z.string(), bias: z.string() })).optional(),
+  reporting_varies: z.array(z.object({ source: z.string(), angle: z.string(), bias: z.string(), article_id: z.string().optional() })).optional(),
 });
 // The prompt's own output shape, kept so the prompt text carries over; shape only, never count.
 export const BranchDraftSchema = z.object({ must_know: z.array(DraftStory).optional(), should_know: z.array(DraftStory).optional() });

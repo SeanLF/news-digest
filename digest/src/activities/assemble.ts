@@ -48,7 +48,13 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
     for (const story of draft[tier]) {
       const item = { ...story, why_it_matters: story.why_it_matters ?? "" };
       if (item.reporting_varies) {
-        const rv = item.reporting_varies.map((e) => ({ source: stripArticleIds(e.source), angle: stripArticleIds(e.angle), bias: stripArticleIds(e.bias) })).filter((e) => e.source && e.angle);
+        const cited = new Set(story.sources.map((s) => s.article_id));
+        const rv = item.reporting_varies
+          .filter((e) => e.article_id !== undefined && cited.has(e.article_id))
+          .map((e) => ({ source: stripArticleIds(e.source), angle: stripArticleIds(e.angle), bias: stripArticleIds(e.bias), article_id: e.article_id }))
+          .filter((e) => e.source && e.angle);
+        const dropped = item.reporting_varies.length - rv.length;
+        if (dropped) console.warn(JSON.stringify({ stage: "assemble", runId, warning: "reporting_varies angles dropped for naming no cited article", headline: story.headline, dropped }));
         if (rv.length) item.reporting_varies = rv;
         else delete item.reporting_varies;
       }
