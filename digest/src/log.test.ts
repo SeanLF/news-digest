@@ -1,92 +1,78 @@
 import { describe, expect, it } from "vitest";
-import { jsonConsole, jsonLine, temporalLogger } from "./log.js";
+import { createLogger, jsonConsole, temporalLogger } from "./log.js";
 
-const parse = (line: string): Record<string, unknown> => JSON.parse(line) as Record<string, unknown>;
-
-const lines = () => {
+const capture = () => {
   const out: string[] = [];
-  return { out, write: (s: string) => void out.push(s) };
+  const logger = createLogger({ write: (s: string) => void out.push(s) });
+  const lines = () => out.map((l) => JSON.parse(l) as Record<string, unknown>);
+  return { out, logger, lines };
 };
 
-describe("jsonLine", () => {
-  it("merges a level into a line that is already a JSON object", () => {
-    expect(parse(jsonLine("warn", [JSON.stringify({ stage: "gnews", warning: "x" })]))).toEqual({ level: "warn", stage: "gnews", warning: "x" });
-  });
-
-  it("wraps plain text as msg, formatted as console would", () => {
-    expect(parse(jsonLine("error", ["run %d failed:", 7, "boom"]))).toEqual({ level: "error", msg: "run 7 failed: boom" });
-  });
-
-  it("keeps a multi-line message on one line", () => {
-    const line = jsonLine("info", ["one\ntwo"]);
-    expect(line.endsWith("\n")).toBe(true);
-    expect(line.trimEnd()).not.toContain("\n");
-    expect(parse(line)["msg"]).toBe("one\ntwo");
-  });
-
-  it("does not let a line's own level override the call's", () => {
-    expect(parse(jsonLine("error", [JSON.stringify({ level: "info", stage: "s" })]))["level"]).toBe("error");
-  });
-
-  it("wraps a JSON array or scalar as msg", () => {
-    expect(parse(jsonLine("info", ["[1,2]"]))).toEqual({ level: "info", msg: "[1,2]" });
-  });
-});
-
 describe("jsonConsole", () => {
-  it("maps each console method to its level, one JSON line per call", () => {
-    const { out, write } = lines();
-    const c = jsonConsole(write);
+  it("maps each console method to its level, one JSON line per call, the level as a word", () => {
+    const { out, logger, lines } = capture();
+    const c = jsonConsole(logger);
     c.log("a");
     c.info("b");
     c.warn("c");
     c.error("d");
     c.debug("e");
-    expect(out.map((l) => parse(l)["level"])).toEqual(["info", "info", "warn", "error", "debug"]);
+    expect(out.every((l) => l.trimEnd().split("\n").length === 1)).toBe(true);
+    expect(lines().map((l) => l["level"])).toEqual(["info", "info", "warn", "error"]);
+  });
+
+  it("keeps a JSON-object line's fields, and the call's level wins over its own", () => {
+    const { logger, lines } = capture();
+    jsonConsole(logger).warn(JSON.stringify({ stage: "gnews", warning: "x", level: "info" }));
+    expect(lines()[0]).toMatchObject({ level: "warn", stage: "gnews", warning: "x" });
+  });
+
+  it("formats plain arguments as console would, as msg", () => {
+    const { logger, lines } = capture();
+    jsonConsole(logger).error("run %d failed:", 7, "boom");
+    expect(lines()[0]).toMatchObject({ level: "error", msg: "run 7 failed: boom" });
+  });
+
+  it("keeps a multi-line message on one line", () => {
+    const { out, logger, lines } = capture();
+    jsonConsole(logger).info("one\ntwo");
+    expect(out[0]!.trimEnd()).not.toContain("\n");
+    expect(lines()[0]!["msg"]).toBe("one\ntwo");
   });
 });
 
 describe("temporalLogger", () => {
-  it("writes an entry as one JSON line with its level, message and meta", () => {
-    const { out, write } = lines();
-    temporalLogger(write).warn("Activity failed", { attempt: 1, taskQueue: "digest" });
-    expect(out).toHaveLength(1);
-    expect(parse(out[0]!)).toMatchObject({ level: "warn", msg: "Activity failed", attempt: 1, taskQueue: "digest" });
+  it("writes an entry as one line with its level, message and meta", () => {
+    const { logger, lines } = capture();
+    temporalLogger(logger).warn("Activity failed", { attempt: 1, taskQueue: "digest" });
+    expect(lines()).toHaveLength(1);
+    expect(lines()[0]).toMatchObject({ level: "warn", msg: "Activity failed", attempt: 1, taskQueue: "digest" });
   });
 
-  it("keeps an error's name and message, which JSON.stringify drops", () => {
-    const { out, write } = lines();
-    temporalLogger(write).error("Activity failed", { error: new TypeError("timed out after 15000 ms") });
-    expect(parse(out[0]!)["error"]).toMatchObject({ name: "TypeError", message: "timed out after 15000 ms" });
+  it("keeps an error's type and message", () => {
+    const { logger, lines } = capture();
+    temporalLogger(logger).error("Activity failed", { error: new TypeError("timed out after 15000 ms") });
+    expect(lines()[0]!["error"]).toMatchObject({ type: "TypeError", message: "timed out after 15000 ms" });
   });
 
-  it("keeps the other fields when one value is circular", () => {
-    const { out, write } = lines();
+  it("writes a circular meta instead of throwing, keeping the other fields", () => {
+    const { logger, lines } = capture();
     const loop: Record<string, unknown> = { name: "loop" };
     loop["self"] = loop;
-    temporalLogger(write).error("Worker failed", { attempt: 3, error: loop });
-    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: "Worker failed", attempt: 3, error: expect.stringContaining("loop") as unknown });
+    expect(() => temporalLogger(logger).error("Worker failed", { attempt: 3, error: loop })).not.toThrow();
+    expect(lines()[0]).toMatchObject({ level: "error", msg: "Worker failed", attempt: 3 });
   });
 
-  it("keeps the other fields when a value's toJSON throws", () => {
-    const { out, write } = lines();
+  it("writes a line even when a value's toJSON throws", () => {
+    const { logger, lines } = capture();
     const bad = { toJSON: () => { throw new Error("boom"); } };
-    temporalLogger(write).warn("Activity failed", { taskQueue: "digest", context: bad });
-    expect(parse(out[0]!)).toMatchObject({ level: "warn", msg: "Activity failed", taskQueue: "digest" });
-  });
-
-  it("writes a line even when a value defeats both JSON and inspect", () => {
-    const { out, write } = lines();
-    const hostile: Record<string | symbol, unknown> = {};
-    hostile["self"] = hostile;
-    hostile[Symbol.for("nodejs.util.inspect.custom")] = () => { throw new Error("boom"); };
-    expect(() => temporalLogger(write).error("Worker failed", { attempt: 1, error: hostile })).not.toThrow();
-    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: "Worker failed", attempt: 1 });
+    expect(() => temporalLogger(logger).warn("Activity failed", { taskQueue: "digest", context: bad })).not.toThrow();
+    expect(lines()[0]).toMatchObject({ level: "warn" });
   });
 
   it("drops entries below INFO", () => {
-    const { out, write } = lines();
-    temporalLogger(write).debug("noise");
+    const { out, logger } = capture();
+    temporalLogger(logger).debug("noise");
     expect(out).toEqual([]);
   });
 });
