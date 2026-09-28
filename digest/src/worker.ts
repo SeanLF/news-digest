@@ -1,7 +1,8 @@
 import { writeFileSync } from "node:fs";
-import { NativeConnection, Worker } from "@temporalio/worker";
+import { NativeConnection, Runtime, Worker } from "@temporalio/worker";
 import { workerActivities } from "./activities/real.js";
 import { deploymentOptions } from "./deployment.js";
+import { installJsonLogging } from "./log.js";
 import { operationsEnvWarning } from "./ops/env.js";
 import { dbUrl } from "./store/db.js";
 export const TASK_QUEUE = "digest";
@@ -40,4 +41,7 @@ export async function runWorker(address = process.env["TEMPORAL_ADDRESS"] ?? "lo
     stopTouching();
   }
 }
-if (process.argv[1]?.endsWith("worker.js")) await runWorker();
+if (process.argv[1]?.endsWith("worker.js")) {
+  Runtime.install({ logger: installJsonLogging() });
+  await runWorker();
+}
