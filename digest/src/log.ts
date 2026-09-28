@@ -4,7 +4,7 @@ import { destination, pino, stdSerializers, type DestinationStream, type Logger 
 
 export function createLogger(dest: DestinationStream = destination({ sync: true })): Logger {
   return pino(
-    { base: null, timestamp: false, formatters: { level: (label) => ({ level: label }) }, serializers: { err: stdSerializers.err, error: stdSerializers.err } },
+    { level: "debug", base: null, timestamp: false, formatters: { level: (label) => ({ level: label }) }, serializers: { err: stdSerializers.err, error: stdSerializers.err } },
     dest,
   );
 }
