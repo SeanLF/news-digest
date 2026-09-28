@@ -210,7 +210,7 @@ describe("threadSynthesis", () => {
     const synth = s.calls.find((c) => c.stage === "synthesis")!;
     expect(synth.prompt).toContain("RECENT UPDATES:\n- Talks opened in Oman.\nOPEN QUESTIONS:\n- Will talks move to Geneva?");
     expect(synth.prompt).toContain("A1: Iran talks resume in Geneva\n   Negotiators met again. Full story at [link]");
-    expect(synth.options.model).toBe("claude-sonnet-4-6");
+    expect(synth.options.model).toBe("claude-sonnet-5-5");
     expect(s.calls.find((c) => c.stage === "audit")!.prompt).toBe(
       "CLAIM 1: Talks resumed in Geneva.\nCITED SOURCE(S):\n  [A1] Iran talks resume in Geneva. Negotiators met again. Full story at [link]\n\nCLAIM 2: A deal is imminent.\nCITED SOURCE(S):\n  [A2] Geneva round two for Iran deal. Second day of talks.",
     );

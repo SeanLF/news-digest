@@ -1,7 +1,7 @@
 ---
 name: write
 description: Writes the headline and summary for one selected story, plus why_it_matters when the story is must_know. Reads its branch with Read and Grep; the story is the final message.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 thinking: adaptive
 tools: Read, Grep
 ---
