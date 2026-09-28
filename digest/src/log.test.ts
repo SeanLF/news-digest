@@ -60,12 +60,28 @@ describe("temporalLogger", () => {
     expect(parse(out[0]!)["error"]).toMatchObject({ name: "TypeError", message: "timed out after 15000 ms" });
   });
 
-  it("writes a circular meta as one line instead of throwing", () => {
+  it("keeps the other fields when one value is circular", () => {
     const { out, write } = lines();
     const loop: Record<string, unknown> = { name: "loop" };
     loop["self"] = loop;
-    expect(() => temporalLogger(write).error("Worker failed", { error: loop })).not.toThrow();
-    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: expect.stringContaining("Worker failed") as unknown });
+    temporalLogger(write).error("Worker failed", { attempt: 3, error: loop });
+    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: "Worker failed", attempt: 3, error: expect.stringContaining("loop") as unknown });
+  });
+
+  it("keeps the other fields when a value's toJSON throws", () => {
+    const { out, write } = lines();
+    const bad = { toJSON: () => { throw new Error("boom"); } };
+    temporalLogger(write).warn("Activity failed", { taskQueue: "digest", context: bad });
+    expect(parse(out[0]!)).toMatchObject({ level: "warn", msg: "Activity failed", taskQueue: "digest" });
+  });
+
+  it("writes a line even when a value defeats both JSON and inspect", () => {
+    const { out, write } = lines();
+    const hostile: Record<string | symbol, unknown> = {};
+    hostile["self"] = hostile;
+    hostile[Symbol.for("nodejs.util.inspect.custom")] = () => { throw new Error("boom"); };
+    expect(() => temporalLogger(write).error("Worker failed", { attempt: 1, error: hostile })).not.toThrow();
+    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: "Worker failed", attempt: 1 });
   });
 
   it("drops entries below INFO", () => {
