@@ -7,11 +7,28 @@ type Write = (line: string) => void;
 const replacer = (_k: string, v: unknown): unknown =>
   v instanceof Error ? { name: v.name, message: v.message, stack: v.stack } : typeof v === "bigint" ? v.toString() : v;
 
+function fieldValue(v: unknown): unknown {
+  try {
+    JSON.stringify(v, replacer);
+    return v;
+  } catch {
+    try {
+      return inspect(v, { depth: 4, breakLength: Infinity });
+    } catch {
+      return "[unserialisable]";
+    }
+  }
+}
+
 function serialise(value: Record<string, unknown>): string {
   try {
     return JSON.stringify(value, replacer);
   } catch {
-    return JSON.stringify({ level: value["level"], msg: inspect(value, { depth: 4, breakLength: Infinity }) });
+    try {
+      return JSON.stringify(Object.fromEntries(Object.entries(value).map(([k, v]) => [k, fieldValue(v)])), replacer);
+    } catch {
+      return JSON.stringify({ level: typeof value["level"] === "string" ? value["level"] : "error", msg: "[unserialisable log entry]" });
+    }
   }
 }
 
