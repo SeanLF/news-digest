@@ -20,7 +20,6 @@ See docs/lessons/a-deadline-on-the-waiter-does-not-bound-the-worker.md.
 from __future__ import annotations
 
 import contextlib
-import importlib.metadata
 import ipaddress
 import json
 import logging
@@ -100,7 +99,8 @@ _MIN_FILE_SIZE = 10  # trafilatura's MIN_FILE_SIZE
 _REDIRECTS = frozenset({301, 302, 303, 307, 308})
 _HEADERS = {
     **urllib3.util.make_headers(accept_encoding=True),
-    "User-Agent": f"trafilatura/{importlib.metadata.version('trafilatura')} (+https://github.com/adbar/trafilatura)",
+    # Honest, and none of the tokens publishers block on: tests/test_fulltext.py has the measurement.
+    "User-Agent": "news-digest/1.0",
 }
 _getaddrinfo = socket.getaddrinfo
 
