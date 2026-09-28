@@ -1,10 +1,11 @@
-import { AGENCY_LABELS, BUCKET_ORDER, biasBucket, hasArticlePath, isSafeUrl, titleCase, type Bucket, type Source } from "./common.js";
+import { AGENCY_LABELS, AGENCY_RATINGS, BUCKET_ORDER, biasBucket, hasArticlePath, isSafeUrl, titleCase, type Bucket, type Source } from "./common.js";
 import { repostKey } from "./resolve.js";
 
-export type ReportBucket = Bucket | "w";
-export const REPORT_BUCKET_ORDER: ReportBucket[] = [...BUCKET_ORDER, "w"];
+export type ReportBucket = Bucket | "u";
+export const REPORT_BUCKET_ORDER: ReportBucket[] = [...BUCKET_ORDER, "u"];
 export interface ReportMember { name: string; bias: string; urls: string[]; origin: boolean }
-export interface Report { label: string; leaning: string; bucket: ReportBucket; members: ReportMember[] }
+export interface Report { label: string; leaning: string; bucket: ReportBucket; wire: boolean; members: ReportMember[] }
+export const SHARED_COPY = "Shared copy";
 
 const GENERIC_HEADLINES = new Set(["live updates", "live", "what we know", "latest news", "news", "the latest", "explainer", "analysis"]);
 
@@ -12,24 +13,22 @@ function find(parent: number[], i: number): number {
   while (parent[i] !== i) i = parent[i] = parent[parent[i]!]!;
   return i;
 }
-function union(parent: number[], a: number, b: number): void {
-  parent[find(parent, a)] = find(parent, b);
-}
-const agencyKey = (s: Source) => s.wire_agency?.trim().toLowerCase() || null;
-const agencyLabel = (agency: string) => AGENCY_LABELS[agency] ?? titleCase(agency);
+const agencyOf = (s: Source): string | null => {
+  const raw = s.wire_agency?.trim().toLowerCase();
+  return raw ? (AGENCY_LABELS[raw] ?? titleCase(raw)) : null;
+};
 const openable = (url: string) => isSafeUrl(url) && hasArticlePath(url);
 
-// A story's sources as reports: wire copy joins its agency's report, identical headlines join each
-// other, and everything else is its outlet's own reporting.
+// A story's sources as reports. Wire copy is its agency's report, rated as the agency is; identical
+// headlines with no wire tag are one report whose origin is unknown; the rest is each outlet's own.
 export function groupReports(sources: Source[]): { reports: Report[]; outlets: number } {
   const named = sources.filter((s) => s.name);
   const parent = named.map((_, i) => i);
   const firstBy = new Map<string, number>();
-  const link = (key: string | null, i: number) => {
-    if (!key) return;
+  const link = (key: string, i: number) => {
     const j = firstBy.get(key);
     if (j === undefined) firstBy.set(key, i);
-    else union(parent, i, j);
+    else parent[find(parent, i)] = find(parent, j);
   };
   const headlines = named.map((s) => {
     const h = repostKey(s.original_title ?? "", s.name ?? "");
@@ -37,12 +36,12 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
   });
   const agenciesBy = new Map<string, Set<string>>();
   named.forEach((s, i) => {
-    const h = headlines[i], a = agencyKey(s);
+    const h = headlines[i], a = agencyOf(s);
     if (h && a) agenciesBy.set(h, (agenciesBy.get(h) ?? new Set()).add(a));
   });
   named.forEach((s, i) => {
-    const agency = agencyKey(s);
-    link(agency && `wire:${agency}`, i);
+    const agency = agencyOf(s);
+    if (agency) link(`wire:${agency}`, i);
     const h = headlines[i];
     if (h && (agenciesBy.get(h)?.size ?? 0) <= 1) link(`headline:${h}`, i);
   });
@@ -60,23 +59,20 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
     }
     const shown = members.filter((m) => m.urls.length);
     if (!shown.length) continue;
-    const agency = idx.map((i) => agencyKey(named[i]!)).find(Boolean) ?? null;
+    const agency = idx.map((i) => agencyOf(named[i]!)).find(Boolean) ?? null;
     if (agency) {
-      const label = agencyLabel(agency);
-      for (const m of shown) m.origin = m.name.toLowerCase() === label.toLowerCase() || idx.some((i) => named[i]!.name === m.name && named[i]!.wire && agencyKey(named[i]!) === agency);
-      reports.push({ label, leaning: "wire", bucket: "w", members: [...shown.filter((m) => m.origin), ...shown.filter((m) => !m.origin)] });
-      continue;
+      for (const m of shown) m.origin = m.name.toLowerCase() === agency.toLowerCase() || idx.some((i) => named[i]!.name === m.name && named[i]!.wire && agencyOf(named[i]!) === agency);
+      const rating = AGENCY_RATINGS[agency];
+      reports.push({ label: agency, leaning: rating?.bias ?? "unrated", bucket: rating ? biasBucket(rating.bias) : "u", wire: true, members: [...shown.filter((m) => m.origin), ...shown.filter((m) => !m.origin)] });
+    } else if (shown.length > 1) {
+      reports.push({ label: SHARED_COPY, leaning: "unrated", bucket: "u", wire: false, members: shown });
+    } else {
+      const own = shown[0]!;
+      own.origin = true;
+      const existing = reports.find((r) => !r.wire && r.label === own.name);
+      if (existing) existing.members[0]!.urls.push(...own.urls);
+      else reports.push({ label: own.name, leaning: own.bias, bucket: biasBucket(own.bias), wire: false, members: [own] });
     }
-    const origin = shown[0]!;
-    origin.origin = true;
-    const own = reports.find((r) => r.bucket !== "w" && r.label === origin.name);
-    if (own) {
-      for (const m of shown) {
-        const same = own.members.find((x) => x.name === m.name);
-        if (same) same.urls.push(...m.urls);
-        else own.members.push({ ...m, origin: false });
-      }
-    } else reports.push({ label: origin.name, leaning: origin.bias, bucket: biasBucket(origin.bias), members: shown });
   }
   const ordered = REPORT_BUCKET_ORDER.flatMap((b) => reports.filter((r) => r.bucket === b));
   return { reports: ordered, outlets: new Set(ordered.flatMap((r) => r.members.map((m) => m.name))).size };

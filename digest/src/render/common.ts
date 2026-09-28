@@ -84,6 +84,24 @@ export function biasBucket(bias: string): Bucket {
 export const AGENCY_LABELS: Record<string, string> = {
   afp: "AFP", "agence france-presse": "AFP", ap: "AP", "associated press": "AP", dpa: "dpa", efe: "EFE", "agencia efe": "EFE", ansa: "ANSA", pti: "PTI", "press trust of india": "PTI", ians: "IANS", upi: "UPI", "united press international": "UPI", "pa media": "PA Media", "press association": "PA Media", tass: "TASS",
 };
+// Media Bias/Fact Check's ratings of the agencies prepare recognises (prepare/wire.ts), on the
+// catalogue's scale, read 2026-09-28. PA Media and IANS have no MBFC page, so they render unrated.
+export const AGENCY_RATINGS: Record<string, { bias: string; factuality: string; source: string }> = {
+  Reuters: { bias: "center", factuality: "very-high", source: "https://mediabiasfactcheck.com/reuters/" },
+  AP: { bias: "lean-left", factuality: "high", source: "https://mediabiasfactcheck.com/associated-press/" },
+  AFP: { bias: "lean-left", factuality: "high", source: "https://mediabiasfactcheck.com/afp-agence-france-presse/" },
+  dpa: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/dpa-german-press-agency/" },
+  EFE: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/agencia-efe-bias-and-credibility/" },
+  ANSA: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/agenzia-nazionale-stampa-associata-ansa/" },
+  PTI: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/press-trust-of-india-pti-bias-and-credibility/" },
+  UPI: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/united-press-international-upi/" },
+  Kyodo: { bias: "center", factuality: "high", source: "https://mediabiasfactcheck.com/kyodo-news-bias/" },
+  Bloomberg: { bias: "lean-left", factuality: "mostly-factual", source: "https://mediabiasfactcheck.com/bloomberg/" },
+  Yonhap: { bias: "lean-right", factuality: "mostly-factual", source: "https://mediabiasfactcheck.com/yonhap-news-agency-bias/" },
+  TASS: { bias: "lean-right", factuality: "mixed", source: "https://mediabiasfactcheck.com/russian-news-agency-tass/" },
+  Xinhua: { bias: "left", factuality: "mixed", source: "https://mediabiasfactcheck.com/xinhua-news-agency/" },
+  "Anadolu Agency": { bias: "right", factuality: "mixed", source: "https://mediabiasfactcheck.com/anadolu-agency/" },
+};
 // str.title(): each run of letters capitalised, the rest of the run lowered.
 export const titleCase = (s: string) => s.replaceAll(/\p{L}+/gu, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
