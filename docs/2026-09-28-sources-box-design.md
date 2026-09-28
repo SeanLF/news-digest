@@ -321,6 +321,11 @@ SDK at 0.3.284 or later (0.3.280 does not list the model). P3's gates are measur
 checker, so the model is chosen before they are set, not after; P1 and P2 make no model calls and
 are unaffected.
 
+Measured 2026-09-28 (`docs/proposed/coherence-planted/model-2026-09-28/`): on the planted band the
+checker on Sonnet 5.5 keeps recall 8/8, flags story 11's "already disrupting" (the source says
+"could") where Sonnet 5 does not, and runs about 3x faster. It goes live as its own deploy after P1
+and P2, so P2's cost gate is measured on one model; P3's gates are then set on Sonnet 5.5.
+
 ## 8. Open
 
 1. The PostHog question (N4).
