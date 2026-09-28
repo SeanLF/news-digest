@@ -2,7 +2,7 @@ import type { CoherenceReport } from "../contracts/coherence.js";
 import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
 
 type Field = "headline" | "summary" | "why_it_matters";
-export interface PlantedKey { hard_positives: { idx: number; field: Field }[]; clean_fields: { idx: number; field: Field }[] }
+export interface PlantedKey { hard_positives: { idx: number; field: Field }[]; clean_fields: { idx: number; field: Field }[]; found_defects?: { idx: number; field: Field }[] }
 interface DraftStory { headline: string; sources: { article_id: string }[] }
 
 // Which fields the checker failed, per story in draft order (must_know then should_know): the index
@@ -26,5 +26,7 @@ export function scorePlanted(report: CoherenceReport, draft: { must_know: DraftS
     clean: key.clean_fields.length,
     missed: missed.map((c) => `${c.idx}:${c.field}`),
     dropped: falseDrops.map((c) => `${c.idx}:${c.field}`),
+    found: (key.found_defects ?? []).filter(hit).length,
+    foundOf: (key.found_defects ?? []).length,
   };
 }
