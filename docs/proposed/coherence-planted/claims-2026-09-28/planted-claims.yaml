@@ -1,0 +1,14 @@
+description: COHERENCE planted-defect band with claims, Sonnet 5.5, read-loop
+prompts: ["planted278"]
+providers:
+  - id: file://../dist/gate/checker-provider.js
+    label: sonnet-5-5-claims
+    config: { fixtureDir: ../docs/proposed/coherence-planted/fixtures/planted278, today: "2026-08-28", shape: read-loop }
+tests:
+  - vars:
+      draft: ../docs/proposed/coherence-planted/fixtures/planted278/draft_selections.json
+      key: ../docs/proposed/coherence-planted/planted278_key.json
+      maxFalseDrops: 3
+    assert:
+      - type: javascript
+        value: file://../dist/gate/planted-assert.js
