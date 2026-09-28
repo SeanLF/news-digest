@@ -43,6 +43,7 @@ export function preSendFailures(i: PreSendInput): string[] {
     const ids = s.sources.map((x) => x.article_id);
     const fields: [string, string][] = [["headline", s.headline], ["summary", s.summary], ...(s.why_it_matters !== undefined ? [["why_it_matters", s.why_it_matters] as [string, string]] : [])];
     for (const e of s.reporting_varies ?? []) for (const k of ["source", "angle", "bias"] as const) fields.push([`reporting_varies.${k}`, e[k]]);
+    for (const c of s.claims ?? []) fields.push(["claims.text", c.text]);
     // The render attaches a delta only to a story whose cluster no other story shares.
     const shared = stories.filter((o) => o.s.cluster_id === s.cluster_id).length > 1;
     const delta = s.cluster_id !== undefined && !shared ? i.threadContext?.[s.cluster_id]?.delta : undefined;

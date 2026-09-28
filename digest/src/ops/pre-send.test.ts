@@ -43,6 +43,11 @@ describe("preSendFailures", () => {
       "INTERNAL_ID_LEAK: 3 leak(s): preheader 'A1' | must_know.summary '(A2)' in 'Ceasefire holds' | should_know.reporting_varies.source '(A5)' in 'Chip maker reports'",
     ]);
   });
+  it("a claim's text, which the sources box shows, is checked for ids", () => {
+    const s = clean();
+    s.must_know[0]!.claims = [{ field: "summary", text: "A2's dateline in Cairo", supported_by: ["A2"] }];
+    expect(preSendFailures(input({ selections: s }))).toEqual(["INTERNAL_ID_LEAK: 1 leak(s): must_know.claims.text 'A2' in 'Ceasefire holds'"]);
+  });
   it("a thread delta, which takes the summary's slot at render, is checked against its story's ids", () => {
     const s = clean();
     s.must_know[0]!.cluster_id = "ceasefire";
