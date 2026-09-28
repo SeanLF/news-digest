@@ -8,7 +8,7 @@ async function setup(results: unknown[], resolution: unknown[] = [], preheader: 
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "clusters.json", JSON.stringify({ clusters: [{ story: "Russia votes", article_ids: ["A1", "A2"] }, { story: "Yen", article_ids: ["A4"] }] }));
   await store.put(300, "selected.json", JSON.stringify({ must_know: [], should_know: [], not_covered_blurb: "Held back a Balkan ruling." }));
-  const plans = [["must_know", "Russia votes", ["A1", "A2"], { reporting_varies: [{ source: "NYT (A316)", angle: "a", bias: "center" }] }], ["must_know", "Talks stall", ["A3"], {}], ["must_know", "Deal signed", ["A5"], {}], ["should_know", "Yen jumps", ["A4"], {}]] as const;
+  const plans = [["must_know", "Russia votes", ["A1", "A2"], { reporting_varies: [{ source: "NYT (A316)", angle: "a", bias: "center", article_id: "A2" }, { source: "Guardian", angle: "b", bias: "lean-left", article_id: "A9" }, { source: "Spiegel", angle: "c", bias: "lean-left" }] }], ["must_know", "Talks stall", ["A3"], {}], ["must_know", "Deal signed", ["A5"], {}], ["should_know", "Yen jumps", ["A4"], {}]] as const;
   const drafts: Pointer[] = [];
   for (const [i, [tier, h, ids, extra]] of plans.entries()) drafts.push(await store.put(300, `draft_s0${i}.json`, JSON.stringify({ plan: { index: i, tier, storyIds: ids, contextIds: ids }, story: story(h, [...ids], extra) })));
   const report = await store.put(300, "coherence_report.json", JSON.stringify({ results }));
@@ -28,7 +28,7 @@ describe("assemble", () => {
     const { selections, report } = await run();
     expect(selections.must_know.map((s) => [s.headline, s.why_it_matters, s.cluster_id])).toEqual([["Russia votes", "W", "Russia votes"], ["Talks stall", "", undefined], ["Deal signed", "W", undefined]]);
     expect(selections.must_know[2]?.summary).toBe("Fixed.");
-    expect(selections.must_know[0]?.reporting_varies).toEqual([{ source: "NYT", angle: "a", bias: "center" }]);
+    expect(selections.must_know[0]?.reporting_varies).toEqual([{ source: "NYT", angle: "a", bias: "center", article_id: "A2" }]);
     expect(selections.should_know).toEqual([{ headline: "Yen jumps", summary: "S", sources: [{ article_id: "A4" }], cluster_id: "Yen" }]);
     expect(selections.preheader).toBe("Pre");
     expect(selections.not_covered_blurb).toBe("Held back a Balkan ruling.");

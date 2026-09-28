@@ -36,7 +36,11 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
         console.warn(JSON.stringify({ stage: "render", warning: "dropped a story with no resolved sources", headline: item.headline }));
         return [];
       }
-      return [{ ...item, sources }];
+      const varies = item.reporting_varies?.map(({ article_id, ...rv }) => {
+        const meta = article_id && Object.hasOwn(index, article_id) ? IndexEntry.safeParse(index[article_id]) : undefined;
+        return meta?.success ? { ...rv, source: meta.data.name } : rv;
+      });
+      return [{ ...item, sources, ...(varies ? { reporting_varies: varies } : {}) }];
     });
   const out = { ...selections, must_know: tier(selections.must_know), should_know: tier(selections.should_know) };
   if (unresolved) console.warn(JSON.stringify({ stage: "render", warning: "dropped unresolved article_id references", count: unresolved }));
