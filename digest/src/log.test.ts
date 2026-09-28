@@ -18,7 +18,7 @@ describe("jsonConsole", () => {
     c.error("d");
     c.debug("e");
     expect(out.every((l) => l.trimEnd().split("\n").length === 1)).toBe(true);
-    expect(lines().map((l) => l["level"])).toEqual(["info", "info", "warn", "error"]);
+    expect(lines().map((l) => l["level"])).toEqual(["info", "info", "warn", "error", "debug"]);
   });
 
   it("keeps a JSON-object line's fields, and the call's level wins over its own", () => {

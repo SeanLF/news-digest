@@ -316,6 +316,12 @@ are unaffected.
 
 ## 8. Open
 
+0. Found in review of `6c322da`: an identical headline shared by untagged outlets has no evidence of
+   who copied whom, so `groupReports` takes the first listed as origin, and reordering the sources
+   splits an outlet's coverage (`Carrier, FT, FT` gives two reports). Proposed with the wire-leaning
+   change (Sean, pending): such a group is one report whose origin is unknown, its leaning
+   "unrated", instead of whichever outlet came first.
+
 1. The PostHog question (N4).
 2. R12, a standalone per-claim block: revisit once "What it backs" is live.
 3. Whether a summary-only article that backs nothing should also go, once P3's backfill shows how
