@@ -1,5 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Resend } from "resend";
+import { log } from "../log.js";
 import { dbUrl, openDb } from "../store/db.js";
 import { siteApp } from "./app.js";
 import { loadAssets } from "./assets.js";
@@ -15,7 +16,7 @@ try {
   cfg = siteConfig(process.env);
 } catch (e) {
   if (e instanceof ConfigError) {
-    console.error(JSON.stringify({ site: "config", error: e.message }));
+    log.error({ site: "config", error: e.message });
     process.exit(1);
   }
   throw e;
@@ -30,7 +31,7 @@ const app = siteApp({
   now: () => new Date(),
 });
 const port = Number(process.env["PORT"] ?? 8080);
-const server = serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => console.log(JSON.stringify({ site: "listening", port })));
+const server = serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => log.info({ site: "listening", port }));
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.on(signal, () => {
     server.close(() => process.exit(0));

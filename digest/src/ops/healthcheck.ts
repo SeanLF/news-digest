@@ -1,6 +1,8 @@
 // healthchecks.io, the off-box dead-man's switch (newsroom/src/healthcheck.py): it alerts when the
 // daily success ping does not arrive, which covers what no in-process check can see (the box, the
 // worker or Temporal down). Unset HEALTHCHECK_PING_URL makes every call a no-op; no call ever throws.
+import { log } from "../log.js";
+
 export const PING_ENV = "HEALTHCHECK_PING_URL";
 const TIMEOUT_MS = 10_000;
 const MAX_LOG_BYTES = 1000;
@@ -21,7 +23,7 @@ export function healthcheck(env: Record<string, string | undefined> = process.en
     const url = base.replace(/\/+$/, "") + (event ? `/${event}` : "");
     const name = event === "log" ? "log" : (event ?? "success");
     if (!url.startsWith("https://")) {
-      console.warn(`${PING_ENV} is not https -- skipping ${name} ping`);
+      log.warn(`${PING_ENV} is not https -- skipping ${name} ping`);
       return;
     }
     try {
@@ -33,7 +35,7 @@ export function healthcheck(env: Record<string, string | undefined> = process.en
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
     } catch (e) {
-      console.warn(`healthcheck ${name} ping failed (non-fatal): ${String(e)}`);
+      log.warn(`healthcheck ${name} ping failed (non-fatal): ${String(e)}`);
     }
   }
   return {

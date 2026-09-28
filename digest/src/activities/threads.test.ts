@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { MockActivityEnvironment } from "@temporalio/testing";
 import { runActivities } from "./run.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { openDb, type Db } from "../store/db.js";
@@ -466,16 +467,16 @@ async function fail(db: Db, id: number, runAt?: string): Promise<void> {
   await rewrite(db, "UPDATE runs SET status = 'failed', outcome = NULL WHERE id = $1", [id]);
   if (runAt) await db.run("UPDATE runs SET started_at = $1 WHERE id = $2", [runAt, id]);
 }
-// Runs fn with the JSON log lines on stderr captured and stdout silenced.
+// Runs fn with the error-level log lines captured and info-level silenced.
 async function quietly<T>(fn: () => Promise<T>): Promise<{ result: T; logged: Record<string, unknown>[] }> {
   const logged: Record<string, unknown>[] = [];
-  const [err, log] = [console.error, console.log];
-  console.error = (m: string) => logged.push(JSON.parse(m) as Record<string, unknown>);
-  console.log = () => undefined;
+  const err = vi.spyOn(log, "error").mockImplementation((m: unknown) => void logged.push(m as Record<string, unknown>));
+  const info = vi.spyOn(log, "info").mockImplementation(() => undefined);
   try {
     return { result: await fn(), logged };
   } finally {
-    [console.error, console.log] = [err, log];
+    err.mockRestore();
+    info.mockRestore();
   }
 }
 

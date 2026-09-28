@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import type { Email } from "../mail/resend.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
@@ -16,18 +17,18 @@ afterEach(async () => {
 
 describe("ops activities", () => {
   it("checkRunHealth returns a run-health alert for a violating run and logs the coherence failure kinds", async () => {
-    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const logSpy = vi.spyOn(log, "info").mockImplementation(() => undefined);
+    vi.spyOn(log, "error").mockImplementation(() => undefined);
     const path = await db();
     const store = new ArtifactStore(path);
     await store.put(305, "coherence_report.json", JSON.stringify({ results: [{ pass: false, failed_fields: ["summary"], failure_kinds: { summary: "unsupported" } }] }));
     const ops = opsActivities({ dbUrl: path, env, maxAttempts: 3 });
     const req = await ops.checkRunHealth(305, true);
     expect(req).toEqual({ kind: "run-health", runId: 305, violations: ["ZERO_STORIES: the run completed but shipped no stories", "NO_USAGE_RECORDED: no stage recorded a model call, so the curation phase left no trace"] });
-    expect(log).toHaveBeenCalledWith(JSON.stringify({ stage: "coherence", runId: 305, failureKinds: { contradicted: 0, unsupported: 1, unlabelled: 0 } }));
+    expect(logSpy).toHaveBeenCalledWith({ stage: "coherence", runId: 305, failureKinds: { contradicted: 0, unsupported: 1, unlabelled: 0 } });
   });
   it("checkRunHealth is best-effort: a database it cannot read returns no alert instead of failing the run", async () => {
-    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const err = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const ops = opsActivities({ dbUrl: UNREACHABLE, env, maxAttempts: 3 });
     expect(await ops.checkRunHealth(305, true)).toBeNull();
     expect(String(err.mock.calls[0]?.[0])).toMatch(/^run-health check FAILED to run for run 305 \(non-fatal\)/);
@@ -39,7 +40,7 @@ describe("ops activities", () => {
     expect(await opsActivities({ dbUrl: path, env: { ...env, HEALTH_ALERT_THRESHOLD: "2" }, maxAttempts: 3 }).checkFeeds(305, ["the_hindu"])).toMatchObject({ kind: "source-health", failing: [["the_hindu", 2]], threshold: 2 });
   });
   it("alert sends through the injected sender", async () => {
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(log, "info").mockImplementation(() => undefined);
     const sent: Email[] = [];
     const send = (e: Email) => {
       sent.push(e);
@@ -50,7 +51,7 @@ describe("ops activities", () => {
     expect(sent.map((e) => e.subject)).toEqual(["[Alert] Digest archival failed (thread_links)"]);
   });
   it("a run-failed alert reads the day's broadcast state, so a send the workflow never heard back from is not called unsent", async () => {
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(log, "info").mockImplementation(() => undefined);
     const path = await migratedDb([{ id: 305, runAt: "2026-09-23 10:25:00" }]);
     await openDb(path).exec("INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-23', 1, 305, ''); INSERT INTO sends (issue_date, run_id, revision, status, resend_id) VALUES ('2026-09-23', 305, 1, 'sending', 'b1')");
     const sent: Email[] = [];
@@ -63,7 +64,7 @@ describe("ops activities", () => {
     expect(sent[0]?.html).not.toContain("--resume");
   });
   it("checkPreSend adds the cut-over hold to a clean run dated on or before HOLD_ALWAYS_THROUGH, and not after", async () => {
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    vi.spyOn(log, "info").mockImplementation(() => undefined);
     const path = await db(); // run 305 on 2026-09-18
     const sel = { must_know: [{ ...story("Ceasefire holds", ["A1"]), why_it_matters: "It matters." }], should_know: [story("Storm nears", ["A2"]), story("Chips report", ["A3"]), story("Vote delayed", ["A4"])], preheader: "A ceasefire holds." };
     const store = new ArtifactStore(path);

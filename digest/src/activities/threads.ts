@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { Context } from "@temporalio/activity";
 import { ApplicationFailure } from "@temporalio/common";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
+import { log } from "../log.js";
 import { parseAgentSpec } from "../runner/prompt.js";
 import { runStage, type SdkQuery } from "../runner/run-stage.js";
 import { artifactIn, putIn, quarantineIn, setIn, type ArtifactStore, type Pointer } from "../store/artifacts.js";
@@ -157,7 +158,7 @@ export interface Retraction { retracted: boolean; reason?: string }
 
 async function retract(db: Db, runId: number): Promise<Retraction> {
   const decline = (reason: string) => {
-    console.error(JSON.stringify({ stage: "threads", runId, error: "unsent issue's thread writes kept", reason }));
+    log.error({ stage: "threads", runId, error: "unsent issue's thread writes kept", reason });
     return { retracted: false, reason };
   };
   // A run readers got, on the web or by email, is public, and so are its thread updates: saveDigest
@@ -264,7 +265,7 @@ export function threadsActivities(deps: ThreadsDeps) {
     } catch (e) {
       if (deps.signal?.()?.aborted) throw e;
       if (attempt() < deps.maxAttempts) throw e;
-      console.error(JSON.stringify({ stage: "threads", runId, error: "linker failed on its last attempt; every story starts a new thread", detail: String(e) }));
+      log.error({ stage: "threads", runId, error: "linker failed on its last attempt; every story starts a new thread", detail: String(e) });
       return { mapping: labels.map(() => null), health: { ok: false, proposed: 0, validated: 0 } };
     }
   }
@@ -288,7 +289,7 @@ export function threadsActivities(deps: ThreadsDeps) {
       const done = await read(db);
       if (done) return { plans: done };
       const retracted = await retractAbandoned(db, runId);
-      if (retracted.length) console.log(JSON.stringify({ stage: "threads", runId, retractedAbandonedRuns: retracted }));
+      if (retracted.length) log.info({ stage: "threads", runId, retractedAbandonedRuns: retracted });
       if ((await new ThreadStore(db).countRunUpdates(runId)) > 0)
         throw ApplicationFailure.nonRetryable(`run ${runId} has thread installments but no ${THREAD_ASSIGNMENTS}; refusing to link again and duplicate them (a forced re-run undoes them)`, "ThreadIdentityUnrecorded");
       const need = async (name: string) => {
@@ -307,7 +308,7 @@ export function threadsActivities(deps: ThreadsDeps) {
         await putIn(t, runId, THREAD_ASSIGNMENTS, JSON.stringify(assignments.map((a: Assignment) => ({ thread_id: a.thread_id, is_new: a.is_new, story: a.story })), null, 2));
         return plansFrom(assignments, trace);
       }, lockOf(runId));
-      console.log(JSON.stringify({ stage: "threads-link", runId, forced: force, stories: stories.length, candidates: active.length, linkerOk: health.ok, proposed: health.proposed, validated: health.validated, toSynthesize: committed.length }));
+      log.info({ stage: "threads-link", runId, forced: force, stories: stories.length, candidates: active.length, linkerOk: health.ok, proposed: health.proposed, validated: health.validated, toSynthesize: committed.length });
       return { plans: committed };
     },
 
@@ -353,17 +354,17 @@ export function threadsActivities(deps: ThreadsDeps) {
           for (const round of [1, 2]) {
             const answer = readAudit(await run("thread-audit", runId, "thread_audit", round === 1 ? base : base + auditReask(problem, n), SONNET_TIMEOUT_MS, { thread: tid, round }), n);
             if ("supported" in answer) {
-              if (answer.unreadable) console.warn(JSON.stringify({ stage: "threads", runId, thread: tid, warning: "audit verdicts with an unreadable `supported`, read as unsupported", count: answer.unreadable }));
+              if (answer.unreadable) log.warn({ stage: "threads", runId, thread: tid, warning: "audit verdicts with an unreadable `supported`, read as unsupported", count: answer.unreadable });
               supported = answer.supported;
               break;
             }
             problem = answer.problem;
-            console.warn(JSON.stringify({ stage: "threads", runId, thread: tid, warning: `audit reply unusable on attempt ${round}/2`, problem }));
+            log.warn({ stage: "threads", runId, thread: tid, warning: `audit reply unusable on attempt ${round}/2`, problem });
           }
           if (supported.length !== n) throw new Error(`audit ${problem}`);
         } catch (e) {
           if (deps.signal?.()?.aborted) throw e;
-          console.error(JSON.stringify({ stage: "threads", runId, thread: tid, error: "whats_new audit failed; keeping facts (fail-open)", detail: String(e) }));
+          log.error({ stage: "threads", runId, thread: tid, error: "whats_new audit failed; keeping facts (fail-open)", detail: String(e) });
           auditFailed = true;
           supported = facts.map(() => true);
         }
@@ -391,7 +392,7 @@ export function threadsActivities(deps: ThreadsDeps) {
       const assignmentsText = await artifactIn(db, runId, THREAD_ASSIGNMENTS);
       if (assignmentsText === undefined) {
         const health = { link: "failed", error: report.linkError ?? `no ${THREAD_ASSIGNMENTS}`, ...(report.timedOut ? { timed_out: true } : {}) };
-        console.error(JSON.stringify({ stage: "threads", runId, error: "thread linking failed; the digest renders without thread context", detail: health.error }));
+        log.error({ stage: "threads", runId, error: "thread linking failed; the digest renders without thread context", detail: health.error });
         await db.tx(async (t) => {
           await setIn(t, runId, THREAD_HEALTH, JSON.stringify(health, null, 2));
           await quarantineIn(t, runId, THREAD_CONTEXT);
@@ -435,11 +436,11 @@ export function threadsActivities(deps: ThreadsDeps) {
         await setIn(t, runId, THREAD_CONTEXT, JSON.stringify(contexts, null, 2));
       }, lockOf(runId));
       const continued = assignments.filter((a) => !a.is_new).length;
-      console.log(JSON.stringify({ stage: "threads", runId, stories: assignments.length, continued, new: assignments.length - continued, synthesized: report.outcomes.length, failures: report.failures.length, auditFailures, timedOut: report.timedOut ?? false }));
-      if (auditFailures) console.error(JSON.stringify({ stage: "threads", runId, alert: "thread_audit_failures", auditFailures, detail: "the faithfulness audit failed open; unchecked facts shipped" }));
-      if (report.failures.length) console.error(JSON.stringify({ stage: "threads", runId, error: "thread syntheses failed and were skipped", failures: report.failures }));
+      log.info({ stage: "threads", runId, stories: assignments.length, continued, new: assignments.length - continued, synthesized: report.outcomes.length, failures: report.failures.length, auditFailures, timedOut: report.timedOut ?? false });
+      if (auditFailures) log.error({ stage: "threads", runId, alert: "thread_audit_failures", auditFailures, detail: "the faithfulness audit failed open; unchecked facts shipped" });
+      if (report.failures.length) log.error({ stage: "threads", runId, error: "thread syntheses failed and were skipped", failures: report.failures });
       if (report.timedOut) {
-        console.error(JSON.stringify({ stage: "threads", runId, error: "the threads phase ran past its bound; the digest renders without thread context" }));
+        log.error({ stage: "threads", runId, error: "the threads phase ran past its bound; the digest renders without thread context" });
         return placeholder;
       }
       return (await store.find(runId, THREAD_CONTEXT))!;

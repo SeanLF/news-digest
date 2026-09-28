@@ -3,6 +3,7 @@
 // paced, one per-run deadline checked between links, stop at the first rate limit, and a failed link
 // keeps its raw URL. The constraint is Google's per-IP daily budget, so nothing here retries.
 import { createDecoder, type DecodeResult } from "gnews-decoder";
+import { log } from "../log.js";
 import type { GnewsDecode, LinkDecoder } from "./index.js";
 
 export interface LinkDecoderDeps {
@@ -65,7 +66,7 @@ export function linkDecoder(deps: LinkDecoderDeps): LinkDecoder {
         const s = signal();
         // The library returns every expected failure; a throw is a bug in it, and costs this link only.
         const result = await deps.decode(url, s ? { signal: s, timeoutMs: deps.timeoutMs } : { timeoutMs: deps.timeoutMs }).catch((e: unknown): DecodeResult => {
-          console.warn(JSON.stringify({ stage: "gnews", warning: "decoder threw", error: String(e) }));
+          log.warn({ stage: "gnews", warning: "decoder threw", error: String(e) });
           return { ok: false, reason: "parse", message: String(e) };
         });
         if (!result.ok && result.reason === "not_google_news") {

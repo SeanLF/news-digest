@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { log } from "../log.js";
 import { wireFromFullText } from "../prepare/wire.js";
 import { AGENCY_LABELS, titleCase, type Selections, type Source, type Story, type ThreadContext } from "./common.js";
 
@@ -35,7 +36,7 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
     stories.flatMap((item) => {
       const sources = item.sources.map(resolve).filter((s): s is Source => s !== null);
       if (!sources.length) {
-        console.warn(JSON.stringify({ stage: "render", warning: "dropped a story with no resolved sources", headline: item.headline }));
+        log.warn({ stage: "render", warning: "dropped a story with no resolved sources", headline: item.headline });
         return [];
       }
       const varies = item.reporting_varies?.map(({ article_id, ...rv }) => {
@@ -48,7 +49,7 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
       return [{ ...item, sources, ...(varies ? { reporting_varies: varies } : {}) }];
     });
   const out = { ...selections, must_know: tier(selections.must_know), should_know: tier(selections.should_know) };
-  if (unresolved) console.warn(JSON.stringify({ stage: "render", warning: "dropped unresolved article_id references", count: unresolved }));
+  if (unresolved) log.warn({ stage: "render", warning: "dropped unresolved article_id references", count: unresolved });
   return out;
 }
 
@@ -71,7 +72,7 @@ export function attachThreads(selections: Selections, contexts: Record<string, T
     stories.map((s) => {
       if (!s.cluster_id) return s;
       if ((counts.get(s.cluster_id) ?? 0) > 1) {
-        console.error(JSON.stringify({ stage: "render", error: "cluster_id shared by several stories; thread context skipped", headline: s.headline, cluster_id: s.cluster_id }));
+        log.error({ stage: "render", error: "cluster_id shared by several stories; thread context skipped", headline: s.headline, cluster_id: s.cluster_id });
         return s;
       }
       const ctx = Object.hasOwn(contexts, s.cluster_id) ? contexts[s.cluster_id] : undefined;

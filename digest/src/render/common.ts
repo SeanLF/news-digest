@@ -1,3 +1,4 @@
+import { log } from "../log.js";
 import { readFileSync } from "node:fs";
 import type { Sql } from "../store/db.js";
 
@@ -78,7 +79,7 @@ export function biasBucket(bias: string): Bucket {
   const b = bias.trim().toLowerCase();
   if (["lean-left", "left", "far-left"].includes(b)) return "l";
   if (["lean-right", "right", "far-right"].includes(b)) return "r";
-  if (!KNOWN_CENTER.has(b)) console.warn(JSON.stringify({ stage: "render", warning: "unmapped bias label bucketed as center", bias }));
+  if (!KNOWN_CENTER.has(b)) log.warn({ stage: "render", warning: "unmapped bias label bucketed as center", bias });
   return "c";
 }
 export const AGENCY_LABELS: Record<string, string> = {

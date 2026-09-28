@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import mailchecker from "mailchecker";
 import type { Resend } from "resend";
+import { log } from "../log.js";
 import type { SiteConfig } from "./config.js";
 
 // Subscribe and double opt-in confirm (circulation's handlers.rs). The subscriber list lives in Resend;
@@ -64,12 +65,12 @@ async function checked(what: string, call: Promise<{ error: { name: string; stat
   try {
     const { error } = await call;
     if (error) {
-      console.error(JSON.stringify({ site: "subscribe", error: `Resend ${what} failed`, kind: error.name, status: error.statusCode }));
+      log.error({ site: "subscribe", error: `Resend ${what} failed`, kind: error.name, status: error.statusCode });
       return false;
     }
     return true;
   } catch (e) {
-    console.error(JSON.stringify({ site: "subscribe", error: `Resend ${what} request failed`, kind: e instanceof Error ? e.name : "unknown" }));
+    log.error({ site: "subscribe", error: `Resend ${what} request failed`, kind: e instanceof Error ? e.name : "unknown" });
     return false;
   }
 }

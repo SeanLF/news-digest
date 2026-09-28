@@ -1,4 +1,5 @@
 import { type Context, Hono } from "hono";
+import { log } from "../log.js";
 import { type ArchivePage, biasMap, fetchArchive, fragmentHtml, DEFAULT_LIMIT } from "./archive.js";
 import { type Assets, FAVICON_SVG } from "./assets.js";
 import { type SiteConfig, baseUrl, subscriptionsEnabled } from "./config.js";
@@ -63,7 +64,7 @@ const MAX_REQUEST_BYTES = 128 * 1024;
 
 // A database failure is a 503 with a generic sentence, logged; never a page that hides the outage.
 function unavailable(c: Context, what: string, e: unknown): Response {
-  console.error(JSON.stringify({ site: "db", path: c.req.path, error: String(e) }));
+  log.error({ site: "db", path: c.req.path, error: String(e) });
   return text(c, what, 503);
 }
 
@@ -122,7 +123,7 @@ export function siteApp(deps: SiteDeps): Hono {
     return next();
   });
   app.onError((e, c) => {
-    console.error(JSON.stringify({ site: "error", path: c.req.path, error: String(e) }));
+    log.error({ site: "error", path: c.req.path, error: String(e) });
     return text(c, "Internal Server Error", 500);
   });
 
@@ -249,7 +250,7 @@ export function siteApp(deps: SiteDeps): Hono {
       await data.ping();
       return c.json({ status: "healthy" });
     } catch (e) {
-      console.error(JSON.stringify({ site: "health", error: String(e) }));
+      log.error({ site: "health", error: String(e) });
       return c.json({ status: "degraded" }, 503);
     }
   });
@@ -335,29 +336,29 @@ export function siteApp(deps: SiteDeps): Hono {
     if (!isValidEmail(email)) return redirect(c, "/?subscribe_invalid=1", 303);
     if (!subscribeLimiter.check(clientKey(c.req.header("x-forwarded-for")), nowMs())) return redirect(c, "/?subscribe_ratelimited=1", 303);
     if (!subscriptionsEnabled(cfg) || !deps.mail) {
-      console.error(JSON.stringify({ site: "subscribe", error: "subscriptions are not configured" }));
+      log.error({ site: "subscribe", error: "subscriptions are not configured" });
       return redirect(c, "/?subscribe_error=1", 303);
     }
     if (cfg.doubleOptIn) {
       // siteConfig refused to start without the secret, the domain and a sender.
       const token = makeToken(cfg.subscribeTokenSecret!, email, Math.floor(nowMs() / 1000) + CONFIRM_TTL_S);
       const ok = await sendConfirmation(cfg, deps.mail, email, `${base}/confirm?token=${token}`);
-      if (ok) console.log(JSON.stringify({ site: "subscribe", event: "confirmation sent" }));
+      if (ok) log.info({ site: "subscribe", event: "confirmation sent" });
       return redirect(c, ok ? "/?pending=1" : "/?subscribe_error=1", 303);
     }
     const ok = await addContact(cfg, deps.mail, email);
-    if (ok) console.log(JSON.stringify({ site: "subscribe", event: "contact added directly (double opt-in off)" }));
+    if (ok) log.info({ site: "subscribe", event: "contact added directly (double opt-in off)" });
     return redirect(c, ok ? "/?subscribed=1" : "/?subscribe_error=1", 303);
   });
   app.get("/confirm", async (c) => {
     if (!cfg.subscribeTokenSecret || !deps.mail || !subscriptionsEnabled(cfg)) return redirect(c, "/?subscribe_error=1", 303);
     const email = verifyToken(cfg.subscribeTokenSecret, c.req.query("token") ?? "", Math.floor(nowMs() / 1000));
     if (!email) {
-      console.log(JSON.stringify({ site: "confirm", event: "invalid or expired token" }));
+      log.info({ site: "confirm", event: "invalid or expired token" });
       return redirect(c, "/?subscribe_error=1", 303);
     }
     const ok = await addContact(cfg, deps.mail, email);
-    if (ok) console.log(JSON.stringify({ site: "confirm", event: "contact added" }));
+    if (ok) log.info({ site: "confirm", event: "contact added" });
     return redirect(c, ok ? "/?subscribed=1" : "/?subscribe_error=1", 303);
   });
 

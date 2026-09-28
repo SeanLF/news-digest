@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
 import { GNEWS_HEALTH, gnewsActivities, isGnewsUrl, survivingLinks } from "./gnews.js";
@@ -31,8 +32,8 @@ async function setup(enabled = true) {
   return { store, sel, acts: gnewsActivities({ store, enabled }) };
 }
 function warned() {
-  const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-  return () => warn.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("decoder contract"));
+  const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
+  return () => warn.mock.calls.map((c) => JSON.stringify(c[0])).filter((m) => m.includes("decoder contract"));
 }
 afterEach(async () => {
   vi.restoreAllMocks();

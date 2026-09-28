@@ -1,5 +1,6 @@
 import type { DecodeResult } from "gnews-decoder";
 import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { linkDecoder, type LinkDecoderDeps } from "./gnews-decode.js";
 
 const GN = (token: string) => `https://news.google.com/rss/articles/${token}?oc=5`;
@@ -131,7 +132,7 @@ describe("decodeLinks (gnews-decoder)", () => {
   });
 
   it("a decoder that throws costs that link only: counted, kept raw, and the pass goes on", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(log, "warn").mockImplementation(() => undefined);
     const h = harness({}, {
       decode: (url) => (tokenOf(url) === "R1" ? Promise.reject(new Error("bug")) : Promise.resolve(ok("https://www.reuters.com/r2"))),
     });

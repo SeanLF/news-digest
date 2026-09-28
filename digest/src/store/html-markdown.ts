@@ -1,4 +1,5 @@
 import TurndownService from "turndown";
+import { log } from "../log.js";
 
 // Stored issue HTML to Markdown (circulation's markdown.rs, on htmd): what the site served at request
 // time until the pipeline wrote Markdown itself. It now runs once, in cli/backfill-markdown, to fill
@@ -10,7 +11,7 @@ function extractMain(html: string): string {
   if (start < 0) return html;
   const end = html.indexOf("</main>", start);
   if (end < 0) {
-    console.warn(JSON.stringify({ site: "markdown", warning: "<main> without </main>; the issue may be truncated" }));
+    log.warn({ site: "markdown", warning: "<main> without </main>; the issue may be truncated" });
     return html;
   }
   return html.slice(start, end + "</main>".length);
@@ -106,11 +107,11 @@ export function issueMarkdownBody(html: string, date: string): string | undefine
     // htmd trims the spaces a line ends on before a block starts (a bolded label before its paragraph).
     body = (td ??= converter()).turndown(extractMain(html)).replaceAll(/ +(?=\n\n)/g, "").trim();
   } catch (e) {
-    console.error(JSON.stringify({ markdown: "backfill", date, error: String(e) }));
+    log.error({ markdown: "backfill", date, error: String(e) });
     return undefined;
   }
   if (!body) {
-    console.error(JSON.stringify({ markdown: "backfill", date, error: "the issue's HTML yields no Markdown body" }));
+    log.error({ markdown: "backfill", date, error: "the issue's HTML yields no Markdown body" });
     return undefined;
   }
   return body;

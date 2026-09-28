@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
 import { migratedDb } from "../store/test-db.js";
@@ -315,15 +316,15 @@ describe("notifyHold", () => {
   it("without an operator address it sends nothing and logs what it would have said, rather than failing the run", async () => {
     const { selections, make } = await setup({}, { ...ENV, HEALTH_ALERT_EMAIL: "" });
     const fake = fakeMail({});
-    const logged: string[] = [];
-    const spy = vi.spyOn(console, "error").mockImplementation((m: string) => void logged.push(m));
+    const logged: unknown[] = [];
+    const spy = vi.spyOn(log, "error").mockImplementation((m: unknown) => void logged.push(m));
     try {
       expect(await make(fake.mail).notifyHold(300, selections, "2026-09-08T12:45:00.000Z", FAILED)).toEqual({ sent: false });
     } finally {
       spy.mockRestore();
     }
     expect(fake.names()).toEqual([]);
-    expect(logged.join("\n")).toContain("INTERNAL_ID_LEAK");
+    expect(JSON.stringify(logged)).toContain("INTERNAL_ID_LEAK");
   });
   it("a cut-over hold with no failed check says so, and names no failed check", async () => {
     const { selections, make } = await setup({});

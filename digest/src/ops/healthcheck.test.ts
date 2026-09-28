@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { healthcheck, stageDoneLine } from "./healthcheck.js";
 
 type Seen = { url: string; method: string; body: string | undefined; ua: string | null; signal: boolean };
@@ -50,7 +51,7 @@ describe("healthcheck", () => {
     expect(seen[0]!.body!.startsWith("write s03 done 41s $0.0712")).toBe(true);
   });
   it("is a no-op when unconfigured, and refuses a cleartext URL, which would leak its token", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
     const { seen, f } = fakeFetch();
     await healthcheck({}, f).ping();
     await healthcheck({ HEALTHCHECK_PING_URL: "http://hc-ping.com/uuid-1" }, f).ping("start");
@@ -58,7 +59,7 @@ describe("healthcheck", () => {
     expect(warn).toHaveBeenCalledWith("HEALTHCHECK_PING_URL is not https -- skipping start ping");
   });
   it("never throws: a network error or an error status is a warning", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
     await expect(healthcheck({ HEALTHCHECK_PING_URL: PING_URL }, fakeFetch("throw").f).ping()).resolves.toBeUndefined();
     await expect(healthcheck({ HEALTHCHECK_PING_URL: PING_URL }, fakeFetch("500").f).log("m")).resolves.toBeUndefined();
     expect(warn.mock.calls.map((c) => String(c[0]))).toEqual([

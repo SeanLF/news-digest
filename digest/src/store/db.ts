@@ -1,5 +1,6 @@
 import type { Selectable } from "kysely";
 import pg from "pg";
+import { log } from "../log.js";
 import type { DB } from "./schema.gen.js";
 
 // The product database is Postgres (data-model design, top). DIGEST_DATABASE_URL names it; tests
@@ -65,7 +66,7 @@ function poolDb(url: string): Db {
   const pool = new pg.Pool({ connectionString: url, types: pgTypes, options: "-c TimeZone=UTC", max: 8 });
   // An idle client's connection can drop (a Postgres restart); the pool discards that client and the
   // next query opens a new one. Unhandled, the pool's error event would take the worker down.
-  pool.on("error", (e) => console.error(`an idle Postgres connection was lost; the pool replaces it: ${e.message}`));
+  pool.on("error", (e) => log.error(`an idle Postgres connection was lost; the pool replaces it: ${e.message}`));
   const base = sqlOn((text, params) => pool.query(text, params), (text) => pool.query(text));
   return {
     ...base,

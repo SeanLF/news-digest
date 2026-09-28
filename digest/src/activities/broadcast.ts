@@ -4,6 +4,7 @@ import { ApplicationFailure } from "@temporalio/common";
 import { htmlEscape } from "escape-goat";
 import pRetry from "p-retry";
 import type { ErrorResponse, Resend } from "resend";
+import { log } from "../log.js";
 import type { Selections } from "../render/render.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
@@ -131,12 +132,12 @@ export function broadcastActivities(deps: BroadcastDeps) {
     try {
       const r = await call(() => deps.mail().broadcasts.get(id));
       if (r.error) {
-        console.warn(JSON.stringify({ stage: "broadcast", warning: "could not read the broadcast's status", id, error: r.error.name }));
+        log.warn({ stage: "broadcast", warning: "could not read the broadcast's status", id, error: r.error.name });
         return null;
       }
       return r.data.status;
     } catch (e) {
-      console.warn(JSON.stringify({ stage: "broadcast", warning: "could not read the broadcast's status", id, error: String(e) }));
+      log.warn({ stage: "broadcast", warning: "could not read the broadcast's status", id, error: String(e) });
       return null;
     }
   };
@@ -149,7 +150,7 @@ export function broadcastActivities(deps: BroadcastDeps) {
     } catch (e) {
       const status = await probe(id);
       if (status === null || !ACCEPTED_BROADCAST_STATES.has(status)) throw e;
-      console.warn(JSON.stringify({ stage: "broadcast", warning: "the send failed but the broadcast was accepted; treating it as delivered", id, status, error: String(e) }));
+      log.warn({ stage: "broadcast", warning: "the send failed but the broadcast was accepted; treating it as delivered", id, status, error: String(e) });
       return status;
     }
   };
@@ -187,9 +188,9 @@ export function broadcastActivities(deps: BroadcastDeps) {
       const { published, send } = await readRow(date);
       if (!published) throw ApplicationFailure.nonRetryable(`no issue for ${date}: the digest is published before its send`, "MissingDigest");
       const row = { id: send?.id ?? null, status: send?.status ?? null, recipients: send?.recipients ?? null };
-      const log = (event: string, extra: Record<string, unknown>) => console.log(JSON.stringify({ stage: "broadcast", runId, date, event, ...extra }));
+      const logEvent = (event: string, extra: Record<string, unknown>) => log.info({ stage: "broadcast", runId, date, event, ...extra });
       if (row.id && row.status && ACCEPTED_BROADCAST_STATES.has(row.status)) {
-        log("skipped: already accepted", { id: row.id, status: row.status });
+        logEvent("skipped: already accepted", { id: row.id, status: row.status });
         return { broadcastId: row.id, status: row.status, recipients: row.recipients ?? 0 };
       }
       if (row.id) {
@@ -198,13 +199,13 @@ export function broadcastActivities(deps: BroadcastDeps) {
         const status = await probe(row.id);
         if (status !== null && ACCEPTED_BROADCAST_STATES.has(status)) {
           await record(date, { id: row.id }, row.id, status);
-          log("recovered: already accepted", { id: row.id, status });
+          logEvent("recovered: already accepted", { id: row.id, status });
           return { broadcastId: row.id, status, recipients: row.recipients ?? 0 };
         }
         stopIfCancelled();
         const sent = await sendExisting(row.id);
         await record(date, { id: row.id }, row.id, sent);
-        log("re-sent the existing draft", { id: row.id, status: sent });
+        logEvent("re-sent the existing draft", { id: row.id, status: sent });
         return { broadcastId: row.id, status: sent, recipients: 0 }; // the send API returns no count
       }
       const segmentId = required("RESEND_AUDIENCE_ID");
@@ -213,7 +214,7 @@ export function broadcastActivities(deps: BroadcastDeps) {
       // Counted before the claim: the claim is held only across the create, as briefly as it can be.
       stopIfCancelled();
       const recipients = await contactCount(segmentId);
-      if (recipients >= CONTACT_THRESHOLD) console.warn(JSON.stringify({ stage: "broadcast", warning: `audience at ${recipients} contacts, near the free tier's 1,000`, recipients }));
+      if (recipients >= CONTACT_THRESHOLD) log.warn({ stage: "broadcast", warning: `audience at ${recipients} contacts, near the free tier's 1,000`, recipients });
       stopIfCancelled();
       const mine = await claim(date, runId);
       let id: string;
@@ -230,7 +231,7 @@ export function broadcastActivities(deps: BroadcastDeps) {
       await record(date, { claim: mine }, id, "draft"); // before the send, and only while the claim is still ours
       const status = await sendExisting(id);
       await record(date, { id }, id, status, recipients);
-      log("sent", { id, status, recipients });
+      logEvent("sent", { id, status, recipients });
       return { broadcastId: id, status, recipients };
     },
 
@@ -249,7 +250,7 @@ export function broadcastActivities(deps: BroadcastDeps) {
       const what = checks.length ? `failed ${checks.length} pre-send check(s) and is held` : "is held for the cut-over; no pre-send check failed";
       const dropped = `digest ${date} (run ${runId}) ${what} until ${holdEndsAt}, then sends: ${failures.join("; ")}`;
       if (!to || !from || !env["RESEND_API_KEY"]) {
-        console.error(JSON.stringify({ stage: "hold", error: "ALERTING MISCONFIGURED (HEALTH_ALERT_EMAIL, RESEND_FROM or RESEND_API_KEY unset): hold notification dropped", dropped }));
+        log.error({ stage: "hold", error: "ALERTING MISCONFIGURED (HEALTH_ALERT_EMAIL, RESEND_FROM or RESEND_API_KEY unset): hold notification dropped", dropped });
         return { sent: false };
       }
       const ex = (deps.execution ?? currentExecution)();
@@ -268,10 +269,10 @@ ${cutover.map((c) => `<p>Cut-over hold: ${htmlEscape(c)}.</p>`).join("")}${check
         const r = await call(() => deps.mail().emails.send({ from: `News Digest Alerts <${from}>`, to: [to], subject, html }));
         if (r.error) throw new ResendFailure(r.error);
       } catch (e) {
-        console.error(JSON.stringify({ stage: "hold", error: `hold notification send FAILED (${String(e)}); dropped`, dropped }));
+        log.error({ stage: "hold", error: `hold notification send FAILED (${String(e)}); dropped`, dropped });
         return { sent: false };
       }
-      console.log(JSON.stringify({ stage: "hold", runId, event: "notified", until: holdEndsAt }));
+      log.info({ stage: "hold", runId, event: "notified", until: holdEndsAt });
       return { sent: true };
     },
   };
