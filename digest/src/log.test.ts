@@ -60,6 +60,14 @@ describe("temporalLogger", () => {
     expect(parse(out[0]!)["error"]).toMatchObject({ name: "TypeError", message: "timed out after 15000 ms" });
   });
 
+  it("writes a circular meta as one line instead of throwing", () => {
+    const { out, write } = lines();
+    const loop: Record<string, unknown> = { name: "loop" };
+    loop["self"] = loop;
+    expect(() => temporalLogger(write).error("Worker failed", { error: loop })).not.toThrow();
+    expect(parse(out[0]!)).toMatchObject({ level: "error", msg: expect.stringContaining("Worker failed") as unknown });
+  });
+
   it("drops entries below INFO", () => {
     const { out, write } = lines();
     temporalLogger(write).debug("noise");

@@ -1,13 +1,19 @@
-import { format } from "node:util";
+import { format, inspect } from "node:util";
 import { DefaultLogger, type LogEntry } from "@temporalio/worker";
 
 type Level = "debug" | "info" | "warn" | "error";
 type Write = (line: string) => void;
 
-const serialise = (value: object): string =>
-  JSON.stringify(value, (_k, v: unknown) =>
-    v instanceof Error ? { name: v.name, message: v.message, stack: v.stack } : typeof v === "bigint" ? v.toString() : v,
-  );
+const replacer = (_k: string, v: unknown): unknown =>
+  v instanceof Error ? { name: v.name, message: v.message, stack: v.stack } : typeof v === "bigint" ? v.toString() : v;
+
+function serialise(value: Record<string, unknown>): string {
+  try {
+    return JSON.stringify(value, replacer);
+  } catch {
+    return JSON.stringify({ level: value["level"], msg: inspect(value, { depth: 4, breakLength: Infinity }) });
+  }
+}
 
 function asObject(args: unknown[]): Record<string, unknown> | undefined {
   if (args.length !== 1 || typeof args[0] !== "string" || !args[0].startsWith("{")) return undefined;
