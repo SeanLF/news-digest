@@ -18,6 +18,9 @@ export interface RunHealth {
   title_only_fallback: number | null;
   fulltext_tasks: number | null;
   fulltext_extracted: number | null;
+  fulltext_topup_tasks: number | null;
+  fulltext_topup_extracted: number | null;
+  fulltext_topup_outcome: string | null;
   fulltext_outcome: string | null;
   blanked_why: number | null;
   must_know_shipped: number | null;
@@ -70,6 +73,11 @@ const RULES: Rule[] = [
     "FULLTEXT_TOTAL_LOSS",
     (h) => (h.fulltext_tasks ?? 0) > 0 && (h.fulltext_extracted ?? 0) === 0,
     (h) => `fulltext extracted 0 of ${py(h.fulltext_tasks)} candidate articles (worker ${h.fulltext_outcome || "unknown"}); stories fell back to CSV summaries`,
+  ],
+  [
+    "FULLTEXT_TOPUP_TOTAL_LOSS",
+    (h) => (h.fulltext_topup_tasks ?? 0) > 0 && (h.fulltext_topup_extracted ?? 0) === 0,
+    (h) => `fulltext top-up extracted 0 of ${py(h.fulltext_topup_tasks)} cited articles (worker ${h.fulltext_topup_outcome || "unknown"}); the checker read their summaries only`,
   ],
   [
     "REPAIR_SPEC_ERROR",
@@ -188,12 +196,13 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
             AND (SELECT COUNT(*) FROM sent_runs s WHERE s.run_id > l.last_run_id AND s.run_id < $1) <= $2) AS threads_available`,
     [runId, opts.dormantAfter ?? 3],
   ))!;
-  const names = ["cluster_health.json", "fulltext_health.json", "selections.json", "thread_links.json", "repair_health.json", "write_branches.json"];
+  const names = ["cluster_health.json", "fulltext_health.json", "fulltext_topup_health.json", "selections.json", "thread_links.json", "repair_health.json", "write_branches.json"];
   const docs = new Map<string, Json | undefined>();
   for (const r of await db.all<{ n: string; c: string }>("SELECT name AS n, content AS c FROM artifacts WHERE run_id = $1 AND status = 'current' AND name = ANY($2::text[])", [runId, names]))
     docs.set(r.n, parsed(r.c));
   const cluster = docs.get("cluster_health.json");
   const fulltext = docs.get("fulltext_health.json");
+  const topup = docs.get("fulltext_topup_health.json");
   const selections = docs.get("selections.json");
   const links = docs.get("thread_links.json");
   const repair = docs.get("repair_health.json");
@@ -218,6 +227,9 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
     fulltext_tasks: num(extract(fulltext, "tasks")),
     fulltext_extracted: num(extract(fulltext, "extracted")),
     fulltext_outcome: str(extract(fulltext, "outcome")),
+    fulltext_topup_tasks: num(extract(topup, "tasks")),
+    fulltext_topup_extracted: num(extract(topup, "extracted")),
+    fulltext_topup_outcome: str(extract(topup, "outcome")),
     blanked_why: mustKnow === null ? null : mustKnow.filter((s) => (textOf(s, "why_it_matters") ?? "").replace(/^ +| +$/g, "") === "").length,
     must_know_shipped: mustKnow === null ? null : mustKnow.length,
     dropped_continuations: stories === null ? null : stories.some((s) => !isObj(s)) ? null : stories.filter((s) => isObj(s) && s["refused"] === "already_claimed").length,
