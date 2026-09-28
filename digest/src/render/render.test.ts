@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { htmlEscape } from "escape-goat";
 import { describe, expect, it } from "vitest";
 import { roundHalfEven, slugify } from "./common.js";
-import { applyDecodedLinks, attachThreads, collapseReposts, loadAssets, renderEmail, renderWeb, resolveArticleIds, type RenderInput, type Selections } from "./render.js";
+import { applyDecodedLinks, attachThreads, loadAssets, renderEmail, renderWeb, resolveArticleIds, type RenderInput, type Selections } from "./render.js";
 
 const REPO = new URL("../../../", import.meta.url).pathname;
 const assets = loadAssets({ templates: `${REPO}digest/templates`, design: `${REPO}design` });
@@ -28,14 +28,11 @@ describe("resolution", () => {
     A3: { name: "BBC", url: "https://bbc.example/a", bias: "center", source_id: "bbc", original_title: "Another take" },
     A4: { name: "Broken", url: "https://x.example/a" },
   };
-  it("resolves ids, collapses a verbatim repost onto the wire origin, and drops what it cannot resolve", () => {
+  it("resolves ids, keeps a verbatim repost for the sources box to group, and drops what it cannot resolve", () => {
     const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }, { article_id: "A1" }, { article_id: "A3" }, { article_id: "A9" }] }], should_know: [{ headline: "gone", sources: [{ article_id: "A4" }] }] };
     const out = resolveArticleIds(sel, index);
-    expect(out.must_know[0]!.sources.map((s) => s.name)).toEqual(["Reuters", "BBC"]);
+    expect(out.must_know[0]!.sources.map((s) => s.name)).toEqual(["Straits Times", "Reuters", "BBC"]);
     expect(out.should_know).toEqual([]);
-  });
-  it("keeps untitled sources in place, never merged", () => {
-    expect(collapseReposts([{ name: "a" }, { name: "b" }]).length).toBe(2);
   });
   it("upgrades a decoded Google-News link and leaves the rest", () => {
     const sel: Selections = { must_know: [{ sources: [{ name: "Reuters", url: "https://news.google.com/rss/articles/X" }, { name: "BBC", url: "https://bbc.example/a" }] }], should_know: [] };
@@ -63,7 +60,7 @@ describe("the web issue", () => {
 // The seam the spec names (§6): two renderers, one data source. Every story the web issue shows,
 // the email shows, in the same order, with the same headline, body and source count.
 const text = (s: string) => s.replaceAll(/<[^>]+>/g, " ").replaceAll("&nbsp;", " ").replaceAll(/\s+/g, " ");
-const sourceCounts = (t: string) => [...t.matchAll(/(\d+) (?:source|sources) · /gi)].map((m) => m[1]);
+const sourceCounts = (t: string) => [...t.matchAll(/(\d+) reports? · (\d+) outlets?/gi)].map((m) => `${m[1]}/${m[2]}`);
 describe("email and web show the same issue", () => {
   it.each([["edge", edge()], ["kitchen sink", JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections]] as const)("%s", (_n, sel) => {
     const web = text(renderWeb(input(sel)));
@@ -82,6 +79,7 @@ describe("email and web show the same issue", () => {
         eAt = e + 1;
       }
     }
+    expect(sourceCounts(web).length).toBeGreaterThan(0);
     expect(sourceCounts(email)).toEqual(sourceCounts(web));
   });
   // Inherited from the Python, kept for parity and reported: the web fills placeholders across the
@@ -103,5 +101,50 @@ describe("the web stylesheet", () => {
   });
   it("keeps the underline thickness as its own property", () => {
     expect(css).toMatch(/text-decoration-thickness:/);
+  });
+});
+
+const story = (sources: Selections["must_know"][number]["sources"]): Selections => ({
+  must_know: [{ headline: "Arrests near air base", summary: "Five men held.", why_it_matters: "A 999 call.", reporting_varies: [{ source: "FT", angle: "an Iran link", bias: "center" }], sources }],
+  should_know: [],
+});
+describe("the sources box", () => {
+  const fairford = story([
+    { name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
+    { name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Police question five men", wire_agency: "reuters" },
+    { name: "Guardian", url: "https://guardian.example/a", bias: "lean-left", original_title: "Minister hints services knew" },
+  ]);
+  const shared = story([
+    { name: "A", url: "https://a.example/a", bias: "center", original_title: "Same words" },
+    { name: "B", url: "https://b.example/a", bias: "lean-left", original_title: "Same words" },
+  ]);
+
+  it("counts reports and outlets on the web, with the reprint under its origin", () => {
+    const web = renderWeb(input(fairford));
+    expect(text(web)).toContain("2 reports · 3 outlets");
+    expect(web).toMatch(/<tr class="carrier"><td class="nm">↳ Straits Times<\/td>/);
+    expect(web).toContain('<span class="via"> · wire</span>');
+    expect(web).toContain('class="seg l"');
+    expect(web).toContain('class="seg c"');
+    expect(web).not.toContain('class="seg r"');
+  });
+
+  it("shows identical untagged headlines as shared copy, unrated", () => {
+    const web = renderWeb(input(shared));
+    expect(text(web)).toContain("1 report · 2 outlets");
+    expect(text(web)).toContain("Shared copy");
+    expect(web).toContain('class="seg u"');
+  });
+
+  it("gives the email one line of counts and a link, and none of the box", () => {
+    const email = renderEmail(input(fairford));
+    expect(text(email)).toContain("2 reports · 3 outlets");
+    expect(email).toMatch(/<a href="https:\/\/news\.example\/issues\/2026-09-18#arrests-near-air-base"[^>]*>Sources and coverage →<\/a>/);
+    expect(text(email)).not.toContain("How reporting varies");
+    expect(email).not.toMatch(/<td height="4"/);
+  });
+
+  it("keeps how reporting varies on the web", () => {
+    expect(text(renderWeb(input(fairford)))).toContain("How reporting varies");
   });
 });

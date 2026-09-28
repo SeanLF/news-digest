@@ -1,6 +1,7 @@
 import { htmlEscape as esc } from "escape-goat";
 import { Engine } from "mrml";
-import { BUCKET_ORDER, BUCKET_WORD, bucketCounts, collectOutlets, dates, lightTokens, readingTime, roundHalfEven, slugger, storyCounts, type Bucket, type RenderInput, type Story, type ThreadContext } from "./common.js";
+import { dates, lightTokens, readingTime, slugger, storyCounts, type Bucket, type RenderInput, type Story, type ThreadContext } from "./common.js";
+import { countsLabel, groupReports } from "./reports.js";
 
 // The email, ported from newsroom/src/render_email.py: MJML compiled by mrml, the Rust engine
 // mjml-python wraps, here as its WebAssembly build. Colours are the light design tokens; fonts are
@@ -66,20 +67,13 @@ function renderer(p: Palette) {
     return `<mj-section padding="0 ${SIDE}"><mj-column><mj-spacer height="${top}" /><mj-divider border-width="1px" border-color="${p.hair}" padding="0" /><mj-spacer height="${bot}" /></mj-column></mj-section>`;
   };
   const sources = (a: Story, slug: string, homepage: string) => {
-    const outlets = collectOutlets(a);
-    if (!outlets.length) return "";
-    const counts = bucketCounts(outlets);
-    const total = outlets.length;
-    const word = total === 1 ? "source" : "sources";
-    const present = BUCKET_ORDER.filter((b) => counts[b]);
-    const cells = present.map((b) => `<td height="4" width="${roundHalfEven((100 * counts[b]) / total)}%" bgcolor="${p.bias[b]}" style="font-size:0;line-height:0;"></td>`).join("");
-    const bar = `<mj-table width="120px" cellpadding="0" cellspacing="0" padding="0 0 8px"><tr>${cells}</tr></mj-table>`;
+    const g = groupReports(a.sources);
+    if (!g.reports.length) return "";
     const href = homepage ? `${homepage}#${slug}` : `#${slug}`;
     const label =
-      `<span style="color:${p.ink2};">${total} ${word}</span> · ${present.map((b) => `${counts[b]} ${BUCKET_WORD[b]}`).join(" · ")} · ` +
-      `<a href="${esc(href)}" style="font-family:${SANS};font-size:12px;` +
-      `text-transform:none;letter-spacing:0;color:${p.accentInk};">view ${word} online</a>`;
-    return `<mj-section padding="16px ${SIDE} 0"><mj-column>${bar}${txt(label, { size: 10, color: p.muted, font: MONO, extra: MONO_UP })}</mj-column></mj-section>`;
+      `<span style="color:${p.ink2};">${countsLabel(g)}</span> <span style="color:${p.hair};">|</span> ` +
+      `<a href="${esc(href)}" style="font-family:${SANS};font-size:12px;text-transform:none;letter-spacing:0;color:${p.accentInk};">Sources and coverage →</a>`;
+    return `<mj-section padding="16px ${SIDE} 0"><mj-column>${txt(label, { size: 10, color: p.muted, font: MONO, extra: MONO_UP })}</mj-column></mj-section>`;
   };
   // "Ongoing · day N" sits under the headline like a dateline. A relative thread URL would resolve
   // against the mail client's origin, so only an absolute one becomes a link.
@@ -97,8 +91,6 @@ function renderer(p: Palette) {
     const why = esc(a.why_it_matters ?? "").trim();
     const parts = [section(txt(esc(a.headline ?? ""), { size: 25, color: p.ink, lh: "1.24", weight: "600", padding: "0 0 12px" }) + threadEyebrow(thread) + txt(bodyOf(a), { color: p.ink }), { padding: `24px ${SIDE} 0` })];
     if (why) parts.push(section(eyebrow("Why it matters") + txt(why), { padding: `16px ${SIDE} 0`, borderLeft: true }));
-    const varies = a.reporting_varies ?? [];
-    if (varies.length) parts.push(section(eyebrow("How reporting varies") + varies.map((v) => txt(`<b style="color:${p.ink};">${esc(v.source ?? "")}:</b> ${esc(v.angle ?? "")}`, { padding: "8px 0 0" })).join(""), { padding: `16px ${SIDE} 0` }));
     parts.push(sources(a, slug, homepage));
     return parts.join("");
   };

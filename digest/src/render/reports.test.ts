@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Source } from "./common.js";
+import { WIRE_AGENCIES } from "../prepare/wire.js";
 import { groupReports } from "./reports.js";
 
 let n = 0;
@@ -120,6 +121,13 @@ describe("groupReports", () => {
   it("marks wire reports as wire", () => {
     const g = groupReports([src("A", "one", { wire_agency: "reuters" }), src("B", "own")]);
     expect(g.reports.map((r) => [r.label, r.wire])).toEqual([["Reuters", true], ["B", false]]);
+  });
+
+  it("gives every agency prepare recognises a rating, bar the two MBFC has not rated", () => {
+    const labels = new Map([...WIRE_AGENCIES].map((a) => [a, groupReports([src("X", "t", { wire_agency: a })]).reports[0]!]));
+    const unrated = [...labels].filter(([, r]) => r.leaning === "unrated").map(([, r]) => r.label);
+    expect(new Set(unrated)).toEqual(new Set(["PA Media", "IANS"]));
+    expect(labels.get("deutsche presse-agentur")?.label).toBe("dpa");
   });
 
   it("counts reports and distinct outlets", () => {

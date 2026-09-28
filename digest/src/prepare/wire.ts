@@ -1,7 +1,7 @@
 // feeds.wire_agency and feeds.wire_from_dateline, ported: which wire agency an article is reposted
 // from, so the digest can collapse reposts onto their origin. Matched exactly, never as a substring:
 // "Reuters Institute" is a research body and "Michael Bloomberg" a person.
-const WIRE_AGENCIES: ReadonlySet<string> = new Set([
+export const WIRE_AGENCIES: ReadonlySet<string> = new Set([
   "reuters", "afp", "agence france-presse", "associated press", "ap", "dpa", "deutsche presse-agentur",
   "pa media", "press association", "efe", "agencia efe", "ansa", "bloomberg", "xinhua", "pti",
   "press trust of india", "ians", "anadolu agency", "kyodo", "yonhap", "tass", "upi", "united press international",

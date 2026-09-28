@@ -15,7 +15,7 @@ const CANARY_MIN_ATTEMPTS = 3;
 export const isGnewsUrl = (url: string): boolean => url.includes("news.google.com") && url.includes("/articles/");
 
 // The links digest._resolve_gnews_links decodes: the Google-News ones the rendered issue shows, after
-// article ids are resolved and reposts collapsed, each once, in reading order.
+// article ids are resolved, each once, in reading order.
 export function survivingLinks(selections: Selections, index: Record<string, unknown>): string[] {
   const resolved = resolveArticleIds(selections, index);
   const urls = [...resolved.must_know, ...resolved.should_know].flatMap((s) => s.sources.map((src) => src.url ?? ""));

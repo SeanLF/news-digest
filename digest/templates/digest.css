@@ -107,6 +107,9 @@ footer nav{margin-bottom:8px;}
 .biasbar .seg{height:100%;}
 .biasbar .seg + .seg{box-shadow:-1px 0 0 var(--bg);}
 .biasbar .l{background:var(--bias-l);}.biasbar .c{background:var(--bias-c);}.biasbar .r{background:var(--bias-r);}
+.biasbar .u{background:repeating-linear-gradient(135deg,var(--bias-c) 0 2px,transparent 2px 4px);}
+.src-table tr.carrier .nm{padding-left:1.1em;color:var(--muted);}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 .spread-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
 .spread-label .n{color:var(--ink2);}
 /* WEB: the bias glyph IS the <summary> that reveals the source table */

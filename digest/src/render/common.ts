@@ -82,7 +82,8 @@ export function biasBucket(bias: string): Bucket {
   return "c";
 }
 export const AGENCY_LABELS: Record<string, string> = {
-  afp: "AFP", "agence france-presse": "AFP", ap: "AP", "associated press": "AP", dpa: "dpa", efe: "EFE", "agencia efe": "EFE", ansa: "ANSA", pti: "PTI", "press trust of india": "PTI", ians: "IANS", upi: "UPI", "united press international": "UPI", "pa media": "PA Media", "press association": "PA Media", tass: "TASS",
+  afp: "AFP", "agence france-presse": "AFP", ap: "AP", "associated press": "AP", dpa: "dpa", "deutsche presse-agentur": "dpa", efe: "EFE",
+  reuters: "Reuters", bloomberg: "Bloomberg", xinhua: "Xinhua", kyodo: "Kyodo", yonhap: "Yonhap", "anadolu agency": "Anadolu Agency", "agencia efe": "EFE", ansa: "ANSA", pti: "PTI", "press trust of india": "PTI", ians: "IANS", upi: "UPI", "united press international": "UPI", "pa media": "PA Media", "press association": "PA Media", tass: "TASS",
 };
 // Media Bias/Fact Check's ratings of the agencies prepare recognises (prepare/wire.ts), on the
 // catalogue's scale, read 2026-09-28. PA Media and IANS have no MBFC page, so they render unrated.
@@ -104,40 +105,6 @@ export const AGENCY_RATINGS: Record<string, { bias: string; factuality: string; 
 };
 // str.title(): each run of letters capitalised, the rest of the run lowered.
 export const titleCase = (s: string) => s.replaceAll(/\p{L}+/gu, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-
-export interface Outlet { name: string; bias: string; bucket: Bucket; urls: string[]; wireAgency: string | null | undefined }
-// Sources grouped by outlet in input order, keeping only links a reader can open.
-export function collectOutlets(story: Story): Outlet[] {
-  const order: Outlet[] = [];
-  const index = new Map<string, Outlet>();
-  for (const src of story.sources) {
-    const name = src.name ?? "";
-    if (!name) continue;
-    let entry = index.get(name);
-    if (!entry) {
-      entry = { name, bias: src.bias ?? "", bucket: biasBucket(src.bias ?? ""), urls: [], wireAgency: src.wire_agency };
-      index.set(name, entry);
-      order.push(entry);
-    }
-    const url = src.url ?? "";
-    if (url && isSafeUrl(url) && hasArticlePath(url)) entry.urls.push(url);
-  }
-  const result = order.filter((o) => o.urls.length);
-  if (order.length && !result.length) console.warn(JSON.stringify({ stage: "render", warning: "every source outlet dropped (no article-path URLs); the story ships with no source block", outlets: order.length }));
-  return result;
-}
-// An outlet as the sources table names it. Agency copy is credited to the agency, the outlet as its
-// route; the outlet's leaning is not the agency's, and there is no rating for the agency to show instead.
-export function outletLabel(o: Outlet): { name: string; via: string | null; leaning: string } {
-  if (!o.wireAgency) return { name: o.name, via: null, leaning: o.bias };
-  const label = AGENCY_LABELS[o.wireAgency] ?? titleCase(o.wireAgency);
-  return { name: label, via: label.toLowerCase() === o.name.toLowerCase() ? null : o.name, leaning: "wire" };
-}
-export function bucketCounts(outlets: Outlet[]): Record<Bucket, number> {
-  const counts: Record<Bucket, number> = { l: 0, c: 0, r: 0 };
-  for (const o of outlets) counts[o.bucket]++;
-  return counts;
-}
 
 // The light-mode design tokens: the plain :root blocks of tokens.css, the dark-mode media block
 // removed first, so the email's colours are the web's.
