@@ -123,7 +123,14 @@ within stories), no free-text similarity in the feed has a threshold the data su
   sides; P2 is needed before their distribution can be read. Body-passage grouping is revisited
   then, and ships only if the distribution splits cleanly in two.
 
-A report's leaning is its origin's; a wire origin is its own segment. Translations do not group.
+A wire report takes its agency's own rating (Sean, 2026-09-28): state agencies are not neutral, so
+wire copy is not a grey segment. Ratings are MBFC's (`AGENCY_RATINGS`, `render/common.ts`); PA Media
+and IANS have no page and render unrated. The agency's aliases ("ap", "associated press") are one
+agency. Carriers are listed under the report and do not add to the bar: reuse of agency copy online
+is heavy and lightly edited (Boumans et al. 2018, a year of Dutch news: up to 75% of online articles
+agency-based, largely verbatim), so a carrier's choice to run it is a weak signal. Identical
+headlines with no wire tag are one report of unknown origin, "Shared copy", unrated, since nothing
+says who copied whom. Translations do not group.
 
 ### D5. `reporting_varies` names cited articles
 
@@ -315,12 +322,6 @@ checker, so the model is chosen before they are set, not after; P1 and P2 make n
 are unaffected.
 
 ## 8. Open
-
-0. Found in review of `6c322da`: an identical headline shared by untagged outlets has no evidence of
-   who copied whom, so `groupReports` takes the first listed as origin, and reordering the sources
-   splits an outlet's coverage (`Carrier, FT, FT` gives two reports). Proposed with the wire-leaning
-   change (Sean, pending): such a group is one report whose origin is unknown, its leaning
-   "unrated", instead of whichever outlet came first.
 
 1. The PostHog question (N4).
 2. R12, a standalone per-claim block: revisit once "What it backs" is live.

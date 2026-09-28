@@ -33,23 +33,26 @@ describe("groupReports", () => {
     ]);
     expect(out).toEqual([
       { label: "Guardian", leaning: "lean-left", bucket: "l", members: ["*Guardian:1"] },
-      { label: "Reuters", leaning: "wire", bucket: "w", members: ["Straits Times:1", "Al-Monitor:1"] },
+      { label: "Reuters", leaning: "center", bucket: "c", members: ["Straits Times:1", "Al-Monitor:1"] },
     ]);
   });
 
   it("makes a fetched wire service the origin of its own report, with its own link", () => {
     const out = shape([src("Al-Monitor", "Dozens walk out", { wire_agency: "reuters" }), src("Reuters", "Dozens walk out - Reuters", { wire: true, wire_agency: "reuters" })]);
-    expect(out).toEqual([{ label: "Reuters", leaning: "wire", bucket: "w", members: ["*Reuters:1", "Al-Monitor:1"] }]);
+    expect(out).toEqual([{ label: "Reuters", leaning: "center", bucket: "c", members: ["*Reuters:1", "Al-Monitor:1"] }]);
   });
 
-  it("joins identical headlines from different outlets, the first listed as origin", () => {
-    const out = shape([src("Straits Times", "Wife of Mahathir dies aged 100"), src("Daily Maverick", "Wife of Mahathir dies aged 100", { bias: "lean-left" })]);
-    expect(out).toEqual([{ label: "Straits Times", leaning: "center", bucket: "c", members: ["*Straits Times:1", "Daily Maverick:1"] }]);
+  it("joins identical untagged headlines as one report of unknown origin, whatever the order", () => {
+    const a = src("Straits Times", "Wife of Mahathir dies aged 100");
+    const b = src("Daily Maverick", "Wife of Mahathir dies aged 100", { bias: "lean-left" });
+    const want = [{ label: "Shared copy", leaning: "unrated", bucket: "u", members: ["Straits Times:1", "Daily Maverick:1"] }];
+    expect(shape([a, b])).toEqual(want);
+    expect(shape([b, a])).toEqual([{ ...want[0]!, members: ["Daily Maverick:1", "Straits Times:1"] }]);
   });
 
   it("joins an identical headline to the wire report when any copy of it carries the tag", () => {
     const out = shape([src("Straits Times", "Netanyahu visited Abu Dhabi"), src("Al-Monitor", "Netanyahu visited Abu Dhabi", { wire_agency: "reuters" })]);
-    expect(out).toEqual([{ label: "Reuters", leaning: "wire", bucket: "w", members: ["Straits Times:1", "Al-Monitor:1"] }]);
+    expect(out).toEqual([{ label: "Reuters", leaning: "center", bucket: "c", members: ["Straits Times:1", "Al-Monitor:1"] }]);
   });
 
   it("never joins on a similar headline, only an identical one", () => {
@@ -67,7 +70,7 @@ describe("groupReports", () => {
 
   it("lists an outlet under both its own report and the wire it reprints, and counts it once", () => {
     const g = groupReports([src("Straits Times", "Own story"), src("Straits Times", "Wire story", { wire_agency: "afp" })]);
-    expect(g.reports.map((r) => r.label)).toEqual(["Straits Times", "AFP"]);
+    expect(g.reports.map((r) => r.label)).toEqual(["AFP", "Straits Times"]);
     expect({ reports: g.reports.length, outlets: g.outlets }).toEqual({ reports: 2, outlets: 1 });
   });
 
@@ -80,19 +83,43 @@ describe("groupReports", () => {
   it("never merges two agencies' copy on a shared headline", () => {
     const out = shape([src("AP", "Fed cuts rates by quarter point", { wire: true, wire_agency: "ap" }), src("AFP", "Fed cuts rates by quarter point", { wire: true, wire_agency: "afp" })]);
     expect(out).toEqual([
-      { label: "AP", leaning: "wire", bucket: "w", members: ["*AP:1"] },
-      { label: "AFP", leaning: "wire", bucket: "w", members: ["*AFP:1"] },
+      { label: "AP", leaning: "lean-left", bucket: "l", members: ["*AP:1"] },
+      { label: "AFP", leaning: "lean-left", bucket: "l", members: ["*AFP:1"] },
     ]);
   });
 
-  it("keeps an outlet's own reporting one report when one of its headlines is copied elsewhere", () => {
-    const out = shape([src("FT", "Deal signed after long talks"), src("Carrier", "Deal signed after long talks", { bias: "lean-right" }), src("FT", "Investigators focus on a separate matter")]);
-    expect(out).toEqual([{ label: "FT", leaning: "center", bucket: "c", members: ["*FT:2", "Carrier:1"] }]);
+  it("never splits or relabels an outlet's own reporting by the order its sources arrive in", () => {
+    const ft1 = src("FT", "Deal signed after long talks");
+    const carrier = src("Carrier", "Deal signed after long talks", { bias: "lean-right" });
+    const ft2 = src("FT", "Investigators focus on a separate matter");
+    for (const order of [[ft1, carrier, ft2], [carrier, ft1, ft2], [ft2, carrier, ft1]]) {
+      expect(shape(order).map((r) => r.label).toSorted()).toEqual(["FT", "Shared copy"]);
+      expect(shape(order).find((r) => r.label === "FT")?.members).toEqual(["*FT:1"]);
+    }
   });
 
   it("takes the origin from the members a reader can open", () => {
     const out = shape([src("A", "Wife of Mahathir dies aged 100", { url: "javascript:alert(1)" }), src("B", "Wife of Mahathir dies aged 100", { bias: "lean-left" })]);
     expect(out).toEqual([{ label: "B", leaning: "lean-left", bucket: "l", members: ["*B:1"] }]);
+  });
+
+  it("gives wire copy its agency's rating, not the carrier's", () => {
+    expect(shape([src("Straits Times", "x", { bias: "lean-right", wire_agency: "tass" })])[0]).toMatchObject({ label: "TASS", leaning: "lean-right", bucket: "r" });
+    expect(shape([src("Globe", "y", { wire_agency: "ap" })])[0]).toMatchObject({ label: "AP", leaning: "lean-left", bucket: "l" });
+  });
+
+  it("shows an agency with no rating as unrated", () => {
+    expect(shape([src("NDTV", "x", { wire_agency: "ians" })])[0]).toMatchObject({ label: "IANS", leaning: "unrated", bucket: "u" });
+  });
+
+  it("treats an agency's aliases as one agency", () => {
+    const out = shape([src("A", "one", { wire_agency: "ap" }), src("B", "two", { wire_agency: "associated press" })]);
+    expect(out).toEqual([{ label: "AP", leaning: "lean-left", bucket: "l", members: ["A:1", "B:1"] }]);
+  });
+
+  it("marks wire reports as wire", () => {
+    const g = groupReports([src("A", "one", { wire_agency: "reuters" }), src("B", "own")]);
+    expect(g.reports.map((r) => [r.label, r.wire])).toEqual([["Reuters", true], ["B", false]]);
   });
 
   it("counts reports and distinct outlets", () => {
