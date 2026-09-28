@@ -141,3 +141,11 @@ class TestTruncation:
 
     def test_falls_back_to_hard_cut_when_no_sentence_boundary(self):
         assert fulltext.truncate_at_sentence("a" * 5000, 100) == ("a" * 100) + "\n[truncated]"
+
+
+def test_the_user_agent_names_us_and_nothing_publishers_block():
+    """Measured from the box, 2026-09-28: Der Spiegel 403s any agent containing "trafilatura",
+    CBC resets the stream on one carrying a "+https://" URL, and France 24 403s
+    "Mozilla/5.0 (compatible; ...)". Plain "news-digest/1.0" passed all three and changed no
+    other source's status."""
+    assert fulltext._HEADERS["User-Agent"] == "news-digest/1.0"
