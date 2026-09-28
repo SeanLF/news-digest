@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { log } from "../log.js";
 import type { ActiveThread, ThreadStore } from "./store.js";
 
 // threads.py's linker half, ported: which selected stories the run has, the linker's prompt, the
@@ -84,7 +85,7 @@ export function selectedLabels(clustersDoc: unknown, selectedDoc: unknown): Stor
       if (ids.length) {
         const story = clusterForArticles(ids, owner);
         if (story === undefined) {
-          console.warn(JSON.stringify({ stage: "threads", warning: "selected entry cites articles in no cluster; skipped", tier, article_ids: ids.slice(0, 5) }));
+          log.warn({ stage: "threads", warning: "selected entry cites articles in no cluster; skipped", tier, article_ids: ids.slice(0, 5) });
           continue;
         }
         out.push({ story, tier, article_ids: ids as string[] });
@@ -110,7 +111,7 @@ export function validateLinks(links: Links, active: ActiveThread[], n: number): 
   for (const ln of links.links) if (ln.story !== null && ln.story >= 0 && ln.story < n && ln.thread !== null && valid.has(ln.thread)) mapping[ln.story] = ln.thread;
   const proposed = links.links.filter((ln) => ln.thread !== null).length;
   const validated = mapping.filter((v) => v !== null).length;
-  if (proposed > validated) console.error(JSON.stringify({ stage: "threads", warning: "linker proposals refused as invalid; those stories start new threads", proposed, validated, candidates: active.length }));
+  if (proposed > validated) log.error({ stage: "threads", warning: "linker proposals refused as invalid; those stories start new threads", proposed, validated, candidates: active.length });
   return { mapping, health: { ok: true, proposed, validated } };
 }
 
@@ -129,7 +130,7 @@ export async function assignThreads(store: ThreadStore, stories: StoryLabel[], r
       if (!offered.has(tid)) refused = "unknown_thread";
       else if (claimed.has(tid)) {
         refused = "already_claimed";
-        console.warn(JSON.stringify({ stage: "threads", warning: "thread already claimed this run; story starts a new thread", thread_id: tid, story: st.story.slice(0, 80) }));
+        log.warn({ stage: "threads", warning: "thread already claimed this run; story starts a new thread", thread_id: tid, story: st.story.slice(0, 80) });
       }
     }
     const continued = tid !== null && refused === null;

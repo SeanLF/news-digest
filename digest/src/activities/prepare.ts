@@ -1,5 +1,6 @@
 import { ApplicationFailure } from "@temporalio/common";
 import { parse } from "csv-parse/sync";
+import { log } from "../log.js";
 import { previousHeadlines, recentDigestHeadlines, recentTitlesCsv, recentTxt, runAt, yesterdayHeadlines, yesterdayTxt } from "../prepare/context.js";
 import { ARTICLE_HEADER, DEDUP_SIMILARITY_THRESHOLD, prepareArticles, toCsv, type Fetched, type Source } from "../prepare/prepare.js";
 import { ConflictError, type ArtifactStore, type Pointer } from "../store/artifacts.js";
@@ -25,7 +26,7 @@ export function prepareActivity(deps: { store: ArtifactStore; dbUrl: string }) {
       const at = await runAt(db, runId);
       const recent = await previousHeadlines(db, at);
       const prepared = prepareArticles(sources, fetched, recent.map((h) => h.headline));
-      console.log(JSON.stringify({ stage: "prepare", runId, articles: Object.keys(prepared.index).length, deduped: prepared.filtered.length, urlDuplicates: prepared.urlDuplicates }));
+      log.info({ stage: "prepare", runId, articles: Object.keys(prepared.index).length, deduped: prepared.filtered.length, urlDuplicates: prepared.urlDuplicates });
       const write = async (name: string, text: string): Promise<Pointer> => {
         if (force) return store.replace(runId, name, text);
         try {

@@ -2,8 +2,9 @@ import { writeFileSync } from "node:fs";
 import { NativeConnection, Runtime, Worker } from "@temporalio/worker";
 import { workerActivities } from "./activities/real.js";
 import { deploymentOptions } from "./deployment.js";
-import { installJsonLogging } from "./log.js";
+import { log } from "./log.js";
 import { operationsEnvWarning } from "./ops/env.js";
+import { temporalLogger } from "./temporal-logger.js";
 import { dbUrl } from "./store/db.js";
 export const TASK_QUEUE = "digest";
 // Production sets the repo's own namespace (spec §5); the local dev server only has "default".
@@ -22,7 +23,7 @@ export function touchWhileRunning(worker: Pick<Worker, "getState">, path = ALIVE
 }
 export async function runWorker(address = process.env["TEMPORAL_ADDRESS"] ?? "localhost:7233"): Promise<void> {
   const warning = operationsEnvWarning(process.env);
-  if (warning) console.warn(`WARN ${warning}`);
+  if (warning) log.warn(`WARN ${warning}`);
   dbUrl(); // throws when unset, before the worker connects or polls
   const connection = await NativeConnection.connect({ address });
   const worker = await Worker.create({
@@ -42,6 +43,6 @@ export async function runWorker(address = process.env["TEMPORAL_ADDRESS"] ?? "lo
   }
 }
 if (process.argv[1]?.endsWith("worker.js")) {
-  Runtime.install({ logger: installJsonLogging() });
+  Runtime.install({ logger: temporalLogger(log) });
   await runWorker();
 }

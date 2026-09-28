@@ -1,4 +1,5 @@
 import { firstJsonObject, jsonObjects } from "./json.js";
+import { log } from "../log.js";
 import type { ThreadStore } from "./store.js";
 import { cited, cleanQuestions } from "./text.js";
 
@@ -204,7 +205,7 @@ export async function applyInstallment(store: ThreadStore, threadId: number, ope
   const fresh = list(installment["new_questions"]).filter((q): q is string => typeof q === "string");
   // Stored unchanged and suppressed at render time: dropping one here would erase it for good.
   if (fresh.length && JSON.stringify(cleanQuestions(fresh, citedIds)) !== JSON.stringify(fresh))
-    console.warn(JSON.stringify({ stage: "threads", warning: "a new question cites an article id inline; the public ledger will suppress it", thread_id: threadId }));
+    log.warn({ stage: "threads", warning: "a new question cites an article id inline; the public ledger will suppress it", thread_id: threadId });
   if (fresh.length) await store.addQuestions(threadId, fresh, runId);
   await store.setUpdateContent(threadId, runId, JSON.stringify(verified));
   return verified;

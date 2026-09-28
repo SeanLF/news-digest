@@ -1,3 +1,4 @@
+import { log } from "../log.js";
 import { cleanFact, cleanQuestions, whatsNew } from "../threads/text.js";
 import type { SiteData, ThreadIndexData, ThreadSummaryData } from "./data.js";
 
@@ -87,7 +88,7 @@ export async function threadDetail(data: SiteData, requested: number): Promise<T
     if (next === undefined) return undefined;
     if (next === null) break;
     if (next === id || hop >= MAX_MERGE_HOPS) {
-      console.warn(JSON.stringify({ site: "thread", requested, warning: next === id ? "merged into itself" : `merge chain longer than ${MAX_MERGE_HOPS} hops` }));
+      log.warn({ site: "thread", requested, warning: next === id ? "merged into itself" : `merge chain longer than ${MAX_MERGE_HOPS} hops` });
       return undefined;
     }
     id = next;

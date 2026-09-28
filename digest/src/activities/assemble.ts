@@ -3,6 +3,7 @@ import { CoherenceReportSchema } from "../contracts/coherence.js";
 import { leaksInternalId, stripArticleIds } from "../contracts/leaks.js";
 import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
 import { NOT_COVERED_BLURB_MAX_LEN, PREHEADER_MAX_CHARS, SelectionsSchema, type Selections } from "../contracts/selections.js";
+import { log } from "../log.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { draftFrom } from "./coherence.js";
 import { preheaderLine, truncateOnWordBoundary } from "./preheader.js";
@@ -54,7 +55,7 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
           .map((e) => ({ source: stripArticleIds(e.source), angle: stripArticleIds(e.angle), bias: stripArticleIds(e.bias), article_id: e.article_id }))
           .filter((e) => e.source && e.angle);
         const dropped = item.reporting_varies.length - rv.length;
-        if (dropped) console.warn(JSON.stringify({ stage: "assemble", runId, warning: "reporting_varies angles dropped for naming no cited article", headline: story.headline, dropped }));
+        if (dropped) log.warn({ stage: "assemble", runId, warning: "reporting_varies angles dropped for naming no cited article", headline: story.headline, dropped });
         if (rv.length) item.reporting_varies = rv;
         else delete item.reporting_varies;
       }
@@ -101,7 +102,7 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
 export function assembleActivity(deps: { store: ArtifactStore }) {
   return async (runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, force = false): Promise<Pointer> => {
     const { selections, report: r } = await assemble(deps.store, runId, drafts, report, repair, preheader);
-    console.log(JSON.stringify({ stage: "assemble", runId, ...r }));
+    log.info({ stage: "assemble", runId, ...r });
     const text = JSON.stringify(selections, null, 2);
     const existing = await deps.store.find(runId, SELECTIONS_OUTPUT);
     if (existing && !force && (await deps.store.get(existing)) !== text) await deps.store.quarantine(runId, SELECTIONS_OUTPUT);

@@ -1,5 +1,6 @@
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
@@ -76,7 +77,7 @@ describe("weekly recap activity", () => {
     expect(calls.n).toBe(1);
   });
   it("a failed call throws while attempts remain, and on the last carries the old recap forward", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
     const s = await setup(week("2026-09-11"));
     const recap = weeklyRecapActivity({ ...deps(s, fakeQuery(new Error("overloaded"), { n: 0 }), 1) });
     const p = await recap(301);

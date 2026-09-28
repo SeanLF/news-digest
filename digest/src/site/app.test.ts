@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { makeToken } from "./subscribe.js";
 import { fakeData, testApp, testConfig } from "./testing.js";
 import type { SiteData } from "./data.js";
@@ -98,7 +99,7 @@ const LEGACY = `<!DOCTYPE html>
 </body>
 </html>`;
 const legacyPage = async (html: string) => {
-  const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  const error = vi.spyOn(log, "error").mockImplementation(() => undefined);
   const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), { cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }) }), "/issues/2026-09-01");
   const errors = error.mock.calls.length;
   error.mockRestore();
@@ -107,7 +108,7 @@ const legacyPage = async (html: string) => {
 
 describe("the issue page", () => {
   it("injects the site's chrome at every needle of the real template", async () => {
-    const error = vi.spyOn(console, "error");
+    const error = vi.spyOn(log, "error");
     const html = await (await get(testApp(withIssue(), { cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }) }), "/issues/2026-09-01")).text();
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
@@ -121,12 +122,12 @@ describe("the issue page", () => {
   });
 
   it("logs a missed injection as an error naming the needle and the date, and still serves the page", async () => {
-    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const error = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const html = ISSUE_HTML.replace('<p class="footer-meta">', "<p>").replace("</footer>", "</div>");
     const cfg = testConfig({ CONTACT_EMAIL: "hi@digest.example" });
     const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), { cfg }), "/issues/2026-09-01");
     expect(res.status).toBe(200);
-    const lines = error.mock.calls.map((c) => JSON.parse(String(c[0])) as Record<string, unknown>);
+    const lines = error.mock.calls.map((c) => c[0] as Record<string, unknown>);
     error.mockRestore();
     expect(lines).toEqual([expect.objectContaining({ site: "issue", level: "error", date: "2026-09-01", needle: "</footer>" })]);
   });
@@ -272,7 +273,7 @@ describe("subscribe", () => {
 
   it("mails a signed confirmation link, and never logs the address", async () => {
     const m = mail();
-    const logs = [vi.spyOn(console, "log"), vi.spyOn(console, "warn"), vi.spyOn(console, "error")];
+    const logs = [vi.spyOn(log, "info"), vi.spyOn(log, "warn"), vi.spyOn(log, "error")];
     const app = testApp(fakeData(), { cfg: testConfig(SUBS), mail: m });
     const res = await post(app, "Reader@Gmail.com");
     expect(res.status).toBe(303);

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import type { Email, SendEmail } from "../mail/resend.js";
 import { alertEmail, sendAlert, type AlertRequest } from "./alerts.js";
 
@@ -86,7 +87,7 @@ describe("sendAlert", () => {
     expect(sent[0]![1]).toEqual({ idempotencyKey: "wf/run/1" });
   });
   it("with alerting unconfigured, logs at error what the alert said and sends nothing", async () => {
-    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const err = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const { sent, send } = recorder();
     expect(await sendAlert(runHealth, { env: { RESEND_API_KEY: "re_test" }, send, attempt: 1, maxAttempts: 3 })).toBe("dropped");
     expect(sent).toHaveLength(0);
@@ -97,7 +98,7 @@ describe("sendAlert", () => {
     await expect(sendAlert(runHealth, { env, send, attempt: 1, maxAttempts: 3 })).rejects.toThrow("503");
   });
   it("a failed send on the last attempt is logged with its content and reported dropped, never thrown", async () => {
-    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const err = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const { send } = recorder(new Error("503"));
     expect(await sendAlert(runHealth, { env, send, attempt: 3, maxAttempts: 3 })).toBe("dropped");
     expect(err).toHaveBeenCalledWith("run-health alert send FAILED (Error: 503); alert DROPPED. It said: run 305 violated: ZERO_STORIES: the run completed but shipped no stories");

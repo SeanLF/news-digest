@@ -7,6 +7,7 @@ import { parse } from "csv-parse/sync";
 import { stringify } from "csv-stringify/sync";
 import { z } from "zod";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
+import { log } from "../log.js";
 import { parseAgentSpec } from "../runner/prompt.js";
 import { runStage, type SdkQuery } from "../runner/run-stage.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
@@ -118,7 +119,7 @@ export function writeActivities(deps: WriteDeps) {
       const { ids } = await runArticles(store, runId);
       const { plans, dropped } = planStories(await store.get(selected), await store.get(clusters), ids);
       await store.replace(runId, WRITE_BRANCHES, JSON.stringify({ dropped }));
-      if (dropped.length) console.error(JSON.stringify({ stage: "write-plan", runId, dropped }));
+      if (dropped.length) log.error({ stage: "write-plan", runId, dropped });
       for (const d of dropped) deps.log?.(`write s${String(d.index).padStart(2, "0")} DROPPED (${d.tier}): ${d.reason}`);
       if (plans.length === 0) throw ApplicationFailure.nonRetryable(`run ${runId}: no selected story has evidence to write from`, "NothingToWrite");
       return { plans };

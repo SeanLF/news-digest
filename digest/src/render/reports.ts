@@ -1,3 +1,4 @@
+import { log } from "../log.js";
 import { AGENCY_LABELS, AGENCY_RATINGS, BUCKET_ORDER, biasBucket, hasArticlePath, isSafeUrl, titleCase, type Bucket, type Source } from "./common.js";
 import { repostKey } from "./resolve.js";
 
@@ -74,6 +75,7 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
       else reports.push({ label: own.name, leaning: own.bias, bucket: biasBucket(own.bias), wire: false, members: [own] });
     }
   }
+  if (named.length && !reports.length) log.warn({ stage: "render", warning: "every source dropped (no openable article link); the story ships with no source block", sources: named.length });
   const ordered = REPORT_BUCKET_ORDER.flatMap((b) => reports.filter((r) => r.bucket === b));
   return { reports: ordered, outlets: new Set(ordered.flatMap((r) => r.members.map((m) => m.name))).size };
 }

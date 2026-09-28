@@ -1,5 +1,6 @@
 import net from "node:net";
 import { describe, expect, it, vi } from "vitest";
+import { log } from "../log.js";
 import { dbUrl, openDb, utcText } from "./db.js";
 
 // A stand-in Postgres: accepts a connection without a password, answers one simple query, then drops
@@ -36,7 +37,7 @@ function droppingServer(): Promise<{ url: string; close: () => void }> {
 
 describe("openDb", () => {
   it("survives Postgres dropping an idle pooled connection, and says so", async () => {
-    const warn = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const warn = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const crashed = vi.fn();
     process.on("uncaughtException", crashed);
     const { url, close } = await droppingServer();

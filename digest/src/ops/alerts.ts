@@ -1,4 +1,5 @@
 import { htmlEscape } from "escape-goat";
+import { log } from "../log.js";
 import type { SendEmail } from "../mail/resend.js";
 import { ACCEPTED_BROADCAST_STATES, CLAIMED, clearClaimCommand } from "./broadcast-state.js";
 
@@ -126,16 +127,16 @@ export async function sendAlert(req: AlertRequest, deps: AlertDeps): Promise<"se
   const from = deps.env["RESEND_FROM"];
   if (!to || !apiKey || !from) {
     const missing = Object.entries({ HEALTH_ALERT_EMAIL: to, RESEND_API_KEY: apiKey, RESEND_FROM: from }).filter(([, v]) => !v).map(([k]) => k);
-    console.error(`ALERTING MISCONFIGURED (${missing.join("/")} unset): ${req.kind} alert DROPPED, not delivered. It said: ${dropped}`);
+    log.error(`ALERTING MISCONFIGURED (${missing.join("/")} unset): ${req.kind} alert DROPPED, not delivered. It said: ${dropped}`);
     return "dropped";
   }
   try {
     await deps.send({ from: `News Digest Alerts <${from}>`, to: [to], subject, html }, deps.idempotencyKey ? { idempotencyKey: deps.idempotencyKey } : undefined);
   } catch (e) {
     if (deps.attempt < deps.maxAttempts) throw e;
-    console.error(`${req.kind} alert send FAILED (${String(e)}); alert DROPPED. It said: ${dropped}`);
+    log.error(`${req.kind} alert send FAILED (${String(e)}); alert DROPPED. It said: ${dropped}`);
     return "dropped";
   }
-  console.log(JSON.stringify({ stage: "alert", kind: req.kind, sent: to }));
+  log.info({ stage: "alert", kind: req.kind, sent: to });
   return "sent";
 }

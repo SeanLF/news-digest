@@ -1,5 +1,6 @@
 // Google-News link decoding at publish (spec §2.1): choosing the links and storing the result, over
 // the survivors only. The decode between them is the `decodeLinks` activity (gnews-decode.ts).
+import { log } from "../log.js";
 import { resolveArticleIds, type Selections } from "../render/render.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { DECODED_LINKS, type GnewsDecode, type GnewsPlan } from "./index.js";
@@ -46,7 +47,7 @@ export function gnewsActivities(deps: { store: ArtifactStore; enabled: boolean }
       const decoded = Object.fromEntries(Object.entries(result.decoded).filter(([, to]) => to.startsWith("http")));
       const upgraded = Object.keys(decoded).length;
       if (result.links && !upgraded && result.outcome !== "rate_limited" && result.attempted >= CANARY_MIN_ATTEMPTS) {
-        console.warn(JSON.stringify({ stage: "gnews", warning: "upgraded 0 shown links; the decoder contract has probably moved again, check gnews-decoder for an update (npm run test:live there)", links: result.links, attempted: result.attempted }));
+        log.warn({ stage: "gnews", warning: "upgraded 0 shown links; the decoder contract has probably moved again, check gnews-decoder for an update (npm run test:live there)", links: result.links, attempted: result.attempted });
       }
       const write = (name: string, text: string) => (force ? store.replace(runId, name, text) : store.put(runId, name, text));
       await write(GNEWS_HEALTH, JSON.stringify({ links: result.links, decoded: upgraded, attempted: result.attempted, outcome: result.outcome }));

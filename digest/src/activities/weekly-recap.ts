@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Context } from "@temporalio/activity";
 import { assertNoUrls } from "../contracts/ids.js";
+import { log } from "../log.js";
 import { previousHeadlines, runAt } from "../prepare/context.js";
 import { parseAgentSpec } from "../runner/prompt.js";
 import { runStage, type SdkQuery } from "../runner/run-stage.js";
@@ -66,7 +67,7 @@ export function weeklyRecapActivity(deps: WeeklyRecapDeps): (runId: number, forc
       if (deps.signal?.()?.aborted) throw e;
       if ((deps.attempt ?? currentAttempt)() < deps.maxAttempts) throw e;
       // Best-effort, as in the Python: the run goes on with last week's recap.
-      console.warn(`Weekly recap generation failed (non-fatal): ${String(e)}`);
+      log.warn(`Weekly recap generation failed (non-fatal): ${String(e)}`);
       return carry();
     }
     const sections = (prior ?? "").split(/(?=^## Week of )/m).filter((s) => s.trim());

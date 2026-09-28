@@ -5,6 +5,7 @@ import { NETWORK_MAX_ATTEMPTS } from "../workflow/policy.js";
 import { parse } from "csv-parse/sync";
 import { activeSources, newerThan, parseArticles, type CatalogueSource } from "../fetch/feeds.js";
 import { fetchBounded, type BoundedResponse } from "../fetch/safe-fetch.js";
+import { log } from "../log.js";
 import { toCsv, type Fetched } from "../prepare/prepare.js";
 import type { ArtifactStore } from "../store/artifacts.js";
 import { openDb, type RowOf, type Sql } from "../store/db.js";
@@ -190,6 +191,6 @@ export async function tellEnding(track: Track | undefined, db: Sql, runId: numbe
     );
     track(event, { run_id: runId, ...fields, articles_kept: r?.articles_kept ?? null, cost_usd: r?.cost_usd ?? null, duration_s: r?.duration_s ?? null, git_sha: process.env["GIT_SHA"] ?? null });
   } catch (e) {
-    console.warn(JSON.stringify({ stage: "telemetry", warning: `${event} not sent`, runId, error: String(e) }));
+    log.warn({ stage: "telemetry", warning: `${event} not sent`, runId, error: String(e) });
   }
 }

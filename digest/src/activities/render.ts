@@ -1,3 +1,4 @@
+import { log } from "../log.js";
 import { applyDecodedLinks, attachThreads, issueNumber, renderEmail, renderMarkdown, renderWeb, resolveArticleIds, type RenderAssets, type RenderEnv, type Selections, type ThreadContext } from "../render/render.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
@@ -53,7 +54,7 @@ export function renderActivity(deps: RenderDeps) {
     const html = await write(runId, WEB_OUTPUT, renderWeb(input));
     const email = await write(runId, EMAIL_OUTPUT, renderEmail(input));
     await write(runId, MARKDOWN_OUTPUT, renderMarkdown(input));
-    console.log(JSON.stringify({ stage: "render", runId, mustKnow: selections.must_know.length, shouldKnow: selections.should_know.length, threads: contexts !== undefined, decodedLinks: links !== undefined }));
+    log.info({ stage: "render", runId, mustKnow: selections.must_know.length, shouldKnow: selections.should_know.length, threads: contexts !== undefined, decodedLinks: links !== undefined });
     return { html, email };
   };
 }

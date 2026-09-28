@@ -10,6 +10,7 @@
     "suspicious": "error"
   },
   "rules": {
+    "no-console": "error",
     "no-unused-vars": [
       "error",
       {
@@ -39,6 +40,18 @@
       ],
       "rules": {
         "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      "files": [
+        "src/cli/**",
+        "src/**/*.test.ts"
+      ],
+      "excludeFiles": [
+        "src/cli/migrate.ts"
+      ],
+      "rules": {
+        "no-console": "off"
       }
     }
   ]

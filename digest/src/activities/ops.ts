@@ -1,4 +1,5 @@
 import { Context } from "@temporalio/activity";
+import { log } from "../log.js";
 import { emailSender, resendClient, type SendEmail } from "../mail/resend.js";
 import { sendAlert, type AlertRequest } from "../ops/alerts.js";
 import { broadcastState } from "../ops/broadcast-state.js";
@@ -43,7 +44,7 @@ export function opsActivities(deps: OpsDeps) {
       try {
         return await feedHealthAlert(openDb(deps.dbUrl), runId, sourceIds, Number(deps.env["HEALTH_ALERT_THRESHOLD"] ?? 3));
       } catch (e) {
-        console.error(`feed-health check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
+        log.error(`feed-health check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
         return null;
       }
     },
@@ -55,16 +56,16 @@ export function opsActivities(deps: OpsDeps) {
         const db = openDb(deps.dbUrl);
         const report = await db.one<Pick<RowOf<"artifacts">, "content">>("SELECT content FROM artifacts WHERE run_id=$1 AND name='coherence_report.json' AND status='current'", [runId]);
         const kinds = coherenceKindCounts(report?.content);
-        if (kinds) console.log(JSON.stringify({ stage: "coherence", runId, failureKinds: kinds }));
+        if (kinds) log.info({ stage: "coherence", runId, failureKinds: kinds });
         const health = await getRunHealth(db, runId, { broadcasting, threadsEnabled: threadsEnabled(deps.env), usageRowsDropped: 0, dormantAfter: threadsConfigFrom(deps.env).dormantAfter });
-        if (health.dropped_continuations) console.warn(`Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`);
+        if (health.dropped_continuations) log.warn(`Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`);
         const found = violations(health);
         if (!found.length) return null;
         // Logged before any send: if the send fails or alerting is off, this line is the only copy.
-        console.error(`Run ${runId} violated post-run invariants: ${found.join("; ")}`);
+        log.error(`Run ${runId} violated post-run invariants: ${found.join("; ")}`);
         return { kind: "run-health", runId, violations: found };
       } catch (e) {
-        console.error(`run-health check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
+        log.error(`run-health check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
         return null;
       }
     },
@@ -77,7 +78,7 @@ export function opsActivities(deps: OpsDeps) {
       const input = await readPreSend(db, runId, { threadsEnabled: threadsEnabled(deps.env), dormantAfter: threadsConfigFrom(deps.env).dormantAfter });
       const cutover = cutoverHold(deps.env, await runDateIn(db, runId));
       const failures = [...(cutover ? [cutover] : []), ...preSendFailures(input)];
-      console.log(JSON.stringify({ stage: "pre-send", runId, failures }));
+      log.info({ stage: "pre-send", runId, failures });
       return failures;
     },
 
@@ -90,7 +91,7 @@ export function opsActivities(deps: OpsDeps) {
           const day = await broadcastState(openDb(deps.dbUrl), runId, /^digest-(\d{4}-\d{2}-\d{2})$/.exec(req.workflowId)?.[1]);
           if (day) req = { ...req, broadcastStatus: day.status, date: day.date };
         } catch (e) {
-          console.error(`could not read the day's broadcast state for run ${runId}: ${String(e)}`); // the alert goes anyway
+          log.error(`could not read the day's broadcast state for run ${runId}: ${String(e)}`); // the alert goes anyway
         }
       }
       await sendAlert(req, { env: deps.env, send, attempt, maxAttempts: deps.maxAttempts, ...(key ? { idempotencyKey: key } : {}) });
