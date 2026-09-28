@@ -25,7 +25,7 @@ Usage:
   bin/ops health [ID]              per-source fetch results, failures first
   bin/ops artifacts [ID]           the archived artifact names and their sizes
   bin/ops artifact ID NAME         one artifact's content, to stdout
-  bin/ops journal [--since 1h] [--lines 200] [--grep PAT]
+  bin/ops journal [--service worker|python|site] [--since 1h] [--lines 200] [--grep PAT]
   ... any subcommand with --print-command to see what would run, and run nothing.
 """
 
@@ -39,11 +39,13 @@ import sys
 from pathlib import Path
 
 # The product database in the Postgres Temporal runs (seanfloyd-infra tofu/news-digest-temporal.tf),
-# reached over the container's local socket, and the worker's unit.
+# reached over the container's local socket.
 PG_CONTAINER = "news-digest-temporal-postgres"
 PG_ROLE = "digest_ro"
 PG_DATABASE = "digest"
-PG_UNIT = "news-digest-worker.service"
+# Kamal names a container <service>-<role>-<version>. Only the running one has logs here; older
+# versions' logs, and every container's, are in PostHog Logs (seanfloyd-infra tofu/news-digest-logs.tf).
+LOG_CONTAINERS = {"worker": "digest-worker-worker-", "python": "digest-python-worker-", "site": "digest-site-web-"}
 PG_READ_ONLY = "-c default_transaction_read_only=on"
 PAYLOAD_DIR = Path(__file__).resolve().parent.parent / "digest" / "db" / "ops"
 
@@ -76,38 +78,33 @@ def remote_command(env: dict[str, str] | None = None) -> str:
     )
 
 
-def _relative_time(since: str) -> str:
-    """`6h` -> `-6h`. systemd needs a sign on a relative time and rejects a bare one with
-    "Failed to parse timestamp"; an absolute timestamp passes through untouched."""
+def _docker_since(since: str) -> str:
+    """`4d` -> `96h`: docker logs takes Go durations, which have no days or weeks, or a timestamp
+    with a T."""
     stripped = since.strip()
-    return f"-{stripped}" if re.fullmatch(r"\d+[smhdw]", stripped) else since
+    m = re.fullmatch(r"(\d+)([smhdw])", stripped)
+    if m and m[2] in "dw":
+        return f"{int(m[1]) * (24 if m[2] == 'd' else 168)}h"
+    return stripped.replace(" ", "T")
 
 
-def journal_command(since: str, lines: int, grep: str | None) -> str:
-    """Scoped to the digest unit and bounded by --lines on purpose.
+def journal_command(since: str, lines: int, grep: str | None, service: str = "worker") -> str:
+    """The running container's log, bounded by --lines on purpose.
 
-    A free-form grep over the whole journal would be an unbounded read, and these logs carry
-    email addresses (alert recipients). That is acceptable on a
-    channel the operator already has; it is the specific reason this must never become an HTTP
-    tool.
+    These logs carry email addresses (alert recipients), which is acceptable on a channel the
+    operator already has and the reason this must never become an HTTP tool.
 
-    The pattern goes to journalctl's own --grep, not a piped `grep --`. Two reasons, both found
-    live: (1) plain `grep` with no `-E` is POSIX basic regex, where `|` is a literal character,
-    not alternation, so an operator's `ERROR|Traceback` sweep silently returned nothing;
-    (2) a pipe is sequential -- `-n N | grep` truncates to the last N raw lines *before* the
-    pattern ever sees them, so a match older than the tail of the --since window was silently
-    missed even though it was in-window. journalctl parses --since/--grep/-n as one combined
-    query instead: --grep (PCRE) filters the whole --since window, and -n then bounds the
-    number of MATCHING entries -- which is what "bounded by --lines on purpose" above is
-    supposed to mean. Note --grep matches only the MESSAGE field, not the timestamp/unit/pid
-    prefix a piped `grep` would have seen; not a concern for the ERROR/Traceback-style patterns
-    this is for.
+    grep -E runs before tail: tail first would drop a match older than the last N raw lines of
+    the window, and plain grep would read `ERROR|Traceback` as a literal. No running container
+    is an error, not an empty log.
     """
-    cmd = f"journalctl -u {shlex.quote(PG_UNIT)} --since {shlex.quote(_relative_time(since))} --no-pager"
-    if grep:
-        cmd += f" --grep {shlex.quote(grep)}"
-    cmd += f" -n {int(lines)}"
-    return cmd
+    prefix = LOG_CONTAINERS[service]
+    filtered = f" | {{ grep -E -- {shlex.quote(grep)} || [ $? -eq 1 ]; }}" if grep else ""
+    return (
+        f"set -o pipefail; c=$(docker ps -q --filter name=^{prefix} | head -1); "
+        f'[ -n "$c" ] || {{ echo "no running {prefix}* container" >&2; exit 3; }}; '
+        f'docker logs -t --since {shlex.quote(_docker_since(since))} "$c" 2>&1{filtered} | tail -n {int(lines)}'
+    )
 
 
 def _ssh(command: str, stdin: str | None) -> int:
@@ -127,7 +124,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("args", nargs="*", help="run id, and the artifact name for `artifact`")
     ap.add_argument("--since", default="1h", help="journal only (default 1h)")
     ap.add_argument("--lines", type=int, default=200, help="journal only (default 200)")
-    ap.add_argument("--grep", default=None, help="journal only")
+    ap.add_argument("--grep", default=None, help="journal only (grep -E)")
+    ap.add_argument("--service", default="worker", choices=sorted(LOG_CONTAINERS), help="journal only (default worker)")
     ap.add_argument("--print-command", action="store_true", help="show what would run; run nothing")
     ns = ap.parse_args(argv)
 
@@ -138,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         ap.error(f"{ns.subcommand} takes at most {expected} argument(s), got {len(ns.args)}")
 
     if ns.subcommand == "journal":
-        command, payload = journal_command(ns.since, ns.lines, ns.grep), None
+        command, payload = journal_command(ns.since, ns.lines, ns.grep, ns.service), None
     else:
         run_id = ns.args[0] if ns.args else ""
         name = ns.args[1] if len(ns.args) > 1 else ""

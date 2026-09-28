@@ -45,7 +45,8 @@ is stale:
 ```bash
 bin/ops run|usage|health|artifacts [ID]   # ID defaults to the latest run
 bin/ops artifact ID NAME                  # one archived artifact to stdout
-bin/ops journal [--since 6h] [--lines 200] [--grep PAT]
+bin/ops journal [--service worker|python|site] [--since 4d] [--lines 200] [--grep 'ERROR|WARN']
+                                          # the running container only; older logs in PostHog Logs
 bin/ops <any> --print-command             # show what would run, run nothing
 ```
 
