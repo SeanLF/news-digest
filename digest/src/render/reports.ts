@@ -31,16 +31,20 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
     if (j === undefined) firstBy.set(key, i);
     else union(parent, i, j);
   };
+  const headlines = named.map((s) => {
+    const h = repostKey(s.original_title ?? "", s.name ?? "");
+    return h && !GENERIC_HEADLINES.has(h) ? h : null;
+  });
+  const agenciesBy = new Map<string, Set<string>>();
+  named.forEach((s, i) => {
+    const h = headlines[i], a = agencyKey(s);
+    if (h && a) agenciesBy.set(h, (agenciesBy.get(h) ?? new Set()).add(a));
+  });
   named.forEach((s, i) => {
     const agency = agencyKey(s);
     link(agency && `wire:${agency}`, i);
-    const headline = repostKey(s.original_title ?? "", s.name ?? "");
-    link(headline && !GENERIC_HEADLINES.has(headline) ? `headline:${headline}` : null, i);
-  });
-  const size = new Map<number, number>();
-  named.forEach((_, i) => size.set(find(parent, i), (size.get(find(parent, i)) ?? 0) + 1));
-  named.forEach((s, i) => {
-    if (size.get(find(parent, i)) === 1 && !agencyKey(s)) link(`outlet:${s.name}`, i);
+    const h = headlines[i];
+    if (h && (agenciesBy.get(h)?.size ?? 0) <= 1) link(`headline:${h}`, i);
   });
 
   const components = new Map<number, number[]>();
@@ -54,18 +58,25 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
       if (!m) members.push((m = { name: s.name!, bias: s.bias ?? "", urls: [], origin: false }));
       if (s.url && openable(s.url)) m.urls.push(s.url);
     }
+    const shown = members.filter((m) => m.urls.length);
+    if (!shown.length) continue;
     const agency = idx.map((i) => agencyKey(named[i]!)).find(Boolean) ?? null;
-    let report: Report;
     if (agency) {
       const label = agencyLabel(agency);
-      for (const m of members) m.origin = m.name.toLowerCase() === label.toLowerCase() || idx.some((i) => named[i]!.name === m.name && named[i]!.wire);
-      report = { label, leaning: "wire", bucket: "w", members };
-    } else {
-      members[0]!.origin = true;
-      report = { label: members[0]!.name, leaning: members[0]!.bias, bucket: biasBucket(members[0]!.bias), members };
+      for (const m of shown) m.origin = m.name.toLowerCase() === label.toLowerCase() || idx.some((i) => named[i]!.name === m.name && named[i]!.wire && agencyKey(named[i]!) === agency);
+      reports.push({ label, leaning: "wire", bucket: "w", members: [...shown.filter((m) => m.origin), ...shown.filter((m) => !m.origin)] });
+      continue;
     }
-    report.members = [...report.members.filter((m) => m.origin), ...report.members.filter((m) => !m.origin)].filter((m) => m.urls.length);
-    if (report.members.length) reports.push(report);
+    const origin = shown[0]!;
+    origin.origin = true;
+    const own = reports.find((r) => r.bucket !== "w" && r.label === origin.name);
+    if (own) {
+      for (const m of shown) {
+        const same = own.members.find((x) => x.name === m.name);
+        if (same) same.urls.push(...m.urls);
+        else own.members.push({ ...m, origin: false });
+      }
+    } else reports.push({ label: origin.name, leaning: origin.bias, bucket: biasBucket(origin.bias), members: shown });
   }
   const ordered = REPORT_BUCKET_ORDER.flatMap((b) => reports.filter((r) => r.bucket === b));
   return { reports: ordered, outlets: new Set(ordered.flatMap((r) => r.members.map((m) => m.name))).size };

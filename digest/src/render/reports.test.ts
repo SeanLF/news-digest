@@ -77,6 +77,24 @@ describe("groupReports", () => {
     expect(g.outlets).toBe(1);
   });
 
+  it("never merges two agencies' copy on a shared headline", () => {
+    const out = shape([src("AP", "Fed cuts rates by quarter point", { wire: true, wire_agency: "ap" }), src("AFP", "Fed cuts rates by quarter point", { wire: true, wire_agency: "afp" })]);
+    expect(out).toEqual([
+      { label: "AP", leaning: "wire", bucket: "w", members: ["*AP:1"] },
+      { label: "AFP", leaning: "wire", bucket: "w", members: ["*AFP:1"] },
+    ]);
+  });
+
+  it("keeps an outlet's own reporting one report when one of its headlines is copied elsewhere", () => {
+    const out = shape([src("FT", "Deal signed after long talks"), src("Carrier", "Deal signed after long talks", { bias: "lean-right" }), src("FT", "Investigators focus on a separate matter")]);
+    expect(out).toEqual([{ label: "FT", leaning: "center", bucket: "c", members: ["*FT:2", "Carrier:1"] }]);
+  });
+
+  it("takes the origin from the members a reader can open", () => {
+    const out = shape([src("A", "Wife of Mahathir dies aged 100", { url: "javascript:alert(1)" }), src("B", "Wife of Mahathir dies aged 100", { bias: "lean-left" })]);
+    expect(out).toEqual([{ label: "B", leaning: "lean-left", bucket: "l", members: ["*B:1"] }]);
+  });
+
   it("counts reports and distinct outlets", () => {
     const g = groupReports([
       src("Reuters", "X - Reuters", { wire: true, wire_agency: "reuters" }),
