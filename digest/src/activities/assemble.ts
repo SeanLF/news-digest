@@ -1,5 +1,5 @@
 import { ApplicationFailure } from "@temporalio/common";
-import { CoherenceReportSchema } from "../contracts/coherence.js";
+import { CoherenceReportSchema, type Claim } from "../contracts/coherence.js";
 import { leaksInternalId, stripArticleIds } from "../contracts/leaks.js";
 import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
 import { NOT_COVERED_BLURB_MAX_LEN, PREHEADER_MAX_CHARS, SelectionsSchema, type Selections } from "../contracts/selections.js";
@@ -28,45 +28,47 @@ export function clusterFor(ids: string[], owner: Map<string, string>): string | 
   return best;
 }
 
-export interface AssembleReport { shipped: number; dropped: string[]; repaired: number; blanked: number }
+export interface AssembleReport { shipped: number; dropped: string[]; repaired: number; blanked: number; removed: number }
+export interface AssembleOptions { removeUnsupported?: boolean }
+type Read = "full" | "truncated" | "summary";
+const TRUNCATED = "\n[truncated]";
 
 // merge.assemble_selections, ported. For each story, in order: passed → keep; repaired with a
 // patch covering exactly the flagged fields and a passed recheck → keep, patched; only
 // why_it_matters failed → keep, blanked (a brief has none to blank); anything else → drop. No
 // must_know left → abort rather than send an empty digest. Then the reader-facing guards and the
 // contract.
-export async function assemble(store: ArtifactStore, runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null): Promise<{ selections: Selections; report: AssembleReport }> {
+export async function assemble(store: ArtifactStore, runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, opts: AssembleOptions = {}): Promise<{ selections: Selections; report: AssembleReport }> {
   const draft = await draftFrom(store, drafts);
   const results = CoherenceReportSchema.parse(JSON.parse(await store.get(report))).results;
   const resolution = JSON.parse(await store.get(repair)) as ResolutionDoc;
-  const patches = new Map(resolution.results.filter((r) => r.status === "repaired" && r.recheck_pass && validPatch(r.patched_fields)).map((r) => [r.article_ids.toSorted().join(","), r.patched_fields]));
+  const confirmed = resolution.results.filter((r) => r.status === "repaired" && r.recheck_pass && validPatch(r.patched_fields));
+  const patches = new Map(confirmed.map((r) => [r.article_ids.toSorted().join(","), r.patched_fields]));
+  const recheckClaims = new Map(confirmed.map((r) => [r.article_ids.toSorted().join(","), r.claims]));
+  const ftPtr = await store.find(runId, "article_fulltext.json");
+  const fulltext = ftPtr ? (JSON.parse(await store.get(ftPtr)) as Record<string, { text?: string }>) : {};
+  const read = (id: string): Read => {
+    const t = Object.hasOwn(fulltext, id) ? fulltext[id]?.text : undefined;
+    return !t ? "summary" : t.endsWith(TRUNCATED) ? "truncated" : "full";
+  };
   const owner = new Map<string, string>();
   const clusters = await store.find(runId, "clusters.json");
   if (clusters) for (const c of (JSON.parse(await store.get(clusters)) as { clusters: { story: string; article_ids: string[] }[] }).clusters) for (const a of c.article_ids) owner.set(a, c.story);
-  const out: AssembleReport = { shipped: 0, dropped: [], repaired: 0, blanked: 0 };
+  const out: AssembleReport = { shipped: 0, dropped: [], repaired: 0, blanked: 0, removed: 0 };
   const sel: Record<"must_know" | "should_know", Selections["must_know"]> = { must_know: [], should_know: [] };
   for (const tier of ["must_know", "should_know"] as const)
     for (const story of draft[tier]) {
       const item = { ...story, why_it_matters: story.why_it_matters ?? "" };
-      if (item.reporting_varies) {
-        const cited = new Set(story.sources.map((s) => s.article_id));
-        const rv = item.reporting_varies
-          .filter((e) => e.article_id !== undefined && cited.has(e.article_id))
-          .map((e) => ({ source: stripArticleIds(e.source), angle: stripArticleIds(e.angle), bias: stripArticleIds(e.bias), article_id: e.article_id }))
-          .filter((e) => e.source && e.angle);
-        const dropped = item.reporting_varies.length - rv.length;
-        if (dropped) log.warn({ stage: "assemble", runId, warning: "reporting_varies angles dropped for naming no cited article", headline: story.headline, dropped });
-        if (rv.length) item.reporting_varies = rv;
-        else delete item.reporting_varies;
-      }
       const ids = itemIds(story.sources);
       const hits = results.filter((r) => !r.pass && resultMatches(r, ids, normHeadline(story.headline)));
+      let repaired = false;
       if (hits.length) {
         const flagged = new Set(hits.flatMap((h) => h.failed_fields ?? []));
         const repairable = hits.every((h) => (h.failed_fields ?? []).length > 0);
         const patch = patches.get([...ids].toSorted().join(","));
         if (patch && repairable && Object.keys(patch).length === flagged.size && Object.keys(patch).every((f) => flagged.has(f as never))) {
           Object.assign(item, patch);
+          repaired = true;
           out.repaired++;
         } else if (hits.every((h) => h.failed_fields?.length === 1 && h.failed_fields[0] === "why_it_matters")) {
           if (tier === "must_know") {
@@ -78,7 +80,32 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
           continue;
         }
       }
-      const cid = clusterFor(story.sources.map((s) => s.article_id), owner);
+      const idKey = [...ids].toSorted().join(",");
+      const checkedClaims: Claim[] = repaired ? (recheckClaims.get(idKey) ?? []) : results.filter((r) => resultMatches(r, ids, normHeadline(story.headline))).flatMap((r) => r.claims ?? []);
+      const liveClaims = checkedClaims.filter((c) => c.field !== "why_it_matters" || (tier === "must_know" && item.why_it_matters.trim() !== ""));
+      const backed = new Set(liveClaims.flatMap((c) => c.supported_by));
+      if (opts.removeUnsupported && liveClaims.length && item.sources.some((x) => backed.has(x.article_id))) {
+        const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id));
+        if (unbacked.length && unbacked.length < item.sources.length) {
+          item.sources = item.sources.filter((x) => !unbacked.includes(x));
+          out.removed += unbacked.length;
+          log.info({ stage: "assemble", runId, headline: story.headline, removed: unbacked.map((x) => x.article_id), reason: "read in full, backs no claim" });
+        } else if (unbacked.length) log.warn({ stage: "assemble", runId, headline: story.headline, warning: "every source backs nothing; the check and its claims disagree, nothing removed" });
+      }
+      const remaining = new Set(item.sources.map((x) => x.article_id));
+      if (liveClaims.length) (item as { claims?: Claim[] }).claims = liveClaims.map((c) => ({ ...c, supported_by: c.supported_by.filter((id) => remaining.has(id)) }));
+      if (item.reporting_varies) {
+        const cited = remaining;
+        const rv = item.reporting_varies
+          .filter((e) => e.article_id !== undefined && cited.has(e.article_id))
+          .map((e) => ({ source: stripArticleIds(e.source), angle: stripArticleIds(e.angle), bias: stripArticleIds(e.bias), article_id: e.article_id }))
+          .filter((e) => e.source && e.angle);
+        const dropped = item.reporting_varies.length - rv.length;
+        if (dropped) log.warn({ stage: "assemble", runId, warning: "reporting_varies angles dropped for naming no cited article", headline: story.headline, dropped });
+        if (rv.length) item.reporting_varies = rv;
+        else delete item.reporting_varies;
+      }
+      const cid = clusterFor(item.sources.map((s) => s.article_id), owner);
       const kept = { ...item, ...(cid ? { cluster_id: cid } : {}) };
       if (tier === "should_know") delete (kept as { why_it_matters?: string }).why_it_matters;
       sel[tier].push(kept);
@@ -99,9 +126,10 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
   return { selections: parsed.data, report: out };
 }
 
-export function assembleActivity(deps: { store: ArtifactStore }) {
+// removeUnsupported is KITCHEN_SINK_REMOVAL, off until P3's gate (docs/2026-09-28-sources-box-design.md §7).
+export function assembleActivity(deps: { store: ArtifactStore; removeUnsupported?: boolean }) {
   return async (runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, force = false): Promise<Pointer> => {
-    const { selections, report: r } = await assemble(deps.store, runId, drafts, report, repair, preheader);
+    const { selections, report: r } = await assemble(deps.store, runId, drafts, report, repair, preheader, { removeUnsupported: deps.removeUnsupported ?? false });
     log.info({ stage: "assemble", runId, ...r });
     const text = JSON.stringify(selections, null, 2);
     const existing = await deps.store.find(runId, SELECTIONS_OUTPUT);

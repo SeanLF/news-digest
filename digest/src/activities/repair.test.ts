@@ -37,6 +37,12 @@ describe("repair", () => {
     // a failure matched only by headline still fails the recheck
     expect(resolve(applied, { results: [{ headline: "H", article_ids: ["A1"], pass: true, reason: "ok" }, { headline: "H", article_ids: [], pass: false, reason: "no", failed_fields: ["summary"] }] }, scoped)[0]?.status).toBe("recheck_failed");
   });
+  it("carries the recheck's claims on a confirmed repair, which replace the first check's", async () => {
+    const applied = applyRepairs([req], { results: [{ article_ids: ["A1"], summary: "Fixed." }] });
+    const scoped = { must_know: [{ ...s("H", ["A1"]), summary: "Fixed." }], should_know: [], preheader: "" };
+    const claims = [{ field: "summary" as const, text: "the fix", supported_by: ["A1"] }];
+    expect(resolve(applied, { results: [{ headline: "H", article_ids: ["A1"], pass: true, reason: "ok", claims }] }, scoped)[0]?.claims).toEqual(claims);
+  });
 });
 
 

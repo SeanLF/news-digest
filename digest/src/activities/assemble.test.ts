@@ -32,7 +32,7 @@ describe("assemble", () => {
     expect(selections.should_know).toEqual([{ headline: "Yen jumps", summary: "S", sources: [{ article_id: "A4" }], cluster_id: "Yen" }]);
     expect(selections.preheader).toBe("Pre");
     expect(selections.not_covered_blurb).toBe("Held back a Balkan ruling.");
-    expect(report).toEqual({ shipped: 4, dropped: [], repaired: 1, blanked: 1 });
+    expect(report).toEqual({ shipped: 4, dropped: [], repaired: 1, blanked: 1, removed: 0 });
   });
   it("drops an unrepaired non-why failure and a repair not confirmed by the recheck", async () => {
     const { selections, report } = await (await setup([pass("Russia votes", ["A1", "A2"]), pass("Talks stall", ["A3"]), { headline: "Deal signed", article_ids: ["A5"], pass: false, reason: "s", failed_fields: ["summary"] }, pass("Yen jumps", ["A4"])], [{ article_ids: ["A5"], status: "recheck_failed", recheck_pass: false, patched_fields: { summary: "x" } }]))();
@@ -47,5 +47,55 @@ describe("assemble", () => {
     const owner = new Map([["A1", "x"], ["A2", "y"], ["A3", "y"]]);
     expect(clusterFor(["A1", "A1", "A2", "A3"], owner)).toBe("y");
     expect(clusterFor(["A1", "A2"], owner)).toBe("x");
+  });
+});
+
+const claims = [
+  { field: "summary", text: "the Metz address", supported_by: ["A1", "A9"] },
+  { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
+];
+async function ledger(result: Record<string, unknown>, resolution: unknown[] = []) {
+  const store = new ArtifactStore(await freshDb([300]));
+  await store.put(300, "clusters.json", JSON.stringify({ clusters: [] }));
+  await store.put(300, "article_fulltext.json", JSON.stringify({ A1: { text: "Full body one." }, A2: { text: "Full body two." }, A3: { text: "Cut body.\n[truncated]" } }));
+  const s = story("Pope", ["A1", "A2", "A3", "A4"], { reporting_varies: [{ source: "X", angle: "from A2", bias: "center", article_id: "A2" }, { source: "Y", angle: "from A1", bias: "center", article_id: "A1" }] });
+  const drafts = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: s }))];
+  const report = await store.put(300, "coherence_report.json", JSON.stringify({ results: [{ headline: "Pope", article_ids: ["A1", "A2", "A3", "A4"], reason: "ok", ...result }] }));
+  const repair = await store.put(300, "repair_resolution.json", JSON.stringify({ input: "x", results: resolution }));
+  return (removeUnsupported: boolean) => assemble(store, 300, drafts, report, repair, null, { removeUnsupported });
+}
+
+describe("assemble: claims and articles that back nothing", () => {
+  it("attaches the claims, held to the story's own sources", async () => {
+    const { selections, report } = await (await ledger({ pass: true, claims }))(false);
+    expect(selections.must_know[0]?.claims).toEqual([
+      { field: "summary", text: "the Metz address", supported_by: ["A1"] },
+      { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
+    ]);
+    expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+    expect(report.removed).toBe(0);
+  });
+  it("switched on, removes an article read in full that backs nothing, and the angle taken from it", async () => {
+    const { selections, report } = await (await ledger({ pass: true, claims }))(true);
+    expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A3", "A4"]);
+    expect(selections.must_know[0]?.reporting_varies?.map((r) => r.angle)).toEqual(["from A1"]);
+    expect(report.removed).toBe(1);
+  });
+  it("never removes on a check with no claims, nor empties a story", async () => {
+    expect((await (await ledger({ pass: true }))(true)).selections.must_know[0]?.sources).toHaveLength(4);
+    const none = [{ field: "summary", text: "x", supported_by: [] }];
+    expect((await (await ledger({ pass: true, claims: none }))(true)).selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+  });
+  it("drops a blanked why_it_matters' claims before deciding what backs nothing", async () => {
+    const onlyWhy = [{ field: "why_it_matters", text: "w", supported_by: ["A2"] }, { field: "summary", text: "s", supported_by: ["A1"] }];
+    const { selections } = await (await ledger({ pass: false, failed_fields: ["why_it_matters"], claims: onlyWhy }))(true);
+    expect(selections.must_know[0]?.why_it_matters).toBe("");
+    expect(selections.must_know[0]?.claims).toEqual([{ field: "summary", text: "s", supported_by: ["A1"] }]);
+    expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A3", "A4"]);
+  });
+  it("takes a repaired story's claims from its recheck", async () => {
+    const fixed = [{ field: "summary", text: "the fixed specific", supported_by: ["A2"] }];
+    const { selections } = await (await ledger({ pass: false, failed_fields: ["summary"], claims }, [{ article_ids: ["A1", "A2", "A3", "A4"], status: "repaired", recheck_pass: true, patched_fields: { summary: "Fixed." }, claims: fixed }]))(false);
+    expect(selections.must_know[0]?.claims).toEqual(fixed);
   });
 });

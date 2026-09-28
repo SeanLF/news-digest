@@ -1,6 +1,7 @@
 // Mirrors newsroom/src/schema.py: SOURCE_SCHEMA, REPORTING_VARIES_SCHEMA, ARTICLE_SCHEMA,
 // SHOULD_KNOW_ARTICLE_SCHEMA, SELECTIONS_SCHEMA. `.strict()` is additionalProperties: false.
 import { z } from "zod";
+import { Claim } from "./coherence.js";
 export const PREHEADER_MAX_CHARS = 157;
 export const NOT_COVERED_BLURB_MAX_LEN = 500;
 const Source = z.object({ article_id: z.string().regex(/^A\d+$/) }).strict();
@@ -12,6 +13,7 @@ const Story = z
     why_it_matters: z.string(),
     sources: z.array(Source).min(1),
     reporting_varies: z.array(ReportingVaries).optional(),
+    claims: z.array(Claim).optional(),
     cluster_id: z.string().optional(),
   })
   .strict();
