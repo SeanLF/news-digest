@@ -17,7 +17,7 @@
     "sbom": "npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cdx.json"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.280",
+    "@anthropic-ai/claude-agent-sdk": "0.3.284",
     "@hono/node-server": "2.1.1",
     "@posthog/ai": "8.13.2",
     "@temporalio/activity": "1.24.0",
