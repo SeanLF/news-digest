@@ -1,0 +1,79 @@
+{
+  "results": [
+    {
+      "pass": false,
+      "reason": "recall 8/8, false drops 4/24; missed [] dropped [4:why_it_matters, 9:why_it_matters, 11:headline, 11:why_it_matters]",
+      "cost": 0.8638427999999999,
+      "latencyMs": 109934,
+      "claims_per_story": [
+        7,
+        7,
+        7,
+        6,
+        6,
+        7,
+        7,
+        6,
+        7,
+        4,
+        6,
+        4,
+        5,
+        6,
+        6,
+        7,
+        4
+      ]
+    },
+    {
+      "pass": false,
+      "reason": "recall 8/8, false drops 4/24; missed [] dropped [4:why_it_matters, 9:why_it_matters, 11:headline, 11:why_it_matters]",
+      "cost": 0.688375,
+      "latencyMs": 75998,
+      "claims_per_story": [
+        7,
+        6,
+        6,
+        5,
+        6,
+        7,
+        6,
+        5,
+        5,
+        4,
+        5,
+        4,
+        4,
+        5,
+        5,
+        7,
+        4
+      ]
+    },
+    {
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.8146106000000001,
+      "latencyMs": 96955,
+      "claims_per_story": [
+        7,
+        7,
+        6,
+        6,
+        6,
+        7,
+        6,
+        5,
+        5,
+        4,
+        5,
+        4,
+        4,
+        5,
+        5,
+        6,
+        4
+      ]
+    }
+  ]
+}
