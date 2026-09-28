@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { Context } from "@temporalio/activity";
 import { CancelledFailure } from "@temporalio/common";
 import { z } from "zod";
-import { CoherenceReportSchema, type CoherenceReport } from "../contracts/coherence.js";
+import { CoherenceReportSchema, type CoherenceReport, type Claim } from "../contracts/coherence.js";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
 import { leaksInternalId } from "../contracts/leaks.js";
 import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
@@ -18,7 +18,7 @@ const FIELDS = ["headline", "summary", "why_it_matters"] as const;
 type Field = (typeof FIELDS)[number];
 
 export interface RepairRequest { article_ids: string[]; failed_fields: Field[]; reason: string; fields: Record<Field, string> }
-export interface Resolution { article_ids: string[]; status: "repaired" | "guard_failed" | "recheck_failed"; recheck_pass: boolean; patched_fields: Partial<Record<Field, string>>; guard?: string }
+export interface Resolution { article_ids: string[]; status: "repaired" | "guard_failed" | "recheck_failed"; recheck_pass: boolean; patched_fields: Partial<Record<Field, string>>; guard?: string; claims?: Claim[] }
 export interface ResolutionDoc { input: string; results: Resolution[]; fault?: string }
 
 // A failure repair can handle: failed_fields a non-empty subset of the three text fields, on every
@@ -84,7 +84,9 @@ export function resolve(applied: Resolution[], recheck: CoherenceReport, scoped:
     const story = stories.find((s) => key(s.sources.map((x) => x.article_id)) === key(a.article_ids));
     if (!story) return a;
     const hits = recheck.results.filter((r) => resultMatches(r, itemIds(story.sources), normHeadline(story.headline)));
-    return hits.length && hits.every((r) => r.pass) ? { ...a, status: "repaired", recheck_pass: true } : a;
+    if (!hits.length || !hits.every((r) => r.pass)) return a;
+    const claims = hits.flatMap((r) => r.claims ?? []);
+    return { ...a, status: "repaired", recheck_pass: true, ...(claims.length ? { claims } : {}) };
   });
 }
 

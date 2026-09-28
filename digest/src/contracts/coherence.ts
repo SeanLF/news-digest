@@ -1,6 +1,8 @@
 import { z } from "zod";
 export const COHERENCE_FIELDS = ["headline", "summary", "why_it_matters"] as const;
 export const FAILURE_KINDS = ["contradicted", "unsupported"] as const;
+export const Claim = z.object({ field: z.enum(COHERENCE_FIELDS), text: z.string(), supported_by: z.array(z.string()) });
+export type Claim = z.infer<typeof Claim>;
 const Result = z.object({
   headline: z.string(),
   article_ids: z.array(z.string()),
@@ -8,6 +10,7 @@ const Result = z.object({
   reason: z.string(),
   failed_fields: z.array(z.enum(COHERENCE_FIELDS)).optional(),
   failure_kinds: z.record(z.string(), z.enum(FAILURE_KINDS)).optional(),
+  claims: z.array(Claim).optional(),
 });
 export const CoherenceReportSchema = z.object({ results: z.array(Result) });
 export type CoherenceReport = z.infer<typeof CoherenceReportSchema>;
