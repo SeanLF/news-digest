@@ -1,0 +1,58 @@
+{
+  "results": [
+    {
+      "model": "sonnet-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.8042168,
+      "latencyMs": 193820,
+      "numTurns": 11,
+      "toolCalls": 10
+    },
+    {
+      "model": "sonnet-5-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.7812743999999999,
+      "latencyMs": 74628,
+      "numTurns": 13,
+      "toolCalls": 11
+    },
+    {
+      "model": "sonnet-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.9543902000000001,
+      "latencyMs": 259987,
+      "numTurns": 15,
+      "toolCalls": 14
+    },
+    {
+      "model": "sonnet-5-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.815827,
+      "latencyMs": 83417,
+      "numTurns": 20,
+      "toolCalls": 18
+    },
+    {
+      "model": "sonnet-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 1.0058642,
+      "latencyMs": 271389,
+      "numTurns": 16,
+      "toolCalls": 15
+    },
+    {
+      "model": "sonnet-5-5",
+      "pass": true,
+      "reason": "All assertions passed",
+      "cost": 0.7050262,
+      "latencyMs": 62616,
+      "numTurns": 14,
+      "toolCalls": 12
+    }
+  ]
+}
