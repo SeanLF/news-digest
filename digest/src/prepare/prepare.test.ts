@@ -68,6 +68,8 @@ describe("wire detection", () => {
     expect(wireFromFullText("Talks stall By Samia Nakhoul and Parisa Hafezi DUBAI/LONDON, Sept 24 (Reuters) - Talks")).toBe("reuters");
     expect(wireFromFullText("Men arrested at UK air base By Toby Shepheard FAIRFORD, England, Sept 27 (Reuters) - Police")).toBe("reuters");
     expect(wireFromFullText("Netanyahu visited Abu Dhabi on Sunday, Israeli official says Sept 27 (Reuters) - Israeli Prime")).toBe("reuters");
+    expect(wireFromFullText("Strike kills 12 BEIRUT, Sept 24 (Reuters) - 12 people were killed")).toBe("reuters");
+    expect(wireFromFullText("Macron speaks PARIS, Sept 24 (AFP) - Élysée Palace said")).toBe("afp");
   });
   it("takes no credit that is not a dateline", () => {
     expect(wireFromFullText("Oil jumps. Prices rose, the minister told Reuters (Reuters) on Monday")).toBeNull();
