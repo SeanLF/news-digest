@@ -114,10 +114,6 @@ def test_a_hostile_name_stays_one_quoted_word_in_the_postgres_command():
     assert "rm" not in argv
 
 
-def test_journal_follows_the_worker_unit():
-    assert "news-digest-worker.service" in ops.journal_command(since="1h", lines=10, grep=None)
-
-
 def test_print_command_on_postgres_shows_the_payload_and_runs_nothing(monkeypatch, capsys):
     monkeypatch.setattr(ops, "_ssh", lambda *a: pytest.fail("--print-command must not run anything"))
     assert ops.main(["artifact", "285", "clusters.json", "--print-command"]) == 0
@@ -131,16 +127,37 @@ def test_run_id_defaults_to_the_latest_run():
     assert "max(id)" in payload.lower()
 
 
-def test_journal_is_scoped_to_the_unit_and_bounded():
+def test_journal_reads_the_running_worker_container_not_a_systemd_unit():
+    """Kamal runs the worker as a container since 2026-09-25; the old unit is gone, and
+    journalctl on a missing unit prints nothing and exits 0."""
     cmd = ops.journal_command(since="1h", lines=200, grep=None)
-    assert "news-digest-worker.service" in cmd
-    assert "-n 200" in cmd or "--lines 200" in cmd
+    assert "name=^digest-worker-worker-" in cmd
+    assert "journalctl" not in cmd
+    assert "tail -n 200" in cmd
 
 
-def test_a_padded_relative_window_is_still_normalised():
-    """`_relative_time` matched on the stripped value but substituted the original, so " 6h"
-    became "- 6h" and journalctl rejected it (found in review)."""
-    assert "--since -6h" in ops.journal_command(since=" 6h ", lines=10, grep=None)
+@pytest.mark.parametrize(
+    ("service", "prefix"),
+    [("worker", "digest-worker-worker-"), ("python", "digest-python-worker-"), ("site", "digest-site-web-")],
+)
+def test_service_selects_its_kamal_container(service, prefix):
+    assert f"name=^{prefix}" in ops.journal_command(since="1h", lines=10, grep=None, service=service)
+
+
+@pytest.mark.parametrize(
+    ("since", "expected"),
+    [
+        ("6h", "6h"),
+        (" 6h ", "6h"),
+        ("30m", "30m"),
+        ("4d", "96h"),
+        ("1w", "168h"),
+        ("2026-09-03 10:00", "2026-09-03T10:00"),
+    ],
+)
+def test_the_window_is_one_docker_understands(since, expected):
+    """docker logs --since takes Go durations (no d or w) or a timestamp with a T."""
+    assert f"--since {expected} " in ops.journal_command(since=since, lines=10, grep=None)
 
 
 @pytest.mark.parametrize(
@@ -157,19 +174,6 @@ def test_extra_positional_arguments_are_refused(argv):
         ops.main(argv)
 
 
-def test_a_bare_relative_window_is_made_a_systemd_relative_time():
-    """journalctl rejects `--since 6h` ("Failed to parse timestamp"), found on the first live
-    run. systemd wants a sign on a relative time, so a bare 6h becomes -6h."""
-    assert "--since -6h" in ops.journal_command(since="6h", lines=10, grep=None)
-    assert "--since -30m" in ops.journal_command(since="30m", lines=10, grep=None)
-
-
-def test_an_absolute_timestamp_is_passed_through_untouched():
-    cmd = ops.journal_command(since="2026-09-03 10:00", lines=10, grep=None)
-    assert "'2026-09-03 10:00'" in cmd
-    assert "-2026" not in cmd
-
-
 def test_journal_grep_is_quoted():
     """A pattern reaches the remote shell quoted, so a pattern with a semicolon stays a
     pattern."""
@@ -177,87 +181,73 @@ def test_journal_grep_is_quoted():
     assert "; rm -rf /" not in cmd.replace("'a; rm -rf /'", "")
 
 
-# --- journal --grep, executed against a stubbed journalctl on PATH ---------------------------
-#
-# The stub mimics the two behaviours that matter here: with --grep it filters the whole
-# fixture (as systemd's journalctl does -- --grep is PCRE and applies before --lines), and only
-# then does -n take the last N *matching* entries. Without --grep it just truncates to the last
-# N raw lines, which is what plain journalctl does and is what made the pre-fix `| grep` bug
-# possible: the pipeline truncated to N lines *before* any pattern ever saw them.
-_FAKE_JOURNALCTL = """#!/usr/bin/env python3
-import os, re, sys
-
-argv, grep, lines, i = sys.argv[1:], None, None, 0
-while i < len(argv):
-    if argv[i] == "--grep" and i + 1 < len(argv):
-        grep = argv[i + 1]
-        i += 2
-        continue
-    if argv[i] == "-n" and i + 1 < len(argv):
-        lines = int(argv[i + 1])
-        i += 2
-        continue
-    i += 1
-
-with open(os.environ["JOURNAL_FIXTURE"]) as f:
-    entries = [line.rstrip("\\n") for line in f]
-
-if grep:
-    pattern = re.compile(grep)
-    entries = [e for e in entries if pattern.search(e)]
-
-if lines is not None:
-    entries = entries[-lines:]
-
-sys.stdout.write("\\n".join(entries))
-if entries:
-    sys.stdout.write("\\n")
+# --- journal, executed against a stubbed docker on PATH --------------------------------------
+_FAKE_DOCKER = """#!/usr/bin/env python3
+import os, sys
+argv = sys.argv[1:]
+if argv[0] == "ps":
+    prefix = next(a for a in argv if a.startswith("name=^"))[len("name=^"):]
+    if prefix in os.environ.get("RUNNING", ""):
+        print("c0ffee")
+    sys.exit(0)
+if argv[0] == "logs":
+    with open(os.environ["LOG_FIXTURE"]) as f:
+        sys.stderr.write(f.read())  # the worker logs to stderr; the command must merge it
+    sys.exit(int(os.environ.get("LOGS_RC", "0")))
+sys.exit(2)
 """
 
 
-def _stub_journalctl(tmp_path, fixture_lines):
-    fixture = tmp_path / "journal.log"
-    fixture.write_text("\n".join(fixture_lines) + "\n")
-    stub = tmp_path / "journalctl"
-    stub.write_text(_FAKE_JOURNALCTL)
+def _run_journal(tmp_path, lines, cmd, running="digest-worker-worker-", logs_rc=0):
+    fixture = tmp_path / "container.log"
+    fixture.write_text("".join(f"{line}\n" for line in lines))
+    stub = tmp_path / "docker"
+    stub.write_text(_FAKE_DOCKER)
     stub.chmod(0o755)
-    return fixture
-
-
-def _run_journal_command(cmd, tmp_path, fixture):
-    env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "JOURNAL_FIXTURE": str(fixture)}
+    env = {
+        **os.environ,
+        "PATH": f"{tmp_path}:{os.environ['PATH']}",
+        "LOG_FIXTURE": str(fixture),
+        "RUNNING": running,
+        "LOGS_RC": str(logs_rc),
+    }
     return subprocess.run(["bash", "-c", cmd], capture_output=True, text=True, env=env, timeout=10)
 
 
 def test_grep_pattern_alternates_instead_of_matching_a_literal_pipe(tmp_path):
-    """Piping to plain `grep --` parses the pattern as POSIX basic regex, where `|` is a
-    literal character, not alternation -- an operator's `ERROR|Traceback` sweep must find
-    both, not silently return nothing."""
-    fixture = _stub_journalctl(
-        tmp_path,
-        [
-            "Sep 23 10:00:00 host digest[1]: starting run",
-            "Sep 23 10:00:01 host digest[1]: ERROR: fetch failed",
-            "Sep 23 10:00:02 host digest[1]: Traceback (most recent call last):",
-            "Sep 23 10:00:03 host digest[1]: done",
-        ],
-    )
-    cmd = ops.journal_command(since="1h", lines=200, grep="ERROR|Traceback")
-    result = _run_journal_command(cmd, tmp_path, fixture)
-    assert "ERROR: fetch failed" in result.stdout, result.stdout
-    assert "Traceback" in result.stdout, result.stdout
+    """Plain `grep` is POSIX basic regex, where `|` is a literal character: an operator's
+    `ERROR|Traceback` sweep must find both, not silently return nothing."""
+    lines = ["starting run", "ERROR: fetch failed", "Traceback (most recent call last):", "done"]
+    result = _run_journal(tmp_path, lines, ops.journal_command(since="1h", lines=200, grep="ERROR|Traceback"))
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.splitlines() == ["ERROR: fetch failed", "Traceback (most recent call last):"]
 
 
-def test_grep_searches_the_whole_window_not_just_the_last_n_raw_lines(tmp_path):
-    """`-n` must bound the number of MATCHING entries, not the raw lines handed to the
-    pattern -- otherwise a match older than the most recent N lines in the --since window is
-    silently dropped before the pattern ever sees it."""
-    old_match = "Sep 23 09:00:00 host digest[1]: Traceback (most recent call last):"
-    filler = [f"Sep 23 09:{i:02d}:00 host digest[1]: heartbeat" for i in range(1, 251)]
-    fixture = _stub_journalctl(tmp_path, [old_match, *filler])
-    cmd = ops.journal_command(since="6h", lines=200, grep="Traceback")
-    result = _run_journal_command(cmd, tmp_path, fixture)
-    assert "Traceback" in result.stdout, result.stdout
+def test_grep_searches_the_whole_window_and_lines_bounds_the_matches(tmp_path):
+    """Tail before grep would drop a match older than the last N raw lines of the window."""
+    lines = ["Traceback: old", *[f"heartbeat {i}" for i in range(250)], "Traceback: new"]
+    result = _run_journal(tmp_path, lines, ops.journal_command(since="6h", lines=1, grep="Traceback"))
+    assert result.stdout.splitlines() == ["Traceback: new"]
+    result = _run_journal(tmp_path, lines, ops.journal_command(since="6h", lines=200, grep="Traceback"))
+    assert result.stdout.splitlines() == ["Traceback: old", "Traceback: new"]
+
+
+def test_no_match_is_an_empty_success(tmp_path):
+    result = _run_journal(tmp_path, ["heartbeat"], ops.journal_command(since="1h", lines=10, grep="Traceback"))
+    assert (result.returncode, result.stdout) == (0, "")
+
+
+def test_no_running_container_fails_loudly(tmp_path):
+    """The instrument this replaces read a unit that no longer existed and exited 0 with
+    nothing: absence must be an error, never an empty log."""
+    result = _run_journal(tmp_path, ["x"], ops.journal_command(since="1h", lines=10, grep=None), running="")
+    assert result.returncode != 0
+    assert "digest-worker-worker-" in result.stderr
+
+
+def test_a_failing_docker_logs_is_not_masked_by_the_pipe(tmp_path):
+    cmd = ops.journal_command(since="1h", lines=10, grep="x")
+    assert _run_journal(tmp_path, ["x"], cmd, logs_rc=1).returncode != 0
 
 
 def test_a_run_id_that_is_not_a_number_is_refused():
