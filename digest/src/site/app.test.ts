@@ -129,7 +129,8 @@ describe("the issue page", () => {
     expect(res.status).toBe(200);
     const lines = error.mock.calls.map((c) => c[0] as Record<string, unknown>);
     error.mockRestore();
-    expect(lines).toEqual([expect.objectContaining({ site: "issue", level: "error", date: "2026-09-01", needle: "</footer>" })]);
+    expect(lines).toEqual([expect.objectContaining({ site: "issue", date: "2026-09-01", needle: "</footer>" })]);
+    expect(lines[0]).not.toHaveProperty("level");
   });
 
   it("puts the nav right after <body ...> on a pre-redesign issue, with no error", async () => {

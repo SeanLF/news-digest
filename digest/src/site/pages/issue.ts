@@ -117,6 +117,6 @@ export function renderIssue(ctx: PageCtx, date: string, stored: { html: string; 
 // check-injections` finds every stored issue that has one.
 export function issuePage(ctx: PageCtx, date: string, stored: { html: string; preheader: string }, mdAbs: string): string {
   const { html, missed } = renderIssue(ctx, date, stored, mdAbs);
-  for (const needle of missed) log.error({ site: "issue", level: "error", date, needle, error: "web injection missed; the stored HTML drifted from the template" });
+  for (const needle of missed) log.error({ site: "issue", date, needle, error: "web injection missed; the stored HTML drifted from the template" });
   return html;
 }
