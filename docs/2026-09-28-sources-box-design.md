@@ -308,7 +308,7 @@ Rules:
 | Phase | Ships | Gate |
 |---|---|---|
 | P1 | grouping (D4), the web box without "What it backs", the markdown copy, the email line; D5 | every grouped pair in runs 307-310 checked by hand (explicit rules make them few): ≥ 95% the same report; reprints the rules miss counted, not gated; render tests for web, markdown and MJML |
-| P2 | second fetch (D3) | full text for ≥ 60% of cited articles over three prod runs (run 310: 21%); cost and time within N1, N2; repair count reported against runs 307-310 |
+| P2 | second fetch (D3) | every cited article from a source that extracts gets its text, the misses only sources known to block us (Reuters, the paywalls); cost and time within N1, N2 over three prod runs; repair count reported against runs 307-310. Measured before deploy on runs 307-310 from the box: 229 of 317 cited (72%, from 28%), all 88 misses blocked or paywalled |
 | P3 | ledger (D1), "What it backs", kitchen-sink removal (D2) | planted-error band recall stays 8/8 (`make planted`); removals agree across two checker runs per story ≥ 90%; on 20 hand-labelled stories from runs 307-310, ≥ 90% of removed articles truly back nothing; backfill about $6 (two runs) |
 | P4 | thread `about_thread` (D6) | on the 20 latest installments, every dropped fact is off-topic by hand |
 
@@ -323,8 +323,9 @@ are unaffected.
 
 Measured 2026-09-28 (`docs/proposed/coherence-planted/model-2026-09-28/`): on the planted band the
 checker on Sonnet 5.5 keeps recall 8/8, flags story 11's "already disrupting" (the source says
-"could") where Sonnet 5 does not, and runs about 3x faster. It goes live as its own deploy after P1
-and P2, so P2's cost gate is measured on one model; P3's gates are then set on Sonnet 5.5.
+"could") where Sonnet 5 does not, and runs about 3x faster. It ships with P1 and P2 (Sean, 2026-09-28:
+"it's an improvement"), so P2's cost check is read against runs 307-310 knowing the checker changed
+too; P3's gates are set on Sonnet 5.5.
 
 ## 8. Open
 

@@ -1,7 +1,7 @@
 ---
 name: coherence
 description: Fact-checks each story's headline, summary, and why_it_matters against its cited sources. The production prompt verbatim; the activity derives the inline+Grep delivery from it.
-model: claude-sonnet-5
+model: claude-sonnet-5-5
 thinking: adaptive
 tools: Read, Grep
 ---
