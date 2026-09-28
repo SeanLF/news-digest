@@ -75,7 +75,8 @@ export interface Activities extends LinkDecoder {
   preheader(runId: number, drafts: Pointer[], force?: boolean): Promise<Pointer>;
   coherence(runId: number, drafts: Pointer[], fulltext: Pointer, note?: string, force?: boolean): Promise<Pointer>;
   repair(runId: number, drafts: Pointer[], report: Pointer, force?: boolean): Promise<Pointer>;
-  assemble(runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, force?: boolean): Promise<Pointer>;
+  attribute(runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, force?: boolean): Promise<Pointer>;
+  assemble(runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, attribution: Pointer | null, force?: boolean): Promise<Pointer>;
   planGnews(runId: number, selections: Pointer, force?: boolean): Promise<GnewsPlan>;
   storeGnews(runId: number, decoded: GnewsDecode, force?: boolean): Promise<Pointer>;
   threadsLink(runId: number, force?: boolean): Promise<ThreadsLinked>;

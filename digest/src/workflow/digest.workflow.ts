@@ -238,7 +238,13 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     const preheader = await preheaderP;
     if (!report) return await finish({ stories: 0, broadcast: "skipped" });
     const repair = await model.repair(runId, drafts, report, input.force);
-    const selections = await rebuild.assemble(runId, drafts, report, repair, preheader, input.force);
+    // Best-effort: without it assemble shows the checker's own list of what backs each claim and removes nothing.
+    const attribution = await verdict.attribute(runId, drafts, report, repair, input.force).catch((e: unknown) => {
+      if (isCancellation(e)) throw e;
+      log.warn("attribution failed; the issue goes on without it", { runId, error: String(e) });
+      return null;
+    });
+    const selections = await rebuild.assemble(runId, drafts, report, repair, preheader, attribution, input.force);
     // Best-effort, as in production: a decode that fails ships the raw Google-News links.
     const decodeLinks = async () => {
       const links = await once.planGnews(runId, selections, input.force);

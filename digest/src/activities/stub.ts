@@ -28,6 +28,7 @@ export function stubActivities(): Activities {
     preheader: (runId) => Promise.resolve(ptr(runId, "preheader.txt")),
     coherence: (runId) => Promise.resolve(ptr(runId, "coherence_report.json")),
     repair: (runId) => Promise.resolve(ptr(runId, "repair_resolution.json")),
+    attribute: (runId) => Promise.resolve(ptr(runId, "attribution.json")),
     assemble: (runId) => Promise.resolve(ptr(runId, "selections.json")),
     planGnews: () => Promise.resolve({ urls: ["https://news.google.com/rss/articles/X"] }),
     decodeLinks: (urls) => Promise.resolve({ links: urls.length, decoded: {}, attempted: urls.length, outcome: "completed" }),

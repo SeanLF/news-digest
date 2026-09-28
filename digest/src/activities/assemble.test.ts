@@ -55,7 +55,8 @@ const claims = [
   { field: "summary", text: "the Metz address", supported_by: ["A1", "A9"] },
   { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
 ];
-async function ledger(result: Record<string, unknown>, resolution: unknown[] = []) {
+const attributed = (complete: boolean, backs: Record<string, string[]>, unverified: string[] = []) => ({ input: "x", stories: { "A1,A2,A3,A4|pope": { complete, unverified, claims: Object.entries(backs).map(([text, supported_by]) => ({ field: claims.find((c) => c.text === text)?.field ?? "summary", text, supported_by, differs: [] })) } } });
+async function ledger(result: Record<string, unknown>, resolution: unknown[] = [], attribution: unknown = attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"], w: ["A2"], s: ["A1"] })) {
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "clusters.json", JSON.stringify({ clusters: [] }));
   await store.put(300, "article_fulltext.json", JSON.stringify({ A1: { text: "Full body one." }, A2: { text: "Full body two." }, A3: { text: "Cut body.\n[truncated]" } }));
@@ -63,7 +64,8 @@ async function ledger(result: Record<string, unknown>, resolution: unknown[] = [
   const drafts = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: s }))];
   const report = await store.put(300, "coherence_report.json", JSON.stringify({ results: [{ headline: "Pope", article_ids: ["A1", "A2", "A3", "A4"], reason: "ok", ...result }] }));
   const repair = await store.put(300, "repair_resolution.json", JSON.stringify({ input: "x", results: resolution }));
-  return (removeUnsupported: boolean) => assemble(store, 300, drafts, report, repair, null, { removeUnsupported });
+  const attr = attribution === null ? null : await store.put(300, "attribution.json", JSON.stringify(attribution));
+  return (removeUnsupported: boolean) => assemble(store, 300, drafts, report, repair, null, { removeUnsupported, attribution: attr });
 }
 
 describe("assemble: claims and articles that back nothing", () => {
@@ -86,7 +88,7 @@ describe("assemble: claims and articles that back nothing", () => {
     expect((await (await ledger({ pass: true }))(true)).selections.must_know[0]?.sources).toHaveLength(4);
     const none = [{ field: "summary", text: "x", supported_by: [] }];
     const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
-    expect((await (await ledger({ pass: true, claims: none }))(true)).selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+    expect((await (await ledger({ pass: true, claims: none }, [], attributed(true, { x: [] })))(true)).selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
     expect(warn.mock.calls.some((c) => JSON.stringify(c[0]).includes("the check and its claims disagree"))).toBe(true);
     warn.mockRestore();
   });
@@ -96,6 +98,27 @@ describe("assemble: claims and articles that back nothing", () => {
     expect(selections.must_know[0]?.why_it_matters).toBe("");
     expect(selections.must_know[0]?.claims).toEqual([{ field: "summary", text: "s", supported_by: ["A1"] }]);
     expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A3", "A4"]);
+  });
+  it("takes what backs each claim from the attribution, not the checker's list", async () => {
+    const { selections, report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1", "A2"], "the concessions call": [] })))(true);
+    expect(selections.must_know[0]?.claims).toEqual([
+      { field: "summary", text: "the Metz address", supported_by: ["A1", "A2"] },
+      { field: "why_it_matters", text: "the concessions call", supported_by: [] },
+    ]);
+    expect(report.removed).toBe(0);
+  });
+  it("removes nothing without a complete attribution for every claim, and falls back to the checker's list", async () => {
+    for (const attribution of [null, attributed(false, { "the Metz address": ["A1"], "the concessions call": ["A1"] }), attributed(true, { "the Metz address": ["A1"] })]) {
+      const { selections, report } = await (await ledger({ pass: true, claims }, [], attribution))(true);
+      expect(report.removed).toBe(0);
+      expect(selections.must_know[0]?.sources).toHaveLength(4);
+    }
+    const { selections } = await (await ledger({ pass: true, claims }, [], null))(true);
+    expect(selections.must_know[0]?.claims?.[0]?.supported_by).toEqual(["A1"]);
+  });
+  it("never removes an article said to back a claim whose quote could not be found in it", async () => {
+    const { report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, ["A2"])))(true);
+    expect(report.removed).toBe(0);
   });
   it("takes a repaired story's claims from its recheck", async () => {
     const fixed = [{ field: "summary", text: "the fixed specific", supported_by: ["A2"] }];
