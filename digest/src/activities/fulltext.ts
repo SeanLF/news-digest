@@ -43,6 +43,8 @@ export function fulltextActivities(deps: { store: ArtifactStore; perStory: numbe
         if (!health || SETTLED.has(String(outcome))) return { tasks: [], existing };
         await store.quarantine(runId, FULLTEXT_OUTPUT);
         await store.quarantine(runId, FULLTEXT_HEALTH);
+        // The output just quarantined holds what the top-up merged, so the top-up must run again.
+        if (await store.find(runId, FULLTEXT_TOPUP_HEALTH)) await store.quarantine(runId, FULLTEXT_TOPUP_HEALTH);
       }
       if (!deps.enabled) return { tasks: [], skip: "disabled" };
       const indexPtr = await store.find(runId, "article_index.json");

@@ -119,4 +119,15 @@ describe("fulltext top-up, for what WRITE cited", () => {
     const d = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0 }, story: { headline: "h", sources: [{ article_id: "A1" }] } }))];
     expect(await acts.planFulltextTopup(300, d)).toEqual({ tasks: [], skip: "no_candidates" });
   });
+  it("a resume that redoes the first fetch redoes the top-up too, since the first quarantines what the top-up merged", async () => {
+    const { store, acts, drafts } = await drafted();
+    await store.quarantine(300, FULLTEXT_OUTPUT);
+    await acts.storeFulltext(300, { tasks: 3, results: {}, outcome: "unavailable" });
+    await acts.storeFulltextTopup(300, { tasks: 2, results: { A5: "Top-up body." }, outcome: "completed" });
+    const sel = (await store.find(300, "selected.json"))!;
+    await acts.planFulltext(300, sel);
+    expect(await store.statuses(300, FULLTEXT_TOPUP_HEALTH)).toContain("quarantined");
+    await acts.storeFulltext(300, { tasks: 3, results: { A1: "First pass body." }, outcome: "completed" });
+    expect((await acts.planFulltextTopup(300, drafts)).tasks.map(([id]) => id)).toContain("A5");
+  });
 });
