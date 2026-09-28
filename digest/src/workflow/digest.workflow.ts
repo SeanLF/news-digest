@@ -59,6 +59,8 @@ const send = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", he
 const record = proxyActivities<Activities>({ startToCloseTimeout: "2 minutes", retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
 // A verdict is a result, never re-sampled until something passes (spec §2.2 tier 3): one attempt,
 // and a failure parks on the retry signal for an operator.
+// Attribution is optional: a few minutes at most, one attempt, never at the cost of the send.
+const attributing = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: 1 } });
 const verdict = proxyActivities<Activities>({ startToCloseTimeout: "45 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: 1 } });
 // The Python fetch bounds itself (a 120 s deadline plus 30 s grace, then SIGKILL); the start-to-close
 // covers that with room. A worker that never picks the task up is the schedule-to-start timeout.
@@ -239,7 +241,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     if (!report) return await finish({ stories: 0, broadcast: "skipped" });
     const repair = await model.repair(runId, drafts, report, input.force);
     // Best-effort: without it assemble shows the checker's own list of what backs each claim and removes nothing.
-    const attribution = await verdict.attribute(runId, drafts, report, repair, input.force).catch((e: unknown) => {
+    const attribution = await attributing.attribute(runId, drafts, report, repair, input.force).catch((e: unknown) => {
       if (isCancellation(e)) throw e;
       log.warn("attribution failed; the issue goes on without it", { runId, error: String(e) });
       return null;

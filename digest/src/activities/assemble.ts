@@ -85,16 +85,17 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
       const idKey = [...ids].toSorted().join(",");
       const checkedClaims: Claim[] = repaired ? (recheckClaims.get(idKey) ?? []) : results.filter((r) => resultMatches(r, ids, normHeadline(story.headline))).flatMap((r) => r.claims ?? []);
       const attributed = attributions[storyKey(story.sources, story.headline)];
-      const verified = new Map((attributed?.claims ?? []).map((c) => [claimKey(c), c.supported_by]));
+      const verified = new Map(attributed?.complete ? attributed.claims.map((c) => [claimKey(c), c.supported_by]) : []);
       const liveClaims = checkedClaims
         .filter((c) => c.field !== "why_it_matters" || (tier === "must_know" && item.why_it_matters.trim() !== ""))
         .map((c) => ({ ...c, supported_by: verified.get(claimKey(c)) ?? c.supported_by }));
       const backed = new Set(liveClaims.flatMap((c) => c.supported_by));
       const attributedInFull = attributed?.complete === true && liveClaims.every((c) => verified.has(claimKey(c)));
+      const differing = new Set((attributed?.claims ?? []).filter((c) => liveClaims.some((l) => claimKey(l) === claimKey(c))).flatMap((c) => c.differs.map((d) => d.article_id)));
       if (opts.removeUnsupported && attributedInFull && liveClaims.length) {
         if (!item.sources.some((x) => backed.has(x.article_id))) log.warn({ stage: "assemble", runId, headline: story.headline, warning: "no source backs any claim; the check and its claims disagree, nothing removed" });
         else {
-          const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id) && !attributed?.unverified.includes(x.article_id));
+          const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id) && !differing.has(x.article_id) && !attributed?.unverified.includes(x.article_id));
           if (unbacked.length) {
             item.sources = item.sources.filter((x) => !unbacked.includes(x));
             out.removed += unbacked.length;
