@@ -1,5 +1,5 @@
 {
-  "_doc": "Held-out planted-fabrication ground truth built from archived run 278 (2026-08-28 healthy run). 8 fabrications planted into 8 distinct stories, one field each; each verified absent from or contradicted by that story's OWN cited sources. clean_fields = the 3 fields of 8 entirely UNTOUCHED stories. CAVEAT: 'untouched' means production COHERENCE passed the story and nothing was planted -- it is not a hand-audited clean label, so the false-positive rate on this set is an UPPER BOUND (a flag may be a genuine catch production missed). idx 10 is excluded from both sets: production flagged it on the real run.",
+  "_doc": "Held-out planted-fabrication ground truth built from archived run 278 (2026-08-28 healthy run). 8 fabrications planted into 8 distinct stories, one field each; each verified absent from or contradicted by that story's OWN cited sources. clean_fields = the 3 fields of 8 entirely UNTOUCHED stories. CAVEAT: 'untouched' means production COHERENCE passed the story and nothing was planted -- it is not a hand-audited clean label, so the false-positive rate on this set is an UPPER BOUND (a flag may be a genuine catch production missed). idx 10 is excluded from both sets: production flagged it on the real run. 2026-09-28: four fields labelled clean were found unsupported by their own cited text and moved to found_defects (evidence per entry); the other clean labels remain un-audited.",
   "hard_positives": [
     {
       "idx": 0,
@@ -93,10 +93,6 @@
       "field": "summary"
     },
     {
-      "idx": 4,
-      "field": "why_it_matters"
-    },
-    {
       "idx": 7,
       "field": "headline"
     },
@@ -129,20 +125,8 @@
       "field": "summary"
     },
     {
-      "idx": 9,
-      "field": "why_it_matters"
-    },
-    {
-      "idx": 11,
-      "field": "headline"
-    },
-    {
       "idx": 11,
       "field": "summary"
-    },
-    {
-      "idx": 11,
-      "field": "why_it_matters"
     },
     {
       "idx": 12,
@@ -160,7 +144,7 @@
   "idx_headlines": {
     "0": "Death toll tops 470 as barrier lake overflow halts Nepal-Bhutan rescue",
     "1": "Norway's King Harald V dies at 89; son Haakon takes throne",
-    "2": "Ratko Mladi\u0107, convicted of genocide at Srebrenica, dies in Hague prison",
+    "2": "Ratko Mladić, convicted of genocide at Srebrenica, dies in Hague prison",
     "3": "US judge rules Pentagon's blacklisting of Anthropic was illegal",
     "4": "Trump says Putin will not attack NATO as Pentagon prepares European defence options",
     "5": "Iran agrees to draw up Hormuz conditions list; US clears strait of mines",
@@ -175,5 +159,31 @@
     "14": "Fed chair Warsh's Jackson Hole debut scrutinised for rate signals as inflation persists above target",
     "15": "Zambia opposition leader detained on treason charges ahead of president's inauguration",
     "16": "Japan's births rise for first time in 11 years"
-  }
+  },
+  "found_defects": [
+    {
+      "idx": 4,
+      "field": "why_it_matters",
+      "evidence": "Says Ratcliffe delivered warnings 'in a secret meeting'. No cited source (A39, A144, A148, A188, A408, A410, A576, A716) says secret; the only matches are 'Secretary'.",
+      "found": "2026-09-28, flagged by the checker on Sonnet 5.5 and confirmed against the cited text"
+    },
+    {
+      "idx": 9,
+      "field": "why_it_matters",
+      "evidence": "Names 'Iran-related sanctions pressure' among active disputes. None of A491, A501, A505 mentions Iran or sanctions.",
+      "found": "2026-09-28, flagged by the checker on Sonnet 5.5 and confirmed against the cited text"
+    },
+    {
+      "idx": 11,
+      "field": "why_it_matters",
+      "evidence": "Says typhoons and heat 'are already disrupting' Taiwan Strait planning. A497 says they 'could undermine' readiness and 'can disrupt' planning.",
+      "found": "2026-09-28, flagged by the checker on Sonnet 5.5 and confirmed against the cited text"
+    },
+    {
+      "idx": 11,
+      "field": "headline",
+      "evidence": "Says parliament 'backs' the $7bn boost. A714 has Taipei (the government) lining it up; A456 has parliament rejecting the government's drone plan and passing its own.",
+      "found": "2026-09-28, flagged by the checker on Sonnet 5.5 and confirmed against the cited text"
+    }
+  ]
 }

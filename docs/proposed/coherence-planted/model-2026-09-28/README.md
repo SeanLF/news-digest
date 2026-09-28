@@ -22,3 +22,16 @@ overlapping at 2) is not evidence against Sonnet 5.5.
 Decision (see `docs/2026-09-28-sources-box-design.md` §7): switch the checker to Sonnet 5.5, as its
 own deploy after P1 and P2, so P2's cost gate is measured on one model. The writer and the stages
 still on Sonnet 4.6 are not evaluated here.
+
+## Re-scored after the key correction (same runs, no new model calls)
+
+The flagged clean fields were checked against their cited text: story 4 "secret meeting", story 9
+"Iran-related sanctions pressure", story 11 "already disrupting" and its headline's "parliament
+backs" are all unsupported. They move to the key's `found_defects` (evidence per entry); the other
+20 clean labels stay un-audited.
+
+| Arm | Recall | False drops (of 20) | Real defects caught (of 4) |
+|---|---|---|---|
+| Sonnet 5 | 8/8 ×3 | 0, 0, 0 | 1, 2, 2 |
+| Sonnet 5.5 | 8/8 ×3 | 0, 0, 0 | 2, 3, 2 |
+| Sonnet 5.5, claims | 8/8 ×3 | 0, 0, 0 | 4, 4, 3 |

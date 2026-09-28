@@ -19,3 +19,16 @@ Every flagged clean field is in the set awaiting Sean's adjudication (stories 4 
 story 4 calls Ratcliffe's Moscow contact a "secret meeting", which no cited source says; story 11
 says "already disrupting" where A497 says "could". If these are real defects the key mislabels, the
 false drops are 0-1 and the gate passes; the instruction goes back in then.
+
+## Re-scored after the key correction (same runs, no new model calls)
+
+The flagged clean fields were checked against their cited text: story 4 "secret meeting", story 9
+"Iran-related sanctions pressure", story 11 "already disrupting" and its headline's "parliament
+backs" are all unsupported. They move to the key's `found_defects` (evidence per entry); the other
+20 clean labels stay un-audited.
+
+| Arm | Recall | False drops (of 20) | Real defects caught (of 4) |
+|---|---|---|---|
+| Sonnet 5 | 8/8 ×3 | 0, 0, 0 | 1, 2, 2 |
+| Sonnet 5.5 | 8/8 ×3 | 0, 0, 0 | 2, 3, 2 |
+| Sonnet 5.5, claims | 8/8 ×3 | 0, 0, 0 | 4, 4, 3 |

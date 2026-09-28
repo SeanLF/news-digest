@@ -12,6 +12,11 @@ describe("scorePlanted", () => {
       { headline: "B", article_ids: ["A2"], pass: false, reason: "r", failed_fields: ["summary" as const] },
       { headline: "C", article_ids: ["A3"], pass: true, reason: "ok" },
     ] };
-    expect(scorePlanted(report, draft, key)).toEqual({ recall: 1, planted: 2, falseDrops: 1, clean: 2, missed: ["2:headline"], dropped: ["1:summary"] });
+    expect(scorePlanted(report, draft, key)).toEqual({ recall: 1, planted: 2, falseDrops: 1, clean: 2, missed: ["2:headline"], dropped: ["1:summary"], found: 0, foundOf: 0 });
+  });
+  it("counts a found defect, a field the key once had clean that its sources do not support, as found, not dropped", () => {
+    const withFound = { ...key, clean_fields: [{ idx: 1, field: "headline" as const }], found_defects: [{ idx: 1, field: "summary" as const }] };
+    const report = { results: [{ headline: "B", article_ids: ["A2"], pass: false, reason: "r", failed_fields: ["summary" as const] }] };
+    expect(scorePlanted(report, draft, withFound)).toMatchObject({ falseDrops: 0, clean: 1, found: 1, foundOf: 1 });
   });
 });
