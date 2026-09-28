@@ -14,7 +14,7 @@ const index = {
   A5: entry("Reuters", GN("R5"), "Unshown story - Reuters"),
   A6: entry("Reuters", GN("R6"), "Yen falls - Reuters"),
 };
-// A5 is in the index but no story cites it; A6 is a verbatim repost of A3 that collapse drops.
+// A5 is in the index but no story cites it; A6 is a verbatim repost of A3, shown under the same report.
 const selections = {
   must_know: [{ headline: "Russia votes", sources: [{ article_id: "A1" }, { article_id: "A2" }] }],
   should_know: [
@@ -45,25 +45,25 @@ describe("gnews", () => {
     expect(isGnewsUrl("https://www.reuters.com/articles/x")).toBe(false);
     expect(isGnewsUrl("")).toBe(false);
   });
-  it("takes only the links the rendered issue shows: resolved, reposts collapsed, deduped, in reading order", async () => {
-    expect(survivingLinks(selections, index)).toEqual([GN("R1"), GN("R3"), GN("N4")]);
+  it("takes only the links the rendered issue shows: resolved, deduped, in reading order", async () => {
+    expect(survivingLinks(selections, index)).toEqual([GN("R1"), GN("R3"), GN("R6"), GN("N4")]);
   });
   it("plans the surviving links of the run's selections", async () => {
     const { sel, acts } = await setup();
-    expect(await acts.planGnews(300, sel)).toEqual({ urls: [GN("R1"), GN("R3"), GN("N4")] });
+    expect(await acts.planGnews(300, sel)).toEqual({ urls: [GN("R1"), GN("R3"), GN("R6"), GN("N4")] });
   });
   it("plans nothing when the run already has its decoded links, unless forced", async () => {
     const { store, sel, acts } = await setup();
     const done = await acts.storeGnews(300, { links: 3, decoded: {}, attempted: 3, outcome: "rate_limited" });
     expect(await store.find(300, DECODED_LINKS)).toEqual(done);
     expect(await acts.planGnews(300, sel)).toEqual({ urls: [], existing: done });
-    expect((await acts.planGnews(300, sel, true)).urls).toHaveLength(3);
+    expect((await acts.planGnews(300, sel, true)).urls).toHaveLength(4);
   });
   it("an attempt that reached no decoder is quarantined and planned again on a resume", async () => {
     const { store, sel, acts } = await setup();
     await acts.storeGnews(300, { links: 3, decoded: {}, attempted: 0, outcome: "unavailable" });
     const plan = await acts.planGnews(300, sel);
-    expect(plan.urls).toHaveLength(3);
+    expect(plan.urls).toHaveLength(4);
     expect(plan.existing).toBeUndefined();
     expect(await store.statuses(300, DECODED_LINKS)).toContain("quarantined");
     expect(await store.find(300, GNEWS_HEALTH)).toBeUndefined();
@@ -71,7 +71,7 @@ describe("gnews", () => {
   it.each(["busy", "cancelled"])("a %s pass spent nothing, so a resume plans it again", async (outcome) => {
     const { sel, acts } = await setup();
     await acts.storeGnews(300, { links: 3, decoded: {}, attempted: 0, outcome });
-    expect((await acts.planGnews(300, sel)).urls).toHaveLength(3);
+    expect((await acts.planGnews(300, sel)).urls).toHaveLength(4);
   });
   it("a pass that failed after it started is kept on a resume: it may already have spent requests", async () => {
     const { sel, acts } = await setup();

@@ -1,28 +1,27 @@
 import { htmlEscape as esc } from "escape-goat";
 import { transform } from "lightningcss";
-import { BUCKET_ORDER, BUCKET_WORD, bucketCounts, codePoints, collectOutlets, dates, isSafeUrl, outletLabel, readingTime, slugger, storyCounts, type Outlet, type RenderInput, type Story } from "./common.js";
+import { codePoints, dates, isSafeUrl, readingTime, slugger, storyCounts, type RenderInput, type Story } from "./common.js";
+import { countsLabel, groupReports, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
 
 // The web issue, ported from newsroom/src/render.py (render_digest, then replace_placeholders).
 
-function sourcesBlock(outlets: Outlet[]): string {
-  if (!outlets.length) return "";
-  const counts = bucketCounts(outlets);
-  const total = outlets.length;
-  const present = BUCKET_ORDER.filter((b) => counts[b]);
-  const segs = present.map((b) => `<span class="seg ${b}" style="flex:${counts[b]}"></span>`).join("");
-  const spread = `<span class="n">${total} ${total === 1 ? "source" : "sources"}</span> · ${present.map((b) => `${counts[b]} ${BUCKET_WORD[b]}`).join(" · ")}`;
-  const rows = BUCKET_ORDER.flatMap((b) => outlets.filter((o) => o.bucket === b))
-    .map((o) => {
-      const links = o.urls.map((u, i) => `<a href="${esc(u)}">${i + 1}</a>`).join(" ");
-      const { name, via, leaning } = outletLabel(o);
-      return `<tr><td class="nm">${esc(name)}${via === null ? "" : `<span class="via"> · via ${esc(via)}</span>`}</td><td class="ln">${esc(leaning)}</td><td class="ar">${links}</td></tr>`;
+function sourcesBlock(g: ReturnType<typeof groupReports>): string {
+  if (!g.reports.length) return "";
+  const counts = tally(g.reports);
+  const segs = counts.map(([b, n]) => `<span class="seg ${b}" style="flex:${n}"></span>`).join("");
+  const spread = `<span class="n">${countsLabel(g)}</span><span class="vh"> · ${counts.map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ")}</span>`;
+  const rows = reportRows(g.reports)
+    .map((r) => {
+      const links = r.urls.map((u, i) => `<a href="${esc(u)}">${i + 1}</a>`).join(" ");
+      const name = r.carrier ? `↳ ${esc(r.name)}` : `${esc(r.name)}${r.wire ? '<span class="via"> · wire</span>' : ""}`;
+      return `<tr${r.carrier ? ' class="carrier"' : ""}><td class="nm">${name}</td><td class="ln">${esc(r.leaning)}</td><td class="ar">${links}</td></tr>`;
     })
     .join("");
   return (
     `<details class="srcbox"><summary class="spread"><span class="biasbar" aria-hidden="true">${segs}</span>` +
     `<span class="spread-label">${spread}</span></summary>` +
     '<table class="src-table"><thead><tr>' +
-    '<th scope="col">Outlet</th><th scope="col">Leaning</th><th scope="col">Articles</th>' +
+    '<th scope="col">Report</th><th scope="col">Leaning</th><th scope="col">Articles</th>' +
     `</tr></thead><tbody>${rows}</tbody></table></details>`
   );
 }
@@ -41,7 +40,7 @@ function article(a: Story, slug: string, { brief = false, first = false } = {}):
   // A continuing thread's delta, today's verified facts, replaces the summary.
   const delta = (thread.delta ?? "").trim();
   const body = delta ? esc(delta) : esc(a.summary ?? "");
-  const sources = sourcesBlock(collectOutlets(a));
+  const sources = sourcesBlock(groupReports(a.sources));
   if (brief) return [`<article class="brief" id="${slug}">`, `<h3>${headline}${anchor}</h3>`, ...(eyebrow ? [eyebrow] : []), `<p class="summary">${body}</p>`, sources, "</article>"].join("\n");
   const parts = [`<article${first ? ' class="first"' : ""} id="${slug}">`, `<h3 class="head">${headline}${anchor}</h3>`, ...(eyebrow ? [eyebrow] : []), `<p class="lede">${body}</p>`];
   if (why.trim()) parts.push(`<div class="why"><span class="lbl">Why it matters</span><p>${why}</p></div>`);

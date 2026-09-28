@@ -77,3 +77,20 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
   const ordered = REPORT_BUCKET_ORDER.flatMap((b) => reports.filter((r) => r.bucket === b));
   return { reports: ordered, outlets: new Set(ordered.flatMap((r) => r.members.map((m) => m.name))).size };
 }
+
+export const REPORT_BUCKET_WORD: Record<ReportBucket, string> = { l: "left", c: "center", r: "right", u: "unrated" };
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+export const countsLabel = (g: { reports: Report[]; outlets: number }) => `${plural(g.reports.length, "report")} · ${plural(g.outlets, "outlet")}`;
+export function tally(reports: Report[]): [ReportBucket, number][] {
+  return REPORT_BUCKET_ORDER.map((b) => [b, reports.filter((r) => r.bucket === b).length] as [ReportBucket, number]).filter(([, n]) => n);
+}
+// Rows as the sources table shows them: each report, then the outlets that carried it.
+export function reportRows(reports: Report[]): { carrier: boolean; name: string; wire: boolean; leaning: string; urls: string[] }[] {
+  return reports.flatMap((r) => {
+    const origin = r.members.find((m) => m.origin);
+    return [
+      { carrier: false, name: r.label, wire: r.wire, leaning: r.leaning, urls: origin?.urls ?? [] },
+      ...r.members.filter((m) => !m.origin).map((m) => ({ carrier: true, name: m.name, wire: false, leaning: m.bias, urls: m.urls })),
+    ];
+  });
+}

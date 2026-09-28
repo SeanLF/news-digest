@@ -1,4 +1,5 @@
-import { BUCKET_ORDER, BUCKET_WORD, bucketCounts, collectOutlets, isSafeUrl, outletLabel, type Outlet, type RenderInput, type Story } from "./common.js";
+import { isSafeUrl, type RenderInput, type Story } from "./common.js";
+import { countsLabel, groupReports, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
 
 // The issue as Markdown, for agents: the body the site serves under its title line (`.md`, Accept:
 // text/markdown). Written from the selections the web issue is rendered from, never from its HTML, and
@@ -15,16 +16,14 @@ const cell = (s: string) => text(s).replaceAll("|", "\\|").replaceAll(/\s+/g, " 
 const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(" ", "%20");
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
-function sources(outlets: Outlet[]): string[] {
-  if (!outlets.length) return [];
-  const counts = bucketCounts(outlets);
-  const present = BUCKET_ORDER.filter((b) => counts[b]);
-  const spread = `${outlets.length} ${outlets.length === 1 ? "source" : "sources"} · ${present.map((b) => `${counts[b]} ${BUCKET_WORD[b]}`).join(" · ")}`;
-  const rows = BUCKET_ORDER.flatMap((b) => outlets.filter((o) => o.bucket === b)).map((o) => {
-    const { name, via, leaning } = outletLabel(o);
-    return `| ${cell(via ? `${name} · via ${via}` : name)} | ${cell(leaning)} | ${o.urls.map((u, i) => link(String(i + 1), u)).join(" ")} |`;
+function sources(g: ReturnType<typeof groupReports>): string[] {
+  if (!g.reports.length) return [];
+  const rows = reportRows(g.reports).map((r) => {
+    const name = r.carrier ? `↳ ${r.name}` : `${r.name}${r.wire ? " · wire" : ""}`;
+    return `| ${cell(name)} | ${cell(r.leaning)} | ${r.urls.map((u, i) => link(String(i + 1), u)).join(" ")} |`;
   });
-  return [spread, ["| Outlet | Leaning | Articles |", "| --- | --- | --- |", ...rows].join("\n")];
+  const hidden = tally(g.reports).map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ");
+  return [`${countsLabel(g)} · ${hidden}`, ["| Report | Leaning | Articles |", "| --- | --- | --- |", ...rows].join("\n")];
 }
 
 function story(a: Story, brief: boolean): string[] {
@@ -40,7 +39,7 @@ function story(a: Story, brief: boolean): string[] {
     const varies = a.reporting_varies ?? [];
     if (varies.length) out.push("**How reporting varies**", ...varies.map((rv) => `**${text(`${rv.source ?? ""}:`)}** ${text(rv.angle ?? "")}`));
   }
-  out.push(...sources(collectOutlets(a)));
+  out.push(...sources(groupReports(a.sources)));
   return out;
 }
 

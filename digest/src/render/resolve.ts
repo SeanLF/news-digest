@@ -13,27 +13,6 @@ export function repostKey(title: string, sourceName: string): string {
   return t.toLowerCase().replaceAll(/[^a-z0-9 ]/g, " ").replaceAll(/\s+/g, " ").trim();
 }
 
-// digest.collapse_reposts: within one story, reposts of the same item (same normalised title)
-// collapse to one source, the wire origin when there is one, else the first listed.
-export function collapseReposts(sources: Source[]): Source[] {
-  const keyed = sources.map((s) => [repostKey(s.original_title ?? "", s.name ?? ""), s] as const);
-  const groups = new Map<string, Source[]>();
-  for (const [key, src] of keyed) if (key) groups.set(key, [...(groups.get(key) ?? []), src]);
-  const out: Source[] = [];
-  const emitted = new Set<string>();
-  for (const [key, src] of keyed) {
-    if (!key) {
-      out.push(src);
-      continue;
-    }
-    if (emitted.has(key)) continue;
-    emitted.add(key);
-    const group = groups.get(key)!;
-    out.push(group.find((s) => s.wire) ?? group[0]!);
-  }
-  return out;
-}
-
 // digest.resolve_article_ids: each {article_id} becomes its outlet, link and leaning from the run's
 // article index; an id the index lacks is dropped, and so is a story left with no source.
 export function resolveArticleIds(selections: Selections, index: Record<string, unknown>): Selections {
@@ -55,7 +34,7 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
         console.warn(JSON.stringify({ stage: "render", warning: "dropped a story with no resolved sources", headline: item.headline }));
         return [];
       }
-      return [{ ...item, sources: collapseReposts(sources) }];
+      return [{ ...item, sources }];
     });
   const out = { ...selections, must_know: tier(selections.must_know), should_know: tier(selections.should_know) };
   if (unresolved) console.warn(JSON.stringify({ stage: "render", warning: "dropped unresolved article_id references", count: unresolved }));
