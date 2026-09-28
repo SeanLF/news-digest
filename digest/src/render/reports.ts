@@ -1,10 +1,10 @@
 import { log } from "../log.js";
-import { AGENCY_LABELS, AGENCY_RATINGS, BUCKET_ORDER, biasBucket, hasArticlePath, isSafeUrl, titleCase, type Bucket, type Source } from "./common.js";
+import { AGENCY_LABELS, AGENCY_RATINGS, BUCKET_ORDER, biasBucket, hasArticlePath, isSafeUrl, titleCase, type Bucket, type Source, type StoryClaim } from "./common.js";
 import { repostKey } from "./resolve.js";
 
 export type ReportBucket = Bucket | "u";
 export const REPORT_BUCKET_ORDER: ReportBucket[] = [...BUCKET_ORDER, "u"];
-export interface ReportMember { name: string; bias: string; urls: string[]; origin: boolean }
+export interface ReportMember { name: string; bias: string; urls: string[]; ids: string[]; origin: boolean }
 export interface Report { label: string; leaning: string; bucket: ReportBucket; wire: boolean; members: ReportMember[] }
 export const SHARED_COPY = "Shared copy";
 
@@ -55,8 +55,9 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
     for (const i of idx) {
       const s = named[i]!;
       let m = members.find((x) => x.name === s.name);
-      if (!m) members.push((m = { name: s.name!, bias: s.bias ?? "", urls: [], origin: false }));
+      if (!m) members.push((m = { name: s.name!, bias: s.bias ?? "", urls: [], ids: [], origin: false }));
       if (s.url && openable(s.url)) m.urls.push(s.url);
+      if (s.article_id) m.ids.push(s.article_id);
     }
     const shown = members.filter((m) => m.urls.length);
     if (!shown.length) continue;
@@ -71,7 +72,10 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
       const own = shown[0]!;
       own.origin = true;
       const existing = reports.find((r) => !r.wire && r.label === own.name);
-      if (existing) existing.members[0]!.urls.push(...own.urls);
+      if (existing) {
+        existing.members[0]!.urls.push(...own.urls);
+        existing.members[0]!.ids.push(...own.ids);
+      }
       else reports.push({ label: own.name, leaning: own.bias, bucket: biasBucket(own.bias), wire: false, members: [own] });
     }
   }
@@ -87,12 +91,14 @@ export function tally(reports: Report[]): [ReportBucket, number][] {
   return REPORT_BUCKET_ORDER.map((b) => [b, reports.filter((r) => r.bucket === b).length] as [ReportBucket, number]).filter(([, n]) => n);
 }
 // Rows as the sources table shows them: each report, then the outlets that carried it.
-export function reportRows(reports: Report[]): { carrier: boolean; name: string; wire: boolean; leaning: string; urls: string[] }[] {
+export function reportRows(reports: Report[], claims: StoryClaim[] = []): { carrier: boolean; name: string; wire: boolean; leaning: string; urls: string[]; backs: string[] }[] {
   return reports.flatMap((r) => {
     const origin = r.members.find((m) => m.origin);
+    const ids = new Set(r.members.flatMap((m) => m.ids));
+    const backs = [...new Set(claims.filter((c) => c.supported_by.some((id) => ids.has(id))).map((c) => c.text))];
     return [
-      { carrier: false, name: r.label, wire: r.wire, leaning: r.leaning, urls: origin?.urls ?? [] },
-      ...r.members.filter((m) => !m.origin).map((m) => ({ carrier: true, name: m.name, wire: false, leaning: m.bias, urls: m.urls })),
+      { carrier: false, name: r.label, wire: r.wire, leaning: r.leaning, urls: origin?.urls ?? [], backs },
+      ...r.members.filter((m) => !m.origin).map((m) => ({ carrier: true, name: m.name, wire: false, leaning: m.bias, urls: m.urls, backs: [] })),
     ];
   });
 }

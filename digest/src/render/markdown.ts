@@ -1,4 +1,4 @@
-import { isSafeUrl, type RenderInput, type Story } from "./common.js";
+import { isSafeUrl, type RenderInput, type Story, type StoryClaim } from "./common.js";
 import { countsLabel, groupReports, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
 
 // The issue as Markdown, for agents: the body the site serves under its title line (`.md`, Accept:
@@ -16,14 +16,16 @@ const cell = (s: string) => text(s).replaceAll("|", "\\|").replaceAll(/\s+/g, " 
 const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(" ", "%20");
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
-function sources(g: ReturnType<typeof groupReports>): string[] {
+function sources(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string[] {
   if (!g.reports.length) return [];
-  const rows = reportRows(g.reports).map((r) => {
+  const backsCol = claims.length > 0;
+  const rows = reportRows(g.reports, claims).map((r) => {
     const name = r.carrier ? `↳ ${r.name}` : `${r.name}${r.wire ? " · wire" : ""}`;
-    return `| ${cell(name)} | ${cell(r.leaning)} | ${r.urls.map((u, i) => link(String(i + 1), u)).join(" ")} |`;
+    return `| ${cell(name)} | ${cell(r.leaning)} |${backsCol ? ` ${cell(r.backs.join("; "))} |` : ""} ${r.urls.map((u, i) => link(String(i + 1), u)).join(" ")} |`;
   });
   const hidden = tally(g.reports).map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ");
-  return [`${countsLabel(g)} · ${hidden}`, ["| Report | Leaning | Articles |", "| --- | --- | --- |", ...rows].join("\n")];
+  const head = backsCol ? ["| Report | Leaning | What it backs | Articles |", "| --- | --- | --- | --- |"] : ["| Report | Leaning | Articles |", "| --- | --- | --- |"];
+  return [`${countsLabel(g)} · ${hidden}`, [...head, ...rows].join("\n")];
 }
 
 function story(a: Story, brief: boolean): string[] {
@@ -39,7 +41,7 @@ function story(a: Story, brief: boolean): string[] {
     const varies = a.reporting_varies ?? [];
     if (varies.length) out.push("**How reporting varies**", ...varies.map((rv) => `**${text(`${rv.source ?? ""}:`)}** ${text(rv.angle ?? "")}`));
   }
-  out.push(...sources(groupReports(a.sources)));
+  out.push(...sources(groupReports(a.sources), a.claims ?? []));
   return out;
 }
 
