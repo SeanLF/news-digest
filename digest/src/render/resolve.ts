@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { wireFromFullText } from "../prepare/wire.js";
 import type { Selections, Source, Story, ThreadContext } from "./common.js";
 
 // One article_index.json entry, as prepare writes it; wire_agency predates some archived indexes.
@@ -15,7 +16,7 @@ export function repostKey(title: string, sourceName: string): string {
 
 // digest.resolve_article_ids: each {article_id} becomes its outlet, link and leaning from the run's
 // article index; an id the index lacks is dropped, and so is a story left with no source.
-export function resolveArticleIds(selections: Selections, index: Record<string, unknown>): Selections {
+export function resolveArticleIds(selections: Selections, index: Record<string, unknown>, fulltext: Record<string, { text?: string }> = {}): Selections {
   let unresolved = 0;
   const resolve = (src: Source): Source | null => {
     if (!src.article_id) return src;
@@ -25,7 +26,8 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
       return null;
     }
     const { name, url, bias, source_id, original_title, wire, wire_agency } = meta.data;
-    return { name, url, bias, source_id, original_title, wire: wire ?? false, wire_agency };
+    const fromBody = wire_agency ? null : wireFromFullText(Object.hasOwn(fulltext, src.article_id) ? fulltext[src.article_id]?.text : undefined);
+    return { name, url, bias, source_id, original_title, wire: wire ?? false, wire_agency: wire_agency ?? fromBody };
   };
   const tier = (stories: Story[]) =>
     stories.flatMap((item) => {

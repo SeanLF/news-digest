@@ -34,6 +34,12 @@ describe("resolution", () => {
     expect(out.must_know[0]!.sources.map((s) => s.name)).toEqual(["Straits Times", "Reuters", "BBC"]);
     expect(out.should_know).toEqual([]);
   });
+  it("tags an untagged article as wire copy when its full text opens with a wire dateline", () => {
+    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }, { article_id: "A3" }] }], should_know: [] };
+    const fulltext = { A2: { text: "Deal signed LONDON, Sept 27 (AFP) - The deal" }, A3: { text: "Another take on it." } };
+    const out = resolveArticleIds(sel, index, fulltext);
+    expect(out.must_know[0]!.sources.map((s) => s.wire_agency ?? null)).toEqual(["afp", null]);
+  });
   it("upgrades a decoded Google-News link and leaves the rest", () => {
     const sel: Selections = { must_know: [{ sources: [{ name: "Reuters", url: "https://news.google.com/rss/articles/X" }, { name: "BBC", url: "https://bbc.example/a" }] }], should_know: [] };
     expect(applyDecodedLinks(sel, { "https://news.google.com/rss/articles/X": "https://www.reuters.com/x" }).must_know[0]!.sources.map((s) => s.url)).toEqual(["https://www.reuters.com/x", "https://bbc.example/a"]);
