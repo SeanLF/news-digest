@@ -56,7 +56,7 @@ function urlPath(url: string): string {
   const i = path.includes("/") ? path.indexOf(";", path.lastIndexOf("/")) : path.indexOf(";");
   return i < 0 ? path : path.slice(0, i);
 }
-const hasArticlePath = (url: string) => !["", "/"].includes(urlPath(url));
+export const hasArticlePath = (url: string) => !["", "/"].includes(urlPath(url));
 
 export function readingTime(selections: Selections, wordsPerMinute = 200): string {
   const parts: string[] = [];
@@ -74,7 +74,7 @@ export type Bucket = "l" | "c" | "r";
 export const BUCKET_ORDER: Bucket[] = ["l", "c", "r"];
 export const BUCKET_WORD: Record<Bucket, string> = { l: "left", c: "center", r: "right" };
 const KNOWN_CENTER = new Set(["", "center", "centre", "lean-center", "lean-centre", "center-left", "center-right", "centre-left", "centre-right", "central", "mixed"]);
-function biasBucket(bias: string): Bucket {
+export function biasBucket(bias: string): Bucket {
   const b = bias.trim().toLowerCase();
   if (["lean-left", "left", "far-left"].includes(b)) return "l";
   if (["lean-right", "right", "far-right"].includes(b)) return "r";

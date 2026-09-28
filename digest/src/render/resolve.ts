@@ -6,7 +6,7 @@ const IndexEntry = z.object({ name: z.string(), url: z.string(), bias: z.string(
 
 // digest._repost_key: a title normalised for verbatim-repost matching, less the " - <Source>"
 // suffix Google-News-fetched feeds append, matched against the source's own name only.
-function repostKey(title: string, sourceName: string): string {
+export function repostKey(title: string, sourceName: string): string {
   const suffix = ` - ${sourceName}`;
   let t = title;
   if (sourceName && t.toLowerCase().endsWith(suffix.toLowerCase())) t = t.slice(0, -suffix.length);
