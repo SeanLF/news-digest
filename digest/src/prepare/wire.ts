@@ -24,3 +24,14 @@ export function wireFromDateline(text: string | null | undefined): string | null
   const m = DATELINE.exec(text);
   return m ? wireAgency(m[1]) : null;
 }
+
+// An extracted article opens with its headline, then the dateline: "... WASHINGTON, Sept 24 (Reuters) -".
+// A place in capitals (with its country) or a date, the agency in brackets, a dash; within the opening only.
+const BODY_DATELINE =
+  /(?:\b[A-Z][A-Z.'/ -]{2,40}?(?:,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)?(?:,\s*[A-Z][a-z]{2,9}\.?\s+\d{1,2})?|\b[A-Z][a-z]{2,9}\.?\s+\d{1,2})\s*\(\s*([A-Za-z][A-Za-z -]{1,28}?)\s*\)\s*[-–—]/u;
+
+export function wireFromFullText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const m = BODY_DATELINE.exec(text.slice(0, 600));
+  return m ? wireAgency(m[1]) : null;
+}

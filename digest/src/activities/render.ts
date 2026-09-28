@@ -1,6 +1,7 @@
 import { applyDecodedLinks, attachThreads, issueNumber, renderEmail, renderMarkdown, renderWeb, resolveArticleIds, type RenderAssets, type RenderEnv, type Selections, type ThreadContext } from "../render/render.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
+import { FULLTEXT_OUTPUT } from "./fulltext.js";
 import { DECODED_LINKS, THREAD_CONTEXT } from "./index.js";
 
 export const WEB_OUTPUT = "digest.html";
@@ -32,7 +33,9 @@ export function renderActivity(deps: RenderDeps) {
   return async (runId: number, selectionsPtr: Pointer, threads: Pointer, gnews: Pointer): Promise<{ html: Pointer; email: Pointer }> => {
     let selections = JSON.parse(await store.get(selectionsPtr)) as Selections;
     const index = await store.find(runId, "article_index.json");
-    if (index) selections = resolveArticleIds(selections, JSON.parse(await store.get(index)) as Record<string, unknown>);
+    const fulltextPtr = await store.find(runId, FULLTEXT_OUTPUT);
+    const fulltext = fulltextPtr ? (JSON.parse(await store.get(fulltextPtr)) as Record<string, { text?: string }>) : {};
+    if (index) selections = resolveArticleIds(selections, JSON.parse(await store.get(index)) as Record<string, unknown>, fulltext);
     const links = (await optional(gnews, DECODED_LINKS)) as Record<string, string> | undefined;
     if (links) selections = applyDecodedLinks(selections, links);
     const contexts = (await optional(threads, THREAD_CONTEXT)) as Record<string, ThreadContext> | undefined;

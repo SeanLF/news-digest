@@ -1,4 +1,4 @@
-import { wireAgency, wireFromDateline } from "./wire.js";
+import { wireAgency, wireFromDateline, wireFromFullText } from "./wire.js";
 import { describe, expect, it } from "vitest";
 import { TfidfMatcher, tokenize } from "./dedup.js";
 import { prepareArticles, toCsv, ARTICLE_HEADER } from "./prepare.js";
@@ -61,5 +61,18 @@ describe("wire detection", () => {
     expect(wireFromDateline("WASHINGTON (Reuters) - The Senate voted")).toBe("reuters");
     expect(wireFromDateline("By Jane Doe RIO DE JANEIRO, July 24 (AP) — Police")).toBe("ap");
     expect(wireFromDateline("Officials told AP the talks stalled")).toBeNull();
+  });
+  it("reads a dateline after the headline an extracted article opens with", () => {
+    expect(wireFromFullText("US Senate rejects resolution curbing Trump's Iran war powers WASHINGTON, Sept 24 (Reuters) - The US Senate on")).toBe("reuters");
+    expect(wireFromFullText("Iran's army voices readiness for potential renewed US attack DUBAI, Sept 27 (Reuters) - Iran's armed forces")).toBe("reuters");
+    expect(wireFromFullText("Talks stall By Samia Nakhoul and Parisa Hafezi DUBAI/LONDON, Sept 24 (Reuters) - Talks")).toBe("reuters");
+    expect(wireFromFullText("Storm hits coast MANILA (AP) — A storm")).toBe("ap");
+    expect(wireFromFullText("Men arrested at UK air base By Toby Shepheard FAIRFORD, England, Sept 27 (Reuters) - Police")).toBe("reuters");
+    expect(wireFromFullText("Netanyahu visited Abu Dhabi on Sunday, Israeli official says Sept 27 (Reuters) - Israeli Prime")).toBe("reuters");
+  });
+  it("takes no credit that is not a dateline", () => {
+    expect(wireFromFullText("Oil jumps. Prices rose, the minister told Reuters (Reuters) on Monday")).toBeNull();
+    expect(wireFromFullText("A spokesperson said (AP) sources were wrong - later")).toBeNull();
+    expect(wireFromFullText(`${"x ".repeat(400)}PARIS (AFP) - late in the text`)).toBeNull();
   });
 });
