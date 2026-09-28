@@ -30,7 +30,7 @@ export function resolveArticleIds(selections: Selections, index: Record<string, 
     if (!src.article_id) return src;
     const found = lookup(src.article_id);
     if (!found) unresolved++;
-    return found;
+    return found && { ...found, article_id: src.article_id };
   };
   const tier = (stories: Story[]) =>
     stories.flatMap((item) => {

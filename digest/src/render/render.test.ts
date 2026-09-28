@@ -163,3 +163,30 @@ describe("the sources box", () => {
     expect(text(renderWeb(input(fairford)))).toContain("How reporting varies");
   });
 });
+
+const withClaims = (): Selections => {
+  const sel = story([
+    { article_id: "A1", name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
+    { article_id: "A2", name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Police question five men", wire_agency: "reuters" },
+    { article_id: "A3", name: "Guardian", url: "https://guardian.example/a", bias: "lean-left", original_title: "Minister hints services knew" },
+  ]);
+  sel.must_know[0]!.claims = [
+    { field: "summary", text: "five men questioned", supported_by: ["A2"] },
+    { field: "summary", text: "Streeting's partial picture", supported_by: ["A3"] },
+    { field: "headline", text: "arrests near the base", supported_by: ["A1", "A3"] },
+  ];
+  return sel;
+};
+describe("what each report backs", () => {
+  it("adds the column when the story has claims, each report listing what its articles back", () => {
+    const web = renderWeb(input(withClaims()));
+    expect(web).toContain('<th scope="col">What it backs</th>');
+    expect(web).toMatch(/Reuters<span class="via"> · wire<\/span><\/td><td class="ln">center<\/td><td class="bk">five men questioned; arrests near the base<\/td>/);
+    expect(web).toMatch(/Guardian<\/td><td class="ln">lean-left<\/td><td class="bk">Streeting&#39;s partial picture; arrests near the base<\/td>/);
+  });
+  it("keeps today's table when the story has no claims", () => {
+    const sel = withClaims();
+    delete sel.must_know[0]!.claims;
+    expect(renderWeb(input(sel))).not.toContain("What it backs");
+  });
+});

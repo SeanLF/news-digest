@@ -8,7 +8,8 @@ import type { Sql } from "../store/db.js";
 export interface Source { article_id?: string; name?: string; url?: string; bias?: string; source_id?: string; original_title?: string; wire?: boolean; wire_agency?: string | null | undefined }
 export interface ThreadContext { thread_id?: number; day?: number; delta?: string | null; url?: string | null }
 export interface ReportingVaries { source?: string; angle?: string; bias?: string; article_id?: string }
-export interface Story { headline?: string; summary?: string; why_it_matters?: string; reporting_varies?: ReportingVaries[]; sources: Source[]; cluster_id?: string; thread?: ThreadContext | null }
+export interface StoryClaim { field?: string; text: string; supported_by: string[] }
+export interface Story { headline?: string; summary?: string; why_it_matters?: string; reporting_varies?: ReportingVaries[]; claims?: StoryClaim[]; sources: Source[]; cluster_id?: string; thread?: ThreadContext | null }
 export interface Selections { must_know: Story[]; should_know: Story[]; preheader?: string; not_covered_blurb?: string | null }
 // The deployment's environment, as the Python reads it: DIGEST_NAME unset means "News Digest".
 export interface RenderEnv { digestName?: string | undefined; digestDomain: string; archiveUrl: string; authorName: string; authorUrl: string }

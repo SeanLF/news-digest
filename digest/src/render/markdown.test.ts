@@ -30,6 +30,17 @@ describe("the issue as Markdown, from the selections", () => {
     expect(sameDocument(fromHtml!, ours)).toBe(true);
   });
 
+  it("is the document the converter made of the web page, with the backs column", () => {
+    const sel = kitchenSink();
+    const first = sel.must_know[0]!;
+    first.claims = [{ field: "summary", text: "a claim | with a pipe", supported_by: first.sources.map((x) => x.article_id ?? "").slice(0, 1) }];
+    const i = input(sel);
+    const fromHtml = issueMarkdownBody(renderWeb(i), "2026-09-18");
+    const ours = renderMarkdown(i);
+    if (!sameDocument(fromHtml!, ours)) expect(rendered(ours).split("<h3>")).toEqual(rendered(fromHtml!).split("<h3>"));
+    expect(ours).toContain("What it backs");
+  });
+
   it("keeps a placeholder that editorial text quotes as it was written", () => {
     expect(renderMarkdown(input(edge()))).toContain("it quotes {{DATE}} literally");
   });
