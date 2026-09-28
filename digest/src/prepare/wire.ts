@@ -26,9 +26,11 @@ export function wireFromDateline(text: string | null | undefined): string | null
 }
 
 // An extracted article opens with its headline, then the dateline: "... WASHINGTON, Sept 24 (Reuters) -".
-// A place in capitals (with its country) or a date, the agency in brackets, a dash; within the opening only.
+// A date, after a place in capitals (and its country) or on its own, then the agency in brackets and a
+// dash; within the opening only. The date is required: "NATO (AP) -" reads exactly like AP's dateless
+// "MANILA (AP) -", and missing a reprint is the safe error.
 const BODY_DATELINE =
-  /(?:\b[A-Z][A-Z.'/ -]{2,40}?(?:,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)?(?:,\s*[A-Z][a-z]{2,9}\.?\s+\d{1,2})?|\b[A-Z][a-z]{2,9}\.?\s+\d{1,2})\s*\(\s*([A-Za-z][A-Za-z -]{1,28}?)\s*\)\s*[-–—]/u;
+  /(?:\b[A-Z][A-Z.'/ -]{2,40}?(?:,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)?,\s*|\b)[A-Z][a-z]{2,9}\.?\s+\d{1,2}\s*\(\s*([A-Za-z][A-Za-z -]{1,28}?)\s*\)\s*[-–—]/u;
 
 export function wireFromFullText(text: string | null | undefined): string | null {
   if (!text) return null;
