@@ -99,7 +99,6 @@ _MIN_FILE_SIZE = 10  # trafilatura's MIN_FILE_SIZE
 _REDIRECTS = frozenset({301, 302, 303, 307, 308})
 _HEADERS = {
     **urllib3.util.make_headers(accept_encoding=True),
-    # Honest, and none of the tokens publishers block on: tests/test_fulltext.py has the measurement.
     "User-Agent": "news-digest/1.0",
 }
 _getaddrinfo = socket.getaddrinfo

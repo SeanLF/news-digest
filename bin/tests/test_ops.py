@@ -128,8 +128,6 @@ def test_run_id_defaults_to_the_latest_run():
 
 
 def test_journal_reads_the_running_worker_container_not_a_systemd_unit():
-    """Kamal runs the worker as a container since 2026-09-25; the old unit is gone, and
-    journalctl on a missing unit prints nothing and exits 0."""
     cmd = ops.journal_command(since="1h", lines=200, grep=None)
     assert "name=^digest-worker-worker-" in cmd
     assert "journalctl" not in cmd
@@ -156,7 +154,6 @@ def test_service_selects_its_kamal_container(service, prefix):
     ],
 )
 def test_the_window_is_one_docker_understands(since, expected):
-    """docker logs --since takes Go durations (no d or w) or a timestamp with a T."""
     assert f"--since {expected} " in ops.journal_command(since=since, lines=10, grep=None)
 
 
@@ -181,7 +178,6 @@ def test_journal_grep_is_quoted():
     assert "; rm -rf /" not in cmd.replace("'a; rm -rf /'", "")
 
 
-# --- journal, executed against a stubbed docker on PATH --------------------------------------
 _FAKE_DOCKER = """#!/usr/bin/env python3
 import os, sys
 argv = sys.argv[1:]
@@ -192,7 +188,7 @@ if argv[0] == "ps":
     sys.exit(0)
 if argv[0] == "logs":
     with open(os.environ["LOG_FIXTURE"]) as f:
-        sys.stderr.write(f.read())  # the worker logs to stderr; the command must merge it
+        sys.stderr.write(f.read())
     sys.exit(int(os.environ.get("LOGS_RC", "0")))
 sys.exit(2)
 """
@@ -215,8 +211,6 @@ def _run_journal(tmp_path, lines, cmd, running="digest-worker-worker-", logs_rc=
 
 
 def test_grep_pattern_alternates_instead_of_matching_a_literal_pipe(tmp_path):
-    """Plain `grep` is POSIX basic regex, where `|` is a literal character: an operator's
-    `ERROR|Traceback` sweep must find both, not silently return nothing."""
     lines = ["starting run", "ERROR: fetch failed", "Traceback (most recent call last):", "done"]
     result = _run_journal(tmp_path, lines, ops.journal_command(since="1h", lines=200, grep="ERROR|Traceback"))
     assert result.returncode == 0, result.stderr
@@ -224,7 +218,6 @@ def test_grep_pattern_alternates_instead_of_matching_a_literal_pipe(tmp_path):
 
 
 def test_grep_searches_the_whole_window_and_lines_bounds_the_matches(tmp_path):
-    """Tail before grep would drop a match older than the last N raw lines of the window."""
     lines = ["Traceback: old", *[f"heartbeat {i}" for i in range(250)], "Traceback: new"]
     result = _run_journal(tmp_path, lines, ops.journal_command(since="6h", lines=1, grep="Traceback"))
     assert result.stdout.splitlines() == ["Traceback: new"]
@@ -238,8 +231,6 @@ def test_no_match_is_an_empty_success(tmp_path):
 
 
 def test_no_running_container_fails_loudly(tmp_path):
-    """The instrument this replaces read a unit that no longer existed and exited 0 with
-    nothing: absence must be an error, never an empty log."""
     result = _run_journal(tmp_path, ["x"], ops.journal_command(since="1h", lines=10, grep=None), running="")
     assert result.returncode != 0
     assert "digest-worker-worker-" in result.stderr
