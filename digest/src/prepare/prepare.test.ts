@@ -66,7 +66,6 @@ describe("wire detection", () => {
     expect(wireFromFullText("US Senate rejects resolution curbing Trump's Iran war powers WASHINGTON, Sept 24 (Reuters) - The US Senate on")).toBe("reuters");
     expect(wireFromFullText("Iran's army voices readiness for potential renewed US attack DUBAI, Sept 27 (Reuters) - Iran's armed forces")).toBe("reuters");
     expect(wireFromFullText("Talks stall By Samia Nakhoul and Parisa Hafezi DUBAI/LONDON, Sept 24 (Reuters) - Talks")).toBe("reuters");
-    expect(wireFromFullText("Storm hits coast MANILA (AP) — A storm")).toBe("ap");
     expect(wireFromFullText("Men arrested at UK air base By Toby Shepheard FAIRFORD, England, Sept 27 (Reuters) - Police")).toBe("reuters");
     expect(wireFromFullText("Netanyahu visited Abu Dhabi on Sunday, Israeli official says Sept 27 (Reuters) - Israeli Prime")).toBe("reuters");
   });
@@ -74,5 +73,9 @@ describe("wire detection", () => {
     expect(wireFromFullText("Oil jumps. Prices rose, the minister told Reuters (Reuters) on Monday")).toBeNull();
     expect(wireFromFullText("A spokesperson said (AP) sources were wrong - later")).toBeNull();
     expect(wireFromFullText(`${"x ".repeat(400)}PARIS (AFP) - late in the text`)).toBeNull();
+    expect(wireFromFullText("Officials met with NATO (AP) - leaders said the alliance")).toBeNull();
+    expect(wireFromFullText("The ECB (AP) - policymakers voted")).toBeNull();
+    expect(wireFromFullText("PARIS SAINT-GERMAIN (AFP) - the club said")).toBeNull();
+    expect(wireFromFullText("Storm hits coast MANILA (AP) — A storm")).toBeNull();
   });
 });
