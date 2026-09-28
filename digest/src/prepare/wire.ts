@@ -30,7 +30,7 @@ export function wireFromDateline(text: string | null | undefined): string | null
 // dash that starts a sentence; within the opening only. The date is required: "NATO (AP) -" reads exactly like AP's dateless
 // "MANILA (AP) -", and missing a reprint is the safe error.
 const BODY_DATELINE =
-  /(?:\b[A-Z][A-Z.'/ -]{2,40}?(?:,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)?,\s*|\b)[A-Z][a-z]{2,9}\.?\s+\d{1,2}\s*\(\s*([A-Za-z][A-Za-z -]{1,28}?)\s*\)\s*[-–—]\s*["'‘“]?[A-Z]/u;
+  /(?:\b[A-Z][A-Z.'/ -]{2,40}?(?:,\s*[A-Z][a-z]+(?:\s[A-Z][a-z]+)*)?,\s*|\b)[A-Z][a-z]{2,9}\.?\s+\d{1,2}\s*\(\s*([A-Za-z][A-Za-z -]{1,28}?)\s*\)\s*[-–—]\s*["'‘“]?[\p{Lu}\d]/u;
 
 export function wireFromFullText(text: string | null | undefined): string | null {
   if (!text) return null;
