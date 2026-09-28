@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ArtifactStore } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
-import { candidateIds, FULLTEXT_HEALTH, FULLTEXT_OUTPUT, fulltextActivities } from "./fulltext.js";
+import { candidateIds, FULLTEXT_HEALTH, FULLTEXT_OUTPUT, FULLTEXT_TOPUP_HEALTH, fulltextActivities } from "./fulltext.js";
 
 const selected = {
   must_know: [{ cluster_index: 1, article_ids: ["A1", "A2", "A3", "A4"] }],
@@ -74,5 +74,49 @@ describe("fulltext", () => {
     const p = await acts.storeFulltext(300, { tasks: 3, results: {}, outcome: "unavailable" });
     expect(await store.get(p)).toBe("{}");
     expect(JSON.parse(await store.content(300, FULLTEXT_HEALTH))).toMatchObject({ extracted: 0, outcome: "unavailable" });
+  });
+});
+
+async function drafted(enabled = true) {
+  const { store, acts } = await setup(enabled);
+  await store.put(300, FULLTEXT_OUTPUT, JSON.stringify({ A1: { text: "already here" } }));
+  const drafts = [
+    await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0 }, story: { headline: "h", sources: [{ article_id: "A1" }, { article_id: "A5" }] } })),
+    await store.put(300, "draft_s01.json", JSON.stringify({ plan: { index: 1 }, story: { headline: "g", sources: [{ article_id: "A2" }, { article_id: "A3" }, { article_id: "A5" }] } })),
+  ];
+  return { store, acts, drafts };
+}
+
+describe("fulltext top-up, for what WRITE cited", () => {
+  it("plans the cited articles that have no text yet and a URL to fetch, each once", async () => {
+    const { acts, drafts } = await drafted();
+    expect(await acts.planFulltextTopup(300, drafts)).toEqual({ tasks: [["A5", "https://c.com/5"], ["A2", "https://b.com/2"]] });
+  });
+  it("merges what comes back into the run's full text and records how the top-up went", async () => {
+    const { store, acts, drafts } = await drafted();
+    const plan = await acts.planFulltextTopup(300, drafts);
+    await acts.storeFulltextTopup(300, { tasks: plan.tasks.length, results: { A5: "Fresh body, see https://x.example/y" }, outcome: "completed" });
+    const text = JSON.parse(await store.get((await store.find(300, FULLTEXT_OUTPUT))!)) as Record<string, { text: string }>;
+    expect(Object.keys(text).toSorted()).toEqual(["A1", "A5"]);
+    expect(text["A5"]!.text).not.toContain("https://");
+    expect(JSON.parse(await store.get((await store.find(300, FULLTEXT_TOPUP_HEALTH))!))).toEqual({ tasks: 2, extracted: 1, outcome: "completed" });
+  });
+  it("a settled top-up is not repeated on a resume; an unsettled one is planned again", async () => {
+    const { store, acts, drafts } = await drafted();
+    await acts.storeFulltextTopup(300, { tasks: 2, results: {}, outcome: "unavailable" });
+    expect((await acts.planFulltextTopup(300, drafts)).tasks).toHaveLength(2);
+    expect(await store.statuses(300, FULLTEXT_TOPUP_HEALTH)).toContain("quarantined");
+    await acts.storeFulltextTopup(300, { tasks: 2, results: { A2: "Body two." }, outcome: "completed" });
+    expect(await acts.planFulltextTopup(300, drafts)).toEqual({ tasks: [], existing: await store.find(300, FULLTEXT_OUTPUT) });
+  });
+  it("switched off, it plans nothing and says why", async () => {
+    const { acts, drafts } = await drafted(false);
+    expect(await acts.planFulltextTopup(300, drafts)).toEqual({ tasks: [], skip: "disabled" });
+  });
+  it("with every cited article already read, it has nothing to fetch", async () => {
+    const { store, acts } = await setup();
+    await store.put(300, FULLTEXT_OUTPUT, JSON.stringify({ A1: { text: "x" } }));
+    const d = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0 }, story: { headline: "h", sources: [{ article_id: "A1" }] } }))];
+    expect(await acts.planFulltextTopup(300, d)).toEqual({ tasks: [], skip: "no_candidates" });
   });
 });

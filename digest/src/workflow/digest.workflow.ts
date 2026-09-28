@@ -210,7 +210,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
         return { tasks: plan.tasks.length, results: {}, outcome: "unavailable" };
       });
     };
-    const fulltext = plan.existing ?? (await once.storeFulltext(runId, await fetch(), input.force));
+    if (!plan.existing) await once.storeFulltext(runId, await fetch(), input.force);
     // WRITE fans out one story per call, four at a time; a story that exhausts its retries fails the
     // phase rather than letting the digest ship one story short.
     const { plans } = await once.planStories(runId, selected, clusters);
@@ -224,7 +224,17 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       return null;
     });
     preheaderP.catch(() => undefined); // observed while the checker may be parked; awaited below
-    const report = await guarded(() => verdict.coherence(runId, drafts, fulltext, notes["coherence"], input.force));
+    // The first fetch ran before WRITE chose its citations; this one reads what it cited, for the checker.
+    const topup = await once.planFulltextTopup(runId, drafts, input.force);
+    const fetchTopup = async (): Promise<FulltextFetch> => {
+      if (topup.skip) return { tasks: 0, results: {}, outcome: topup.skip };
+      return python.fetchFulltext(topup.tasks).catch((e: unknown): FulltextFetch => {
+        if (isCancellation(e)) throw e;
+        return { tasks: topup.tasks.length, results: {}, outcome: "unavailable" };
+      });
+    };
+    const checked = topup.existing ?? (await once.storeFulltextTopup(runId, await fetchTopup(), input.force));
+    const report = await guarded(() => verdict.coherence(runId, drafts, checked, notes["coherence"], input.force));
     const preheader = await preheaderP;
     if (!report) return await finish({ stories: 0, broadcast: "skipped" });
     const repair = await model.repair(runId, drafts, report, input.force);

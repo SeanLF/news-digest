@@ -68,6 +68,8 @@ export interface Activities extends LinkDecoder {
   select(runId: number, clusters: Pointer, recap: Pointer, note?: string, input?: DigestInput): Promise<Pointer>;
   planFulltext(runId: number, selected: Pointer, force?: boolean): Promise<FulltextPlan>;
   storeFulltext(runId: number, fetched: FulltextFetch, force?: boolean): Promise<Pointer>;
+  planFulltextTopup(runId: number, drafts: Pointer[], force?: boolean): Promise<FulltextPlan>;
+  storeFulltextTopup(runId: number, fetched: FulltextFetch, force?: boolean): Promise<Pointer>;
   planStories(runId: number, selected: Pointer, clusters: Pointer): Promise<{ plans: StoryPlan[] }>;
   writeStory(runId: number, plan: StoryPlan, selected: Pointer, note?: string, force?: boolean): Promise<Pointer>;
   preheader(runId: number, drafts: Pointer[], force?: boolean): Promise<Pointer>;
