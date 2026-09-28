@@ -1,7 +1,7 @@
 ---
 name: cluster-extract
 description: Extracts entities, keywords and a primary_event per article for the deterministic join. Text in (a TSV batch), structured JSON out; no tools.
-model: claude-sonnet-4-6
+model: claude-sonnet-5-5
 thinking: disabled
 tools:
 ---

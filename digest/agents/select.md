@@ -1,7 +1,7 @@
 ---
 name: select
 description: Assigns tiers (must_know, should_know) to story clusters. Reads its inputs with Read and Grep; the selection is the final message.
-model: claude-sonnet-4-6
+model: claude-sonnet-5-5
 thinking: disabled
 tools: Read, Grep
 ---
