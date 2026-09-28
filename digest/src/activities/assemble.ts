@@ -5,6 +5,7 @@ import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
 import { NOT_COVERED_BLURB_MAX_LEN, PREHEADER_MAX_CHARS, SelectionsSchema, type Selections } from "../contracts/selections.js";
 import { log } from "../log.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
+import { claimKey, storyKey, type AttributionDoc } from "./attribute.js";
 import { draftFrom } from "./coherence.js";
 import { preheaderLine, truncateOnWordBoundary } from "./preheader.js";
 import type { ResolutionDoc } from "./repair.js";
@@ -29,7 +30,7 @@ export function clusterFor(ids: string[], owner: Map<string, string>): string | 
 }
 
 export interface AssembleReport { shipped: number; dropped: string[]; repaired: number; blanked: number; removed: number }
-export interface AssembleOptions { removeUnsupported?: boolean }
+export interface AssembleOptions { removeUnsupported?: boolean; attribution?: Pointer | null }
 type Read = "full" | "truncated" | "summary";
 const TRUNCATED = "\n[truncated]";
 
@@ -51,6 +52,7 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
     const t = Object.hasOwn(fulltext, id) ? fulltext[id]?.text : undefined;
     return !t ? "summary" : t.endsWith(TRUNCATED) ? "truncated" : "full";
   };
+  const attributions = opts.attribution ? (JSON.parse(await store.get(opts.attribution)) as AttributionDoc).stories : {};
   const owner = new Map<string, string>();
   const clusters = await store.find(runId, "clusters.json");
   if (clusters) for (const c of (JSON.parse(await store.get(clusters)) as { clusters: { story: string; article_ids: string[] }[] }).clusters) for (const a of c.article_ids) owner.set(a, c.story);
@@ -82,12 +84,17 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
       }
       const idKey = [...ids].toSorted().join(",");
       const checkedClaims: Claim[] = repaired ? (recheckClaims.get(idKey) ?? []) : results.filter((r) => resultMatches(r, ids, normHeadline(story.headline))).flatMap((r) => r.claims ?? []);
-      const liveClaims = checkedClaims.filter((c) => c.field !== "why_it_matters" || (tier === "must_know" && item.why_it_matters.trim() !== ""));
+      const attributed = attributions[storyKey(story.sources, story.headline)];
+      const verified = new Map((attributed?.claims ?? []).map((c) => [claimKey(c), c.supported_by]));
+      const liveClaims = checkedClaims
+        .filter((c) => c.field !== "why_it_matters" || (tier === "must_know" && item.why_it_matters.trim() !== ""))
+        .map((c) => ({ ...c, supported_by: verified.get(claimKey(c)) ?? c.supported_by }));
       const backed = new Set(liveClaims.flatMap((c) => c.supported_by));
-      if (opts.removeUnsupported && liveClaims.length) {
+      const attributedInFull = attributed?.complete === true && liveClaims.every((c) => verified.has(claimKey(c)));
+      if (opts.removeUnsupported && attributedInFull && liveClaims.length) {
         if (!item.sources.some((x) => backed.has(x.article_id))) log.warn({ stage: "assemble", runId, headline: story.headline, warning: "no source backs any claim; the check and its claims disagree, nothing removed" });
         else {
-          const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id));
+          const unbacked = item.sources.filter((x) => read(x.article_id) === "full" && !backed.has(x.article_id) && !attributed?.unverified.includes(x.article_id));
           if (unbacked.length) {
             item.sources = item.sources.filter((x) => !unbacked.includes(x));
             out.removed += unbacked.length;
@@ -129,10 +136,10 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
   return { selections: parsed.data, report: out };
 }
 
-// removeUnsupported is KITCHEN_SINK_REMOVAL, off until P3's gate (docs/2026-09-28-sources-box-design.md §7).
+// removeUnsupported is KITCHEN_SINK_REMOVAL; it acts only on a story whose attribution is complete.
 export function assembleActivity(deps: { store: ArtifactStore; removeUnsupported?: boolean }) {
-  return async (runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, force = false): Promise<Pointer> => {
-    const { selections, report: r } = await assemble(deps.store, runId, drafts, report, repair, preheader, { removeUnsupported: deps.removeUnsupported ?? false });
+  return async (runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, attribution: Pointer | null, force = false): Promise<Pointer> => {
+    const { selections, report: r } = await assemble(deps.store, runId, drafts, report, repair, preheader, { removeUnsupported: deps.removeUnsupported ?? false, attribution });
     log.info({ stage: "assemble", runId, ...r });
     const text = JSON.stringify(selections, null, 2);
     const existing = await deps.store.find(runId, SELECTIONS_OUTPUT);

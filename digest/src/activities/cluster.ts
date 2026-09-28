@@ -25,6 +25,7 @@ export interface Article {
   title: string;
   summary: string;
   source_id: string;
+  published?: string;
 }
 
 export async function loadArticles(store: ArtifactStore, runId: number): Promise<Article[]> {
@@ -33,7 +34,7 @@ export async function loadArticles(store: ArtifactStore, runId: number): Promise
     const p = await store.find(runId, name);
     if (!p) continue;
     const rows = parse(await store.get(p), { columns: true, skip_empty_lines: true, relax_column_count: true }) as Record<string, string>[];
-    for (const r of rows) if (r["article_id"]) out.push({ article_id: r["article_id"], title: r["title"] ?? "", summary: r["summary"] ?? "", source_id: r["source_id"] ?? "" });
+    for (const r of rows) if (r["article_id"]) out.push({ article_id: r["article_id"], title: r["title"] ?? "", summary: r["summary"] ?? "", source_id: r["source_id"] ?? "", published: r["published"] ?? "" });
   }
   return out;
 }

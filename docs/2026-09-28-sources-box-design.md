@@ -67,6 +67,12 @@ probes (`coherence.md`, probe 1). The activity fills `read` from `article_fullte
 article's "what it backs" (R5) is the claims naming it. Articles naming no claim are the kitchen
 sink (R9), derived, not asked for.
 
+Amended after P3's backfill: the checker's `supported_by` is incomplete (it cites the first source
+it finds), so a separate stage, `attribute`, fills it. Per story it asks, for every (article, claim)
+pair, `states`, `differs` or `silent` with a verbatim quote; code keeps an answer only when the quote
+is in the article and calls a story complete only when every pair is answered. The checker still
+extracts the claims. Measured in `docs/proposed/attribution-2026-09-28/`.
+
 | Option | For | Against |
 |---|---|---|
 | A. WRITE declares claims, checker verifies (the thread pattern) | writer accountable for citations | two stages change; unlisted claims escape the check |
@@ -195,6 +201,12 @@ Each with a decision. The ones marked **changes the design** are reflected above
   (`digest/python/settings.py:8`); 36 of the 118 articles extracted in runs 307-310 (31%) hit the
   cap. `read` has three values: `full`, `truncated`, `summary`. Only `full` counts as read in full,
   on the web dot and for kitchen-sink removal (D2); a truncated article that backs nothing stays.
+- **Text that is not the article** (changes the design): a bot wall, a paywall teaser or a page
+  footer is stored as full text and looks read in full (4 of 134 texts in runs 307-310 and dev
+  run 310; the dev run removed Le Monde's live page, A24, on a "JavaScript is disabled" page).
+  Attribution always shows the feed's title and summary above the full text, so an article whose
+  own summary is on the story backs it; with that, the dev run removes nothing. An article said to
+  back a claim whose quote is not in its text is never removed.
 - **A live blog** (Le Monde's "EN DIRECT" pages): the text is a snapshot that changes after we read
   it. Treated like any article; the link may show different text later. No special case.
 - **Full text in another language**: the checker reads French, German and Spanish today
@@ -233,9 +245,12 @@ Each with a decision. The ones marked **changes the design** are reflected above
 - **Removal empties a story's sources**: the story is not dropped for it; nothing is removed and
   the ledger is logged as contradicting the check (§6).
 - **Checker nondeterminism** (changes the design): the same story can get a different ledger on a
-  re-run, so a removal can flip. P3's backfill runs the checker twice per story and gates on
-  removals agreeing across the two runs (≥ 90%), before the hand-labelled precision gate means
-  anything.
+  re-run, so a removal can flip. Both runs agreeing did not help: they skipped the same articles.
+  Removal now needs the story's attribution to be complete; without it nothing is removed and the
+  box shows the checker's list.
+- **A figure that moved** (`differs`): most are a count or estimate that changed between reports
+  (11 then 12 dead), not a disagreement. Recorded in `attribution.json` with each article's
+  publication time, rendered nowhere; an article that differs still counts as covering the story.
 - **Threads read the story's sources** after assemble (`digest.workflow.ts:244`): they get the
   cleaned list. Intended.
 - **`story_sources`, `/sources` and `/stats`** record what was shown, so removed articles leave
@@ -307,9 +322,9 @@ Rules:
 
 | Phase | Ships | Gate |
 |---|---|---|
-| P1 | grouping (D4), the web box without "What it backs", the markdown copy, the email line; D5 | every grouped pair in runs 307-310 checked by hand (explicit rules make them few): ≥ 95% the same report; reprints the rules miss counted, not gated; render tests for web, markdown and MJML |
+| P1 | grouping (D4), the web box without "What it backs", the markdown copy, the email line; D5 | every grouped pair in runs 307-310 checked (explicit rules make them few): ≥ 95% the same report; reprints the rules miss counted, not gated; render tests for web, markdown and MJML. Passed 2026-09-28, 19/19: all Reuters; every tagged carrier's text has a "(Reuters)" dateline, every untagged member has a tagged member's exact headline |
 | P2 | second fetch (D3) | every cited article from a source that extracts gets its text, the misses only sources known to block us (Reuters, the paywalls); cost and time within N1, N2 over three prod runs; repair count reported against runs 307-310. Measured before deploy on runs 307-310 from the box: 229 of 317 cited (72%, from 28%), all 88 misses blocked or paywalled |
-| P3 | ledger (D1), "What it backs", kitchen-sink removal (D2) | planted-error band recall stays 8/8 (`make planted`); removals agree across two checker runs per story ≥ 90%; on 20 hand-labelled stories from runs 307-310, ≥ 90% of removed articles truly back nothing; backfill about $6 (two runs) |
+| P3 | ledger (D1), attribution, "What it backs", kitchen-sink removal (D2) | planted-error band recall stays 8/8 (`make planted`); every removal on runs 307-310 checked against the removed article's own text, none of which states a specific of its story; removals the same across two attribution runs. The first gate (checker lists, two checker runs, hand labels) failed: 2 of its 4 agreed removals backed the story (A18 run 308, A37 run 309). Passed on attribution 2026-09-28: 2 removals in 4 runs (A8 run 307, A16 run 308), both identical across runs, 98.5% of pairs agree; no hand labels, since which article states a specific is read off its text |
 | P4 | thread `about_thread` (D6) | on the 20 latest installments, every dropped fact is off-topic by hand |
 
 P1 and P2 are independent and can go in parallel. P3 needs P2, or the removal has almost no
