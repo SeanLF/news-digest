@@ -40,7 +40,7 @@ What the single assumption cost:
 The WRITE mechanism surfaced only by opening 301's two clusters and asking where the second
 writer got the bill from: one SCMP article in the Xi cluster, "Trump signs bill targeting
 China's Russia energy imports days before Xi's US visit". The fix is a newsroom's story
-budget: each writer sees the other stories' labels (262a9e0). 9/9 bleeds → 0/9, controls
+budget: each writer sees the other stories' labels (253709c). 9/9 bleeds → 0/9, controls
 unchanged.
 
 ## The shape
