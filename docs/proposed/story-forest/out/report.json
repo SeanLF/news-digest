@@ -1,0 +1,428 @@
+{
+ "chosen": {
+  "delta": 0.1,
+  "n": 1,
+  "mu": 0.2,
+  "match": "max",
+  "titles": true,
+  "obj": 1,
+  "tune": {
+   "dup_merged": 1,
+   "dup_total": 3,
+   "sidebars": 5,
+   "situation_merged": 0,
+   "unrelated_merged": 0,
+   "unrelated_same_story": 13
+  },
+  "held": {
+   "dup_merged": 0,
+   "dup_total": 5,
+   "sidebars": 6,
+   "situation_merged": 0,
+   "unrelated_merged": 0,
+   "unrelated_same_story": 21
+  },
+  "merges_tune": 164,
+  "merges_held": 144
+ },
+ "most_permissive": {
+  "delta": 0.05,
+  "n": 1,
+  "mu": 0.08,
+  "match": "max",
+  "titles": true,
+  "obj": -10,
+  "tune": {
+   "dup_merged": 2,
+   "dup_total": 3,
+   "sidebars": 0,
+   "situation_merged": 4,
+   "unrelated_merged": 8,
+   "unrelated_same_story": 4
+  },
+  "held": {
+   "dup_merged": 3,
+   "dup_total": 5,
+   "sidebars": 3,
+   "situation_merged": 3,
+   "unrelated_merged": 18,
+   "unrelated_same_story": 3
+  },
+  "merges_tune": 965,
+  "merges_held": 1043
+ },
+ "chosen_merged_pairs": [
+  {
+   "pair": 34,
+   "run": 294,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  }
+ ],
+ "chosen_shuffled_dup_merged_5_seeds": [
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "chosen_largest_stories": [
+  {
+   "events": 1286,
+   "days": 28,
+   "first_label": "Nepal catastrophic floods search and rescue operations"
+  },
+  {
+   "events": 740,
+   "days": 28,
+   "first_label": "US Venezuela major oil deal controversy"
+  },
+  {
+   "events": 535,
+   "days": 28,
+   "first_label": "EU summons Russian envoy over Leipzig airport drone attack"
+  }
+ ],
+ "chosen_max_shipped_stories_in_one_tree": 12,
+ "most_permissive_merged_pairs": [
+  {
+   "pair": 2,
+   "run": 284,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 3,
+   "run": 284,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 5,
+   "run": 285,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 6,
+   "run": 285,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 11,
+   "run": 287,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 13,
+   "run": 287,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 15,
+   "run": 288,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 23,
+   "run": 291,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 27,
+   "run": 291,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 31,
+   "run": 293,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 34,
+   "run": 294,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 39,
+   "run": 295,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 42,
+   "run": 296,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 43,
+   "run": 297,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 50,
+   "run": 299,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 53,
+   "run": 300,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 55,
+   "run": 300,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 56,
+   "run": 301,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 58,
+   "run": 301,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 59,
+   "run": 302,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 60,
+   "run": 302,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 63,
+   "run": 303,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 64,
+   "run": 303,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 65,
+   "run": 304,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 66,
+   "run": 304,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 70,
+   "run": 305,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 71,
+   "run": 306,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 72,
+   "run": 306,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 73,
+   "run": 306,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 74,
+   "run": 306,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 75,
+   "run": 307,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 78,
+   "run": 308,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 81,
+   "run": 309,
+   "label": "SAME_SITUATION",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 84,
+   "run": 310,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 85,
+   "run": 310,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 87,
+   "run": 311,
+   "label": "SAME_EVENT",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 88,
+   "run": 311,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  },
+  {
+   "pair": 89,
+   "run": 311,
+   "label": "UNRELATED",
+   "merged": true,
+   "same_story": true,
+   "same_cluster": false
+  }
+ ],
+ "most_permissive_shuffled_dup_merged_5_seeds": [
+  0,
+  0,
+  0,
+  0,
+  0
+ ],
+ "most_permissive_largest_stories": [
+  {
+   "events": 830,
+   "days": 28,
+   "first_label": "US-Iran military strikes exchange"
+  },
+  {
+   "events": 318,
+   "days": 28,
+   "first_label": "Joshua Wong Hong Kong national security law charges"
+  },
+  {
+   "events": 262,
+   "days": 28,
+   "first_label": "EU summons Russian envoy over Leipzig airport drone attack"
+  }
+ ],
+ "most_permissive_max_shipped_stories_in_one_tree": 12,
+ "thread_first": {
+  "SAME_EVENT": 5,
+  "SAME_EVENT same_thread": 3,
+  "SAME_SITUATION": 8,
+  "SAME_SITUATION same_thread": 6,
+  "UNRELATED": 66,
+  "UNRELATED same_thread": 4
+ }
+}
