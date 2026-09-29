@@ -24,7 +24,7 @@ export type SdkQuery = typeof query;
 
 // Model-call traces to PostHog AI Observability, when the worker has a project token (telemetry.ts);
 // model_calls keeps the costs the budget check reads.
-const posthogClaude = posthogClient ? instrument({ client: posthogClient, privacyMode: false }) : undefined;
+const posthogClaude = posthogClient ? instrument({ client: posthogClient, privacyMode: true }) : undefined;
 
 // `tools` is the SDK's base set of built-ins and the only option that restricts availability;
 // `allowedTools` merely skips the permission prompt. The disallow list is belt and braces for
@@ -63,7 +63,7 @@ export async function runStage(
           traceId: randomUUID(),
           // The SDK overwrites $ai_session_id with its own session, so the run is a property of ours.
           properties: { ...(opts.runId === undefined ? {} : { run_id: opts.runId }), stage: spec.name, model: spec.model, thinking: spec.thinking },
-          privacyMode: false,
+          privacyMode: true,
         },
       })
     : query);
