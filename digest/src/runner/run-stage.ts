@@ -77,6 +77,7 @@ export async function runStage(
     disallowedTools: BUILTIN.filter((t) => !allowed.includes(t)),
     permissionMode: "acceptEdits",
     thinking: thinkingFor(spec.thinking),
+    ...(spec.effort ? { effort: spec.effort } : {}),
     // cwd alone does not confine Read or Grep: an absolute path reaches the whole disk. This does.
     settings: { permissions: { blockReadsOutsideWorkingDirectories: true } },
     // A cancelled activity (its workflow terminated or cancelled) stops the model call; otherwise a

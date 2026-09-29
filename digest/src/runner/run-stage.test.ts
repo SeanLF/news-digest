@@ -39,6 +39,12 @@ describe("runStage", () => {
     expect(seen.options?.effort).toBeUndefined();
     expect(r.effort).toBe("(sdk default)");
   });
+  it("sends and reports the spec's effort level when it names one", async () => {
+    const seen: { options?: Options } = {};
+    const r = await runStage({ ...spec, effort: "high" }, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([result({})], seen) });
+    expect(seen.options?.effort).toBe("high");
+    expect(r.effort).toBe("high");
+  });
   it("a stage with no tools gets an empty base set: no built-in reaches the model", async () => {
     const seen: { options?: Options } = {};
     await runStage({ ...spec, tools: [] }, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([result({})], seen) });

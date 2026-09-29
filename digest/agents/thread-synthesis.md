@@ -2,7 +2,7 @@
 name: thread-synthesis
 description: Evolves one ongoing story's thread from prior updates and today's sources. Text in, structured JSON out; no tools.
 model: claude-sonnet-5-5
-thinking: disabled
+thinking: adaptive
 tools:
 ---
 
