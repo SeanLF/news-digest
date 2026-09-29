@@ -163,14 +163,16 @@ class TestOnlyArticlesAreKept:
     )
     ARTICLE = (
         '<html><head><title>Bangkok declares flood disaster</title><meta property="og:title" content="Bangkok declares flood disaster">'
-        '<meta property="article:published_time" content="2026-09-26T07:21:00Z"></head><body><article><h1>Bangkok declares flood disaster</h1>'
+        '<meta property="article:published_time" content="2026-09-26T07:21:00Z"><link rel="canonical" href="https://www.bbc.com/b"></head><body><article><h1>Bangkok declares flood disaster</h1>'
         + "<p>Bangkok's governor declared a disaster zone across the capital's 50 districts on Saturday after nearly 300mm of rain.</p>" * 6
         + "</article></body></html>"
     )
 
     def test_a_wall_is_not_kept_and_an_article_is(self, monkeypatch):
-        pages = {"https://www.lemonde.fr/a": self.WALL, "https://www.bbc.com/b": self.ARTICLE}
+        # A date in the address must not make the wall look dated: trafilatura reads one from a URL it is given.
+        wall = "https://www.lemonde.fr/international/article/2026/09/28/en-direct_6785145_3210.html"
+        pages = {wall: self.WALL, "https://www.bbc.com/b": self.ARTICLE}
         monkeypatch.setattr(fulltext, "_download", lambda url, allow=frozenset(): pages[url].encode())
-        results = _collect([["A1", "https://www.lemonde.fr/a"], ["A2", "https://www.bbc.com/b"]])
+        results = _collect([["A1", wall], ["A2", "https://www.bbc.com/b"]])
         assert list(results) == ["A2"]
         assert "50 districts" in results["A2"]
