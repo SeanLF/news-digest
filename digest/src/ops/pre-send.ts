@@ -28,7 +28,6 @@ export interface PreSendInput {
 
 const TIERS = ["must_know", "should_know"] as const;
 const quote = (s: string) => `'${s.slice(0, 50).replaceAll("'", "\\'")}'`;
-const idKey = (sources: { article_id: string }[]) => [...new Set(sources.map((s) => s.article_id))].toSorted().join(",");
 
 // One line per failed check, "CODE: detail"; empty means the run sends without a hold.
 export function preSendFailures(i: PreSendInput): string[] {
@@ -63,8 +62,21 @@ export function preSendFailures(i: PreSendInput): string[] {
   if (counts.length) out.push(`STORY_COUNT: ${counts.join("; ")}`);
 
   if (i.draft) {
-    const shipped = new Set(stories.map(({ s }) => idKey(s.sources)));
-    const dropped = TIERS.flatMap((tier) => i.draft![tier]).filter((d) => !shipped.has(idKey(d.sources)));
+    // Assemble keeps each tier's order and only removes citations (unbacked ones), so walk the drafts
+    // in step with the shipped stories: a draft survives when the next shipped story cites a subset of it.
+    const dropped = TIERS.flatMap((tier) => {
+      const shipped = sel[tier].map((s) => new Set(s.sources.map((x) => x.article_id)));
+      let next = 0;
+      return i.draft![tier].filter((d) => {
+        const ids = new Set(d.sources.map((x) => x.article_id));
+        const s = shipped[next];
+        if (s && s.size > 0 && [...s].every((a) => ids.has(a))) {
+          next++;
+          return false;
+        }
+        return true;
+      });
+    });
     if (dropped.length) out.push(`STORIES_DROPPED_AT_COHERENCE: ${dropped.length} story(ies) failed the fact-check, were not repaired, and were dropped: ${dropped.slice(0, 5).map((d) => quote(d.headline)).join(" | ")}`);
   }
   if (i.threadAuditFailures) out.push(`THREAD_AUDIT_FAILED: ${i.threadAuditFailures} thread update(s) shipped facts their audit could not check (it fails open)`);

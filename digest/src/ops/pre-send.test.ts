@@ -78,6 +78,17 @@ describe("preSendFailures", () => {
     i.draft!.must_know = [story("Ceasefire collapses", ["A2", "A1"]), i.draft!.must_know[1]!];
     expect(preSendFailures(i)).toEqual([]);
   });
+  it("a story assemble shipped with an unbacked citation removed is not a drop (run 311 held on two)", () => {
+    const i = input();
+    i.draft!.must_know = [story("Ceasefire holds", ["A1", "A2", "A7"]), i.draft!.must_know[1]!];
+    expect(preSendFailures(i)).toEqual([]);
+  });
+  it("a dropped story is named even when it cited every source of a story that shipped", () => {
+    const i = input();
+    const [ceasefire, rates] = i.draft!.must_know;
+    i.draft!.must_know = [ceasefire!, story("Minister resigns", ["A9", "A3"]), rates!];
+    expect(codes(i)).toEqual(["STORIES_DROPPED_AT_COHERENCE"]);
+  });
   it("a thread audit that failed open fails", () => {
     expect(preSendFailures(input({ threadAuditFailures: 2 }))).toEqual(["THREAD_AUDIT_FAILED: 2 thread update(s) shipped facts their audit could not check (it fails open)"]);
   });
