@@ -36,3 +36,13 @@ Answer: no. Attribution is lenient where the checker is adversarial (partial mat
 quantifiers), and it is not cheaper: B costs the checker plus ~$0.7, C ~1.6x the checker (one
 specific per claim triples the pairs). Keep the checker as the judge; attribution stays for display
 and removal, where leniency errs toward keeping an article.
+
+## A stricter attribution prompt does not fix the wrong-entity credit (2026-09-29)
+
+`attribute-v3.md`: "differs" whenever any name, place, figure, date or quantifier in the claim is
+different, checked before answering "states". Arm B, same claims, 3 reps: recall 7, 8, 7 (unchanged),
+false drops 1, 0, 1 (from 0), and "Nepal-Bhutan rescue" is still `states` on "Nepal and China have
+paused rescue efforts" in reps 1 and 3. On runs 307-310 it changes nothing that matters: the same
+two removals, the five checked cases unchanged. Not shipped. Only one-specific claims (arm C) fixed
+it, at C's false drops and cost. The checker judges first (8/8 here), so a wrong-entity claim reaches
+"What it backs" only when the checker also missed it.
