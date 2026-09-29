@@ -141,6 +141,16 @@ describe("writeStory activity", () => {
     await acts.writeStory(300, plan, sel);
     expect(seen.budget).toBe("should_know | b\n");
   });
+  it("keeps a line from a budget that predates the cluster field, and a real label that starts with 'cluster'", async () => {
+    const { store, sel, seen, acts } = await setup({ must_know: [story] });
+    await store.put(300, "issue_budget.json", JSON.stringify([
+      { index: 0, tier: "must_know", story: "a" },
+      { index: 1, tier: "should_know", story: "b" },
+      { index: 2, tier: "should_know", cluster: 4, story: "cluster 8 talks collapse" },
+    ]));
+    await acts.writeStory(300, plan, sel);
+    expect(seen.budget).toBe("should_know | b\nshould_know | cluster 8 talks collapse\n");
+  });
   it("writes without a budget when the run has none (a run planned before the budget existed)", async () => {
     const { sel, seen, acts } = await setup({ must_know: [story] });
     await acts.writeStory(300, plan, sel);
