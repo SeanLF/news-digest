@@ -7,6 +7,7 @@ deadline takes what finished. The process bound is proved in test_fulltext_isola
 """
 
 import logging
+from types import SimpleNamespace
 from concurrent.futures import Future
 
 import fulltext
@@ -37,6 +38,10 @@ class _FakeTrafilatura:
         if isinstance(result, Exception):
             raise result
         return result
+
+    def bare_extraction(self, downloaded, **kwargs):
+        text = self.extract(downloaded, **kwargs)
+        return None if text is None else SimpleNamespace(text=text)
 
 
 def _collect(tasks, deadline_s=120):
@@ -145,3 +150,27 @@ class TestTruncation:
 
 def test_the_user_agent_names_us_and_nothing_publishers_block():
     assert fulltext._HEADERS["User-Agent"] == "news-digest/1.0"
+
+
+class TestOnlyArticlesAreKept:
+    """A bot wall or consent page comes back 200 and extracts as text; trafilatura keeps a document
+    only when it has a title, a date and a URL, which a wall lacks (Le Monde's, 34 of 34 fetches)."""
+
+    WALL = (
+        "<html><head><title>Client Challenge</title></head><body><p>JavaScript is disabled in your browser. "
+        "Please enable JavaScript to proceed. A required part of this site couldn't load. This may be due to a "
+        "browser extension, network issues, or browser settings.</p></body></html>"
+    )
+    ARTICLE = (
+        '<html><head><title>Bangkok declares flood disaster</title><meta property="og:title" content="Bangkok declares flood disaster">'
+        '<meta property="article:published_time" content="2026-09-26T07:21:00Z"></head><body><article><h1>Bangkok declares flood disaster</h1>'
+        + "<p>Bangkok's governor declared a disaster zone across the capital's 50 districts on Saturday after nearly 300mm of rain.</p>" * 6
+        + "</article></body></html>"
+    )
+
+    def test_a_wall_is_not_kept_and_an_article_is(self, monkeypatch):
+        pages = {"https://www.lemonde.fr/a": self.WALL, "https://www.bbc.com/b": self.ARTICLE}
+        monkeypatch.setattr(fulltext, "_download", lambda url, allow=frozenset(): pages[url].encode())
+        results = _collect([["A1", "https://www.lemonde.fr/a"], ["A2", "https://www.bbc.com/b"]])
+        assert list(results) == ["A2"]
+        assert "50 districts" in results["A2"]

@@ -17,19 +17,18 @@ proceed." It was not truncated, so it counted as read in full. It stated none of
 claims, so it looked like an article that backs nothing. It was the story's only source for "Le
 Monde reported loud explosions in Kyiv".
 
-Four of 134 stored texts in runs 307-310 plus that dev run were not the article: this bot wall, a
-Haaretz paywall teaser, a YouTube footer and an AFP stub. The extractor returns whatever page it is
-served, and nothing downstream can tell a short article from a wall.
+It was not a one-off: across the 57 runs in the dev database, every Le Monde fetch (34 of 34)
+stored that same page, so the checker had never read a Le Monde article. Le Monde refuses automated
+fetching (its robots.txt says so in a comment no parser reads; a browser user agent gets a 402,
+"Accès restreint").
 
-The fix is structural, with no list of bot-wall phrases and no length cutoff. The attribution stage
-sees each article's feed title and summary above its full text. An article whose own summary is on
-the story backs it, whatever the fetch returned; a genuinely unrelated article has an unrelated
-summary too, and still goes. With that, the dev run removes nothing.
+Trafilatura already solves this: `only_with_metadata=True` keeps a document only when it has a
+title, a date and a URL, which a wall does not. It kept 40 of 40 real article pages sampled from
+recent runs and refused the wall. Use `bare_extraction`, not `extract`: with that option `extract`
+prepends the metadata, URL included, to the text. A hand-rolled headline-word check and a
+per-host fingerprint table were built first and dropped for it.
 
-The fetch now also drops text that shares no word of four letters or more with the article's own
-feed title: in that sample the two junk pages share none and every real article shares at least
-three. A dropped text is counted as `not_article` in the fetch's health, not as extracted, and is
-never sent to a model.
+Separately, the attribution stage sees each article's feed title and summary above its full text,
+so an article whose own summary is on the story backs it whatever the fetch returned.
 
-The same applies to any metric built on "has full text". P2's coverage figure (72% of cited
-articles) counts these pages as covered.
+Any metric built on "has full text" counted these pages as covered, P2's 72% included.
