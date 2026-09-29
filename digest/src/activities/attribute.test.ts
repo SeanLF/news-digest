@@ -60,6 +60,7 @@ describe("attribute activity", () => {
     const [entry] = Object.values((await doc(store, p)).stories);
     expect(entry?.complete).toBe(true);
     expect(entry?.unverified).toEqual(["A3"]);
+    expect(entry?.stale).toEqual([]);
     expect(entry?.claims).toEqual([
       { field: "summary", text: "800,000 at the Mass", supported_by: ["A2"], differs: [{ article_id: "A1", quote: "An estimated 700'000 gathered", published: "2026-09-26T19:48:00+00:00" }] },
       { field: "summary", text: "Place de la Concorde", supported_by: ["A2"], differs: [] },
@@ -76,6 +77,13 @@ describe("attribute activity", () => {
     const { q, prompts } = replying({});
     await attributeActivity({ store, agentsDir: AGENTS, query: q })(300, drafts, report, repair);
     expect(prompts[0]).toContain("### A2\nMass in Paris\nPope Leo XIV celebrates Mass in front of 800000 people\n\nJavaScript is disabled");
+  });
+  it("calls a claim stale when an article giving a different figure is newer than every article stating it", async () => {
+    const { store, drafts, report, repair } = await setup(CLAIMS);
+    await store.replace(300, "articles_1.csv", "article_id,source_id,title,published,summary\nA1,bbc,Pope in Paris,2026-09-26T21:48:00+00:00,An estimated 700&#x27;000 gathered\nA2,f24,Mass in Paris,2026-09-26T20:28:00+00:00,Pope Leo XIV celebrates Mass in front of 800000 people\nA3,aj,Olive tree,2026-09-26T10:00:00+00:00,Mamdani plants a tree\n");
+    const { q } = replying({ A1: [{ claim: "C1", verdict: "differs", quote: "An estimated 700'000 gathered" }], A2: [{ claim: "C1", verdict: "states", quote: "in front of 800000 people" }] });
+    const p = await attributeActivity({ store, agentsDir: AGENTS, query: q })(300, drafts, report, repair);
+    expect(Object.values((await doc(store, p)).stories)[0]?.stale).toEqual([{ field: "summary", text: "800,000 at the Mass", article_id: "A1", published: "2026-09-26T21:48:00+00:00" }]);
   });
   it("asks again for a pair left unanswered, and marks the story incomplete if it stays unanswered", async () => {
     const { store, drafts, report, repair } = await setup(CLAIMS);
@@ -101,7 +109,7 @@ describe("attribute activity", () => {
       throw new Error("budget exceeded");
     }) as unknown as SdkQuery;
     const p = await attributeActivity({ store, agentsDir: AGENTS, query: q })(300, drafts, report, repair);
-    expect(Object.values((await doc(store, p)).stories)).toEqual([{ complete: false, unverified: [], claims: [] }]);
+    expect(Object.values((await doc(store, p)).stories)).toEqual([{ complete: false, unverified: [], stale: [], claims: [] }]);
   });
   it("asks nothing for a story with no claims", async () => {
     const { store, drafts, report, repair } = await setup([]);

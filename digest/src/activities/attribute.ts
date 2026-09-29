@@ -21,8 +21,10 @@ const PER_STORY_BUDGET_USD = 0.5;
 
 export interface Differs { article_id: string; quote: string; published: string }
 export interface AttributedClaim extends Claim { differs: Differs[] }
+// stale: a claim an article reports differently after every article stating it was published.
+export interface Stale { field: Claim["field"]; text: string; article_id: string; published: string }
 // unverified: articles said to state or differ on a claim whose quote is not in the article; never removed.
-export interface StoryAttribution { complete: boolean; unverified: string[]; claims: AttributedClaim[] }
+export interface StoryAttribution { complete: boolean; unverified: string[]; stale: Stale[]; claims: AttributedClaim[] }
 export interface AttributionDoc { input: string; stories: Record<string, StoryAttribution> }
 
 export const storyKey = (sources: { article_id: string }[], headline: string): string => `${[...itemIds(sources)].toSorted().join(",")}|${normHeadline(headline)}`;
@@ -81,6 +83,7 @@ export function attributeActivity(deps: AttributeDeps) {
       const full = Object.hasOwn(fulltext, id) ? fulltext[id]?.text : undefined;
       return scrubUrls(full ? `${feed}\n\n${full}` : feed);
     };
+    const when = (id: string) => Date.parse(rows.get(id)?.published ?? "");
     const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "attribute.md"), "utf8"));
     const today = await store.runDate(runId);
 
@@ -124,8 +127,12 @@ export function attributeActivity(deps: AttributeDeps) {
         }
         return { field: c.field, text: c.text, supported_by, differs };
       });
-      if (unanswered || unverified.size) log.info({ stage: "attribute", runId, headline: job.headline, unanswered, unverified: [...unverified] });
-      return { complete: unanswered === 0, unverified: [...unverified], claims };
+      const stale = claims.flatMap((c) => {
+        const latest = Math.max(...c.supported_by.map(when).filter((t) => !Number.isNaN(t)));
+        return c.supported_by.length && Number.isFinite(latest) ? c.differs.filter((d) => when(d.article_id) > latest).map((d) => ({ field: c.field, text: c.text, article_id: d.article_id, published: d.published })) : [];
+      });
+      if (unanswered || unverified.size || stale.length) log.info({ stage: "attribute", runId, headline: job.headline, unanswered, unverified: [...unverified], stale: stale.map((s) => s.text) });
+      return { complete: unanswered === 0, unverified: [...unverified], stale, claims };
     };
 
     const stories: Record<string, StoryAttribution> = {};
@@ -137,7 +144,7 @@ export function attributeActivity(deps: AttributeDeps) {
         } catch (e) {
           if (deps.signal?.()?.aborted) throw e;
           log.warn({ stage: "attribute", runId, headline: job.headline, warning: "attribution failed for this story; it shows the checker's list and nothing is removed", error: String(e) });
-          stories[job.key] = { complete: false, unverified: [], claims: [] };
+          stories[job.key] = { complete: false, unverified: [], stale: [], claims: [] };
         }
       }
     }));

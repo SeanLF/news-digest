@@ -30,6 +30,7 @@ export interface RunHealth {
   repair_detail: string | null;
   stories_dropped_at_write: number | null;
   usage_rows_dropped: number | null;
+  stale_figures?: number | null;
 }
 
 // Python's str() of a value interpolated into a message.
@@ -78,6 +79,11 @@ const RULES: Rule[] = [
     "FULLTEXT_TOPUP_TOTAL_LOSS",
     (h) => (h.fulltext_topup_tasks ?? 0) > 0 && (h.fulltext_topup_extracted ?? 0) === 0,
     (h) => `fulltext top-up extracted 0 of ${py(h.fulltext_topup_tasks)} cited articles (worker ${h.fulltext_topup_outcome || "unknown"}); the checker read their summaries only`,
+  ],
+  [
+    "STALE_FIGURE",
+    (h) => (h.stale_figures ?? 0) > 0,
+    (h) => `${py(h.stale_figures ?? 0)} claim(s) give a figure that a cited article published later reports differently; the story may be out of date (attribution.json, stale)`,
   ],
   [
     "REPAIR_SPEC_ERROR",
@@ -196,7 +202,7 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
             AND (SELECT COUNT(*) FROM sent_runs s WHERE s.run_id > l.last_run_id AND s.run_id < $1) <= $2) AS threads_available`,
     [runId, opts.dormantAfter ?? 3],
   ))!;
-  const names = ["cluster_health.json", "fulltext_health.json", "fulltext_topup_health.json", "selections.json", "thread_links.json", "repair_health.json", "write_branches.json"];
+  const names = ["cluster_health.json", "fulltext_health.json", "fulltext_topup_health.json", "selections.json", "thread_links.json", "repair_health.json", "write_branches.json", "attribution.json"];
   const docs = new Map<string, Json | undefined>();
   for (const r of await db.all<{ n: string; c: string }>("SELECT name AS n, content AS c FROM artifacts WHERE run_id = $1 AND status = 'current' AND name = ANY($2::text[])", [runId, names]))
     docs.set(r.n, parsed(r.c));
@@ -211,6 +217,8 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
   const stories = isObj(links) && Array.isArray(links["stories"]) ? links["stories"] : null;
   const dropped = isObj(branches) && Array.isArray(branches["dropped"]) ? branches["dropped"] : null;
   const linkerOk = extract(links, "linker_ok");
+  const attributed = docs.get("attribution.json");
+  const attributedStories = isObj(attributed) && isObj(attributed["stories"]) ? Object.values(attributed["stories"]) : null;
   return {
     run_id: runId,
     shipped: counts.shipped,
@@ -238,6 +246,7 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
     repair_outcome: str(extract(repair, "outcome")),
     repair_detail: str(extract(repair, "detail")),
     stories_dropped_at_write: dropped === null ? null : dropped.length,
+    stale_figures: attributedStories === null ? null : attributedStories.reduce((n: number, s) => n + (isObj(s) && Array.isArray(s["stale"]) ? s["stale"].length : 0), 0),
   };
 }
 
