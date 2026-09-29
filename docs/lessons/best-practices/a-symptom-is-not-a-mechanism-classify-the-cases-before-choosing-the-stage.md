@@ -27,6 +27,7 @@ Of the 8 labelled duplicates in runs 284-311 (`docs/2026-09-29-duplicate-stories
 | a writer leads with a neighbour's event from a dual-topic article in its own cluster | 294, 296, 301 | WRITE |
 | an article tagged in its own language never joins the English coverage | 311 North Korea | extract |
 | two clusters on one negotiation, or one story containing another | 311 Iran, 311 OpenAI, 303 | a judgement |
+| a market reaction written as its own story | 291 (arguably a sidebar) | a judgement |
 
 What the single assumption cost:
 
