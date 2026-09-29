@@ -538,27 +538,37 @@ export const digestNavCss = "\n/* pull the paper's top padding in now that a uti
 export const proxyTranslateHideScript = String.raw`if(location.hostname.indexOf("translate.goog")>-1)document.documentElement.className+=" via-proxy";`;
 
 
-// The story rail on an issue page (ChatGPT's conversation rail, for stories): one tick per story at
-// the right edge, longer for must-know; the story in view is marked by ink and length, not colour
-// alone; hover or focus shows its headline. Only where the paper leaves a margin for it.
+// The story rail on an issue page: one tick per story at the right edge, longer for must-know. It is
+// passive: the story being read is marked by ink and length (not colour alone); the ticks swell
+// toward the pointer and a tick names its story on hover or focus, all in CSS, so without the script
+// only the "you are here" mark is lost. Shown where the paper leaves a margin for it.
 export const railCss = String.raw`
-.rail{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:5;display:none;font-family:var(--sans);}
+article{scroll-margin-top:28px;}
+.rail{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:5;display:none;}
 @media (min-width:1040px){.rail{display:block;}}
 @media print{.rail{display:none !important;}}
-.rail ol{list-style:none;margin:0;padding:8px 0;display:flex;flex-direction:column;align-items:flex-end;}
-.rail li{position:relative;}
-.rail li.gap{height:12px;}
-.rail a{display:flex;align-items:center;justify-content:flex-end;height:14px;width:36px;text-decoration:none;border-radius:3px;}
-.rail a::before{content:"";display:block;height:2px;border-radius:1px;background:color-mix(in srgb,var(--ink) 28%,transparent);transition:background .15s ease,width .15s ease;}
-.rail .mk a::before{width:20px;}
-.rail .sk a::before{width:12px;}
-.rail a:hover::before,.rail a:focus-visible::before{background:color-mix(in srgb,var(--ink) 70%,transparent);}
-.rail a[aria-current]::before{background:var(--ink);width:28px;}
-.rail a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent);}
-.rail-tip{position:absolute;right:44px;top:50%;transform:translateY(-50%);width:max-content;max-width:300px;padding:10px 14px;border-radius:8px;
-  background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.35;text-wrap:balance;
-  box-shadow:0 0 0 1px var(--hair),0 6px 20px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .15s ease;}
-.rail a:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;}`;
+.rail ol{list-style:none;margin:0;padding:6px 0;display:flex;flex-direction:column;align-items:flex-end;}
+.rail li{--m:1;}
+.rail li.gap{height:10px;}
+.rail a{position:relative;display:block;width:44px;height:13px;outline:none;text-decoration:none;}
+.rail a::after{content:"";position:absolute;right:2px;top:5.5px;height:2px;border-radius:2px;width:calc(var(--w,12px) * var(--m));
+  background:color-mix(in srgb,var(--ink) 22%,transparent);transition:width .22s cubic-bezier(.3,1.3,.5,1),background .2s ease;}
+.rail .mk a{--w:18px;}
+.rail a[aria-current]{--w:28px;}
+.rail a[aria-current]::after{background:var(--ink);}
+.rail li:hover{--m:1.9;}
+.rail li:has(+ li:hover),.rail li:hover + li{--m:1.4;}
+.rail li:has(+ li + li:hover),.rail li:hover + li + li{--m:1.15;}
+.rail li:hover a::after,.rail a:focus-visible::after{background:var(--accent);}
+.rail a:focus-visible{--m:1.9;}
+.rail-tip{position:absolute;right:54px;top:50%;width:max-content;max-width:300px;padding:8px 12px 9px;border-radius:9px;
+  background:color-mix(in srgb,var(--bg),var(--ink) 3%);color:var(--ink);box-shadow:0 0 0 1px var(--hair),0 10px 28px -10px rgba(0,0,0,.3);
+  font-family:var(--serif);font-size:14.5px;line-height:1.32;text-wrap:balance;opacity:0;transform:translate(6px,-50%) scale(.98);transform-origin:right center;
+  pointer-events:none;transition:opacity .12s ease,transform .18s cubic-bezier(.2,.8,.2,1);}
+.rail li:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;transform:translate(0,-50%);transition-delay:.06s;}
+@media (prefers-reduced-motion:reduce){.rail a::after,.rail-tip{transition:none;}}`;
 
-// Marks the story in view: the one crossing the upper middle of the viewport.
-export const railJs = String.raw`(function(){var r=document.querySelector('.rail');if(!r||!('IntersectionObserver' in window))return;var links={};r.querySelectorAll('a[href^="#"]').forEach(function(a){links[a.getAttribute('href').slice(1)]=a;});var cur=null;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var a=links[e.target.id];if(!a||a===cur)return;if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','location');cur=a;});},{rootMargin:'-40% 0px -55% 0px'});Object.keys(links).forEach(function(id){var el=document.getElementById(id);if(el)io.observe(el);});})();`;
+// "You are here": the last story whose top has passed a line a quarter down the viewport. A story
+// reached from the rail stays marked until the reader scrolls or types, because the last briefs of an
+// issue can never scroll up to that line.
+export const railJs = String.raw`(function(){var r=document.querySelector('.rail');if(!r)return;var links=[].slice.call(r.querySelectorAll('a[href^="#"]'));var targets=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});var cur=null,pinned=-1,ticking=false;function mark(i){var a=links[i];if(a===cur)return;if(cur)cur.removeAttribute('aria-current');if(a)a.setAttribute('aria-current','location');cur=a||null;}function update(){ticking=false;if(pinned>=0){mark(pinned);return;}var line=innerHeight*0.25,best=0;for(var i=0;i<targets.length;i++){if(targets[i]&&targets[i].getBoundingClientRect().top<=line)best=i;}mark(best);}addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(update);}},{passive:true});['wheel','touchstart','keydown'].forEach(function(t){addEventListener(t,function(e){if(t==='keydown'&&r.contains(e.target))return;pinned=-1;},{passive:true});});links.forEach(function(a,i){a.addEventListener('click',function(){pinned=i;mark(i);});});update();})();`;
