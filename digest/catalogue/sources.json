@@ -217,7 +217,9 @@
     "factuality": "high",
     "credibility": "high",
     "perspective": "french",
-    "region": "Europe"
+    "region": "Europe",
+    "fulltext": false,
+    "fulltext_reason": "Le Monde forbids automated fetching (robots.txt header) and serves a bot wall to every article fetch (34 of 34, runs 248-310); its feed is still read."
   },
   {
     "id": "nikkei_asia",
