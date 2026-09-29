@@ -44,8 +44,13 @@ describe("checkBranch", () => {
     expect(checkBranch({ should_know: [story] }, { ...plan, tier: "should_know" }).story).not.toHaveProperty("why_it_matters");
     expect(checkBranch({ must_know: [{ ...story, why_it_matters: " " }] }, plan).problems).toEqual(["missing why_it_matters"]);
   });
-  it("fails on two stories, no sources, or a citation outside the evidence", async () => {
-    expect(checkBranch({ must_know: [story, story] }, plan).problems).toEqual(["expected exactly 1 story, found 2"]);
+  it("keeps the story built on SELECT's articles when the writer splits the cluster, and says it did", async () => {
+    const other = { ...story, headline: "Other event", sources: [{ article_id: "A2" }] };
+    expect(checkBranch({ must_know: [other, story] }, plan)).toEqual({ story, problems: [], set_aside: 1 });
+    expect(checkBranch({ must_know: [other, { ...other, headline: "Third" }] }, plan).story?.headline).toBe("Other event");
+  });
+  it("fails on no story, no sources, or a citation outside the evidence", async () => {
+    expect(checkBranch({ must_know: [] }, plan).problems).toEqual(["expected a story, found none"]);
     expect(checkBranch({ must_know: [{ ...story, sources: [] }] }, plan).problems).toEqual(["no sources"]);
     expect(checkBranch({ must_know: [{ ...story, sources: [{ article_id: "A9" }] }] }, plan).problems).toEqual(["cites ids outside its evidence: A9"]);
   });

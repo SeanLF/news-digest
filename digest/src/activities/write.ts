@@ -71,10 +71,16 @@ export type DraftStory = z.infer<typeof DraftStory>;
 
 // Exactly one well-formed story, the fields its tier requires, and only citations to the branch's
 // own evidence; anything else fails retryably and the next attempt is a fresh sample.
-export function checkBranch(draft: z.infer<typeof BranchDraftSchema>, plan: StoryPlan): { story?: DraftStory; problems: string[] } {
+// A writer that splits its cluster into several stories (Sonnet 5.5 did, 2 times in 3, on run 310's
+// OpenAI and South Africa clusters) keeps the one citing most of SELECT's articles, the event the
+// cluster was selected for; a retry would only re-roll the split, and three failures fail the run.
+export function checkBranch(draft: z.infer<typeof BranchDraftSchema>, plan: StoryPlan): { story?: DraftStory; problems: string[]; set_aside?: number } {
   const stories = [...(draft.must_know ?? []), ...(draft.should_know ?? [])];
-  if (stories.length !== 1) return { problems: [`expected exactly 1 story, found ${stories.length}`] };
-  const story = { ...stories[0]! };
+  if (stories.length === 0) return { problems: ["expected a story, found none"] };
+  const chosen = new Set(plan.storyIds);
+  const overlap = (s: DraftStory) => s.sources.filter((x) => chosen.has(x.article_id)).length;
+  const best = stories.reduce((a, b) => (overlap(b) > overlap(a) ? b : a));
+  const story = { ...best };
   const problems: string[] = [];
   for (const f of ["headline", "summary"] as const) if (!story[f].trim()) problems.push(`missing ${f}`);
   if (plan.tier === "must_know" && !story.why_it_matters?.trim()) problems.push("missing why_it_matters");
@@ -83,7 +89,7 @@ export function checkBranch(draft: z.infer<typeof BranchDraftSchema>, plan: Stor
   const stray = story.sources.map((s) => s.article_id).filter((a) => !allowed.has(a));
   if (stray.length) problems.push(`cites ids outside its evidence: ${stray.slice(0, 5).join(",")}`);
   if (plan.tier === "should_know") delete story.why_it_matters; // briefs render no why_it_matters
-  return { story, problems };
+  return { story, problems, ...(stories.length > 1 ? { set_aside: stories.length - 1 } : {}) };
 }
 
 export interface WriteDeps {
@@ -171,8 +177,9 @@ export function writeActivities(deps: WriteDeps) {
         await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "write", runId, story: plan.index, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns, toolCalls: r.toolCalls.length });
         const parsed = BranchDraftSchema.safeParse(r.structured);
         if (!parsed.success) throw new Error(`write s${plan.index}: output does not match the schema`);
-        const { story, problems } = checkBranch(parsed.data, plan);
+        const { story, problems, set_aside } = checkBranch(parsed.data, plan);
         if (problems.length || !story) throw new Error(`write s${plan.index}: ${problems.join("; ")}`);
+        if (set_aside) log.warn({ stage: "write", runId, story: plan.index, warning: "the writer split its cluster; kept the story on SELECT's articles", set_aside });
         const text = JSON.stringify({ plan, story }, null, 2);
         return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
       } finally {
