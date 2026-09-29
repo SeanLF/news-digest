@@ -1,0 +1,8 @@
+{"arm": "control", "baseline_rss_mib": 49.1, "cgroup_peak_mib": 249.5, "rss_mib": 249.1, "blob_mib": 200.0}
+{"arm": "static256", "articles": 5112, "runs": 8, "load_s": 0.06, "ms_per_article": 0.09, "cgroup_peak_mib": 125.8, "rss_mib": 131.9, "baseline_rss_mib": 49.3}
+{"arm": "minilm", "cap_mib": 384, "exit": 137}
+{"cap_mib": 1024, "arm": "minilm", "articles": 5112, "runs": 8, "load_s": 0.84, "ms_per_article": 37.18, "cgroup_peak_mib": 706.7, "rss_mib": 621.0, "baseline_rss_mib": 49.2}
+{"arm": "minilm_lean", "cap_mib": 384, "exit": 137}
+{"cap_mib": 1024, "arm": "minilm_lean", "articles": 5112, "runs": 8, "load_s": 0.79, "ms_per_article": 33.56, "cgroup_peak_mib": 729.8, "rss_mib": 634.3, "baseline_rss_mib": 49.4}
+{"arm": "static1024", "cap_mib": 384, "exit": 137}
+{"cap_mib": 1024, "arm": "static1024", "articles": 5112, "runs": 8, "load_s": 0.21, "ms_per_article": 0.08, "cgroup_peak_mib": 949.9, "rss_mib": 511.1, "baseline_rss_mib": 49.5}
