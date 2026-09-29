@@ -2,9 +2,22 @@ import { parseFeed } from "feedsmith";
 import type { Fetched } from "../prepare/prepare.js";
 
 // sources.json entry; the catalogue keeps parked sources so past issues keep their attribution.
-export interface CatalogueSource { id: string; name: string; url: string; bias: string; factuality: string; perspective: string; active?: boolean; inactive_reason?: string }
+export interface CatalogueSource { id: string; name: string; url: string; bias: string; factuality: string; perspective: string; active?: boolean; inactive_reason?: string; fulltext?: boolean; fulltext_reason?: string }
 
 // feeds.load_catalogue + load_sources: validate every entry, return the ones to fetch.
+// The sources whose article pages are never fetched ("fulltext": false): their sites refuse
+// automated fetching. Their feeds are still read.
+export function notFetchedSources(catalogue: unknown): Set<string> {
+  if (!Array.isArray(catalogue)) throw new Error("sources.json is not a list");
+  return new Set(
+    (catalogue as CatalogueSource[]).flatMap((s, i) => {
+      if (s.fulltext !== undefined && typeof s.fulltext !== "boolean") throw new Error(`sources.json[${i}] '${s.id}' has a non-boolean 'fulltext'`);
+      if (s.fulltext === false && !s.fulltext_reason?.trim()) throw new Error(`sources.json[${i}] '${s.id}' has fulltext false and no fulltext_reason`);
+      return s.fulltext === false ? [s.id] : [];
+    }),
+  );
+}
+
 export function activeSources(catalogue: unknown): CatalogueSource[] {
   if (!Array.isArray(catalogue)) throw new Error("sources.json is not a list");
   return (catalogue as CatalogueSource[]).filter((s, i) => {

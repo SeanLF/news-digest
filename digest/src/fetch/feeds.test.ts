@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeSources, isoUtc, newerThan, parseArticles } from "./feeds.js";
+import { activeSources, isoUtc, newerThan, notFetchedSources, parseArticles } from "./feeds.js";
 
 const RSS = `<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>T</title>
 <item><title> Hi &amp; bye </title><link>https://x.test/a</link><pubDate>Thu, 18 Sep 2026 09:43:43 GMT</pubDate><description>&lt;b&gt;S&lt;/b&gt;</description><dc:creator>Reuters</dc:creator></item>
@@ -24,6 +24,9 @@ describe("feeds", () => {
   it("validates the catalogue and leaves parked sources out", () => {
     expect(activeSources([s("a"), s("b", { active: false, inactive_reason: "blocks our ASN" })]).map((x) => x.id)).toEqual(["a"]);
     expect(() => activeSources([s("c", { active: false })])).toThrow(/inactive_reason/);
+    expect([...notFetchedSources([s("a"), s("b", { fulltext: false, fulltext_reason: "refuses automated fetching" })])]).toEqual(["b"]);
+    expect(() => notFetchedSources([s("c", { fulltext: false })])).toThrow(/fulltext_reason/);
+    expect(() => notFetchedSources([s("d", { fulltext: "no" })])).toThrow(/non-boolean/);
     expect(() => activeSources([s("Bad-Id")])).toThrow(/invalid id/);
   });
 });

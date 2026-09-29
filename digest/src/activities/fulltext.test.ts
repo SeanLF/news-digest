@@ -131,3 +131,16 @@ describe("fulltext top-up, for what WRITE cited", () => {
     expect((await acts.planFulltextTopup(300, drafts)).tasks.map(([id]) => id)).toContain("A5");
   });
 });
+
+describe("a source whose pages we do not fetch", () => {
+  it("gets no fetch on either pass, and its slot in a story goes to the next article", async () => {
+    const store = new ArtifactStore(await freshDb([300]));
+    await store.put(300, "article_index.json", JSON.stringify({ A1: { url: "https://www.lemonde.fr/1", source_id: "le_monde" }, A2: { url: "https://b.com/2", source_id: "bbc" }, A3: { url: "https://c.com/3", source_id: "dw" }, A4: { url: "https://d.com/4", source_id: "npr" }, A5: { url: "https://www.lemonde.fr/5", source_id: "le_monde" } }));
+    const sel = await store.put(300, "selected.json", JSON.stringify({ must_know: [{ article_ids: ["A1", "A2", "A3", "A4"] }], should_know: [] }));
+    const acts = fulltextActivities({ store, perStory: 3, enabled: true, notFetched: new Set(["le_monde"]) });
+    expect(await acts.planFulltext(300, sel)).toEqual({ tasks: [["A2", "https://b.com/2"], ["A3", "https://c.com/3"], ["A4", "https://d.com/4"]] });
+    await acts.storeFulltext(300, { tasks: 3, results: {}, outcome: "completed" });
+    const draft = await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0 }, story: { headline: "h", sources: [{ article_id: "A5" }, { article_id: "A2" }] } }));
+    expect((await acts.planFulltextTopup(300, [draft])).tasks).toEqual([["A2", "https://b.com/2"]]);
+  });
+});
