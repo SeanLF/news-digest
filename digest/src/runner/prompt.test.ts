@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseAgentSpec, renderBody } from "./prompt.js";
 
@@ -20,6 +22,14 @@ describe("prompt", () => {
     expect(parseAgentSpec(MD).effort).toBeUndefined();
     expect(parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptive\neffort: high")).effort).toBe("high");
     expect(() => parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptive\neffort: extreme"))).toThrow(/effort/);
+  });
+  it("refuses a thinking mode it does not know and a key no spec has, instead of defaulting past them", () => {
+    expect(() => parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptiv"))).toThrow(/thinking/);
+    expect(() => parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptive\nthnking: disabled"))).toThrow(/thnking/);
+  });
+  it("parses every stage the pipeline ships", () => {
+    const dir = new URL("../../agents/", import.meta.url).pathname;
+    for (const f of readdirSync(dir).filter((n) => n.endsWith(".md"))) expect(() => parseAgentSpec(readFileSync(join(dir, f), "utf8")), f).not.toThrow();
   });
   it("refuses a tool the contract removed", () => {
     expect(() => parseAgentSpec(MD.replace("Read, Grep", "Read, Write"))).toThrow(/Write/);

@@ -1,4 +1,29 @@
-export type StageTool = "Read" | "Grep";
+import { parse as parseYaml } from "yaml";
+import { z } from "zod";
+
+// Read and Grep on the input directory only (spec §2.2): publisher text reaches a model with
+// nothing to mutate and nothing to exfiltrate to. Write is gone by contract: the result is the
+// final message.
+const StageToolSchema = z.enum(["Read", "Grep"]);
+export type StageTool = z.infer<typeof StageToolSchema>;
+const EffortSchema = z.enum(["low", "medium", "high", "xhigh", "max"]);
+export type Effort = z.infer<typeof EffortSchema>;
+
+// An agent file's frontmatter. `tools` is a comma list ("Read, Grep") or empty.
+const FrontmatterSchema = z.strictObject({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  model: z.string().min(1),
+  thinking: z.enum(["adaptive", "disabled"]),
+  tools: z.string().nullish().transform((t, ctx) => {
+    const named = (t ?? "").split(/[,\s]+/).filter(Boolean);
+    const bad = named.filter((x) => !StageToolSchema.safeParse(x).success);
+    if (bad.length) ctx.addIssue({ code: "custom", message: `names tools the contract removed: ${bad.join(", ")}` });
+    return named as StageTool[];
+  }),
+  effort: EffortSchema.optional(),
+});
+
 export interface StageSpec {
   name: string;
   model: string;
@@ -7,32 +32,14 @@ export interface StageSpec {
   body: string;
   effort?: Effort;
 }
-const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
-export type Effort = (typeof EFFORTS)[number];
-
-// Read and Grep on the input directory only (spec §2.2): publisher text reaches a model with
-// nothing to mutate and nothing to exfiltrate to. Write is gone by contract: the result is the
-// final message.
-const ALLOWED: ReadonlySet<string> = new Set(["Read", "Grep"]);
 
 export function parseAgentSpec(markdown: string): StageSpec {
-  const parts = markdown.split("---");
-  if (parts.length < 3) throw new Error("agent spec has no frontmatter");
-  const front = parts[1] ?? "";
-  const body = parts.slice(2).join("---").trim();
-  const fields: Record<string, string> = {};
-  for (const line of front.split("\n")) {
-    const i = line.indexOf(":");
-    if (i > 0) fields[line.slice(0, i).trim()] = line.slice(i + 1).trim().replace(/^["']|["']$/g, "");
-  }
-  const model = fields["model"];
-  if (!model) throw new Error("agent spec has no model");
-  const named = (fields["tools"] ?? "").split(/[,\s]+/).filter(Boolean);
-  const bad = named.filter((t) => !ALLOWED.has(t));
-  if (bad.length) throw new Error(`agent spec names tools the contract removed: ${bad.join(", ")}`);
-  const effort = fields["effort"];
-  if (effort !== undefined && !(EFFORTS as readonly string[]).includes(effort)) throw new Error(`agent spec names an unknown effort: ${effort}`);
-  return { name: fields["name"] ?? "", model, thinking: fields["thinking"] === "adaptive" ? "adaptive" : "disabled", tools: named as StageTool[], body, ...(effort ? { effort: effort as Effort } : {}) };
+  const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(markdown.trimStart());
+  if (!m) throw new Error("agent spec has no frontmatter");
+  const parsed = FrontmatterSchema.safeParse(parseYaml(m[1]!) ?? {});
+  if (!parsed.success) throw new Error(`agent spec frontmatter: ${parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ")}`);
+  const { name, model, thinking, tools, effort } = parsed.data;
+  return { name, model, thinking, tools, body: m[2]!.trim(), ...(effort ? { effort } : {}) };
 }
 
 const TOKEN = /\{\{([^{}]*)\}\}/g;
