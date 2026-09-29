@@ -33,6 +33,10 @@ export interface AssembleReport { shipped: number; dropped: string[]; repaired: 
 export interface AssembleOptions { removeUnsupported?: boolean; attribution?: Pointer | null }
 type Read = "full" | "truncated" | "summary";
 const TRUNCATED = "\n[truncated]";
+// Below this many words a fetched page is too thin to conclude it backs nothing: a video page's
+// player text and one-line description (run 311: a 68-word Al Jazeera clip, a 118-word France 24
+// page), a paywall teaser, a site footer. Such a page is kept as a source, never removed.
+export const MIN_READ_WORDS = 150;
 
 // merge.assemble_selections, ported. For each story, in order: passed → keep; repaired with a
 // patch covering exactly the flagged fields and a passed recheck → keep, patched; only
@@ -50,7 +54,7 @@ export async function assemble(store: ArtifactStore, runId: number, drafts: Poin
   const fulltext = ftPtr ? (JSON.parse(await store.get(ftPtr)) as Record<string, { text?: string }>) : {};
   const read = (id: string): Read => {
     const t = Object.hasOwn(fulltext, id) ? fulltext[id]?.text : undefined;
-    return !t ? "summary" : t.endsWith(TRUNCATED) ? "truncated" : "full";
+    return !t ? "summary" : t.endsWith(TRUNCATED) ? "truncated" : t.split(/\s+/).filter(Boolean).length < MIN_READ_WORDS ? "summary" : "full";
   };
   const attributions = opts.attribution ? (JSON.parse(await store.get(opts.attribution)) as AttributionDoc).stories : {};
   const owner = new Map<string, string>();

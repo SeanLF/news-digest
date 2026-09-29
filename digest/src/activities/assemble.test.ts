@@ -56,10 +56,11 @@ const claims = [
   { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
 ];
 const attributed = (complete: boolean, backs: Record<string, string[]>, unverified: string[] = [], differ: Record<string, string[]> = {}) => ({ input: "x", stories: { "A1,A2,A3,A4|pope": { complete, unverified, claims: Object.entries(backs).map(([text, supported_by]) => ({ field: claims.find((c) => c.text === text)?.field ?? "summary", text, supported_by, differs: (differ[text] ?? []).map((article_id) => ({ article_id, quote: "q", published: "" })) })) } } });
-async function ledger(result: Record<string, unknown>, resolution: unknown[] = [], attribution: unknown = attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"], w: ["A2"], s: ["A1"] })) {
+const body = (words: number) => Array.from({ length: words }, (_, i) => `w${i}`).join(" ");
+async function ledger(result: Record<string, unknown>, resolution: unknown[] = [], attribution: unknown = attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"], w: ["A2"], s: ["A1"] }), a2Words = 160) {
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "clusters.json", JSON.stringify({ clusters: [] }));
-  await store.put(300, "article_fulltext.json", JSON.stringify({ A1: { text: "Full body one." }, A2: { text: "Full body two." }, A3: { text: "Cut body.\n[truncated]" } }));
+  await store.put(300, "article_fulltext.json", JSON.stringify({ A1: { text: body(160) }, A2: { text: body(a2Words) }, A3: { text: "Cut body.\n[truncated]" } }));
   const s = story("Pope", ["A1", "A2", "A3", "A4"], { reporting_varies: [{ source: "X", angle: "from A2", bias: "center", article_id: "A2" }, { source: "Y", angle: "from A1", bias: "center", article_id: "A1" }] });
   const drafts = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: s }))];
   const report = await store.put(300, "coherence_report.json", JSON.stringify({ results: [{ headline: "Pope", article_ids: ["A1", "A2", "A3", "A4"], reason: "ok", ...result }] }));
@@ -83,6 +84,11 @@ describe("assemble: claims and articles that back nothing", () => {
     expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A3", "A4"]);
     expect(selections.must_know[0]?.reporting_varies?.map((r) => r.angle)).toEqual(["from A1"]);
     expect(report.removed).toBe(1);
+  });
+  it("never removes a page too thin to judge (run 311: a 68-word Al Jazeera clip, a 118-word France 24 video page)", async () => {
+    const { selections, report } = await (await ledger({ pass: true, claims }, [], undefined, 118))(true);
+    expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+    expect(report.removed).toBe(0);
   });
   it("never removes on a check with no claims, nor empties a story", async () => {
     expect((await (await ledger({ pass: true }))(true)).selections.must_know[0]?.sources).toHaveLength(4);
