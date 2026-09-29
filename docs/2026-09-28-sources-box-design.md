@@ -146,6 +146,15 @@ small, independent of the rest.
 
 ### D6. Thread facts about another thread
 
+Built instead without a model (2026-09-29): a fact that cites none of its own story's articles and
+some of another story's this run is that story's fact, carried in by the late-binding neighbourhood,
+and is dropped whatever the audit says (`offThread`, counted as `off_thread` in the thread's audit
+record). Over the 29 installments stored in production (runs 248-310) it drops 5 of 191 facts: 4
+plainly another thread's (the Fairford arrests in Hormuz, Trump's talks remark in Fairford, the
+Pope's Metz remarks and the Swiss neutrality vote in the Ukraine strikes thread), 1 arguable
+(Beijing's Iran stance in the Iran thread, citing only the Trump-Xi summit's articles). No fact
+cited both its own story and another. The audit-prompt design below was not built:
+
 `thread-audit.md` returns `{id, supported, about_thread}`; `applyInstallment` drops a fact that
 fails either. The re-ask prompt (`digest/src/threads/synthesis.ts:126-127`) and the parser
 (`synthesis.ts:145-188`) change with it, or a round-2 reply omits the field and the outer
@@ -325,7 +334,7 @@ Rules:
 | P1 | grouping (D4), the web box without "What it backs", the markdown copy, the email line; D5 | every grouped pair in runs 307-310 checked (explicit rules make them few): ≥ 95% the same report; reprints the rules miss counted, not gated; render tests for web, markdown and MJML. Passed 2026-09-28, 19/19: all Reuters; every tagged carrier's text has a "(Reuters)" dateline, every untagged member has a tagged member's exact headline |
 | P2 | second fetch (D3) | every cited article from a source that extracts gets its text, the misses only sources known to block us (Reuters, the paywalls); cost and time within N1, N2 over three prod runs; repair count reported against runs 307-310. Measured before deploy on runs 307-310 from the box: 229 of 317 cited (72%, from 28%), all 88 misses blocked or paywalled |
 | P3 | ledger (D1), attribution, "What it backs", kitchen-sink removal (D2) | planted-error band recall stays 8/8 (`make planted`); every removal on runs 307-310 checked against the removed article's own text, none of which states a specific of its story; removals the same across two attribution runs. The first gate (checker lists, two checker runs, hand labels) failed: 2 of its 4 agreed removals backed the story (A18 run 308, A37 run 309). Passed on attribution 2026-09-28: 2 removals in 4 runs (A8 run 307, A16 run 308), both identical across runs, 98.5% of pairs agree; no hand labels, since which article states a specific is read off its text |
-| P4 | thread `about_thread` (D6) | on the 20 latest installments, every dropped fact is off-topic by hand |
+| P4 | thread `about_thread` (D6) | every fact the rule drops over production's stored installments is read against both threads' stories: 4 of 5 plainly the other thread's, 1 arguable (2026-09-29) |
 
 P1 and P2 are independent and can go in parallel. P3 needs P2, or the removal has almost no
 full-text articles to act on. A failed gate stops that phase and is reported.

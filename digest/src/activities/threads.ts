@@ -12,7 +12,7 @@ import { openDb, type Db, type Sql } from "../store/db.js";
 import type { UsageRow } from "../store/usage.js";
 import { assignThreads, linkPrompt, parseLinks, selectedLabels, validateLinks, type Assignment, type LinkHealth, type LinkTrace } from "../threads/link.js";
 import { ThreadStore, type ActiveThread, type RenderContext } from "../threads/store.js";
-import { applyInstallment, auditPrompt, auditReask, expandNeighbourhood, parseInstallment, readAudit, synthesisPrompt, whatsNewOf, type Art, type Installment } from "../threads/synthesis.js";
+import { applyInstallment, auditPrompt, auditReask, expandNeighbourhood, offThread, parseInstallment, readAudit, synthesisPrompt, whatsNewOf, type Art, type Installment } from "../threads/synthesis.js";
 import { loadArticles } from "./cluster.js";
 import { THREAD_CONTEXT, type ThreadOutcome, type ThreadPlan, type ThreadsLinked, type ThreadsReport } from "./index.js";
 import { ACCEPTED_BROADCAST_STATES, sendRow } from "../ops/broadcast-state.js";
@@ -369,11 +369,19 @@ export function threadsActivities(deps: ThreadsDeps) {
           supported = facts.map(() => true);
         }
       }
+      const trace = JSON.parse((await artifactIn(db, runId, THREAD_LINKS)) ?? "{}") as Partial<LinkTrace>;
+      const others = new Set((trace.stories ?? []).filter((st) => st.proposed_thread !== tid).flatMap((st) => st.article_ids));
+      const off = offThread(facts, new Set(plan.articleIds), others);
+      const offCount = off.filter(Boolean).length;
+      if (offCount) {
+        supported = supported.map((v, i) => v && !off[i]);
+        log.info({ stage: "threads", runId, thread: tid, off_thread: offCount, reason: "cites only another story's articles" });
+      }
       return db.tx(async (t) => {
         const again = await recorded(t);
         if (again) return again;
         await applyInstallment(new ThreadStore(t), tid, openNow, installment, supported, runId);
-        await putIn(t, runId, auditName(tid), JSON.stringify({ supported, audit_failed: auditFailed }));
+        await putIn(t, runId, auditName(tid), JSON.stringify({ supported, audit_failed: auditFailed, ...(offCount ? { off_thread: offCount } : {}) }));
         return { threadId: tid, auditFailed };
       }, lockOf(runId));
     },
