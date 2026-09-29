@@ -18,7 +18,7 @@ spec), `docs/2026-09-23-temporal-cutover-runbook.md` (operating the Temporal sid
   queue. A run goes on without full text if it is down.
 - Postgres database `digest` — the worker writes it; the site and `bin/ops` read it as `digest_ro`.
 
-**A run** (`digest/src/workflow/digest.workflow.ts`, daily at 12:25 Europe/Paris): fetch → prepare
+**A run** (`digest/src/workflow/digest.workflow.ts`, daily at 10:25 UTC): fetch → prepare
 (dedup, opaque article ids) → weekly recap → recap and cluster (extract, then a deterministic join) →
 select → full text (Python) → write, one call per story → preheader → coherence → repair → assemble →
 threads and Google News link decoding → render (web and MJML email) → pre-send checks (a failure holds
@@ -40,8 +40,8 @@ them to URL, source and bias afterwards. Stage prompts are `digest/agents/*.md`.
 - **Schema**: migrations are dbmate files in `digest/db/migrations`, applied by the worker at start
   (`node dist/cli/migrate.js`); after one, `make schema-types` regenerates the row types.
 - **Deploy**: `make deploy` runs seanfloyd-infra's `bin/deploy-digest` on HEAD, which Kamal-deploys the
-  images it builds on the Mac (osv-scanner first; refuses during a run and 12:00-13:45
-  Europe/Paris); `bin/deploy-digest --rollback <sha>` there rolls back.
+  images it builds on the Mac (osv-scanner first; refuses during a run and 10:00-11:45
+  UTC); `bin/deploy-digest --rollback <sha>` there rolls back.
 - **Production reads**: `bin/ops run|usage|health|artifacts|journal` (read-only, over SSH);
   `make db-clone` then `bin/psql`, `make usage`, `make analytics`.
 - **Server**: `make ssh`.

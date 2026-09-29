@@ -4,14 +4,13 @@ import { guard, inRunWindow, runningDigests } from "./deploy-guard.js";
 
 describe("inRunWindow", () => {
   it.each([
-    ["2026-07-15T09:59:00Z", false], // 11:59 Paris, summer (UTC+2)
-    ["2026-07-15T10:00:00Z", true], // 12:00 Paris
-    ["2026-07-15T11:44:00Z", true], // 13:44 Paris
-    ["2026-07-15T11:45:00Z", false], // 13:45 Paris
-    ["2026-01-15T10:30:00Z", false], // 11:30 Paris, winter (UTC+1)
-    ["2026-01-15T11:00:00Z", true], // 12:00 Paris
-    ["2026-01-15T12:44:00Z", true], // 13:44 Paris
-  ])("%s -> %s: 12:00 to 13:45 Europe/Paris, whatever the offset", (iso, want) => {
+    ["2026-07-15T09:59:00Z", false],
+    ["2026-07-15T10:00:00Z", true],
+    ["2026-07-15T11:44:00Z", true],
+    ["2026-07-15T11:45:00Z", false],
+    ["2026-01-15T10:00:00Z", true], // the same hours in winter
+    ["2026-01-15T11:50:00Z", false],
+  ])("%s -> %s: 10:00 to 11:45 UTC, all year", (iso, want) => {
     expect(inRunWindow(new Date(iso))).toBe(want);
   });
 });
@@ -46,7 +45,7 @@ describe("guard", () => {
   });
   it("refuses inside the window and while a digest runs, naming both", async () => {
     expect(await guard(listing([{ workflowId: "digest-2026-07-15" }]), new Date("2026-07-15T10:30:00Z"))).toEqual([
-      "12:30 Europe/Paris is inside the run window (12:00-13:45 Europe/Paris)",
+      "10:30 UTC is inside the run window (10:00-11:45 UTC)",
       "digest workflow(s) running: digest-2026-07-15",
     ]);
   });

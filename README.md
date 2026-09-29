@@ -60,7 +60,7 @@ Mail in the dev stack goes to `resend-fake` and nowhere else, whatever `.env` sa
 
 ### 3. Schedule
 
-A Temporal schedule starts the run each day: `make digest-schedule` creates it on the dev stack. Production's fires at 12:25 Europe/Paris.
+A Temporal schedule starts the run each day: `make digest-schedule` creates it on the dev stack. Production's fires at 10:25 UTC.
 
 ## Sources
 

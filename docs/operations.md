@@ -20,7 +20,7 @@ Dependabot's PRs; the pre-commit hook runs the same tests locally. `make deploy`
 hands HEAD to seanfloyd-infra's `bin/deploy-digest` (design: seanfloyd-infra
 `docs/2026-09-25-news-digest-kamal-design.md`), which checks this checkout is clean, at that SHA and on
 origin/main, and runs osv-scanner on its lockfiles; builds the three images here with Kamal and pushes them to the box's
-registry; refuses while a `DigestWorkflow` runs and from 12:00 to 13:45 Europe/Paris (the guard runs in
+registry; refuses while a `DigestWorkflow` runs and from 10:00 to 11:45 UTC (the guard runs in
 the live worker); dumps Postgres alongside the Python worker's deploy; then deploys the worker and the
 site in parallel. The worker applies the product schema's dbmate migrations as it starts and is healthy
 only once it polls, so a failed migration fails the deploy with the old worker still running; its build
