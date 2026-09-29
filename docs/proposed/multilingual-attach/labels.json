@@ -1,0 +1,432 @@
+{
+ "304": [
+  {
+   "candidate": "A256",
+   "label": "same event",
+   "why": "Turkey school shooting, same attack",
+   "minilm_cosine": 0.8407,
+   "minilm_target": "Turkey school shooting 11 injured",
+   "static256_cosine": 0.341,
+   "static256_target": "Turkey school shooting 11 injured"
+  },
+  {
+   "candidate": "A244+A248",
+   "label": "same event",
+   "why": "Latvia blocks the EU sanctions compromise on Usmanov/Fridman",
+   "minilm_cosine": 0.79,
+   "minilm_target": "Latvia opposes EU deal lifting sanctions on Usmanov and Fridman",
+   "static256_cosine": 0.4625,
+   "static256_target": "Russian strikes on Ukraine amid UNGA 2026"
+  },
+  {
+   "candidate": "A252",
+   "label": "different event",
+   "why": "French AI plan vs UN AI relevance",
+   "minilm_cosine": 0.6374,
+   "minilm_target": "Trump AI Force launch and AI slowdown rejection",
+   "static256_cosine": 0.2393,
+   "static256_target": "Trump speech at UN General Assembly 2026"
+  },
+  {
+   "candidate": "A254",
+   "label": "different event",
+   "why": "French teacher threats vs Philippine school violence",
+   "minilm_cosine": 0.6098,
+   "minilm_target": "Philippines-EU free trade agreement announcement",
+   "static256_cosine": 0.2928,
+   "static256_target": "Philippines-EU free trade agreement announcement"
+  },
+  {
+   "candidate": "A242",
+   "label": "different event",
+   "why": "RN in Seine-et-Marne vs Guardian editorial on Merz",
+   "minilm_cosine": 0.5896,
+   "minilm_target": "Friedrich Merz coalition pressure after German state election defeats",
+   "static256_cosine": 0.2054,
+   "static256_target": "Trump speech at UN General Assembly 2026"
+  },
+  {
+   "candidate": "A243+A251",
+   "label": "different event",
+   "why": "LR on French budget vs Philippine budget",
+   "minilm_cosine": 0.5861,
+   "minilm_target": "Philippines-EU free trade agreement announcement",
+   "static256_cosine": 0.3949,
+   "static256_target": "Philippines-EU free trade agreement announcement"
+  },
+  {
+   "candidate": "A94+A425",
+   "label": "different event",
+   "why": "Iranian airlines halted vs US FAA outage",
+   "minilm_cosine": 0.5859,
+   "minilm_target": "FAA East Coast flight delays from telecom line cut",
+   "static256_cosine": 0.4796,
+   "static256_target": "Xi-Trump summit 2025 preparation and diplomatic framing"
+  },
+  {
+   "candidate": "A127+A584",
+   "label": "different event",
+   "why": "Tehran op-ed vs Trump approval polls",
+   "minilm_cosine": 0.5795,
+   "minilm_target": "Trump approval rating hits career low 32 percent Reuters Ipsos poll",
+   "static256_cosine": 0.547,
+   "static256_target": "racism controversy in Texas oil regulator race threatens Republican midterm support"
+  },
+  {
+   "candidate": "A91",
+   "label": "different event",
+   "why": "Mapuche sentences vs Nicaragua UN report",
+   "minilm_cosine": 0.5297,
+   "minilm_target": "US historical policy of undermining the United Nations",
+   "static256_cosine": 0.2182,
+   "static256_target": "Trump speech at UN General Assembly 2026"
+  },
+  {
+   "candidate": "A246",
+   "label": "different event",
+   "why": "Medef on sick leave vs Merz editorial",
+   "minilm_cosine": 0.5046,
+   "minilm_target": "Friedrich Merz coalition pressure after German state election defeats",
+   "static256_cosine": 0.217,
+   "static256_target": "Friedrich Merz coalition pressure after German state election defeats"
+  }
+ ],
+ "305": [
+  {
+   "candidate": "A109+A562",
+   "label": "different event",
+   "why": "Trump's UNGA AI remarks vs an essay on the Trump-Xi summit",
+   "minilm_cosine": 0.691,
+   "minilm_target": "Trump-Xi summit US-China diplomatic truce",
+   "static256_cosine": 0.4235,
+   "static256_target": "China versus West competition for global influence and world order"
+  },
+  {
+   "candidate": "A105",
+   "label": "different event",
+   "why": "interview with a UN AI adviser vs AI at UNGA",
+   "minilm_cosine": 0.6715,
+   "minilm_target": "UN General Assembly 2026 famous quotes quiz",
+   "static256_cosine": 0.247,
+   "static256_target": "UN General Assembly 2026 famous quotes quiz"
+  },
+  {
+   "candidate": "A102+A193",
+   "label": "different event",
+   "why": "Meloni's fiscal position vs EU funds for Hungary",
+   "minilm_cosine": 0.6068,
+   "minilm_target": "EU unblocks funds for Hungary after post-Orbán rule of law improvements",
+   "static256_cosine": 0.2989,
+   "static256_target": "Trump criticism of UK Chagos Islands deal under Burnham government"
+  },
+  {
+   "candidate": "A159",
+   "label": "different event",
+   "why": "AfD vote-count row vs BARMM elections",
+   "minilm_cosine": 0.5171,
+   "minilm_target": "EU-Philippines initial free trade deal agreement",
+   "static256_cosine": 0.3595,
+   "static256_target": "EU-Philippines initial free trade deal agreement"
+  }
+ ],
+ "306": [
+  {
+   "candidate": "A99",
+   "label": "different event",
+   "why": "Venezuelan deportations from Doral vs Trump-Rodriguez rapport",
+   "minilm_cosine": 0.694,
+   "minilm_target": "Venezuela political transition and Delcy Rodriguez UNGA address",
+   "static256_cosine": 0.2975,
+   "static256_target": "Venezuela political transition and Delcy Rodriguez UNGA address"
+  },
+  {
+   "candidate": "A135+A271",
+   "label": "different event",
+   "why": "Israeli election commission vs WSJ opinion on UN bias",
+   "minilm_cosine": 0.6644,
+   "minilm_target": "Netanyahu UN General Assembly address amid Israel election campaign",
+   "static256_cosine": 0.4341,
+   "static256_target": "Morocco parliamentary election results"
+  },
+  {
+   "candidate": "A101+A322",
+   "label": "different event",
+   "why": "Brazil election dates vs Venezuela election promise",
+   "minilm_cosine": 0.6408,
+   "minilm_target": "Venezuela political transition and Delcy Rodriguez UNGA address",
+   "static256_cosine": 0.3873,
+   "static256_target": "US diesel export ban proposal and White House denial"
+  },
+  {
+   "candidate": "A261",
+   "label": "different event",
+   "why": "Mistral CEO interview vs AI leaders at the UN",
+   "minilm_cosine": 0.6377,
+   "minilm_target": "Tech leaders urging AI regulation at UN",
+   "static256_cosine": 0.2704,
+   "static256_target": "OpenAI agent breach of Australian government health website"
+  },
+  {
+   "candidate": "A137",
+   "label": "different event",
+   "why": "Somalia floods vs El Nino heat-deaths report",
+   "minilm_cosine": 0.5651,
+   "minilm_target": "El Niño heat wave excess deaths report",
+   "static256_cosine": 0.3466,
+   "static256_target": "Record wildfires and El Niño crisis in Manaus Amazon region"
+  },
+  {
+   "candidate": "A269",
+   "label": "different event",
+   "why": "French left primary debate vs Gaza and Israeli elections",
+   "minilm_cosine": 0.5315,
+   "minilm_target": "Trump Board of Peace Gaza reconstruction plan",
+   "static256_cosine": 0.3072,
+   "static256_target": "Netanyahu UN General Assembly address amid Israel election campaign"
+  },
+  {
+   "candidate": "A274",
+   "label": "different event",
+   "why": "Philippe vs Attal vs Indian election panel",
+   "minilm_cosine": 0.5201,
+   "minilm_target": "India insurance sector overhaul",
+   "static256_cosine": 0.243,
+   "static256_target": "Burnham supports lifting alcohol restrictions at English football matches"
+  }
+ ],
+ "307": [
+  {
+   "candidate": "A246",
+   "label": "different event",
+   "why": "Netanyahu overflying France vs his UN speech",
+   "minilm_cosine": 0.6322,
+   "minilm_target": "UNGA Day Three walkouts, crises and Netanyahu speech controversies",
+   "static256_cosine": 0.2632,
+   "static256_target": "Macron denial of CIA warning about Russian drone attacks on France"
+  },
+  {
+   "candidate": "A241",
+   "label": "different event",
+   "why": "French AI debate vs WSJ risk newsletter",
+   "minilm_cosine": 0.6029,
+   "minilm_target": "UNGA Day Three walkouts, crises and Netanyahu speech controversies",
+   "static256_cosine": 0.3723,
+   "static256_target": "Macron denial of CIA warning about Russian drone attacks on France"
+  },
+  {
+   "candidate": "A244",
+   "label": "different event",
+   "why": "French spelling penalties vs Italian classroom cap",
+   "minilm_cosine": 0.5488,
+   "minilm_target": "Italy ministers agree to ban burqa and niqab in schools and cap foreign students",
+   "static256_cosine": 0.2605,
+   "static256_target": "Accord Trump-Zelensky sur les licences de production de missiles Patriot pour l'Ukraine"
+  },
+  {
+   "candidate": "A250",
+   "label": "different event",
+   "why": "Maghreb parties vs Brazil elections",
+   "minilm_cosine": 0.5125,
+   "minilm_target": "Brazil elections 2026 political and economic overview",
+   "static256_cosine": 0.2083,
+   "static256_target": "Palestinian President Abbas UNGA speech warning on Israeli threat to Palestinian existence"
+  }
+ ],
+ "308": [
+  {
+   "candidate": "A250",
+   "label": "same event",
+   "why": "Russian strikes on Kyiv data centres",
+   "minilm_cosine": 0.7295,
+   "minilm_target": "Russia targeting Ukraine data centres to disrupt civilian connectivity",
+   "static256_cosine": 0.4406,
+   "static256_target": "Russia targeting Ukraine data centres to disrupt civilian connectivity"
+  },
+  {
+   "candidate": "A130+A240",
+   "label": "same event",
+   "why": "French troops to Saudi Arabia",
+   "minilm_cosine": 0.7278,
+   "minilm_target": "Pakistan, Saudi Arabia, Turkey military chiefs meeting on closer defense ties",
+   "static256_cosine": 0.4126,
+   "static256_target": "French right-wing parties using Catholicism as political tool"
+  },
+  {
+   "candidate": "A253",
+   "label": "same event",
+   "why": "Supreme Court blocks Missouri redistricting (analysis leads on it: rubric row 2)",
+   "minilm_cosine": 0.6818,
+   "minilm_target": "US Supreme Court allows states to use federal voter verification database before elections",
+   "static256_cosine": 0.3972,
+   "static256_target": "US Supreme Court allows states to use federal voter verification database before elections"
+  },
+  {
+   "candidate": "A252",
+   "label": "same event",
+   "why": "Morocco legislative elections (analysis of the same vote)",
+   "minilm_cosine": 0.6226,
+   "minilm_target": "Folarin Balogun red card appeal controversy at 2026 FIFA World Cup",
+   "static256_cosine": 0.3376,
+   "static256_target": "Folarin Balogun red card appeal controversy at 2026 FIFA World Cup"
+  },
+  {
+   "candidate": "A88",
+   "label": "different event",
+   "why": "Bill Gates AI warning vs OpenAI Australian hack",
+   "minilm_cosine": 0.5901,
+   "minilm_target": "OpenAI rogue agent activity and user data leak investigation",
+   "static256_cosine": 0.2094,
+   "static256_target": "Microsoft dropping Copilot+ PC branding requirement for Surface laptops"
+  },
+  {
+   "candidate": "A224+A243",
+   "label": "different event",
+   "why": "AI-made posters vs AI signs in a Trump photo",
+   "minilm_cosine": 0.5857,
+   "minilm_target": "Xi-Trump Washington summit agreements on AI tariffs and fentanyl",
+   "static256_cosine": 0.759,
+   "static256_target": "OpenAI rogue agent activity and user data leak investigation"
+  }
+ ],
+ "309": [
+  {
+   "candidate": "A59+A68",
+   "label": "different event",
+   "why": "Madrid march against Sanchez vs sit-in for an evicted tenant",
+   "minilm_cosine": 0.6804,
+   "minilm_target": "Madrid protests over eviction of elderly woman Maricarmen Abascal",
+   "static256_cosine": 0.3032,
+   "static256_target": "Madrid protests over eviction of elderly woman Maricarmen Abascal"
+  },
+  {
+   "candidate": "A81+A176",
+   "label": "different event",
+   "why": "Oleshky famine vs Poland-Ukraine WWII feud",
+   "minilm_cosine": 0.6193,
+   "minilm_target": "Russia-Ukraine mutual aerial strikes and casualties",
+   "static256_cosine": 0.4625,
+   "static256_target": "Russia-Ukraine mutual aerial strikes and casualties"
+  },
+  {
+   "candidate": "A57+A62",
+   "label": "different event",
+   "why": "OpenAI agents in US ministries vs Australia summoning CEOs",
+   "minilm_cosine": 0.5754,
+   "minilm_target": "Australia summons OpenAI and Anthropic CEOs to Senate AI inquiry over Medicare breach",
+   "static256_cosine": 0.3872,
+   "static256_target": "Arrests and major security incident at RAF Fairford airbase"
+  },
+  {
+   "candidate": "A180+A185",
+   "label": "different event",
+   "why": "op-ed on Trump vs Xi at the summit",
+   "minilm_cosine": 0.5437,
+   "minilm_target": "US-China summit agreement on AI safety channel",
+   "static256_cosine": 0.2843,
+   "static256_target": "Powerful nor'easter storm batters US Northeast"
+  }
+ ],
+ "310": [
+  {
+   "candidate": "A107",
+   "label": "different event",
+   "why": "Hamas commander killed vs Egypt warned Netanyahu before Oct 7",
+   "minilm_cosine": 0.6053,
+   "minilm_target": "Israeli PM Netanyahu visits Abu Dhabi for meeting with UAE President",
+   "static256_cosine": 0.3664,
+   "static256_target": "Hezbollah plans housing project for Lebanese displaced by war with Israel"
+  },
+  {
+   "candidate": "A220+A436",
+   "label": "different event",
+   "why": "Nova kidnapper killed vs West Bank checkpoints",
+   "minilm_cosine": 0.5854,
+   "minilm_target": "Israel's West Bank checkpoint restrictions and Palestinian movement limitations",
+   "static256_cosine": 0.3357,
+   "static256_target": "Afghanistan kills fighters crossing from Pakistan amid Islamabad denial"
+  },
+  {
+   "candidate": "A210",
+   "label": "different event",
+   "why": "Iran airline sanctions vs Iranian schools",
+   "minilm_cosine": 0.5794,
+   "minilm_target": "US rejection of Iran's Strait of Hormuz reopening proposal driving oil price surge",
+   "static256_cosine": 0.2612,
+   "static256_target": "US rejection of Iran's Strait of Hormuz reopening proposal driving oil price surge"
+  },
+  {
+   "candidate": "A207",
+   "label": "different event",
+   "why": "French firefighters vs Madrid tenants camp",
+   "minilm_cosine": 0.5395,
+   "minilm_target": "Madrid tenant protest camp demanding eviction protection from Sánchez",
+   "static256_cosine": 0.3127,
+   "static256_target": "Pope Leo XIV defends EU integration at Robert Schuman hometown Metz visit"
+  },
+  {
+   "candidate": "A108",
+   "label": "different event",
+   "why": "Georgia authoritarian turn vs Russian strikes on Ukraine",
+   "minilm_cosine": 0.5287,
+   "minilm_target": "Russian strikes on Ukrainian data centres and infrastructure",
+   "static256_cosine": 0.4173,
+   "static256_target": "Serbia snap parliamentary election amid student protests and Vucic political crisis"
+  }
+ ],
+ "311": [
+  {
+   "candidate": "A259",
+   "label": "same event",
+   "why": "UNHCR funding cuts, 8.3 million refugees",
+   "minilm_cosine": 0.851,
+   "minilm_target": "UNHCR warns funding cuts endanger 8.3 million refugees",
+   "static256_cosine": 0.2772,
+   "static256_target": "UNHCR warns funding cuts endanger 8.3 million refugees"
+  },
+  {
+   "candidate": "A89",
+   "label": "same event",
+   "why": "Zelensky: 10,000 more North Korean troops",
+   "minilm_cosine": 0.7715,
+   "minilm_target": "North Korea to send 10,000 more troops to Russia",
+   "static256_cosine": 0.6603,
+   "static256_target": "North Korea to send 10,000 more troops to Russia"
+  },
+  {
+   "candidate": "A90+A96",
+   "label": "same event",
+   "why": "Pope Leo XIV's France visit",
+   "minilm_cosine": 0.7368,
+   "minilm_target": "Pope Leo XIV France visit and EU values",
+   "static256_cosine": 0.3026,
+   "static256_target": "Evicted Spanish pensioner Maricarmen Abascal allowed home"
+  },
+  {
+   "candidate": "A95",
+   "label": "different event",
+   "why": "Chinese businesswoman investigated vs Europe and the Trump-Xi summit",
+   "minilm_cosine": 0.5909,
+   "minilm_target": "Trump denies offering weapons to China",
+   "static256_cosine": 0.2123,
+   "static256_target": "Trump denies offering weapons to China"
+  },
+  {
+   "candidate": "A131",
+   "label": "different event",
+   "why": "German prosecutor dies in Turkey vs comedian convicted",
+   "minilm_cosine": 0.5423,
+   "minilm_target": "Comedian Deniz Göktas convicted for insulting Erdoğan",
+   "static256_cosine": 0.3321,
+   "static256_target": "Comedian Deniz Göktas convicted for insulting Erdoğan"
+  },
+  {
+   "candidate": "A145",
+   "label": "different event",
+   "why": "Israel vs Spain row vs Netanyahu UAE leak",
+   "minilm_cosine": 0.5344,
+   "minilm_target": "Netanyahu visits UAE, meets Mohamed bin Zayed",
+   "static256_cosine": 0.3856,
+   "static256_target": "Netanyahu visits UAE, meets Mohamed bin Zayed"
+  }
+ ]
+}
