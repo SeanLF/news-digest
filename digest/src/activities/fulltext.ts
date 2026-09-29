@@ -1,10 +1,8 @@
 // Fulltext on both sides of the language line (docs/2026-09-23-fulltext-extractor-fork.md): the fetch
 // and trafilatura's extract are a Python activity on the `python` task queue; planning the tasks
 // and storing the result stay here, so the artifact store has one writer language.
-import { decodeHTML } from "entities";
 import { scrubUrls } from "../contracts/ids.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
-import { loadArticles } from "./cluster.js";
 import type { FulltextFetch, FulltextPlan, FulltextTask } from "./index.js";
 
 export const FULLTEXT_OUTPUT = "article_fulltext.json";
@@ -14,19 +12,6 @@ export const FULLTEXT_TOPUP_HEALTH = "fulltext_topup_health.json";
 // by its deadline, or the switch off at the time) is retried on a resume, as production refetches on
 // every call.
 const SETTLED = new Set(["completed", "no_candidates"]);
-
-// A bot wall, a consent page or a site footer extracts as text that shares no word with the
-// article's own headline; every real article in runs 307-310 shares at least three
-// (docs/lessons/integration-issues/extracted-text-is-not-proof-the-article-was-read.md).
-const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
-const words = (t: string): Set<string> => new Set(decodeHTML(t).normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) ?? []);
-export function isArticleText(title: string, text: string): boolean {
-  if (UNSPACED.test(title)) return true;
-  const head = words(title);
-  if (!head.size) return true;
-  const body = words(text);
-  return [...head].some((w) => body.has(w));
-}
 
 // fulltext._candidate_article_ids: SELECT lists the representative articles first, so a prefix
 // favours the best-covered sources.
@@ -48,11 +33,6 @@ export function candidateIds(selected: unknown, perStory: number): string[] {
 // `enabled` is FULLTEXT_ENABLED, the switch production's run-281 recovery turns off.
 export function fulltextActivities(deps: { store: ArtifactStore; perStory: number; enabled: boolean }) {
   const { store } = deps;
-  const articlesOnly = async (runId: number, results: Record<string, string>): Promise<{ kept: Record<string, string>; notArticle: number }> => {
-    const titles = new Map((await loadArticles(deps.store, runId)).map((a) => [a.article_id, a.title]));
-    const kept = Object.fromEntries(Object.entries(results).filter(([id, text]) => isArticleText(titles.get(id) ?? "", text)));
-    return { kept, notArticle: Object.keys(results).length - Object.keys(kept).length };
-  };
   return {
     async planFulltext(runId: number, selected: Pointer, force = false): Promise<FulltextPlan> {
       const existing = await store.find(runId, FULLTEXT_OUTPUT);
@@ -99,19 +79,17 @@ export function fulltextActivities(deps: { store: ArtifactStore; perStory: numbe
     async storeFulltextTopup(runId: number, fetched: FulltextFetch, force = false): Promise<Pointer> {
       const current = await store.find(runId, FULLTEXT_OUTPUT);
       const merged = { ...(current ? (JSON.parse(await store.get(current)) as Record<string, { text: string }>) : {}) };
-      const { kept, notArticle } = await articlesOnly(runId, fetched.results);
-      for (const [id, body] of Object.entries(kept)) merged[id] = { text: scrubUrls(body) };
-      const health = JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(kept).length, ...(notArticle ? { not_article: notArticle } : {}), outcome: fetched.outcome });
+      for (const [id, body] of Object.entries(fetched.results)) merged[id] = { text: scrubUrls(body) };
+      const health = JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(fetched.results).length, outcome: fetched.outcome });
       await (force ? store.replace(runId, FULLTEXT_TOPUP_HEALTH, health) : store.put(runId, FULLTEXT_TOPUP_HEALTH, health));
       const body = Object.keys(merged).length ? JSON.stringify(merged, null, 2) : "{}";
       return current ? store.replace(runId, FULLTEXT_OUTPUT, body) : store.put(runId, FULLTEXT_OUTPUT, body);
     },
     // Links are scrubbed here, at the source, as prepare scrubs the summaries: no URL reaches a model.
     async storeFulltext(runId: number, fetched: FulltextFetch, force = false): Promise<Pointer> {
-      const { kept, notArticle } = await articlesOnly(runId, fetched.results);
-      const payload = Object.fromEntries(Object.entries(kept).map(([id, text]) => [id, { text: scrubUrls(text) }]));
+      const payload = Object.fromEntries(Object.entries(fetched.results).map(([id, text]) => [id, { text: scrubUrls(text) }]));
       const write = (name: string, text: string) => (force ? store.replace(runId, name, text) : store.put(runId, name, text));
-      await write(FULLTEXT_HEALTH, JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(payload).length, ...(notArticle ? { not_article: notArticle } : {}), outcome: fetched.outcome }));
+      await write(FULLTEXT_HEALTH, JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(payload).length, outcome: fetched.outcome }));
       return write(FULLTEXT_OUTPUT, Object.keys(payload).length ? JSON.stringify(payload, null, 2) : "{}");
     },
   };
