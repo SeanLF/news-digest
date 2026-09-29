@@ -248,6 +248,16 @@ describe("threadSynthesis", () => {
     expect(audits[1]!.prompt).toContain("IMPORTANT: an earlier attempt at these exact claims came back unusable (verdicts missing/misaligned for claim(s) [2] (1 element(s), 1 usable, ids [1])). Return EXACTLY 2 verdicts");
   });
 
+  it("drops a fact that cites only another story's articles, whatever the audit says, and counts it", async () => {
+    const mixed = { ...installment, whats_new: [installment.whats_new[0], { fact: "The EU passed its AI act.", sources: ["A3"] }, { fact: "Both rounds drew EU observers.", sources: ["A2", "A4"] }, { fact: "Oman offered to host again.", sources: ["A9"] }] };
+    for (const audit of [{ verdicts: [1, 2, 3, 4].map((id) => ({ id, supported: true })) }, new Error("timeout")]) {
+      const s = await linked({ synthesis: [mixed], audit: [audit] });
+      await s.acts.threadSynthesis(RUN, s.plan);
+      const content = JSON.parse(String((await s.rows(`SELECT content FROM thread_updates WHERE thread_id = 1 AND run_id = ${RUN}`))[0]!["content"])) as { whats_new: { fact: string }[] };
+      expect(content.whats_new.map((f) => f.fact)).toEqual(["Talks resumed in Geneva.", "Both rounds drew EU observers.", "Oman offered to host again."]);
+      expect(JSON.parse(await s.store.content(RUN, "thread_audit_t1.json"))).toMatchObject({ off_thread: 1 });
+    }
+  });
   it("fails open when the audit cannot answer, keeping the facts and saying so", async () => {
     const s = await linked({ synthesis: [installment], audit: [new Error("timeout")] });
     expect(await s.acts.threadSynthesis(RUN, s.plan)).toEqual({ threadId: 1, auditFailed: true });

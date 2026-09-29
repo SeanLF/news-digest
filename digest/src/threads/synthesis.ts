@@ -188,6 +188,16 @@ export function readAudit(text: string, n: number): { supported: boolean[]; unre
   return usable.length ? usable.at(-1)! : { problem: describeMismatch(objects.at(-1)!, n) };
 }
 
+// A fact that cites none of its own story's articles and some of another story's is that story's
+// fact, carried in by the late-binding neighbourhood (run 310: the RAF Fairford arrests in the Hormuz
+// thread). A fact citing only articles no story planned is kept: that is what the neighbourhood is for.
+export function offThread(facts: unknown[], own: Set<string>, others: Set<string>): boolean[] {
+  return facts.map((f) => {
+    const ids = isObject(f) ? cited(f["sources"]) : [];
+    return !ids.some((id) => own.has(id)) && ids.some((id) => others.has(id));
+  });
+}
+
 // apply_installment: drop the unsupported facts, resolve the carried questions today answers, raise
 // the new ones, and store the verified installment. The caller owns the transaction.
 export async function applyInstallment(store: ThreadStore, threadId: number, openNow: string[], installment: Installment, supported: boolean[], runId: number): Promise<Installment> {
