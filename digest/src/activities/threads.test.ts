@@ -258,6 +258,20 @@ describe("threadSynthesis", () => {
       expect(JSON.parse(await s.store.content(RUN, "thread_audit_t1.json"))).toMatchObject({ off_thread: 1 });
     }
   });
+  it("counts a story refused this thread as another story, and skips the check on an unreadable trace", async () => {
+    const offEU = { ...installment, whats_new: [installment.whats_new[0], { fact: "The EU passed its AI act.", sources: ["A3"] }] };
+    const verdicts = { verdicts: [1, 2].map((id) => ({ id, supported: true })) };
+    const s = await linked({ synthesis: [offEU], audit: [verdicts] });
+    const trace = JSON.parse(await s.store.content(RUN, THREAD_LINKS)) as { stories: { proposed_thread: number | null; refused: string | null }[] };
+    trace.stories[1] = { ...trace.stories[1]!, proposed_thread: 1, refused: "already_claimed" };
+    await s.store.replace(RUN, THREAD_LINKS, JSON.stringify(trace));
+    await s.acts.threadSynthesis(RUN, s.plan);
+    expect(JSON.parse(await s.store.content(RUN, "thread_audit_t1.json"))).toMatchObject({ off_thread: 1 });
+    const t = await linked({ synthesis: [offEU], audit: [verdicts] });
+    await t.store.replace(RUN, THREAD_LINKS, "{truncated");
+    await t.acts.threadSynthesis(RUN, t.plan);
+    expect(JSON.parse(await t.store.content(RUN, "thread_audit_t1.json"))).not.toHaveProperty("off_thread");
+  });
   it("fails open when the audit cannot answer, keeping the facts and saying so", async () => {
     const s = await linked({ synthesis: [installment], audit: [new Error("timeout")] });
     expect(await s.acts.threadSynthesis(RUN, s.plan)).toEqual({ threadId: 1, auditFailed: true });

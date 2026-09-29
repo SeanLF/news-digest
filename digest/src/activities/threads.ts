@@ -369,8 +369,13 @@ export function threadsActivities(deps: ThreadsDeps) {
           supported = facts.map(() => true);
         }
       }
-      const trace = JSON.parse((await artifactIn(db, runId, THREAD_LINKS)) ?? "{}") as Partial<LinkTrace>;
-      const others = new Set((trace.stories ?? []).filter((st) => st.proposed_thread !== tid).flatMap((st) => st.article_ids));
+      let trace: Partial<LinkTrace> = {};
+      try {
+        trace = JSON.parse((await artifactIn(db, runId, THREAD_LINKS)) ?? "{}") as Partial<LinkTrace>;
+      } catch {
+        log.warn({ stage: "threads", runId, thread: tid, warning: "thread_links.json unreadable; facts not checked for another story" });
+      }
+      const others = new Set((trace.stories ?? []).filter((st) => st.proposed_thread !== tid || st.refused !== null).flatMap((st) => st.article_ids));
       const off = offThread(facts, new Set(plan.articleIds), others);
       const offCount = off.filter(Boolean).length;
       if (offCount) {
