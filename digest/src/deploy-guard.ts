@@ -1,18 +1,14 @@
 import type { Client } from "@temporalio/client";
 
 // A deploy restarts the one worker a run is pinned to (deployment.ts), and a paused schedule drops the
-// slot it misses, so a deploy is refused from 12:00 (before the 12:25 start, client.ts) to 13:45
-// Europe/Paris (past a normal run's end), and while a DigestWorkflow runs.
-const WINDOW = { from: 1200, to: 1345 };
+// slot it misses, so a deploy is refused from 10:00 UTC (before the 10:25 start, client.ts) to 11:45
+// UTC (past a normal run's end), and while a DigestWorkflow runs.
+const WINDOW = { from: 1000, to: 1145 };
 
-function parisHhmm(now: Date): number {
-  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now);
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
-  return get("hour") * 100 + get("minute");
-}
+const utcHhmm = (now: Date): number => now.getUTCHours() * 100 + now.getUTCMinutes();
 
 export const inRunWindow = (now: Date): boolean => {
-  const t = parisHhmm(now);
+  const t = utcHhmm(now);
   return t >= WINDOW.from && t < WINDOW.to;
 };
 
@@ -33,8 +29,8 @@ export async function runningDigests(client: Client): Promise<string[]> {
 export async function guard(client: Client, now = new Date()): Promise<string[]> {
   const problems: string[] = [];
   if (inRunWindow(now)) {
-    const t = String(parisHhmm(now)).padStart(4, "0");
-    problems.push(`${t.slice(0, 2)}:${t.slice(2)} Europe/Paris is inside the run window (12:00-13:45 Europe/Paris)`);
+    const t = String(utcHhmm(now)).padStart(4, "0");
+    problems.push(`${t.slice(0, 2)}:${t.slice(2)} UTC is inside the run window (10:00-11:45 UTC)`);
   }
   try {
     const running = await runningDigests(client);
