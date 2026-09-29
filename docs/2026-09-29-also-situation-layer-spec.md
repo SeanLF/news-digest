@@ -36,7 +36,7 @@ it changes `Selected`, which fulltext, planStories and WRITE consume.
 it groups picks, not stories, and writers re-angle (on 311 both North Korea stories moved off
 what SELECT picked), so a pre-WRITE grouping can be wrong by the time it renders.
 
-**C. A group pass after assemble (recommended).** One Sonnet call, structured output, over the
+**C. A group pass after assemble (recommended before the PoC; it failed, see Results).** One Sonnet call, structured output, over the
 issue's final headlines and summaries: for each story, top-level or `also_of` another. The
 doubles check already has this shape and is the only one measured stable (5/8 same event,
 0/70 unrelated, stable across reps). The 92 labels were read on shipped headlines, which is
@@ -47,7 +47,7 @@ prototype shows a summary, so a brief fits); SELECT's tier targets don't know ab
 so a folded issue shows fewer top-level stories (arguably the tighter digest `select.md`
 asks for).
 
-## Design (option C)
+## Design (option C, not built)
 
 **Placement.** A `group` activity after `assemble`, before the gnews decode and the threads
 phase, so the linker sees leads only (R5) and its "already claimed" collisions for folded
@@ -79,7 +79,7 @@ re-recorded in the same commit (`digest.workflow.ts` header).
 (`SAME_EVENT`, `SAME_SITUATION`, `UNRELATED`) plus R3's fold test: fold `SAME_SITUATION` only
 when the lead's headline carries the situation's main point.
 
-## Evaluation (pre-registered)
+## Evaluation (pre-registered for the first PoC)
 
 - **Design set:** runs 284-299. **Held out:** runs 300-311 (labelled today, not looked at
   through the grouper), plus Python-era issues before 284 labelled blind before the grouper
@@ -89,8 +89,7 @@ when the lead's headline carries the situation's main point.
   reps. Lead choice is judgement: accept where reps agree, no gold.
 - **Negative controls:** an issue of 12 unrelated stories folds nothing; a known pair planted
   into an unrelated issue is folded (the harness can see a fold at all).
-- **Cost:** one Sonnet call per run; the doubles check's cost is the estimate (not measured
-  here).
+- **Cost:** one Sonnet call per run; measured at $0.014 a call (Results).
 - Harness and inputs in the scratchpad or gitignored with a `fetch.sh` (R7).
 
 ## Prior art
@@ -149,7 +148,7 @@ have none). Tags failed earlier (Story Forest).
 
 v3 asks for the words in the also's summary that refer to the lead's own event (not the wider
 war), and code keeps a fold only when the quote is in that summary. Dev once, then frozen;
-held out on runs 200-249 (unseen, 45 issues) and 300-311.
+held out on runs 200-249 (unseen; 45 issues, since 201-203, 218 and 229 archived no selections) and 300-311.
 
 | gate | pass | v1 | v3 |
 |---|---|---|---|
@@ -157,7 +156,7 @@ held out on runs 200-249 (unseen, 45 issues) and 300-311.
 | G2: wrong folds on unseen runs, read one by one | <= 10% | 58% (250-283) | **29%** (8/28, 200-249) |
 | G3: folds by all 3 reps | >= 67% | 43% | **54%** |
 | issues with a fold (majority) | | | 18/45 |
-| PC1 duplicate / PC2 sidebar planted | 3/3 | 3/3 | 3/3, 2/3 |
+| PC1 duplicate / PC2 sidebar planted | 3/3 each | 3/3, 3/3 | 3/3, **2/3 (miss)** |
 
 The instruction did the work, not the check: all 88 proposed quotes were verbatim, so the code
 never removed a fold. Of the 8 wrong folds, 5 are unstable (1-2 reps); the stable 3 are a
@@ -183,4 +182,5 @@ Park "also"; build nothing now.
   would happen 0.5% of the time. Its benefit (a better page for readers) cannot be measured with
   today's readership.
 - **Why per-decision, not per-issue, evidence:** detecting a drop in issues shipping a duplicate
-  from 21% to 5% needs ~66 issues per arm (21% to 10%: ~159), months at one issue a day.
+  from 21% (6 of 28 issues in runs 284-311, `docs/2026-09-29-duplicate-stories.md`; the 5-7
+  of 63 above is the thread-collision count, a different window) to 5% needs ~66 issues per arm (21% to 10%: ~159), months at one issue a day.
