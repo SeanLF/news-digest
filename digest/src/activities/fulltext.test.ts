@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ArtifactStore } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
-import { candidateIds, FULLTEXT_HEALTH, FULLTEXT_OUTPUT, FULLTEXT_TOPUP_HEALTH, fulltextActivities } from "./fulltext.js";
+import { candidateIds, FULLTEXT_HEALTH, FULLTEXT_OUTPUT, FULLTEXT_TOPUP_HEALTH, fulltextActivities, isArticleText } from "./fulltext.js";
 
 const selected = {
   must_know: [{ cluster_index: 1, article_ids: ["A1", "A2", "A3", "A4"] }],
@@ -129,5 +129,29 @@ describe("fulltext top-up, for what WRITE cited", () => {
     expect(await store.statuses(300, FULLTEXT_TOPUP_HEALTH)).toContain("quarantined");
     await acts.storeFulltext(300, { tasks: 3, results: { A1: "First pass body." }, outcome: "completed" });
     expect((await acts.planFulltextTopup(300, drafts)).tasks.map(([id]) => id)).toContain("A5");
+  });
+});
+
+const WALL = "JavaScript is disabled in your browser. Please enable JavaScript to proceed.";
+describe("text that is not the article", () => {
+  it("is text that shares no word of four letters or more with the article's own feed title", () => {
+    expect(isArticleText("EN DIRECT, guerre en Ukraine : fortes explosions à Kyiv", WALL)).toBe(false);
+    expect(isArticleText("Pope Leo celebrates Mass in Paris", "An estimated 700,000 people gathered in PARIS on Saturday.")).toBe(true);
+    expect(isArticleText("Guerre en Ukraine : explosions", "De fortes EXPLOSIONS ont été entendues.")).toBe(true);
+  });
+  it("is never judged on a title with no words to compare: none, too short, or a script written without spaces", () => {
+    expect(isArticleText("", WALL)).toBe(true);
+    expect(isArticleText("A B", WALL)).toBe(true);
+    expect(isArticleText("東京で震度5の地震", WALL)).toBe(true);
+  });
+  it("is not stored, not counted as extracted, and is counted as not the article, on both fetches", async () => {
+    const { store, acts } = await setup();
+    await store.put(300, "articles_1.csv", "article_id,source_id,title,published,summary\nA1,le_monde,EN DIRECT guerre en Ukraine explosions,2026-09-28,s\nA2,bbc,Pope celebrates Mass in Paris,2026-09-28,s\nA5,x,Swiss neutrality vote,2026-09-28,s\n");
+    const p = await acts.storeFulltext(300, { tasks: 2, results: { A1: WALL, A2: "Mass in Paris drew crowds." }, outcome: "completed" });
+    expect(Object.keys(JSON.parse(await store.get(p)) as object)).toEqual(["A2"]);
+    expect(JSON.parse(await store.content(300, FULLTEXT_HEALTH))).toEqual({ tasks: 2, extracted: 1, not_article: 1, outcome: "completed" });
+    await acts.storeFulltextTopup(300, { tasks: 1, results: { A5: WALL }, outcome: "completed" });
+    expect(Object.keys(JSON.parse(await store.content(300, FULLTEXT_OUTPUT)) as object)).toEqual(["A2"]);
+    expect(JSON.parse(await store.content(300, FULLTEXT_TOPUP_HEALTH))).toEqual({ tasks: 1, extracted: 0, not_article: 1, outcome: "completed" });
   });
 });

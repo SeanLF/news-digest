@@ -26,5 +26,10 @@ sees each article's feed title and summary above its full text. An article whose
 the story backs it, whatever the fetch returned; a genuinely unrelated article has an unrelated
 summary too, and still goes. With that, the dev run removes nothing.
 
+The fetch now also drops text that shares no word of four letters or more with the article's own
+feed title: in that sample the two junk pages share none and every real article shares at least
+three. A dropped text is counted as `not_article` in the fetch's health, not as extracted, and is
+never sent to a model.
+
 The same applies to any metric built on "has full text". P2's coverage figure (72% of cited
 articles) counts these pages as covered.
