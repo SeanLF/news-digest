@@ -29,6 +29,7 @@ const healthy = (over: Partial<RunHealth> = {}): RunHealth => ({
   usage_rows_dropped: 0,
   repair_outcome: null,
   repair_detail: null,
+  stale_figures: 0,
   ...over,
 });
 const codes = (h: RunHealth) => violations(h).map((v) => v.split(":")[0]);
@@ -50,6 +51,7 @@ describe("violations", () => {
     ["FULLTEXT_TOPUP_TOTAL_LOSS", { fulltext_topup_extracted: 0 }],
     ["REPAIR_SPEC_ERROR", { repair_outcome: "spec_error" }],
     ["NO_THREAD_CONTINUATIONS", { thread_continuations: 0 }],
+    ["STALE_FIGURE", { stale_figures: 1 }],
   ] as [string, Partial<RunHealth>][])("%s fires on its trigger", (code, broken) => {
     expect(codes(healthy(broken))).toEqual([code]);
   });
@@ -134,16 +136,17 @@ describe("getRunHealth", () => {
     await artifact(db, "write_branches.json", JSON.stringify({ dropped: [{ index: 3 }] }));
     await artifact(db, "thread_links.json", JSON.stringify({ linker_ok: false, stories: [{ refused: "already_claimed" }, {}] }));
     await artifact(db, "repair_health.json", JSON.stringify({ outcome: "spec_error", detail: "repair.md" }));
+    await artifact(db, "attribution.json", JSON.stringify({ input: "x", stories: { a: { complete: true, unverified: [], stale: [{ field: "summary", text: "t", article_id: "A1", published: "p" }], claims: [] }, b: { complete: true, unverified: [], claims: [] } } }));
     await db.exec("INSERT INTO story_sources (headline, tier, run_id) VALUES ('a', 'must_know', 10), ('a', 'must_know', 10), ('b', 'should_know', 10)");
     await db.exec("INSERT INTO model_calls (run_id, stage, request_model) VALUES (10, 'select', 'm'), (10, 'write', 'm'), (10, 'write', 'm')");
     await db.exec("INSERT INTO threads (id, created_run_id) VALUES (1, 9), (2, 10)");
     await db.exec("INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 9, 's', false), (1, 10, 's', true), (2, 10, 't', false)");
     const h = await getRunHealth(db, 10, opts);
     expect(h).toEqual({
-      run_id: 10, shipped: 2, stages: 2, artifacts: 7, recipients: null, thread_continuations: 1, threads_available: 1,
+      run_id: 10, shipped: 2, stages: 2, artifacts: 8, recipients: null, thread_continuations: 1, threads_available: 1,
       broadcasting: true, usage_rows_dropped: 0, threads_enabled: true, batches_lost: 1, title_only_fallback: 38,
       fulltext_tasks: 40, fulltext_extracted: 0, fulltext_outcome: "timeout", fulltext_topup_tasks: 20, fulltext_topup_extracted: 0, fulltext_topup_outcome: "unavailable", blanked_why: 2, must_know_shipped: 3,
-      dropped_continuations: 1, linker_ok: false, repair_outcome: "spec_error", repair_detail: "repair.md", stories_dropped_at_write: 1,
+      dropped_continuations: 1, linker_ok: false, repair_outcome: "spec_error", repair_detail: "repair.md", stories_dropped_at_write: 1, stale_figures: 1,
     });
   });
   it("a malformed artifact reads as cannot-judge instead of blanking every invariant", async () => {
