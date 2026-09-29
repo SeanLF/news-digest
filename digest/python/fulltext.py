@@ -372,9 +372,10 @@ def _fetch_one(
         return article_id, None
 
     try:
-        # A bot wall or consent page has no title, date and URL of its own; an article does. The
-        # document's metadata stays out of the text (extract would prepend it, URL and all).
-        doc = trafilatura.bare_extraction(downloaded, url=url, include_comments=False, include_tables=False, only_with_metadata=True)
+        # A bot wall or consent page has no title, date and URL of its own; an article does. No url=:
+        # trafilatura would read a date out of the address and date the wall. bare_extraction keeps
+        # the metadata out of the text (extract would prepend it, URL and all).
+        doc = trafilatura.bare_extraction(downloaded, include_comments=False, include_tables=False, only_with_metadata=True)
         text = doc.text if doc else None
     except Exception as e:
         logger.info("fulltext: extract failed for %s (%s): %s: %s", article_id, _domain(url), type(e).__name__, e)

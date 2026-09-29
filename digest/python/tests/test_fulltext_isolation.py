@@ -33,7 +33,7 @@ _SLOW_NODES = 100_000
 
 def _slow_document() -> bytes:
     body = "".join(f"<p>Sentence number {i} here with words.</p>" for i in range(_SLOW_NODES))
-    return f"<html><head><title>T</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'></head><body><article>{body}</article></body></html>".encode()
+    return f"<html><head><title>T</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'><link rel='canonical' href='https://news.example/a'></head><body><article>{body}</article></body></html>".encode()
 
 
 def _normal_document() -> bytes:
@@ -43,7 +43,7 @@ def _normal_document() -> bytes:
         for i in range(12)
     )
     return (
-        f"<html><head><title>Council funds bridge</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'></head><body><article>{body}</article></body></html>".encode()
+        f"<html><head><title>Council funds bridge</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'><link rel='canonical' href='https://news.example/a'></head><body><article>{body}</article></body></html>".encode()
     )
 
 
