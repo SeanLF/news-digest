@@ -105,6 +105,11 @@ export interface WriteDeps {
 
 // The stories SELECT chose that WRITE never ran: run_health's STORIES_DROPPED_AT_WRITE reads `dropped`.
 export const WRITE_BRANCHES = "write_branches.json";
+// The issue's story budget, as a newsroom's: every planned story's tier and cluster label. Each writer
+// sees the others', since a writer alone led with a neighbour's event from a dual-topic article (runs
+// 294, 296, 301: the same event twice in one issue).
+export const ISSUE_BUDGET = "issue_budget.json";
+type BudgetLine = { index: number; tier: string; cluster?: number; story: string };
 
 async function runArticles(store: ArtifactStore, runId: number): Promise<{ ids: Set<string>; header: string[]; rows: Record<string, string>[] }> {
   const rows: Record<string, string>[] = [];
@@ -123,8 +128,11 @@ export function writeActivities(deps: WriteDeps) {
   return {
     planStories: async (runId: number, selected: Pointer, clusters: Pointer): Promise<{ plans: StoryPlan[] }> => {
       const { ids } = await runArticles(store, runId);
-      const { plans, dropped } = planStories(await store.get(selected), await store.get(clusters), ids);
+      const clustersJson = await store.get(clusters);
+      const { plans, dropped } = planStories(await store.get(selected), clustersJson, ids);
       await store.replace(runId, WRITE_BRANCHES, JSON.stringify({ dropped }));
+      const labels = (JSON.parse(clustersJson) as { clusters: { story: string }[] }).clusters;
+      await store.replace(runId, ISSUE_BUDGET, JSON.stringify(plans.map((p): BudgetLine => ({ index: p.index, tier: p.tier, ...(p.clusterIndex !== undefined ? { cluster: p.clusterIndex } : {}), story: p.clusterIndex !== undefined ? (labels[p.clusterIndex]?.story ?? "") : "" }))));
       if (dropped.length) log.error({ stage: "write-plan", runId, dropped });
       for (const d of dropped) deps.log?.(`write s${String(d.index).padStart(2, "0")} DROPPED (${d.tier}): ${d.reason}`);
       if (plans.length === 0) throw ApplicationFailure.nonRetryable(`run ${runId}: no selected story has evidence to write from`, "NothingToWrite");
@@ -161,6 +169,13 @@ export function writeActivities(deps: WriteDeps) {
         for (const f of SHARED) {
           const p = await store.find(runId, f);
           if (p) put(f, await store.get(p));
+        }
+        const budget = await store.find(runId, ISSUE_BUDGET);
+        if (budget) {
+          // A story on this writer's own cluster carries this writer's own label, which the rule would
+          // tell it to steer away from; joinTags's "cluster N" fallback names no event at all.
+          const others = (JSON.parse(await store.get(budget)) as BudgetLine[]).filter((b) => b.index !== plan.index && b.story && !/^cluster \d+$/.test(b.story) && (b.cluster === undefined || b.cluster !== plan.clusterIndex));
+          if (others.length) put("issue_budget.txt", others.map((b) => `${b.tier} | ${b.story}\n`).join(""));
         }
         const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "write.md"), "utf8"));
         await recordOperatorNote(store, runId, "write", note);
