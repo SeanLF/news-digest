@@ -3,7 +3,7 @@ import { ogImageUrl } from "../config.js";
 import { log } from "../../log.js";
 import { hiddenPointer, markdownLinkTag } from "../markdown.js";
 import { escapeHtml } from "../text.js";
-import { digestNavCss, proxyTranslateHideScript, reducedMotionCss, skipLinkCss, toggleJs } from "./blobs.js";
+import { digestNavCss, proxyTranslateHideScript, railCss, railJs, reducedMotionCss, skipLinkCss, toggleJs } from "./blobs.js";
 import { NO_FLASH_JS, type PageCtx, TOGGLE_BTN, ogImageTags, topbar, translatePill } from "./chrome.js";
 
 // An issue's web page: the HTML the pipeline rendered, with the site's chrome injected at fixed places
@@ -52,6 +52,21 @@ function documentStart(html: string): number {
 const feedbackHtml = (date: string, email: string | undefined): string =>
   email ? `<p class="footer-feedback">Got feedback or a suggestion? <a href="mailto:${escapeHtml(email)}?subject=Digest%20feedback%20-%20${date}">Send a note &rarr;</a></p>` : "";
 
+// The story rail, from the stored stories as web.ts writes them: <article id> holding an <h3>, a
+// should-know one with class "brief". The headline is the stored, already-escaped text without the
+// copy-link anchor. Fewer than two stories need no rail.
+const ARTICLE = /<article\b([^>]*)\bid="([^"]+)"[^>]*>\s*<h3\b[^>]*>([\s\S]*?)<\/h3>/g;
+export function storyRail(html: string): string {
+  const stories = [...html.matchAll(ARTICLE)].map((m) => ({
+    tier: /class="[^"]*\bbrief\b/.test(m[1]!) ? "sk" : "mk",
+    id: m[2]!,
+    headline: m[3]!.replace(/<a class="anchor"[\s\S]*?<\/a>/g, "").replace(/<[^>]+>/g, "").trim(),
+  }));
+  if (stories.length < 2) return "";
+  const items = stories.map((s, i) => `${i > 0 && s.tier !== stories[i - 1]!.tier ? '<li class="gap" aria-hidden="true"></li>' : ""}<li class="${s.tier}"><a href="#${s.id}"><span class="rail-tip">${s.headline}</span></a></li>`);
+  return `<nav class="rail" aria-label="Stories in this issue"><ol>${items.join("")}</ol></nav>`;
+}
+
 // Replaces the first `needle`, or records it as missed: the stored HTML drifted from the template and
 // that piece of chrome is gone from the page.
 function inject(html: string, needle: string, replacement: string, missed: string[]): string {
@@ -88,7 +103,8 @@ export function renderIssue(ctx: PageCtx, date: string, stored: { html: string; 
   // The pipeline's own <style> blocks are hashed into the CSP with the site's; a <script> in the stored
   // HTML is not one the site wrote, so the CSP refuses it.
   const legacy = !stored.html.includes(NEEDLES.paper);
-  const navCss = legacy ? `${digestNavCss}\n${LEGACY_NAV_CSS}` : digestNavCss;
+  const rail = legacy ? "" : storyRail(stored.html);
+  const navCss = legacy ? `${digestNavCss}\n${LEGACY_NAV_CSS}` : rail ? `${digestNavCss}\n${railCss}` : digestNavCss;
   let html = inject(
     stored.html,
     NEEDLES.head,
@@ -109,7 +125,8 @@ export function renderIssue(ctx: PageCtx, date: string, stored: { html: string; 
       : inject(html, NEEDLES.footer, `${feedback}\n  </footer>`, missed);
   }
   // With no </body>, the script closes the document: the parser puts it in the body all the same.
-  html = html.includes(NEEDLES.bodyEnd) ? html.replace(NEEDLES.bodyEnd, () => `<script>${toggleJs}</script></body>`) : `${html}<script>${toggleJs}</script>`;
+  const tail = `${rail ? `${rail}<script>${railJs}</script>` : ""}<script>${toggleJs}</script>`;
+  html = html.includes(NEEDLES.bodyEnd) ? html.replace(NEEDLES.bodyEnd, () => `${tail}</body>`) : `${html}${tail}`;
   return { html, missed };
 }
 

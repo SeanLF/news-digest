@@ -537,3 +537,28 @@ export const digestNavCss = "\n/* pull the paper's top padding in now that a uti
 
 export const proxyTranslateHideScript = String.raw`if(location.hostname.indexOf("translate.goog")>-1)document.documentElement.className+=" via-proxy";`;
 
+
+// The story rail on an issue page (ChatGPT's conversation rail, for stories): one tick per story at
+// the right edge, longer for must-know; the story in view is marked by ink and length, not colour
+// alone; hover or focus shows its headline. Only where the paper leaves a margin for it.
+export const railCss = String.raw`
+.rail{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:5;display:none;font-family:var(--sans);}
+@media (min-width:1040px){.rail{display:block;}}
+@media print{.rail{display:none !important;}}
+.rail ol{list-style:none;margin:0;padding:8px 0;display:flex;flex-direction:column;align-items:flex-end;}
+.rail li{position:relative;}
+.rail li.gap{height:12px;}
+.rail a{display:flex;align-items:center;justify-content:flex-end;height:14px;width:36px;text-decoration:none;border-radius:3px;}
+.rail a::before{content:"";display:block;height:2px;border-radius:1px;background:color-mix(in srgb,var(--ink) 28%,transparent);transition:background .15s ease,width .15s ease;}
+.rail .mk a::before{width:20px;}
+.rail .sk a::before{width:12px;}
+.rail a:hover::before,.rail a:focus-visible::before{background:color-mix(in srgb,var(--ink) 70%,transparent);}
+.rail a[aria-current]::before{background:var(--ink);width:28px;}
+.rail a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--accent);}
+.rail-tip{position:absolute;right:44px;top:50%;transform:translateY(-50%);width:max-content;max-width:300px;padding:10px 14px;border-radius:8px;
+  background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:15px;line-height:1.35;text-wrap:balance;
+  box-shadow:0 0 0 1px var(--hair),0 6px 20px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .15s ease;}
+.rail a:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;}`;
+
+// Marks the story in view: the one crossing the upper middle of the viewport.
+export const railJs = String.raw`(function(){var r=document.querySelector('.rail');if(!r||!('IntersectionObserver' in window))return;var links={};r.querySelectorAll('a[href^="#"]').forEach(function(a){links[a.getAttribute('href').slice(1)]=a;});var cur=null;var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var a=links[e.target.id];if(!a||a===cur)return;if(cur)cur.removeAttribute('aria-current');a.setAttribute('aria-current','location');cur=a;});},{rootMargin:'-40% 0px -55% 0px'});Object.keys(links).forEach(function(id){var el=document.getElementById(id);if(el)io.observe(el);});})();`;
