@@ -5,7 +5,10 @@ export interface StageSpec {
   thinking: "adaptive" | "disabled";
   tools: StageTool[];
   body: string;
+  effort?: Effort;
 }
+const EFFORTS = ["low", "medium", "high", "xhigh", "max"] as const;
+export type Effort = (typeof EFFORTS)[number];
 
 // Read and Grep on the input directory only (spec §2.2): publisher text reaches a model with
 // nothing to mutate and nothing to exfiltrate to. Write is gone by contract: the result is the
@@ -27,7 +30,9 @@ export function parseAgentSpec(markdown: string): StageSpec {
   const named = (fields["tools"] ?? "").split(/[,\s]+/).filter(Boolean);
   const bad = named.filter((t) => !ALLOWED.has(t));
   if (bad.length) throw new Error(`agent spec names tools the contract removed: ${bad.join(", ")}`);
-  return { name: fields["name"] ?? "", model, thinking: fields["thinking"] === "adaptive" ? "adaptive" : "disabled", tools: named as StageTool[], body };
+  const effort = fields["effort"];
+  if (effort !== undefined && !(EFFORTS as readonly string[]).includes(effort)) throw new Error(`agent spec names an unknown effort: ${effort}`);
+  return { name: fields["name"] ?? "", model, thinking: fields["thinking"] === "adaptive" ? "adaptive" : "disabled", tools: named as StageTool[], body, ...(effort ? { effort: effort as Effort } : {}) };
 }
 
 const TOKEN = /\{\{([^{}]*)\}\}/g;

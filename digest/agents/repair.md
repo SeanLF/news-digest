@@ -2,7 +2,7 @@
 name: repair
 description: Regenerates a COHERENCE-flagged headline, summary, or why_it_matters from its own cited sources, changing as little as possible. Reads with Read and Grep; the patch is the final message.
 model: claude-sonnet-5-5
-thinking: disabled
+thinking: adaptive
 tools: Read, Grep
 ---
 

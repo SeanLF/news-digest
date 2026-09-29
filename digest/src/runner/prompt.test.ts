@@ -16,6 +16,11 @@ describe("prompt", () => {
     expect(s).toMatchObject({ name: "coherence", model: "claude-sonnet-5", tools: ["Read", "Grep"], thinking: "adaptive" });
     expect(s.body.startsWith("Today is")).toBe(true);
   });
+  it("reads an effort level when the frontmatter names one, and refuses one the SDK does not know", () => {
+    expect(parseAgentSpec(MD).effort).toBeUndefined();
+    expect(parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptive\neffort: high")).effort).toBe("high");
+    expect(() => parseAgentSpec(MD.replace("thinking: adaptive", "thinking: adaptive\neffort: extreme"))).toThrow(/effort/);
+  });
   it("refuses a tool the contract removed", () => {
     expect(() => parseAgentSpec(MD.replace("Read, Grep", "Read, Write"))).toThrow(/Write/);
   });
