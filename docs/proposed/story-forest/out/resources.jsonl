@@ -1,0 +1,2 @@
+{"arm": ["replay"], "seconds": 0.85, "peak_rss_mib": 94.7}
+{"arm": ["control"], "seconds": 0.85, "peak_rss_mib": 194.3}

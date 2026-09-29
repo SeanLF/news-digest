@@ -1,0 +1,738 @@
+[
+ {
+  "run": 284,
+  "i": 0,
+  "j": 10,
+  "why": "same_thread",
+  "a": "Iran fires on US bases across the Middle East after wedding deaths; Trump threatens harder strikes",
+  "b": "Russia secretly helped Iran develop supersonic cruise missiles since 2023, report says"
+ },
+ {
+  "run": 284,
+  "i": 0,
+  "j": 12,
+  "why": "same_thread",
+  "a": "Iran fires on US bases across the Middle East after wedding deaths; Trump threatens harder strikes",
+  "b": "Putin says Russia is winning in Ukraine and won't talk to 'terrorists'"
+ },
+ {
+  "run": 284,
+  "i": 1,
+  "j": 12,
+  "why": "overlap_top3:0.282",
+  "a": "Germany officially blames Russia for Leipzig airport drone attack, closes consulate",
+  "b": "Putin says Russia is winning in Ukraine and won't talk to 'terrorists'"
+ },
+ {
+  "run": 284,
+  "i": 10,
+  "j": 12,
+  "why": "same_thread",
+  "a": "Russia secretly helped Iran develop supersonic cruise missiles since 2023, report says",
+  "b": "Putin says Russia is winning in Ukraine and won't talk to 'terrorists'"
+ },
+ {
+  "run": 284,
+  "i": 12,
+  "j": 15,
+  "why": "overlap_top3:0.324",
+  "a": "Putin says Russia is winning in Ukraine and won't talk to 'terrorists'",
+  "b": "Global bond sell-off deepens as US-Iran fighting reignites inflation fears"
+ },
+ {
+  "run": 285,
+  "i": 0,
+  "j": 1,
+  "why": "overlap_top3:0.298",
+  "a": "Iran attacks US bases in Kuwait as Kuwait's military intercepts missiles, drones",
+  "b": "Xi urges Middle East to build its own security framework, less reliant on Washington"
+ },
+ {
+  "run": 285,
+  "i": 1,
+  "j": 9,
+  "why": "overlap_top3:0.214",
+  "a": "Xi urges Middle East to build its own security framework, less reliant on Washington",
+  "b": "China's free AI models emerge as challenge to US in tech race"
+ },
+ {
+  "run": 285,
+  "i": 1,
+  "j": 13,
+  "why": "overlap_top3:0.25",
+  "a": "Xi urges Middle East to build its own security framework, less reliant on Washington",
+  "b": "SCO backs Iran with nuclear declaration as Turkey weighs full membership"
+ },
+ {
+  "run": 286,
+  "i": 1,
+  "j": 4,
+  "why": "overlap_top3:0.135",
+  "a": "Weapons analysis ties fatal Iran wedding strike to US munition; Vance denies conflict is 'a war'",
+  "b": "Milei threatens Falklands oil sanctions, citing Trump's wavering support for Britain"
+ },
+ {
+  "run": 286,
+  "i": 2,
+  "j": 3,
+  "why": "overlap_top3:0.222",
+  "a": "OpenAI rolls out GPT-6 Astra, pledges $1 billion for cyberdefense amid safety scrutiny",
+  "b": "Nvidia buys Hugging Face for $12.93bn, its largest-ever acquisition"
+ },
+ {
+  "run": 286,
+  "i": 7,
+  "j": 8,
+  "why": "overlap_top3:0.135",
+  "a": "Germany probes new power-grid sabotage attempts as Denmark accuses Russia of recruiting saboteurs",
+  "b": "AfD's TikTok star Siegmund leads Saxony-Anhalt polls as report ties party to extremists"
+ },
+ {
+  "run": 287,
+  "i": 0,
+  "j": 5,
+  "why": "overlap_top3:0.193",
+  "a": "US missiles hit Iranian tanker near Kharg Island as Trump threatens Pickaxe Mountain 'very soon'",
+  "b": "Once investigated for money laundering, Betancourt is Trump's Venezuela oil partner"
+ },
+ {
+  "run": 287,
+  "i": 2,
+  "j": 4,
+  "why": "overlap_top3:0.188",
+  "a": "OpenAI kept quiet on May breakout where its agents hijacked a German wiki",
+  "b": "AfD polls above 40% ahead of Sunday's Saxony-Anhalt vote, testing Germany's postwar taboo on far-right power"
+ },
+ {
+  "run": 287,
+  "i": 5,
+  "j": 12,
+  "why": "overlap_top3:0.222",
+  "a": "Once investigated for money laundering, Betancourt is Trump's Venezuela oil partner",
+  "b": "China and US military commanders resume talks after two-year break"
+ },
+ {
+  "run": 288,
+  "i": 2,
+  "j": 13,
+  "why": "overlap_top3:0.255",
+  "a": "Putin agrees 72-hour truce as Witkoff and Kushner arrive in Kyiv",
+  "b": "Moscow leaves door open to Putin-Trump-Xi summit"
+ },
+ {
+  "run": 288,
+  "i": 3,
+  "j": 11,
+  "why": "overlap_top3:0.15",
+  "a": "Nepal rescuers pull four survivors alive as search enters 12th day",
+  "b": "China to pump $47bn into state banks and insurers"
+ },
+ {
+  "run": 288,
+  "i": 9,
+  "j": 13,
+  "why": "overlap_top3:0.143",
+  "a": "Russian gold shipments to Hong Kong hit record high",
+  "b": "Moscow leaves door open to Putin-Trump-Xi summit"
+ },
+ {
+  "run": 289,
+  "i": 0,
+  "j": 6,
+  "why": "overlap_top3:0.266",
+  "a": "Iran to declare Hormuz restricted zone, calls US energy firms 'legitimate' targets",
+  "b": "Israeli strikes kill 11 in south Lebanon, including two children and two medics"
+ },
+ {
+  "run": 289,
+  "i": 3,
+  "j": 12,
+  "why": "overlap_top3:0.25",
+  "a": "Nepal marks day of mourning as flood toll reaches 1,380 dead, 5,500 missing",
+  "b": "Belgium holds Chinese-Belgian man over chip espionage"
+ },
+ {
+  "run": 289,
+  "i": 3,
+  "j": 16,
+  "why": "overlap_top3:0.2",
+  "a": "Nepal marks day of mourning as flood toll reaches 1,380 dead, 5,500 missing",
+  "b": "Typhoon Saudel forces mass evacuations in south-east China"
+ },
+ {
+  "run": 290,
+  "i": 0,
+  "j": 5,
+  "why": "overlap_top3:0.188",
+  "a": "Russia bombs Kyiv, killing two, hours after Trump envoys leave",
+  "b": "Canada's counter-tariffs hit US goods as Trump threatens Bombardier ban"
+ },
+ {
+  "run": 290,
+  "i": 1,
+  "j": 6,
+  "why": "overlap_top3:0.212",
+  "a": "Houthi strikes wound 73 in Saudi Arabia, halt oil operations as crude nears $100",
+  "b": "Hormuz shipping traffic falls to lowest since May as UAE builds routes around Iran war"
+ },
+ {
+  "run": 290,
+  "i": 2,
+  "j": 10,
+  "why": "overlap_top3:0.21",
+  "a": "Thousands protest across Germany as Merz rules out AfD coalition after state win",
+  "b": "Miami cargo plane crash: black boxes recovered, all five deaths confirmed on ground"
+ },
+ {
+  "run": 291,
+  "i": 0,
+  "j": 2,
+  "why": "same_thread",
+  "a": "Iran strikes US base in Jordan after Washington destroys five oil tankers",
+  "b": "Brent crude tops $100 a barrel for first time since July as US strikes Iranian tankers"
+ },
+ {
+  "run": 291,
+  "i": 3,
+  "j": 16,
+  "why": "overlap_top3:0.321",
+  "a": "Tung Chee-hwa, Hong Kong's first post-handover leader, dies at 89",
+  "b": "Xi urges deeper UK ties in first call with PM Burnham"
+ },
+ {
+  "run": 291,
+  "i": 5,
+  "j": 14,
+  "why": "same_thread",
+  "a": "Russian drone strike kills two at Ukraine-Moldova border as Ukraine hits Russian naval base",
+  "b": "Zelensky's surprise $27 billion budget request rattles Europe"
+ },
+ {
+  "run": 291,
+  "i": 6,
+  "j": 10,
+  "why": "overlap_top3:0.265",
+  "a": "Trump bans Canadian alcohol, dairy and motorcycle imports as Ottawa's tariffs take effect",
+  "b": "Trump and Putin hold 'extremely frank' hour-long call on Ukraine war"
+ },
+ {
+  "run": 291,
+  "i": 6,
+  "j": 12,
+  "why": "overlap_top3:0.294",
+  "a": "Trump bans Canadian alcohol, dairy and motorcycle imports as Ottawa's tariffs take effect",
+  "b": "Iceland summons US ambassador over Trump map showing it draped in stars and stripes"
+ },
+ {
+  "run": 292,
+  "i": 1,
+  "j": 2,
+  "why": "overlap_top3:0.1",
+  "a": "Houthis seize Yemen's port of Mocha, push toward Bab el-Mandeb Strait",
+  "b": "IAEA board refers Iran to UN Security Council for first time in 20 years"
+ },
+ {
+  "run": 292,
+  "i": 7,
+  "j": 12,
+  "why": "overlap_top3:0.2",
+  "a": "Carney weighs further retaliation as US closes border to some Canadian goods",
+  "b": "China signals readiness to broker fourth Trump-Kim summit"
+ },
+ {
+  "run": 292,
+  "i": 10,
+  "j": 12,
+  "why": "overlap_top3:0.311",
+  "a": "Xi to visit India this weekend, first trip in nearly seven years",
+  "b": "China signals readiness to broker fourth Trump-Kim summit"
+ },
+ {
+  "run": 293,
+  "i": 0,
+  "j": 9,
+  "why": "same_thread",
+  "a": "Houthis complete takeover of Bab al-Mandeb Strait after seizing Red Sea island",
+  "b": "Trump declines Saudi call for US strikes on Houthis as Saudi jets bomb Mokha airport"
+ },
+ {
+  "run": 293,
+  "i": 2,
+  "j": 9,
+  "why": "overlap_top3:0.182",
+  "a": "Anthropic blocks bids to use Claude AI for bioweapons research, missile guidance and state spying",
+  "b": "Trump declines Saudi call for US strikes on Houthis as Saudi jets bomb Mokha airport"
+ },
+ {
+  "run": 293,
+  "i": 4,
+  "j": 15,
+  "why": "overlap_top3:0.245",
+  "a": "Putin arrives in New Delhi ahead of BRICS summit with wars testing bloc's unity",
+  "b": "Beijing weighs sending tech and EV executives with Xi on Washington trip"
+ },
+ {
+  "run": 294,
+  "i": 0,
+  "j": 7,
+  "why": "overlap_top3:0.527",
+  "a": "Saudi Arabia shuts major pipeline after drone attack from Iraq; Trump blames Iran",
+  "b": "Saudi Arabia shuts oil pipeline after drone strike as Houthi advance drives 50,000 to flee"
+ },
+ {
+  "run": 294,
+  "i": 1,
+  "j": 2,
+  "why": "overlap_top3:0.297",
+  "a": "BRICS leaders agree joint declaration as summit opens in New Delhi",
+  "b": "US ties Chinese satellite imagery to Iran strike that killed three troops ahead of Xi-Trump summit"
+ },
+ {
+  "run": 294,
+  "i": 2,
+  "j": 14,
+  "why": "overlap_top3:0.291",
+  "a": "US ties Chinese satellite imagery to Iran strike that killed three troops ahead of Xi-Trump summit",
+  "b": "Canada holds firm against Trump tariffs, seeks $1tn from investors"
+ },
+ {
+  "run": 295,
+  "i": 1,
+  "j": 2,
+  "why": "overlap_top3:0.167",
+  "a": "Houthi strike wounds two in Saudi Arabia as Iraq seizes drone site tied to pipeline attack",
+  "b": "Attack on Iranian ship in Strait of Hormuz kills one as reopening talks stall"
+ },
+ {
+  "run": 295,
+  "i": 2,
+  "j": 3,
+  "why": "overlap_top3:0.165",
+  "a": "Attack on Iranian ship in Strait of Hormuz kills one as reopening talks stall",
+  "b": "Ukraine plans peace talks with US and Russia to resume in October as Russian strikes kill nine"
+ },
+ {
+  "run": 295,
+  "i": 6,
+  "j": 7,
+  "why": "overlap_top3:0.299",
+  "a": "Anthropic's Amodei calls for AI slowdown; Altman and Musk agree",
+  "b": "Altman says OpenAI will skip 2026 IPO over AI safety concerns"
+ },
+ {
+  "run": 296,
+  "i": 0,
+  "j": 4,
+  "why": "overlap_top3:0.35",
+  "a": "Houthis claim missile strikes on Saudi airbase as oil hits $108 and Riyadh quits Hormuz talks",
+  "b": "Oil jumps 3% as Iran-Gulf talks on Hormuz shipping stay postponed"
+ },
+ {
+  "run": 296,
+  "i": 2,
+  "j": 3,
+  "why": "overlap_top3:0.877",
+  "a": "Trump rejects calls to slow AI development, says 'negative forces' exaggerate risks",
+  "b": "Amodei says AI industry lied about risks as slowdown call hits stocks, draws Trump pushback"
+ },
+ {
+  "run": 296,
+  "i": 2,
+  "j": 8,
+  "why": "overlap_top3:0.312",
+  "a": "Trump rejects calls to slow AI development, says 'negative forces' exaggerate risks",
+  "b": "Beijing rejects Anthropic CEO's call to curb China's AI, cites 'cognitive warfare' risk"
+ },
+ {
+  "run": 297,
+  "i": 0,
+  "j": 1,
+  "why": "same_thread",
+  "a": "Saudi carries out 54 air strikes on Houthis after missile attack wounds 13",
+  "b": "Houthis seize more Red Sea islands, tightening grip on Bab al-Mandab Strait as oil tops $106"
+ },
+ {
+  "run": 297,
+  "i": 6,
+  "j": 7,
+  "why": "overlap_top3:0.333",
+  "a": "Pentagon watchdog confirms Iran war caused US munitions shortfall",
+  "b": "EPA repeals carbon emission limits for coal and gas power plants"
+ },
+ {
+  "run": 297,
+  "i": 9,
+  "j": 13,
+  "why": "overlap_top3:0.398",
+  "a": "China imposes new exit rules tied to national security and tech secrets",
+  "b": "Lagarde warns Europe risks being cut off from AI by US or China"
+ },
+ {
+  "run": 298,
+  "i": 3,
+  "j": 5,
+  "why": "overlap_top3:0.332",
+  "a": "Trump administration plans $2.8bn bomb sale to Israel, largest in years",
+  "b": "Iran war cost hits $38 billion, CBO says, forecast to rise $3 billion a month"
+ },
+ {
+  "run": 298,
+  "i": 3,
+  "j": 12,
+  "why": "overlap_top3:0.268",
+  "a": "Trump administration plans $2.8bn bomb sale to Israel, largest in years",
+  "b": "US House passes third war powers resolution against Iran war, Trump likely to veto"
+ },
+ {
+  "run": 298,
+  "i": 5,
+  "j": 12,
+  "why": "same_thread",
+  "a": "Iran war cost hits $38 billion, CBO says, forecast to rise $3 billion a month",
+  "b": "US House passes third war powers resolution against Iran war, Trump likely to veto"
+ },
+ {
+  "run": 299,
+  "i": 0,
+  "j": 5,
+  "why": "overlap_top3:0.362",
+  "a": "US strikes secret deal with Houthis, opts out of Saudi Arabia's war",
+  "b": "Hormuz ship traffic falls to three as China presses Iran, US to reopen strait"
+ },
+ {
+  "run": 299,
+  "i": 0,
+  "j": 9,
+  "why": "same_thread",
+  "a": "US strikes secret deal with Houthis, opts out of Saudi Arabia's war",
+  "b": "UN mission finds US committed war crimes in Iran strikes, faults Tehran over crackdown"
+ },
+ {
+  "run": 299,
+  "i": 4,
+  "j": 11,
+  "why": "overlap_top3:0.36",
+  "a": "Gaza building collapse toll confirmed at 21, including 12 children",
+  "b": "Netanyahu pushes bill to strip citizenship over Gaza documentary NAZA"
+ },
+ {
+  "run": 299,
+  "i": 5,
+  "j": 9,
+  "why": "overlap_top3:0.294",
+  "a": "Hormuz ship traffic falls to three as China presses Iran, US to reopen strait",
+  "b": "UN mission finds US committed war crimes in Iran strikes, faults Tehran over crackdown"
+ },
+ {
+  "run": 300,
+  "i": 0,
+  "j": 4,
+  "why": "overlap_top3:0.25",
+  "a": "Russians begin voting in first Duma election since Ukraine invasion, opposition barred",
+  "b": "Russia seizes control of Nestlé, Auchan and Leroy Merlin operations"
+ },
+ {
+  "run": 300,
+  "i": 2,
+  "j": 7,
+  "why": "overlap_top3:0.225",
+  "a": "US approves $24.3bn F-35 sale to Saudi Arabia over Israeli, China concerns",
+  "b": "Trump to personally greet Xi at Joint Base Andrews ahead of Washington summit"
+ },
+ {
+  "run": 300,
+  "i": 3,
+  "j": 16,
+  "why": "overlap_top3:0.238",
+  "a": "UN panel finds grounds for US war crimes in Iran strikes as Washington admits Iranian delegation to UN",
+  "b": "Houthi offensive complicates Trump's Iran war as oil prices soar"
+ },
+ {
+  "run": 301,
+  "i": 3,
+  "j": 4,
+  "why": "overlap_top3:0.444",
+  "a": "Trump signs Russia sanctions bill, gains power for 100% tariffs on oil buyers",
+  "b": "Trump signs Russia-sanctions bill, plans airport greeting for Xi ahead of Washington summit"
+ },
+ {
+  "run": 301,
+  "i": 7,
+  "j": 14,
+  "why": "overlap_top3:0.284",
+  "a": "Google says Gemini AI hacked three companies during security test",
+  "b": "Anthropic weighs new AI model ahead of IPO, may delay listing past midterms"
+ },
+ {
+  "run": 301,
+  "i": 8,
+  "j": 12,
+  "why": "overlap_top3:0.277",
+  "a": "Russian glide bomb kills two in Sumy apartment strike as Kyiv faces relentless missile alerts",
+  "b": "US clears $2.7bn air-defence sale to Ukraine, pending Congress review"
+ },
+ {
+  "run": 302,
+  "i": 5,
+  "j": 6,
+  "why": "overlap_top3:0.311",
+  "a": "Denmark and Greenland say US deal won't cede sovereignty, as Greenlanders stay wary",
+  "b": "Trump says he will form 'AI Force,' name second AI czar"
+ },
+ {
+  "run": 302,
+  "i": 8,
+  "j": 10,
+  "why": "overlap_top3:0.167",
+  "a": "Iran war disruption empties Gulf shipping lanes, dries up US motor oil supply",
+  "b": "Iranian twin sisters face decades in prison and death sentence after crackdown"
+ },
+ {
+  "run": 302,
+  "i": 9,
+  "j": 15,
+  "why": "overlap_top3:0.191",
+  "a": "Trump demands 1% rates after Fed's Warsh delivers unanimous hike",
+  "b": "White House confiscates badges, turns away CNN, MS NOW, Politico reporters"
+ },
+ {
+  "run": 303,
+  "i": 0,
+  "j": 5,
+  "why": "overlap_top3:0.224",
+  "a": "Xi to visit Washington Sept 23-25 as US, China agree AI dialogue mechanism",
+  "b": "US prepares entity-wide sanctions against the ICC"
+ },
+ {
+  "run": 303,
+  "i": 0,
+  "j": 12,
+  "why": "overlap_top3:0.325",
+  "a": "Xi to visit Washington Sept 23-25 as US, China agree AI dialogue mechanism",
+  "b": "US and China report progress on tariffs, AI dialogue in talks"
+ },
+ {
+  "run": 303,
+  "i": 3,
+  "j": 5,
+  "why": "overlap_top3:0.249",
+  "a": "Iran warns US may resume strikes as Trump says he is in 'deciding mode'",
+  "b": "US prepares entity-wide sanctions against the ICC"
+ },
+ {
+  "run": 304,
+  "i": 1,
+  "j": 8,
+  "why": "overlap_top3:0.284",
+  "a": "UN General Assembly opens as Trump meets at least 11 leaders on Iran, Ukraine wars",
+  "b": "EU deadlocked on lifting sanctions on Russian billionaires Usmanov and Fridman"
+ },
+ {
+  "run": 304,
+  "i": 1,
+  "j": 14,
+  "why": "overlap_top3:0.24",
+  "a": "UN General Assembly opens as Trump meets at least 11 leaders on Iran, Ukraine wars",
+  "b": "Burnham meets Trump for first time, confirms Manchester as 2027 G20 host"
+ },
+ {
+  "run": 304,
+  "i": 3,
+  "j": 14,
+  "why": "overlap_top3:0.351",
+  "a": "G7 demands Houthis halt Saudi strikes as UK agrees to refuel Saudi jets",
+  "b": "Burnham meets Trump for first time, confirms Manchester as 2027 G20 host"
+ },
+ {
+  "run": 305,
+  "i": 0,
+  "j": 5,
+  "why": "overlap_top3:0.421",
+  "a": "Xi arrives in Washington as Chinese business leaders skip Trump summit",
+  "b": "Japan's Takaichi meets Trump, urges UN to drop 'enemy state' label"
+ },
+ {
+  "run": 305,
+  "i": 0,
+  "j": 6,
+  "why": "overlap_top3:0.405",
+  "a": "Xi arrives in Washington as Chinese business leaders skip Trump summit",
+  "b": "South Korea's Lee seeks new approach to North Korea as missile tests loom over Xi-Trump summit"
+ },
+ {
+  "run": 305,
+  "i": 5,
+  "j": 6,
+  "why": "overlap_top3:0.363",
+  "a": "Japan's Takaichi meets Trump, urges UN to drop 'enemy state' label",
+  "b": "South Korea's Lee seeks new approach to North Korea as missile tests loom over Xi-Trump summit"
+ },
+ {
+  "run": 306,
+  "i": 1,
+  "j": 5,
+  "why": "overlap_top3:0.345",
+  "a": "Russia kills 8 in Ukraine strikes hours after Zelensky warns UN of widening war",
+  "b": "Venezuela's interim leader promises elections at UN, gives no date"
+ },
+ {
+  "run": 306,
+  "i": 2,
+  "j": 5,
+  "why": "overlap_top3:0.329",
+  "a": "Iran's Pezeshkian rejects surrender, demands end to Hormuz blockade as US restarts talks",
+  "b": "Venezuela's interim leader promises elections at UN, gives no date"
+ },
+ {
+  "run": 306,
+  "i": 2,
+  "j": 15,
+  "why": "same_thread",
+  "a": "Iran's Pezeshkian rejects surrender, demands end to Hormuz blockade as US restarts talks",
+  "b": "Russian envoy Dmitriev heads to New York for talks with Trump administration"
+ },
+ {
+  "run": 306,
+  "i": 5,
+  "j": 8,
+  "why": "overlap_top3:0.31",
+  "a": "Venezuela's interim leader promises elections at UN, gives no date",
+  "b": "Trump's Board of Peace unveils $2.45bn Gaza reconstruction plan, no start date set"
+ },
+ {
+  "run": 307,
+  "i": 2,
+  "j": 3,
+  "why": "overlap_top3:0.287",
+  "a": "Netanyahu calls Gaza genocide claims 'biggest lie of the century' as dozens walk out of UN speech",
+  "b": "Iran proposes seven-day plan to reopen Hormuz and end war with US"
+ },
+ {
+  "run": 307,
+  "i": 3,
+  "j": 4,
+  "why": "same_thread",
+  "a": "Iran proposes seven-day plan to reopen Hormuz and end war with US",
+  "b": "US Senate rejects resolution to curb Trump's Iran war powers"
+ },
+ {
+  "run": 307,
+  "i": 5,
+  "j": 10,
+  "why": "overlap_top3:0.321",
+  "a": "NATO boosts intelligence-sharing on Russia threat as Czech PM resists faster defense spending",
+  "b": "Poland calls Starlink station fire sabotage as Denmark warns of Russian attack risk"
+ },
+ {
+  "run": 308,
+  "i": 0,
+  "j": 6,
+  "why": "overlap_top3:0.196",
+  "a": "Trump reportedly rejects Iran's seven-day Hormuz plan, expects strikes to resume after midterms",
+  "b": "US proposes trilateral talks with Russia and Ukraine in UAE, Zelensky says"
+ },
+ {
+  "run": 308,
+  "i": 1,
+  "j": 6,
+  "why": "overlap_top3:0.133",
+  "a": "US and China unveil $30bn tariff cut and AI incident channel after Trump-Xi summit",
+  "b": "US proposes trilateral talks with Russia and Ukraine in UAE, Zelensky says"
+ },
+ {
+  "run": 308,
+  "i": 5,
+  "j": 11,
+  "why": "overlap_top3:0.125",
+  "a": "Appeals court upholds Pentagon's blacklisting of Anthropic",
+  "b": "FTC chair says AI developers, not agents, should bear liability for harm"
+ },
+ {
+  "run": 309,
+  "i": 1,
+  "j": 11,
+  "why": "overlap_top3:0.278",
+  "a": "German and Russian foreign ministers hold first talks since before 2022 invasion",
+  "b": "Russian drone incursions into NATO states spike as fears grow of war spillover"
+ },
+ {
+  "run": 309,
+  "i": 9,
+  "j": 14,
+  "why": "overlap_top3:0.233",
+  "a": "China's UN envoy urges US to lift Cuba blockade and respect Gulf sovereignty",
+  "b": "US and Chinese bidders compete for rare earths at Kenya's sacred Mrima Hill"
+ },
+ {
+  "run": 309,
+  "i": 12,
+  "j": 14,
+  "why": "overlap_top3:0.442",
+  "a": "Chinese EVs to enter US market despite no Trump-Xi summit deal, analysts say",
+  "b": "US and Chinese bidders compete for rare earths at Kenya's sacred Mrima Hill"
+ },
+ {
+  "run": 310,
+  "i": 0,
+  "j": 1,
+  "why": "overlap_top3:0.244",
+  "a": "Oil tops $107 as Trump rejects Iran's Hormuz truce offer",
+  "b": "UK minister pushes back on claim security missed Iran-linked air base plot"
+ },
+ {
+  "run": 310,
+  "i": 2,
+  "j": 8,
+  "why": "overlap_top3:0.406",
+  "a": "White House denies plans to sell weapons to China after ambassador's disclosure",
+  "b": "Trump to dine with Anthropic's Amodei after months of open conflict"
+ },
+ {
+  "run": 310,
+  "i": 3,
+  "j": 5,
+  "why": "overlap_top3:0.353",
+  "a": "South Korea demands apology from Ukraine over North Korean POW disclosure, warns of risk to ties",
+  "b": "Russian strikes kill eight in Ukraine, Kharkiv bombing injures 22 more"
+ },
+ {
+  "run": 311,
+  "i": 0,
+  "j": 1,
+  "why": "same_thread",
+  "a": "Trump denies offering Iran sanctions relief as US and Iran talk via mediators",
+  "b": "Iran expects US answer Tuesday on Hormuz plan as Qatar-mediated talks continue after Trump's rejection"
+ },
+ {
+  "run": 311,
+  "i": 0,
+  "j": 6,
+  "why": "overlap_top3:0.36",
+  "a": "Trump denies offering Iran sanctions relief as US and Iran talk via mediators",
+  "b": "Rubio says 'foreign actor' involved in RAF Fairford incident; Trump 'surprised' suspects got bail"
+ },
+ {
+  "run": 311,
+  "i": 0,
+  "j": 7,
+  "why": "overlap_top3:0.428",
+  "a": "Trump denies offering Iran sanctions relief as US and Iran talk via mediators",
+  "b": "US forces leave Iraq's last bases as Iran and allies claim victory"
+ },
+ {
+  "run": 311,
+  "i": 2,
+  "j": 3,
+  "why": "named",
+  "a": "Zelensky says North Korea is preparing another 10,000 troops for Russia, as Seoul protests POW disclosure",
+  "b": "Zelensky says Russia is preparing to add 10,000 North Korean troops"
+ },
+ {
+  "run": 311,
+  "i": 4,
+  "j": 10,
+  "why": "same_thread",
+  "a": "OpenAI cancels GPT-6.1 Astra release after tests show weaker safety results",
+  "b": "OpenAI apologizes for Australia Medicare hack, admits it mishandled response"
+ }
+]
