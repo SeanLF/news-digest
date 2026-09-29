@@ -1,5 +1,5 @@
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
@@ -63,7 +63,7 @@ async function setup(structured: unknown) {
   await store.put(300, "article_fulltext.json", JSON.stringify({ A1: "full one", A3: "full three" }));
   await store.put(300, "recap.txt", "recap");
   const sel = await store.put(300, "selected.json", JSON.stringify({ must_know: [{ cluster_index: 0, article_ids: ["A1"] }], should_know: [], not_covered_blurb: "Held back X." }));
-  const seen: { n: number; options?: Options; files?: string[]; csv?: string; ft?: string; selected?: string } = { n: 0 };
+  const seen: { n: number; options?: Options; files?: string[]; csv?: string; ft?: string; selected?: string; budget?: string } = { n: 0 };
   const q = (({ options }: { prompt: string; options?: Options }) => {
     seen.n++;
     if (options) seen.options = options;
@@ -72,6 +72,7 @@ async function setup(structured: unknown) {
     seen.csv = readFileSync(join(d, "articles_1.csv"), "utf8");
     seen.ft = readFileSync(join(d, "article_fulltext.json"), "utf8");
     seen.selected = readFileSync(join(d, "selected.json"), "utf8");
+    if (existsSync(join(d, "issue_budget.txt"))) seen.budget = readFileSync(join(d, "issue_budget.txt"), "utf8");
     return (function* () {
       yield { type: "result", subtype: "success", result: "", structured_output: structured, total_cost_usd: 0.3, usage: {}, duration_ms: 5, is_error: false, num_turns: 6, session_id: "s" } as unknown as SDKMessage;
     })();
@@ -91,6 +92,15 @@ describe("planStories activity", () => {
     expect(JSON.parse(await store.content(300, "write_branches.json"))).toEqual({ dropped: [{ index: 1, tier: "should_know", reason: "no article in this run's CSVs" }] });
     expect(lines).toEqual(["write s01 DROPPED (should_know): no article in this run's CSVs"]);
   });
+  it("records the issue's budget, each planned story's tier and cluster label, for the writers", async () => {
+    const { store, acts } = await setup({ must_know: [story] });
+    const two = await store.replace(300, "selected.json", JSON.stringify({ must_know: [{ cluster_index: 0, article_ids: ["A1"] }], should_know: [{ cluster_index: 1, article_ids: ["A3"] }] }));
+    await acts.planStories(300, two, (await store.find(300, "clusters.json"))!);
+    expect(JSON.parse(await store.content(300, "issue_budget.json"))).toEqual([
+      { index: 0, tier: "must_know", cluster: 0, story: "a" },
+      { index: 1, tier: "should_know", cluster: 1, story: "b" },
+    ]);
+  });
 });
 describe("writeStory activity", () => {
   it("gives the branch only its evidence, links scrubbed, and stores {plan, story} under the story's name", async () => {
@@ -109,6 +119,32 @@ describe("writeStory activity", () => {
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
     expect(await acts.writeStory(300, plan, sel)).toEqual(p); // idempotent for the same plan
     expect(seen.n).toBe(1);
+  });
+  it("shows the writer the other stories in the issue, never its own (run 301 led two stories with one bill)", async () => {
+    const { store, sel, seen, acts } = await setup({ must_know: [story] });
+    await store.put(300, "issue_budget.json", JSON.stringify([
+      { index: 0, tier: "must_know", cluster: 0, story: "a" },
+      { index: 1, tier: "should_know", cluster: 1, story: "Trump signs Russia sanctions bill" },
+    ]));
+    await acts.writeStory(300, plan, sel);
+    expect(seen.budget).toBe("should_know | Trump signs Russia sanctions bill\n");
+    expect(seen.files).toContain("issue_budget.txt");
+  });
+  it("leaves out a story on the writer's own cluster, whose label is the writer's own event, and a label with no event", async () => {
+    const { store, sel, seen, acts } = await setup({ must_know: [story] });
+    await store.put(300, "issue_budget.json", JSON.stringify([
+      { index: 0, tier: "must_know", cluster: 0, story: "a" },
+      { index: 1, tier: "should_know", cluster: 0, story: "a" },
+      { index: 2, tier: "should_know", cluster: 7, story: "cluster 8" },
+      { index: 3, tier: "should_know", cluster: 1, story: "b" },
+    ]));
+    await acts.writeStory(300, plan, sel);
+    expect(seen.budget).toBe("should_know | b\n");
+  });
+  it("writes without a budget when the run has none (a run planned before the budget existed)", async () => {
+    const { sel, seen, acts } = await setup({ must_know: [story] });
+    await acts.writeStory(300, plan, sel);
+    expect(seen.budget).toBeUndefined();
   });
   it("a draft written for a different plan is quarantined and rewritten", async () => {
     const { store, sel, seen, acts } = await setup({ must_know: [story] });
