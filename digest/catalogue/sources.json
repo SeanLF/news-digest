@@ -207,7 +207,9 @@
     "factuality": "high",
     "credibility": "high",
     "perspective": "pan_african",
-    "region": "Africa"
+    "region": "Africa",
+    "active": false,
+    "inactive_reason": "Cloudflare challenges the Hetzner box: 403 with cf-mitigated: challenge on both IPv4 and IPv6 (2026-09-29, its first run, 311), 200 to the same User-Agent from a residential IP. Never fetched from prod. Re-enable if an allowlist request lands."
   },
   {
     "id": "le_monde",
