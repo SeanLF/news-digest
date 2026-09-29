@@ -121,7 +121,8 @@ model's cosines for the eight real splits it missed are 0.28-0.46, inside its no
 `inputs/311fix/` is run 311 re-joined with the new-prompt tags for the 80 articles re-extracted
 today (batches A81-A120 and A241-A280: Clarín and Le Monde). All three real splits in 311 join by
 tags alone: A89 → North Korea troops (11 articles), A259 → UNHCR cuts (4), A90+A96 → the Pope's
-France visit (11). MiniLM's remaining cross-language attaches ≥ 0.50 on 311fix are all false.
+France visit (11). MiniLM's remaining cross-language attaches ≥ 0.50 on 311fix read as false, but they were not
+entered in `labels.json`, so that claim rests on a reading the committed data does not record.
 Not verified: the other 584 articles (Der Spiegel's batch was not re-extracted) or any run after
 00afb4e deploys.
 
@@ -139,6 +140,7 @@ Not verified: the other 584 articles (Der Spiegel's batch was not re-extracted) 
 docs/proposed/multilingual-attach/fetch.sh 304 305 306 307 308 309 310 311   # inputs (read-only bin/ops)
 docs/proposed/multilingual-attach/models.sh <models-dir>                      # 118 MB + 434 MB, sha256 printed
 docker build --platform linux/amd64 -t mlattach-poc:amd64 docs/proposed/multilingual-attach
+docker compose run --rm --no-deps -v "$PWD/docs/proposed/multilingual-attach:/m" --entrypoint node digest-worker /m/rejoin_fix.mjs   # inputs/311fix/clusters.json, which run.sh reads
 docs/proposed/multilingual-attach/run.sh <models-dir>                         # resources.jsonl, then attach_summary.jsonl (vectors are not committed)
 docker compose run --rm --no-deps -v "$PWD/docs/proposed/multilingual-attach:/m:ro" --entrypoint node digest-worker /m/rejoin.mjs /m/inputs 304 305 306 307 308 309 310 311
 ```
