@@ -106,6 +106,32 @@ const legacyPage = async (html: string) => {
   return { errors, page: await res.text() };
 };
 
+// An issue with stories as web.ts writes them: must-know articles, then should-know briefs.
+const RAIL_HTML = TEMPLATE.replace("{{STYLES}}", "body{}")
+  .replace("{{MUST_KNOW}}", '<article class="first" id="one">\n<h3 class="head">Iran &amp; US talk<a class="anchor" href="#one" aria-label="Copy link: Iran"></a></h3>\n<p class="lede">x</p>\n</article>\n<article id="two">\n<h3 class="head">Troops sent</h3>\n</article>')
+  .replace("{{SHOULD_KNOW}}", '<article class="brief" id="three">\n<h3>Pope <em>visits</em> Metz<a class="anchor" href="#three"></a></h3>\n</article>')
+  .replaceAll(/\{\{[A-Z_]+\}\}/g, "");
+
+describe("the story rail", () => {
+  it("lists every story in order, must-know then should-know, each a link to its article with the headline as its text", async () => {
+    const app = testApp(withIssue({ issue: async () => ({ html: RAIL_HTML, preheader: "", markdown: null }) }));
+    const res = await get(app, "/issues/2026-09-01");
+    const html = await res.text();
+    const rail = html.match(/<nav class="rail"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    expect(rail).toContain('aria-label="Stories in this issue"');
+    const links = [...rail.matchAll(/<li class="(mk|sk)"><a href="#([^"]+)"><span class="rail-tip">([^<]*)<\/span><\/a><\/li>/g)].map((m) => [m[1], m[2], m[3]]);
+    expect(links).toEqual([["mk", "one", "Iran &amp; US talk"], ["mk", "two", "Troops sent"], ["sk", "three", "Pope visits Metz"]]);
+    const csp = res.headers.get("content-security-policy") ?? "";
+    for (const x of inlineBlocks(html)) expect(directive(csp, `${x.kind}-src`), x.body.slice(0, 60)).toContain(sha(x.body));
+  });
+  it("is left off an issue with fewer than two stories, and off a pre-redesign issue", async () => {
+    const one = await (await get(testApp(withIssue()), "/issues/2026-09-01")).text();
+    expect(one).not.toContain('class="rail"');
+    const { page } = await legacyPage(LEGACY);
+    expect(page).not.toContain('class="rail"');
+  });
+});
+
 describe("the issue page", () => {
   it("injects the site's chrome at every needle of the real template", async () => {
     const error = vi.spyOn(log, "error");
