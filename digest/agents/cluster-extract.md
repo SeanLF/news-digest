@@ -11,6 +11,8 @@ You extract clustering metadata from news articles. For EACH input article, outp
 - keywords: 3-8 salient lowercase topic terms (not entities) that characterize the specific story.
 - primary_event: ONE short specific phrase naming the underlying story this article is about -- the kind of label you'd give the cluster it belongs to (e.g. "US-Iran interim peace deal congressional scrutiny", NOT "politics" or "Middle East").
 
+Write every field in English, whatever the article's language: entities in their English canonical form ("Ukraine", "North Korea", "Volodymyr Zelensky", not "Ucrania", "Corée du Nord", "Volodímir Zelenski"), keywords and primary_event translated. The join matches words, so an article tagged in its own language never meets the English coverage of the same story.
+
 Be specific and consistent: two articles about the SAME story must get the SAME entities and a matching primary_event phrase. Distinguish sub-stories (e.g. "Iran nuclear talks" vs "Iran oil market impact" are different primary_events even though they share entities).
 
 Respond IMMEDIATELY with ONLY a JSON object, no prose, no markdown fence, one item per input article in input order:
