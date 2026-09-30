@@ -19,7 +19,7 @@ type Field = (typeof FIELDS)[number];
 
 export interface RepairRequest { article_ids: string[]; failed_fields: Field[]; reason: string; fields: Record<Field, string> }
 export interface Resolution { article_ids: string[]; status: "repaired" | "guard_failed" | "recheck_failed"; recheck_pass: boolean; patched_fields: Partial<Record<Field, string>>; guard?: string; claims?: Claim[] }
-export interface ResolutionDoc { input: string; results: Resolution[]; fault?: string }
+export interface ResolutionDoc { input: string; results: Resolution[]; recheck?: CoherenceReport; fault?: string }
 
 // A failure repair can handle: failed_fields a non-empty subset of the three text fields, on every
 // matching failure (repair.build_repair_requests). Anything else stays on the drop path.
@@ -152,7 +152,7 @@ export function repairActivity(deps: RepairDeps) {
         }
       const checked = await runChecker(deps, runId, JSON.stringify(scoped, null, 2));
       await deps.onUsage?.({ model: checked.model, thinking: checked.thinking, prompt: checked.prompt, effort: checked.effort, tokens: checked.tokens, stage: "repair_recheck", runId, costUsd: checked.costUsd, durationMs: checked.durationMs, numTurns: checked.numTurns, toolCalls: checked.toolCalls, unbackedFails: checked.unbacked });
-      return write({ input, results: resolve(applied, checked.report, scoped) });
+      return write({ input, results: resolve(applied, checked.report, scoped), recheck: checked.report });
     } catch (e) {
       // A cancellation is not a fault: Temporal's own, or the SDK's AbortError once our signal fired.
       if (e instanceof CancelledFailure || deps.signal?.()?.aborted) throw e;

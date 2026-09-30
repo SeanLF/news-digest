@@ -84,6 +84,7 @@ describe("repair activity", () => {
     const { run, doc } = await activitySetup(model({ patch: { results: [{ article_ids: ["A5"], summary: "Deal signed." }] }, recheckPass: false }));
     await run();
     expect((await doc()).results[0]?.status).toBe("recheck_failed");
+    expect((await doc()).recheck?.results[0]).toMatchObject({ pass: false, reason: "r" });
   });
   it("an aborted activity rethrows and stores nothing", async () => {
     const ac = new AbortController();
