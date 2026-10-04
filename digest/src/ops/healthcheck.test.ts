@@ -3,11 +3,13 @@ import { log } from "../log.js";
 import { healthcheck, stageDoneLine } from "./healthcheck.js";
 
 type Seen = { url: string; method: string; body: string | undefined; ua: string | null; signal: boolean };
-function fakeFetch(outcome: "ok" | "throw" | "500" = "ok") {
+function fakeFetch(outcome: "ok" | "throw" | "500" | "rate-limited" = "ok") {
   const seen: Seen[] = [];
   const f = ((url: string, init: RequestInit) => {
     seen.push({ url, method: init.method ?? "GET", body: typeof init.body === "string" ? init.body : undefined, ua: new Headers(init.headers).get("User-Agent"), signal: init.signal instanceof AbortSignal });
     if (outcome === "throw") return Promise.reject(new TypeError("fetch failed"));
+    // hc-ping.com answers a ping it drops with 200 and this body, so a status check alone reads it as recorded.
+    if (outcome === "rate-limited") return Promise.resolve(new Response("OK (rate limited)", { status: 200 }));
     return Promise.resolve(new Response("OK", { status: outcome === "ok" ? 200 : 500 }));
   }) as unknown as typeof fetch;
   return { seen, f };
@@ -66,5 +68,26 @@ describe("healthcheck", () => {
       "healthcheck success ping failed (non-fatal): TypeError: fetch failed",
       "healthcheck log ping failed (non-fatal): Error: HTTP 500",
     ]);
+  });
+  it("a 200 that healthchecks.io did not record (rate limited) is a warning, not a success", async () => {
+    const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
+    await healthcheck({ HEALTHCHECK_PING_URL: PING_URL }, fakeFetch("rate-limited").f).ping();
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(["healthcheck success ping failed (non-fatal): Error: not recorded: OK (rate limited)"]);
+  });
+  // healthchecks.io records at most 5 pings a minute per check and drops the rest: run 316's success
+  // ping went 6 s after a burst of stage /log lines and was dropped, and the check paged as down.
+  it("sends at most 3 /log lines a minute, so the start, success and fail pings always fit under the limit", async () => {
+    let t = 0;
+    const { seen, f } = fakeFetch();
+    const hc = healthcheck({ HEALTHCHECK_PING_URL: PING_URL }, f, () => t);
+    for (let i = 1; i <= 6; i++) {
+      await hc.log(`line ${i}`);
+      t += 5_000;
+    }
+    await hc.ping();
+    expect(seen.map((s) => s.body ?? s.url)).toEqual(["line 1", "line 2", "line 3", "https://hc-ping.com/uuid-1"]);
+    t = 70_001; // lines 1-3 have left the window; the success ping has not
+    await hc.log("line 7");
+    expect(seen.at(-1)?.body).toBe("(3 earlier lines not sent) line 7");
   });
 });

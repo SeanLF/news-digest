@@ -6,17 +6,23 @@ import { log } from "../log.js";
 export const PING_ENV = "HEALTHCHECK_PING_URL";
 const TIMEOUT_MS = 10_000;
 const MAX_LOG_BYTES = 1000;
+// healthchecks.io records at most 5 pings a minute per check and silently drops the rest (200 "OK (rate
+// limited)"). /log lines may use 3 of them; a minute holds at most two of start, success and fail.
+const WINDOW_MS = 60_000;
+const MAX_LOGS_PER_WINDOW = 3;
 
 export type PingEvent = "start" | "fail";
 export interface Healthcheck {
   // `note` is posted as the ping's body, which healthchecks.io shows beside the event.
   ping(event?: PingEvent, note?: string): Promise<void>;
   // /log records an event without changing up/down state: a stage boundary seen from off-box while
-  // the run is still going.
+  // the run is still going. Throttled per instance, so a process keeps one instance per check.
   log(message: string): Promise<void>;
 }
 
-export function healthcheck(env: Record<string, string | undefined> = process.env, fetchImpl: typeof fetch = fetch): Healthcheck {
+export function healthcheck(env: Record<string, string | undefined> = process.env, fetchImpl: typeof fetch = fetch, now: () => number = Date.now): Healthcheck {
+  const logged: number[] = []; // when each /log line in the current window went out
+  let unsent = 0; // /log lines dropped since the last one sent
   async function post(event: PingEvent | "log" | undefined, body?: string): Promise<void> {
     const base = env[PING_ENV];
     if (!base) return;
@@ -34,13 +40,25 @@ export function healthcheck(env: Record<string, string | undefined> = process.en
         ...(body !== undefined ? { body } : {}),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const answer = (await res.text()).trim();
+      if (answer !== "OK") throw new Error(`not recorded: ${answer}`);
     } catch (e) {
       log.warn(`healthcheck ${name} ping failed (non-fatal): ${String(e)}`);
     }
   }
   return {
     ping: (event, note) => post(event, note === undefined ? undefined : truncateUtf8(note, MAX_LOG_BYTES)),
-    log: (message) => post("log", truncateUtf8(message, MAX_LOG_BYTES)),
+    log: (message) => {
+      while (logged.length > 0 && logged[0]! <= now() - WINDOW_MS) logged.shift();
+      if (logged.length >= MAX_LOGS_PER_WINDOW) {
+        unsent++;
+        return Promise.resolve();
+      }
+      const prefix = unsent > 0 ? `(${unsent} earlier line${unsent === 1 ? "" : "s"} not sent) ` : "";
+      unsent = 0;
+      logged.push(now());
+      return post("log", truncateUtf8(prefix + message, MAX_LOG_BYTES));
+    },
   };
 }
 
