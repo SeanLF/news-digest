@@ -4,7 +4,7 @@ import { emailSender, resendClient, type SendEmail } from "../mail/resend.js";
 import { sendAlert, type AlertRequest } from "../ops/alerts.js";
 import { broadcastState } from "../ops/broadcast-state.js";
 import { feedHealthAlert } from "../ops/feed-health.js";
-import { healthcheck } from "../ops/healthcheck.js";
+import { type Healthcheck, healthcheck } from "../ops/healthcheck.js";
 import { cutoverHold } from "../ops/cutover-hold.js";
 import { preSendFailures, readPreSend } from "../ops/pre-send.js";
 import { coherenceKindCounts, getRunHealth, threadsEnabled, violations } from "../ops/run-health.js";
@@ -19,6 +19,8 @@ export interface OpsDeps {
   maxAttempts: number;
   send?: SendEmail;
   fetch?: typeof fetch;
+  // The worker's own instance, so its stage /log lines and these pings share one throttle.
+  healthcheck?: Healthcheck;
 }
 
 const activityInfo = (): { attempt: number; key?: string } => {
@@ -33,7 +35,7 @@ const activityInfo = (): { attempt: number; key?: string } => {
 // The operations activities: everything that tells the operator a run went wrong. None can fail a run
 // that delivered; all but checkPreSend are best-effort.
 export function opsActivities(deps: OpsDeps) {
-  const hc = healthcheck(deps.env, deps.fetch);
+  const hc = deps.healthcheck ?? healthcheck(deps.env, deps.fetch);
   const send: SendEmail = deps.send ?? ((email, opts) => emailSender(resendClient(deps.env["RESEND_API_KEY"] ?? "", {}, deps.env).emails)(email, opts));
   return {
     healthcheck: (event: "start" | "success" | "fail", note?: string): Promise<void> => hc.ping(event === "success" ? undefined : event, note),
