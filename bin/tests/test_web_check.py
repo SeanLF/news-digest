@@ -258,4 +258,9 @@ def test_web_check_overrides_were_judged_against_these_parents():
     parents = {name: lock[f"node_modules/{name}"]["version"] for name in ("@lhci/cli", "pa11y-ci")}
     assert parents == {"@lhci/cli": "0.15.1", "pa11y-ci": "4.1.1"}
     overrides = json.loads((root / "package.json").read_text())["overrides"]
-    assert {n: lock[f"node_modules/{n}"]["version"] for n in overrides} == overrides
+    installed = {
+        (k.rsplit("node_modules/", 1)[1], v["version"])
+        for k, v in lock.items()
+        if k.rsplit("node_modules/", 1)[-1] in overrides
+    }
+    assert installed == set(overrides.items())  # every copy, nested ones included
