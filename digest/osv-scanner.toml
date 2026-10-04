@@ -1,0 +1,5 @@
+# bin/deploy-digest refuses on any finding; each ignore names why it cannot reach production and expires.
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2026-11-04
+reason = "braces <=3.0.3, no fixed version; dev-only (kysely-codegen -> micromatch), absent from the npm ci --omit=dev images"
