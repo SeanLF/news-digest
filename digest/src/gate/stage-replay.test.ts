@@ -38,10 +38,21 @@ describe("stage replay", () => {
     expect([PROD_POLICY.select.timeoutMs, PROD_POLICY.coherence.timeoutMs, PROD_POLICY.cluster.timeoutMs, PROD_POLICY.attribute.timeoutMs]).toEqual([45, 45, 45, 10].map((m) => m * 60_000));
   });
 
-  it("returns a failure as a result, with what a run would have done", async () => {
-    const r = await replay("select", await selectInputs(500, false), 500, AGENTS);
+  it("a missing input is the harness's failure: it throws instead of counting against the variant", async () => {
+    await expect(replay("select", await selectInputs(500, false), 500, AGENTS)).rejects.toThrow(/clusters\.json/);
+    await expect(replay("coherence", await selectInputs(502), 502, AGENTS)).rejects.toThrow(/draft_sNN/);
+    const withDraft = await selectInputs(504);
+    await withDraft.put(504, "draft_s00.json", "{}");
+    await expect(replay("coherence", withDraft, 504, AGENTS)).rejects.toThrow(/article_fulltext\.json/);
+  });
+
+  it("a model call that fails is a result, with what a run would have done", async () => {
+    const fails: SdkQuery = (() => (async function* () {
+      yield { type: "result", subtype: "error_max_structured_output_retries", is_error: true, result: "", usage: {}, total_cost_usd: 0, duration_ms: 1, num_turns: 1, session_id: "s" } as unknown as SDKMessage;
+    })()) as unknown as SdkQuery;
+    const r = await replay("select", await selectInputs(503), 503, AGENTS, { query: fails });
     expect(r.artifact).toBeNull();
-    expect(r.failure?.error).toMatch(/clusters\.json/);
+    expect(r.failure?.error).toMatch(/error_max_structured_output_retries/);
     expect(r.failure?.prodOnFailure).toMatch(/parks for an operator/);
   });
 
