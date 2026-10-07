@@ -1,6 +1,6 @@
 // A variant of the stage prompts for a replay: a copy of the agents directory with frontmatter fields
 // overridden per stage ({ select: { effort: "high" } }). The body is never touched.
-import { cpSync, existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -19,13 +19,18 @@ export function setFrontmatter(md: string, field: string, value: string): string
 // A fresh directory under the OS temp dir; refuses a stage with no agent file, so a typo is not a no-op.
 export function agentsWith(src: string, overrides: Overrides = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "agents-"));
-  cpSync(src, dir, { recursive: true });
-  for (const [stage, fields] of Object.entries(overrides)) {
-    const f = join(dir, `${stage}.md`);
-    if (!existsSync(f)) throw new Error(`no agent file for stage ${JSON.stringify(stage)}`);
-    let md = readFileSync(f, "utf8");
-    for (const [field, value] of Object.entries(fields)) md = setFrontmatter(md, field, value);
-    writeFileSync(f, md);
+  try {
+    cpSync(src, dir, { recursive: true });
+    for (const [stage, fields] of Object.entries(overrides)) {
+      const f = join(dir, `${stage}.md`);
+      if (!existsSync(f)) throw new Error(`no agent file for stage ${JSON.stringify(stage)}`);
+      let md = readFileSync(f, "utf8");
+      for (const [field, value] of Object.entries(fields)) md = setFrontmatter(md, field, value);
+      writeFileSync(f, md);
+    }
+    return dir;
+  } catch (e) {
+    rmSync(dir, { recursive: true, force: true });
+    throw e;
   }
-  return dir;
 }

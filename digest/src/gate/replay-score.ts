@@ -55,7 +55,8 @@ export function scoreCoherence(out: Report, ref: Report): CoherenceScores {
   return { stories: n, disagree: n ? disagree / n : 0, misses: missed.length, extras: extra.length, unmatched, missed, extra };
 }
 
-// Per claim: whether the replay's supporting and differing articles are the same sets as the reference's.
+// Per claim: whether the replay's supporting and differing articles are the same sets as the reference's;
+// differs and refDiffers count the same (matched) claims, so they compare.
 export function scoreAttribute(out: Attribution, ref: Attribution): Scores {
   let claims = 0, identical = 0, differs = 0, refDiffers = 0;
   for (const [k, s] of Object.entries(ref.stories)) {
@@ -63,9 +64,9 @@ export function scoreAttribute(out: Attribution, ref: Attribution): Scores {
     for (const c of s.claims) {
       const x = oc.get(`${c.field}\u0000${c.text}`);
       claims++;
-      refDiffers += c.differs.length;
       if (!x) continue;
       differs += x.differs.length;
+      refDiffers += c.differs.length;
       if (sameSet(x.supported_by, c.supported_by) && sameSet(x.differs.map((d) => d.article_id), c.differs.map((d) => d.article_id))) identical++;
     }
   }
