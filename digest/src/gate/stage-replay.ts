@@ -57,34 +57,46 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
   const timeoutMs = test.timeoutMs ?? PROD_POLICY[mode].timeoutMs;
   const whole = perCall ? undefined : AbortSignal.timeout(timeoutMs);
   const deps = { store, agentsDir, onUsage, signal: () => whole ?? AbortSignal.timeout(timeoutMs), ...(test.query ? { query: test.query } : {}) };
+  // The run's inputs are read first, outside the try: a missing artifact, database or run is the
+  // harness's failure and fails the replay, never a variant's failure (a broken instrument must not
+  // read as a result). Only what the stage itself does counts.
+  const stage = await prepare(mode, deps, store, run, usage);
+  let out: Pointer;
   try {
-    return { artifact: JSON.parse(await store.get(await runStageOf(mode, deps, store, run, usage))), usage };
+    out = await stage();
   } catch (e) {
     return { artifact: null, usage, failure: { error: String(e), prodOnFailure: onFailure } };
   }
+  return { artifact: JSON.parse(await store.get(out)), usage };
 }
 
 type Deps = { store: ArtifactStore; agentsDir: string; onUsage: (r: UsageRow) => void; signal: () => AbortSignal; query?: SdkQuery };
 
-async function runStageOf(mode: Mode, deps: Deps, store: ArtifactStore, run: number, usage: Usage): Promise<Pointer> {
-  let out: Pointer;
+async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number, usage: Usage): Promise<() => Promise<Pointer>> {
   if (mode === "cluster") {
     const c = clusterActivities(deps);
     const { batches } = await c.planBatches(run);
-    // Bounded as in a run; a lost batch is part of the result, as in a run (joinClusters falls back to titles).
-    const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => c.extractBatch(run, b, true));
-    const tags = settled.map((r, i) => {
-      if (r.status === "fulfilled") return r.value;
-      usage.lostBatches.push(`b${batches[i]!.index}: ${String(r.reason)} (in a run: ${PROD_POLICY.cluster.onFailure})`);
-      return null;
-    });
-    out = await c.joinClusters(run, tags, true);
-  } else if (mode === "select") {
-    out = await selectActivity(deps)(run, await need(store, run, "clusters.json"), await need(store, run, "recap.txt"), undefined, { force: true });
-  } else if (mode === "coherence") {
-    out = await coherenceActivity(deps)(run, await drafts(store, run), await need(store, run, "article_fulltext.json"), undefined, true);
-  } else {
-    out = await attributeActivity(deps)(run, await drafts(store, run), await need(store, run, "coherence_report.json"), await need(store, run, "repair_resolution.json"), true);
+    return async () => {
+      // Bounded as in a run; a lost batch is part of the result, as in a run (joinClusters falls back to titles).
+      const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => c.extractBatch(run, b, true));
+      const tags = settled.map((r, i) => {
+        if (r.status === "fulfilled") return r.value;
+        usage.lostBatches.push(`b${batches[i]!.index}: ${String(r.reason)} (in a run: ${PROD_POLICY.cluster.onFailure})`);
+        return null;
+      });
+      return c.joinClusters(run, tags, true);
+    };
   }
-  return out;
+  if (mode === "select") {
+    const [clusters, recap] = [await need(store, run, "clusters.json"), await need(store, run, "recap.txt")];
+    return () => selectActivity(deps)(run, clusters, recap, undefined, { force: true });
+  }
+  const ds = await drafts(store, run);
+  if (ds.length === 0) throw new Error(`run ${run} has no draft_sNN.json`);
+  if (mode === "coherence") {
+    const fulltext = await need(store, run, "article_fulltext.json");
+    return () => coherenceActivity(deps)(run, ds, fulltext, undefined, true);
+  }
+  const [report, repair] = [await need(store, run, "coherence_report.json"), await need(store, run, "repair_resolution.json")];
+  return () => attributeActivity(deps)(run, ds, report, repair, true);
 }
