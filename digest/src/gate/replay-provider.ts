@@ -16,23 +16,44 @@ import { MODES, replay, type Mode } from "./stage-replay.js";
 interface Config { mode: Mode; overrides?: Overrides; template?: string; agentsDir?: string }
 export const OUTPUT: Record<Mode, string> = { cluster: "clusters.json", select: "selected.json", coherence: "coherence_report.json", attribute: "attribution.json" };
 
-// Takes a call's slots all at once, so two wide calls cannot deadlock each other.
-class Slots {
+// Model calls a replay of each mode can have in flight: cluster and attribute fan out
+// MODEL_FANOUT_LIMIT calls inside the stage (cluster's batches, attribute's per-story workers).
+export const WEIGHT: Record<Mode, number> = { cluster: MODEL_FANOUT_LIMIT, attribute: MODEL_FANOUT_LIMIT, select: 1, coherence: 1 };
+
+export function callBudget(raw: string | undefined): number {
+  const n = raw === undefined ? 4 : Number(raw);
+  if (!Number.isInteger(n) || n < 1 || raw === "") throw new Error(`REPLAY_CALLS must be a positive whole number, not ${JSON.stringify(raw)}`);
+  return n;
+}
+
+// Takes a call's slots all at once (two wide calls cannot deadlock), first come first served (narrow
+// calls queued behind a wide one wait for it, so it is never starved).
+export class Slots {
   private free: number;
-  private readonly waiting: (() => void)[] = [];
+  private readonly queue: { k: number; go: () => void }[] = [];
   constructor(n: number) {
     this.free = n;
   }
-  async take(k: number): Promise<void> {
-    while (this.free < k) await new Promise<void>((r) => this.waiting.push(r));
-    this.free -= k;
+  take(k: number): Promise<void> {
+    return new Promise((go) => {
+      this.queue.push({ k, go });
+      this.drain();
+    });
   }
   give(k: number): void {
     this.free += k;
-    for (const w of this.waiting.splice(0)) w();
+    this.drain();
+  }
+  private drain(): void {
+    while (this.queue.length && this.queue[0]!.k <= this.free) {
+      const { k, go } = this.queue.shift()!;
+      this.free -= k;
+      go();
+    }
   }
 }
-const slots = new Slots(Number(process.env["REPLAY_CALLS"] ?? 4));
+const budget = callBudget(process.env["REPLAY_CALLS"]);
+const slots = new Slots(budget);
 
 async function admin(url: string, sql: string): Promise<void> {
   const c = new pg.Client({ connectionString: url });
@@ -49,7 +70,7 @@ export default class ReplayProvider {
   constructor(options: { config?: Partial<Config> } = {}) {
     const c = options.config ?? {};
     if (!c.mode || !MODES.includes(c.mode)) throw new Error(`replay provider needs config.mode, one of ${MODES.join(", ")}`);
-    if (c.mode === "cluster" && Number(process.env["REPLAY_CALLS"] ?? 4) < MODEL_FANOUT_LIMIT) throw new Error(`a cluster replay holds ${MODEL_FANOUT_LIMIT} call slots; REPLAY_CALLS is lower`);
+    if (WEIGHT[c.mode] > budget) throw new Error(`a ${c.mode} replay holds ${WEIGHT[c.mode]} call slots; REPLAY_CALLS is ${budget}`);
     this.config = { mode: c.mode, overrides: c.overrides ?? {}, template: c.template ?? "digest_clone", agentsDir: c.agentsDir ?? new URL("../../agents/", import.meta.url).pathname };
   }
   id(): string {
@@ -63,7 +84,7 @@ export default class ReplayProvider {
     const run = Number(context.vars.run);
     const db = `replay_${randomUUID().replaceAll("-", "").slice(0, 16)}`;
     const url = Object.assign(new URL(adminUrl), { pathname: `/${db}` }).toString();
-    const weight = mode === "cluster" ? MODEL_FANOUT_LIMIT : 1;
+    const weight = WEIGHT[mode];
     const agents = agentsWith(this.config.agentsDir, overrides);
     await slots.take(weight);
     try {
