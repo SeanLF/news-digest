@@ -11,6 +11,7 @@ const SANS = "Arial, Helvetica, sans-serif";
 const MONO = "'Courier New', monospace";
 const SIDE = "28px";
 const MONO_UP = 'letter-spacing="1px" text-transform="uppercase"';
+const whole = (s: string) => `<span style="white-space:nowrap;">${s}</span>`;
 
 interface Palette { bg: string; ink: string; ink2: string; muted: string; hair: string; accent: string; accentInk: string; bias: Record<Bucket, string> }
 function palette(tokensCss: string): Palette {
@@ -45,7 +46,7 @@ function renderer(p: Palette) {
   };
   // Mail clients do not inherit link colour, so every <a> is styled inline.
   const link = (url: string, text: string, color = p.accentInk) => `<a href="${url}" style="color:${color};">${text}</a>`;
-  const eyebrow = (label: string) => txt(label, { size: 10, color: p.accentInk, font: MONO, weight: "600", padding: "0 0 4px", extra: MONO_UP });
+  const eyebrow = (label: string) => txt(label, { size: 12, color: p.accentInk, font: MONO, weight: "600", padding: "0 0 4px", extra: MONO_UP });
   const section = (inner: string, { padding = `0 ${SIDE}`, borderLeft = false } = {}) => {
     const col = borderLeft ? `<mj-column padding="0 0 0 16px" border-left="2px solid ${p.accent}">${inner}</mj-column>` : `<mj-column>${inner}</mj-column>`;
     return `<mj-section padding="${padding}">${col}</mj-section>`;
@@ -55,7 +56,7 @@ function renderer(p: Palette) {
   const sectionHeader = (num: string, name: string, gap: boolean) => {
     const label =
       `<span style="font-family:${MONO};font-size:12px;font-weight:600;color:${p.accentInk};letter-spacing:.08em;">${num}</span>` +
-      `<span style="font-family:${SANS};font-size:11px;font-weight:700;letter-spacing:.18em;` +
+      `<span style="font-family:${SANS};font-size:12px;font-weight:700;letter-spacing:.14em;` +
       `text-transform:uppercase;color:${p.ink};">&#160;&#160;${name.replaceAll(" ", "&#160;")}</span>`;
     const rows =
       `<tr><td width="150" style="width:150px;white-space:nowrap;vertical-align:middle;">${label}</td>` +
@@ -73,7 +74,7 @@ function renderer(p: Palette) {
     const label =
       `<span style="color:${p.ink2};">${countsLabel(g)}</span> <span style="color:${p.hair};">|</span> ` +
       `<a href="${esc(href)}" style="font-family:${SANS};font-size:12px;text-transform:none;letter-spacing:0;color:${p.accentInk};">Sources and coverage →</a>`;
-    return `<mj-section padding="16px ${SIDE} 0"><mj-column>${txt(label, { size: 10, color: p.muted, font: MONO, extra: MONO_UP })}</mj-column></mj-section>`;
+    return `<mj-section padding="16px ${SIDE} 0"><mj-column>${txt(label, { size: 12, color: p.muted, font: MONO, extra: MONO_UP })}</mj-column></mj-section>`;
   };
   // "Ongoing · day N" sits under the headline like a dateline. A relative thread URL would resolve
   // against the mail client's origin, so only an absolute one becomes a link.
@@ -84,7 +85,7 @@ function renderer(p: Palette) {
     const url = thread.url;
     if (typeof url === "string" && (url.startsWith("https://") || url.startsWith("http://")))
       label = `<a href="${esc(url)}" aria-label="Ongoing · day ${day} ↗ how this story developed" style="color:${p.muted};text-decoration:none;">${label} ↗</a>`;
-    return txt(label, { size: 11, color: p.muted, font: MONO, padding: pad, extra: MONO_UP });
+    return txt(label, { size: 12, color: p.muted, font: MONO, padding: pad, extra: MONO_UP });
   };
   const story = (a: Story, slug: string, homepage: string) => {
     const thread = a.thread ?? {};
@@ -115,20 +116,20 @@ export function renderEmail({ selections, now, issueNo, env, assets }: RenderInp
   body.push(
     homepage
       ? section(
-          txt(`<a href="${homepage}" style="color:${p.muted};text-decoration:none;">View in browser</a> <span style="color:${p.hair};">·</span> <a href="${homepage}/translate" style="color:${p.muted};text-decoration:none;"><span>文A</span> Translate</a>`, { size: 10, color: p.muted, font: MONO, align: "center", extra: MONO_UP }),
+          txt(`<a href="${homepage}" style="color:${p.muted};text-decoration:none;">View in browser</a> <span style="color:${p.hair};">·</span> <a href="${homepage}/translate" style="color:${p.muted};text-decoration:none;"><span>文A</span> Translate</a>`, { size: 12, color: p.muted, font: MONO, align: "center", extra: MONO_UP }),
           { padding: `24px ${SIDE} 0` },
         )
       : "",
   );
   const brand = txt(`Sean&#39;s Daily <span style="color:${p.accentInk};">Digest</span>`, { size: 27, color: p.ink, weight: "600", lh: "1" });
-  const issue = txt(`${issueNo === null ? "" : `No. ${issueNo}<br/>`}Filed ${d.filed}`, { size: 10, color: p.muted, font: MONO, align: "right", lh: "1.55", extra: MONO_UP });
+  const issue = txt(`${issueNo === null ? "" : `No. ${issueNo}<br/>`}Filed ${d.filed}`, { size: 12, color: p.muted, font: MONO, align: "right", lh: "1.55", extra: MONO_UP });
   body.push(`<mj-section padding="20px ${SIDE} 0"><mj-column width="60%" vertical-align="bottom">${brand}</mj-column><mj-column width="40%" vertical-align="bottom">${issue}</mj-column></mj-section>`);
-  body.push(section(txt(`<span style="color:${p.accent};">■</span> ${d.long} &nbsp;/&nbsp; ${readingTime(selections)} &nbsp;/&nbsp; ${storyCounts(selections)}`, { size: 11, color: p.muted, font: MONO, padding: "6px 0 12px", extra: MONO_UP })));
+  body.push(section(txt(`<span style="color:${p.accent};">■</span> ${whole(d.long)} &nbsp;/&nbsp; ${whole(readingTime(selections))} &nbsp;/&nbsp; ${whole(storyCounts(selections))}`, { size: 12, color: p.muted, font: MONO, padding: "6px 0 12px", extra: MONO_UP })));
   body.push(`<mj-section padding="0 ${SIDE}"><mj-column><mj-divider border-width="2px" border-color="${p.ink}" padding="0" /></mj-column></mj-section>`);
   body.push(
     section(
       txt(
-        `<span style="font-family:${MONO};color:${p.accentInk};font-weight:600;font-size:10px;letter-spacing:1px;">AI-WRITTEN</span>` +
+        `<span style="font-family:${MONO};color:${p.accentInk};font-weight:600;font-size:12px;letter-spacing:1px;">AI-WRITTEN</span>` +
           "&#160;&#160;Written by Claude, an assistant that can make mistakes - verify anything important against the linked sources. " +
           `Political leanings from <a href="${archive}/sources" style="color:${p.accentInk};">independent media assessors</a>.`,
         { size: 12, font: SANS },
@@ -157,9 +158,9 @@ export function renderEmail({ selections, now, issueNo, env, assets }: RenderInp
     '<mj-spacer height="16px" />' +
     txt(nav, { size: 12, color: p.muted, font: SANS, lh: "1.7" }) +
     txt("Reply to this email with feedback.", { size: 12, color: p.muted, font: SANS, padding: "8px 0 0" }) +
-    (notCovered ? txt(`Not covered today: ${esc(notCovered)}`, { size: 11, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
-    (plug ? txt(plug, { size: 11, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
-    txt(d.generated, { size: 11, color: p.muted, font: SANS, padding: "8px 0 0" });
+    (notCovered ? txt(`Not covered today: ${esc(notCovered)}`, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
+    (plug ? txt(plug, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
+    txt(d.generated, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" });
   body.push(`<mj-section padding="0 ${SIDE}"><mj-column>${footer}</mj-column></mj-section>`);
 
   const textDefaults = (Object.keys(defaults) as TxtKey[]).filter((k) => k !== "font-family").map((k) => `${k}="${defaults[k]}"`).join(" ");
