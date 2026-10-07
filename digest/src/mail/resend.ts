@@ -5,9 +5,10 @@ import { resendBaseUrl } from "../resend/destination.js";
 // client from `resendClient` for the audience API. Both read RESEND_API_KEY, as the Python does.
 export const RESEND_TIMEOUT_MS = 30_000;
 
-// The SDK sets no timeout and takes no signal, so a hung request would outlive the activity that made
-// it: a cancelled send could still create a broadcast. Every request goes through fetchRequest, the
-// SDK's one fetch, so bounding it there bounds them all; an aborted request is a failed reply.
+// The SDK sets no timeout and takes a signal only per call, so a hung request would outlive the activity
+// that made it: a cancelled send could still create a broadcast. Every request goes through
+// fetchRequest, the SDK's one fetch, so bounding it there bounds them all, with the timeout, without
+// threading a signal through each call; an aborted request is a failed reply.
 class BoundedResend extends Resend {
   constructor(
     key: string,
