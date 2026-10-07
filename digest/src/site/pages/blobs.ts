@@ -69,9 +69,9 @@ a{color:var(--accent-ink);}
 .h1{font-family:var(--serif); font-weight:600; font-size:34px; letter-spacing:-.018em; margin:0; line-height:1.04;}
 .sub{display:flex; align-items:baseline; justify-content:space-between; gap:20px; margin-top:12px;}
 .kicker{font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);}
-/* a subtitle breaks only between its parts */
-.kicker .kw{white-space:nowrap;}
-.stat{font-family:var(--mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap;}
+/* a subtitle, and the counts beside it, break only between their parts */
+.kw{white-space:nowrap;}
+.stat{font-family:var(--mono); font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;}
 .stat b{color:var(--ink2); font-weight:600;}
 
 @media (max-width:560px){ .wrap{padding:22px 18px 56px;} .brand{font-size:29px;} .h1{font-size:27px;} .sub{flex-direction:column; gap:6px;} }
@@ -277,7 +277,7 @@ export const sourcesCss = String.raw`
 .method{font-family:var(--serif); font-size:14px; color:var(--muted); line-height:1.6; margin:20px 0 0;}
 .method a{text-decoration:none; background-image:linear-gradient(var(--accent-ink),var(--accent-ink)); background-size:100% 1px; background-repeat:no-repeat; background-position:0 100%;}
 .spectrum{margin:28px 0 8px;}
-.spec-counts, .spec-labels{display:grid; grid-template-columns:repeat(7,1fr);}
+.spec-counts, .spec-labels{display:grid; grid-template-columns:repeat(7,minmax(0,1fr));}
 .spec-counts span{text-align:center; font-family:var(--serif); font-weight:600; font-size:19px; color:var(--ink);
   font-variant-numeric:tabular-nums; line-height:1; padding-bottom:6px;}
 .spec-bar2{display:grid; grid-template-columns:repeat(7,1fr); height:36px; border-radius:6px; overflow:hidden; border:1px solid var(--line);}
@@ -289,6 +289,8 @@ export const sourcesCss = String.raw`
 .spec-labels span, .spec-labels a{text-align:center; font-family:var(--mono); font-size:12px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--muted); text-decoration:none; padding:0 2px; line-height:1.3;}
 .spec-labels a.on{color:var(--ink2);}
+/* "CENTRE" at 12px is a hair wider than a seventh of a 320px phone */
+@media (max-width:360px){ .spec-labels span, .spec-labels a{letter-spacing:-.03em; padding:0;} }
 .spec-labels a.on:hover{color:var(--accent-ink);}
 .spec-cap{font-family:var(--sans); font-size:12px; color:var(--muted); margin:14px 0 0;}
 .sec{margin-top:44px;}

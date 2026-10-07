@@ -37,11 +37,11 @@ export const topbar = (nav: [string, string][], right: string): string =>
 export const footer = (links: [string, string][], tagline: string): string =>
   `<footer class="site-foot"><div class="row">${navRow(links)}</div><p style="margin:0;">${tagline}</p></footer>`;
 
-// A subtitle's parts, each kept on one line (`.kicker .kw`).
-export const kickerParts = (kicker: string): string => kicker.split(" &middot; ").map((part) => `<span class="kw">${part}</span>`).join(" &middot; ");
+// A " · "-separated line whose parts each stay on one line (`.kw`), breaking only between them.
+export const wholeParts = (line: string): string => line.split(" &middot; ").map((part) => `<span class="kw">${part}</span>`).join(" &middot; ");
 
 export const subMasthead = (brand: string, title: string, kicker: string, stat: string): string =>
-  `<header class="masthead"><a class="brandmark" href="/">${brand}</a><h1 class="h1">${title}</h1><div class="sub"><span class="kicker">${kickerParts(kicker)}</span><span class="stat">${stat}</span></div></header>`;
+  `<header class="masthead"><a class="brandmark" href="/">${brand}</a><h1 class="h1">${title}</h1><div class="sub"><span class="kicker">${wholeParts(kicker)}</span><span class="stat">${wholeParts(stat)}</span></div></header>`;
 
 export const ogImageTags = (imageUrl: string): string => `<meta property="og:image" content="${imageUrl}">
   <meta property="og:image:width" content="1200">

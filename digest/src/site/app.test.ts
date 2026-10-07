@@ -445,4 +445,18 @@ describe("small text", () => {
       expect(kicker.split(" &middot; ").every((part) => /^<span class="kw">[^<]*<\/span>$/.test(part)), kicker).toBe(true);
     }
   });
+  // At 12px the counts under a title ("30 runs · 12 subscribers · ...") are wider than a 320px phone.
+  it("lets the counts under a title wrap between their parts", async () => {
+    for (const path of ["/", "/sources", "/stats"]) {
+      const html = await (await get(testApp(withIssue()), path)).text();
+      const stat = /<span class="stat">([\s\S]*?)<\/span><\/div>/.exec(html)?.[1] ?? "";
+      expect(stat.split(" &middot; ").length, path).toBeGreaterThan(1);
+      expect(stat.split(" &middot; ").every((part) => part.startsWith('<span class="kw">')), stat).toBe(true);
+      expect(html).not.toMatch(/\.stat\{[^}]*white-space:nowrap/);
+    }
+  });
+  // Seven equal columns: a long label must not widen its column off the bar above it.
+  it("keeps the spectrum labels under their bars", async () => {
+    expect(await (await get(testApp(withIssue()), "/sources")).text()).toMatch(/\.spec-counts, \.spec-labels\{display:grid; grid-template-columns:repeat\(7,minmax\(0,1fr\)\);\}/);
+  });
 });
