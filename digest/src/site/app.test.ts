@@ -427,3 +427,22 @@ describe("landmarks (axe's region rule)", () => {
     expect(html.match(/<header[\s>]/g)).toHaveLength(1);
   });
 });
+
+// The issue's own styles are held to this in render.test.ts; these are the site's other pages.
+const under12 = (html: string) =>
+  [...html.matchAll(/font-size\s*:\s*(\d*\.?\d+)(px|rem)/g)].map((m) => Number(m[1]) * (m[2] === "rem" ? 16 : 1)).filter((n) => n < 12);
+const oneThread = async () => ({ label: "Talks", status: "active", installments: [{ day: "2026-09-01", issueDate: "2026-09-01", story: "Talks open", content: "They met." }], openQuestions: [{ question: "Will they meet again?", raisedContent: "They met." }] });
+
+describe("small text", () => {
+  it.each(["/", "/sources", "/threads", "/thread/1", "/stats", "/no-such-page"])("sets nothing below 12px on %s", async (path) => {
+    const res = await get(testApp(withIssue({ thread: oneThread, mergedInto: async () => null })), path);
+    expect(res.status).toBe(path === "/no-such-page" ? 404 : 200);
+    expect(under12(await res.text())).toEqual([]);
+  });
+  it("keeps each part of a page's subtitle on one line", async () => {
+    for (const path of ["/", "/sources"]) {
+      const kicker = /<span class="kicker">([\s\S]*?)<\/span><span class="stat">/.exec(await (await get(testApp(withIssue()), path)).text())?.[1] ?? "";
+      expect(kicker.split(" &middot; ").every((part) => /^<span class="kw">[^<]*<\/span>$/.test(part)), kicker).toBe(true);
+    }
+  });
+});

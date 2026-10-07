@@ -3,7 +3,7 @@ import { subscriptionsEnabled } from "../config.js";
 import type { IndexMeta } from "../data.js";
 import { escapeHtml, formatDayMonthYear, thousands } from "../text.js";
 import { indexCss, indexJs } from "./blobs.js";
-import { type PageCtx, brand, indexChrome, pageBody, pageHead, script } from "./chrome.js";
+import { type PageCtx, brand, indexChrome, kickerParts, pageBody, pageHead, script } from "./chrome.js";
 
 // The home page: the archive as an issue-numbered running order.
 
@@ -71,7 +71,7 @@ export function indexPage(ctx: PageCtx, meta: IndexMeta, scope: IndexScope, page
   const head = pageHead(ctx, escapeHtml(ctx.cfg.digestName), "Daily briefing on geopolitics, tech, and privacy. All sides. No fluff.", indexCss, `\n<link rel="alternate" type="text/markdown" href="/index.md">`);
   const inner = `<header class="masthead">
       <h1 class="brand">${brand(ctx)}</h1>
-      <div class="sub"><span class="kicker">Geopolitics &middot; Tech &middot; Privacy &middot; All sides, no fluff</span><span class="stat">${stat}</span></div>
+      <div class="sub"><span class="kicker">${kickerParts("Geopolitics &middot; Tech &middot; Privacy &middot; All sides, no fluff")}</span><span class="stat">${stat}</span></div>
     </header>
     <main id="main">${markdownPointer}
     ${notice}
