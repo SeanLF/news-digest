@@ -3,10 +3,14 @@
 // The command is src/cli/stage-replay.ts. One attempt per activity, under production's start-to-close:
 // a failure is a result to count, not something to retry away (a run's retries would hide a variant
 // that fails one call in three), and the output says what a run would have done with it.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { attributeActivity } from "../activities/attribute.js";
-import { clusterActivities } from "../activities/cluster.js";
-import { coherenceActivity } from "../activities/coherence.js";
-import { selectActivity } from "../activities/select.js";
+import { clusterActivities, loadArticles } from "../activities/cluster.js";
+import { coherenceActivity, draftFrom } from "../activities/coherence.js";
+import { REQUIRED as SELECT_INPUTS, selectActivity } from "../activities/select.js";
+import { CoherenceReportSchema } from "../contracts/coherence.js";
+import { parseAgentSpec } from "../runner/prompt.js";
 import { ArtifactStore, type Pointer } from "../store/artifacts.js";
 import type { SdkQuery } from "../runner/run-stage.js";
 import type { UsageRow } from "../store/usage.js";
@@ -57,9 +61,11 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
   const timeoutMs = test.timeoutMs ?? PROD_POLICY[mode].timeoutMs;
   const whole = perCall ? undefined : AbortSignal.timeout(timeoutMs);
   const deps = { store, agentsDir, onUsage, signal: () => whole ?? AbortSignal.timeout(timeoutMs), ...(test.query ? { query: test.query } : {}) };
-  // The run's inputs are read first, outside the try: a missing artifact, database or run is the
-  // harness's failure and fails the replay, never a variant's failure (a broken instrument must not
-  // read as a result). Only what the stage itself does counts.
+  // Everything the stage reads is read and validated first, outside the try: the agent file as the plan
+  // overrode it, the articles, drafts, report and repair. A missing or malformed input, database or run
+  // is the harness's failure and fails the replay, never a variant's (a broken instrument must not read
+  // as a result). What is left inside is the stage's own work; a database dropping mid-stage would still
+  // count against it.
   const stage = await prepare(mode, deps, store, run, usage);
   let out: Pointer;
   try {
@@ -72,7 +78,11 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
 
 type Deps = { store: ArtifactStore; agentsDir: string; onUsage: (r: UsageRow) => void; signal: () => AbortSignal; query?: SdkQuery };
 
+const AGENT_FILE: Record<Mode, string> = { cluster: "cluster-extract.md", select: "select.md", coherence: "coherence.md", attribute: "attribute.md" };
+
 async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number, usage: Usage): Promise<() => Promise<Pointer>> {
+  parseAgentSpec(readFileSync(join(deps.agentsDir, AGENT_FILE[mode]), "utf8"));
+  if ((await loadArticles(store, run)).length === 0) throw new Error(`run ${run} has no articles`);
   if (mode === "cluster") {
     const c = clusterActivities(deps);
     const { batches } = await c.planBatches(run);
@@ -88,15 +98,21 @@ async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number
     };
   }
   if (mode === "select") {
+    for (const name of SELECT_INPUTS) await need(store, run, name);
     const [clusters, recap] = [await need(store, run, "clusters.json"), await need(store, run, "recap.txt")];
+    JSON.parse(await store.get(clusters));
     return () => selectActivity(deps)(run, clusters, recap, undefined, { force: true });
   }
   const ds = await drafts(store, run);
   if (ds.length === 0) throw new Error(`run ${run} has no draft_sNN.json`);
   if (mode === "coherence") {
     const fulltext = await need(store, run, "article_fulltext.json");
+    await draftFrom(store, ds);
     return () => coherenceActivity(deps)(run, ds, fulltext, undefined, true);
   }
   const [report, repair] = [await need(store, run, "coherence_report.json"), await need(store, run, "repair_resolution.json")];
+  await draftFrom(store, ds);
+  CoherenceReportSchema.parse(JSON.parse(await store.get(report)));
+  JSON.parse(await store.get(repair));
   return () => attributeActivity(deps)(run, ds, report, repair, true);
 }

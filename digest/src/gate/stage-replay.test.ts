@@ -1,5 +1,7 @@
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
@@ -44,6 +46,18 @@ describe("stage replay", () => {
     const withDraft = await selectInputs(504);
     await withDraft.put(504, "draft_s00.json", "{}");
     await expect(replay("coherence", withDraft, 504, AGENTS)).rejects.toThrow(/article_fulltext\.json/);
+  });
+
+  it("an override typo or a malformed stored input is the harness's failure too", async () => {
+    const typo = mkdtempSync(join(tmpdir(), "agents-"));
+    cpSync(AGENTS, typo, { recursive: true });
+    writeFileSync(join(typo, "select.md"), readFileSync(join(AGENTS, "select.md"), "utf8").replace("effort: high", "effort: hihg"));
+    await expect(replay("select", await selectInputs(505), 505, typo)).rejects.toThrow(/effort/);
+    const bad = await selectInputs(506);
+    await bad.put(506, "draft_s00.json", "{}");
+    await bad.put(506, "coherence_report.json", "not json");
+    await bad.put(506, "repair_resolution.json", '{"results":[]}');
+    await expect(replay("attribute", bad, 506, AGENTS)).rejects.toThrow();
   });
 
   it("a model call that fails is a result, with what a run would have done", async () => {
