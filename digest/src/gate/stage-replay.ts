@@ -1,16 +1,30 @@
 // Replays one model stage of a stored run from the run's own artifacts, in a scratch copy of the
 // product database (bin/replay makes one per replay), and writes what the stage produced with its cost.
-// The command is src/cli/stage-replay.ts.
+// The command is src/cli/stage-replay.ts. One attempt per activity, under production's start-to-close:
+// a failure is a result to count, not something to retry away (a run's retries would hide a variant
+// that fails one call in three), and the output says what a run would have done with it.
 import { attributeActivity } from "../activities/attribute.js";
 import { clusterActivities } from "../activities/cluster.js";
 import { coherenceActivity } from "../activities/coherence.js";
 import { selectActivity } from "../activities/select.js";
 import { ArtifactStore, type Pointer } from "../store/artifacts.js";
+import type { SdkQuery } from "../runner/run-stage.js";
 import type { UsageRow } from "../store/usage.js";
 import { MODEL_FANOUT_LIMIT, mapBounded } from "../workflow/bounded.js";
+import { MODEL_MAX_ATTEMPTS } from "../workflow/policy.js";
 
 export const MODES = ["cluster", "select", "coherence", "attribute"] as const;
 export type Mode = (typeof MODES)[number];
+
+const MIN = 60_000;
+// Production's policy per stage: the workflow's proxies (model, verdict, attributing in
+// digest.workflow.ts); stage-replay.test.ts holds this table to them.
+export const PROD_POLICY: Record<Mode, { timeoutMs: number; perCall: boolean; onFailure: string }> = {
+  cluster: { timeoutMs: 45 * MIN, perCall: true, onFailure: `each batch retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then lost: the join falls back to titles` },
+  select: { timeoutMs: 45 * MIN, perCall: true, onFailure: `retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then the run parks for an operator` },
+  coherence: { timeoutMs: 45 * MIN, perCall: true, onFailure: "one attempt: the run parks for an operator" },
+  attribute: { timeoutMs: 10 * MIN, perCall: false, onFailure: "one attempt: the issue ships without attribution" },
+};
 
 export interface Usage { calls: number; costUsd: number; tokens: Record<string, number>; models: string[]; efforts: string[]; lostBatches: string[] }
 
@@ -25,7 +39,10 @@ async function need(store: ArtifactStore, run: number, name: string): Promise<Po
   return p;
 }
 
-export async function replay(mode: Mode, store: ArtifactStore, run: number, agentsDir: string): Promise<{ artifact: unknown; usage: Usage }> {
+export interface Replayed { artifact: unknown; usage: Usage; failure?: { error: string; prodOnFailure: string } }
+
+// `test` swaps in a fake model call and a shorter timeout; the command passes neither.
+export async function replay(mode: Mode, store: ArtifactStore, run: number, agentsDir: string, test: { query?: SdkQuery; timeoutMs?: number } = {}): Promise<Replayed> {
   const usage: Usage = { calls: 0, costUsd: 0, tokens: {}, models: [], efforts: [], lostBatches: [] };
   const onUsage = (r: UsageRow) => {
     usage.calls++;
@@ -34,7 +51,22 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
     if (!usage.efforts.includes(r.effort)) usage.efforts.push(r.effort);
     for (const [k, v] of Object.entries(r.tokens)) usage.tokens[k] = (usage.tokens[k] ?? 0) + v;
   };
-  const deps = { store, agentsDir, onUsage };
+  // One activity's budget: per model call where the activity is one call (or one batch), else one
+  // signal for the whole activity, as attribute's 10 minutes cover all its per-story calls.
+  const { perCall, onFailure } = PROD_POLICY[mode];
+  const timeoutMs = test.timeoutMs ?? PROD_POLICY[mode].timeoutMs;
+  const whole = perCall ? undefined : AbortSignal.timeout(timeoutMs);
+  const deps = { store, agentsDir, onUsage, signal: () => whole ?? AbortSignal.timeout(timeoutMs), ...(test.query ? { query: test.query } : {}) };
+  try {
+    return { artifact: JSON.parse(await store.get(await runStageOf(mode, deps, store, run, usage))), usage };
+  } catch (e) {
+    return { artifact: null, usage, failure: { error: String(e), prodOnFailure: onFailure } };
+  }
+}
+
+type Deps = { store: ArtifactStore; agentsDir: string; onUsage: (r: UsageRow) => void; signal: () => AbortSignal; query?: SdkQuery };
+
+async function runStageOf(mode: Mode, deps: Deps, store: ArtifactStore, run: number, usage: Usage): Promise<Pointer> {
   let out: Pointer;
   if (mode === "cluster") {
     const c = clusterActivities(deps);
@@ -43,7 +75,7 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
     const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => c.extractBatch(run, b, true));
     const tags = settled.map((r, i) => {
       if (r.status === "fulfilled") return r.value;
-      usage.lostBatches.push(`b${batches[i]!.index}: ${String(r.reason)}`);
+      usage.lostBatches.push(`b${batches[i]!.index}: ${String(r.reason)} (in a run: ${PROD_POLICY.cluster.onFailure})`);
       return null;
     });
     out = await c.joinClusters(run, tags, true);
@@ -54,5 +86,5 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
   } else {
     out = await attributeActivity(deps)(run, await drafts(store, run), await need(store, run, "coherence_report.json"), await need(store, run, "repair_resolution.json"), true);
   }
-  return { artifact: JSON.parse(await store.get(out)), usage };
+  return out;
 }
