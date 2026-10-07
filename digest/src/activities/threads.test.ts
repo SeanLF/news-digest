@@ -115,7 +115,7 @@ describe("threadsLink", () => {
     expect(await s.acts.threadsLink(RUN)).toEqual({ plans: [{ threadId: tid, articleIds: ["A1", "A2"] }] });
     expect(s.calls.map((c) => c.stage)).toEqual(["link"]);
     expect(s.calls[0]!.prompt).toBe("ACTIVE THREADS:\n  [1] Iran nuclear talks open -> Iran nuclear talks\n\nTODAY'S STORIES:\n  (0) Iran talks in Geneva\n  (1) EU AI act\n\nMap each today-story to a thread id or NEW.");
-    expect(s.calls[0]!.options.model).toBe("claude-haiku-4-5-20251001");
+    expect(s.calls[0]!.options.model).toBe("claude-haiku-5-5");
     expect(s.calls[0]!.options.outputFormat).toBeUndefined(); // free text: the schema cost a continuation a day
     expect(await s.rows(`SELECT id, label, last_run_id FROM ${THREADS} ORDER BY id`)).toEqual([{ id: 1, label: "Iran talks in Geneva", last_run_id: RUN }, { id: 2, label: "EU AI act", last_run_id: RUN }]);
     expect(await s.rows(`SELECT thread_id, is_continuation FROM thread_updates WHERE run_id = ${RUN} ORDER BY id`)).toEqual([{ thread_id: 1, is_continuation: true }, { thread_id: 2, is_continuation: false }]);
@@ -210,7 +210,7 @@ describe("threadSynthesis", () => {
     const synth = s.calls.find((c) => c.stage === "synthesis")!;
     expect(synth.prompt).toContain("RECENT UPDATES:\n- Talks opened in Oman.\nOPEN QUESTIONS:\n- Will talks move to Geneva?");
     expect(synth.prompt).toContain("A1: Iran talks resume in Geneva\n   Negotiators met again. Full story at [link]");
-    expect(synth.options.model).toBe("claude-sonnet-5-5");
+    expect(synth.options.model).toBe("claude-haiku-5-5");
     expect(s.calls.find((c) => c.stage === "audit")!.prompt).toBe(
       "CLAIM 1: Talks resumed in Geneva.\nCITED SOURCE(S):\n  [A1] Iran talks resume in Geneva. Negotiators met again. Full story at [link]\n\nCLAIM 2: A deal is imminent.\nCITED SOURCE(S):\n  [A2] Geneva round two for Iran deal. Second day of talks.",
     );

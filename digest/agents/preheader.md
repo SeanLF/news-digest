@@ -1,7 +1,7 @@
 ---
 name: preheader
 description: Writes the digest's one-sentence inbox preview line from the assembled headlines. Text in, text out.
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 thinking: disabled
 tools:
 ---

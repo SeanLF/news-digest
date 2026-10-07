@@ -36,7 +36,7 @@ describe("recap activity", () => {
     expect(calls.n).toBe(1);
     expect(calls.prompt).toContain("Talks resume,2026-09-17");
     expect(calls.options?.tools).toEqual([]);
-    expect(calls.options?.model).toBe("claude-haiku-4-5");
+    expect(calls.options?.model).toBe("claude-haiku-5-5");
     expect(calls.options?.systemPrompt).not.toContain("Read tool");
     expect(beats.length).toBe(3); // before, on the streamed result, after
   });

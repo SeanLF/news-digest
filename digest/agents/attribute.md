@@ -1,7 +1,7 @@
 ---
 name: attribute
 description: For one story, says what each cited article does with each of the story's claims, with a verbatim quote as evidence.
-model: claude-sonnet-5-5
+model: claude-haiku-5-5
 thinking: adaptive
 tools:
 ---
