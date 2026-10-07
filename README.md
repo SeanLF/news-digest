@@ -68,7 +68,7 @@ A Temporal schedule starts the run each day: `make digest-schedule` creates it o
 
 ## Cost
 
-Roughly a few dollars a day in API-equivalent cost (Sonnet for the reasoning stages, Haiku for recap). The live [stats page](https://news-digest.seanfloyd.dev/stats) shows the current per-issue number.
+Roughly two dollars a day in API-equivalent cost (Sonnet to select, write and check the stories, Haiku for the rest). The live [stats page](https://news-digest.seanfloyd.dev/stats) shows the current per-issue number.
 
 ## Troubleshooting
 
