@@ -126,9 +126,12 @@ shell, not `.env`). The OrbStack names follow the project. `make band` recreates
 band's copy with broadcasting off, so do not run it while a dev run is in flight.
 
 To compare one stage across models, efforts or prompts without rerunning the pipeline, `make replay
-PLAN=...` (bin/replay) replays it from a stored run's own artifacts, each line on its own copy of
-`digest_clone`, in parallel; `make band` answers whether the issue changed, `make replay` which stage
-changed it (docs/lessons/best-practices/a-change-upstream-of-select-is-an-editorial-change.md).
+CONFIG=...` replays it from a stored run's own artifacts through promptfoo (`digest/gate/replay.yaml`
+is the template): each provider is a variant, each test a run, each call a scratch copy of
+`digest_clone`, and `replay-assert.ts` scores the replay against the run's own artifact and holds it to
+the experiment's rule (`vars.rule`, written before the run). `make band` answers whether the issue
+changed, `make replay` which stage changed it
+(docs/lessons/best-practices/a-change-upstream-of-select-is-an-editorial-change.md).
 
 ## Environment notes
 

@@ -1,6 +1,6 @@
 // Replays one model stage of a stored run from the run's own artifacts, in a scratch copy of the
-// product database (bin/replay makes one per replay), and writes what the stage produced with its cost.
-// The command is src/cli/stage-replay.ts. One attempt per activity, under production's start-to-close:
+// product database (replay-provider.ts makes one per call), and returns what the stage produced with its cost.
+// One attempt per activity, under production's start-to-close:
 // a failure is a result to count, not something to retry away (a run's retries would hide a variant
 // that fails one call in three), and the output says what a run would have done with it.
 import { readFileSync } from "node:fs";

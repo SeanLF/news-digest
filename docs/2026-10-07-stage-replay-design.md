@@ -38,6 +38,11 @@ written as a result with what a run would have done (`retried up to 3 attempts â
 Not reproduced, by design: retries, operator notes, an operator's retry of a parked run, the run's deadline.
 When the question is "does the issue survive this change end to end", that is `make band`.
 
+Runner (same day, later): a promptfoo provider (`gate/replay-provider.ts`), not the hand-rolled
+`bin/replay` 2a0ec03 added. promptfoo already runs variants side by side, repeats, runs in parallel
+and compares; the provider adds a scratch database per call and a bound on model calls in flight, and
+`replay-assert.ts` scores against the run's own artifact under the experiment's pre-registered rule.
+
 ## Not chosen, and why
 
 - **B**: no change in output on success, hides failures, and moves production workflow code for an eval tool.
