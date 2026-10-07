@@ -1,0 +1,22 @@
+# A stage replay (make replay CONFIG=gate/replay.yaml): each provider is a variant of one stage, each
+# test a stored run; every call replays the stage on a scratch copy of digest_clone and replay-assert.ts
+# scores it against the run's own artifact. Write vars.rule BEFORE running: it is the decision.
+# Copy this file for an experiment (keep it beside its results, e.g. data/); paths below resolve from gate/.
+description: SELECT at high effort against the default, run 319
+prompts: ["run {{run}}"]
+providers:
+  - id: file://../dist/gate/replay-provider.js
+    label: select-default
+    config: { mode: select }
+  - id: file://../dist/gate/replay-provider.js
+    label: select-high
+    config: { mode: select, overrides: { select: { effort: high } } }
+tests:
+  - vars:
+      run: 319
+      # Scores per mode: cluster keeps/adds/clusters; select mustAgree/pickedAgree; coherence
+      # disagree/misses/extras/unmatched; attribute identical/differs; every mode failed.
+      rule: { failed: { max: 0 }, mustAgree: { min: 0.5 } }
+    assert:
+      - type: javascript
+        value: file://../dist/gate/replay-assert.js

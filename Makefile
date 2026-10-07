@@ -118,9 +118,10 @@ schema-types: ## Regenerate digest/src/store/schema.gen.ts, the product schema's
 check-injections: ## Render every stored issue in the dev stack's database and list each date whose site chrome failed to inject (exit 1 on any; read-only)
 	$(COMPOSE) run --rm --build --no-deps -e DIGEST_DATABASE_URL="postgres://digest_ro:digest_ro@digest-pg:5432/digest?sslmode=disable" digest-worker npm run --silent check-injections
 
-replay: ## Replay model stages of stored runs from a plan file, in parallel, each on its own copy of digest_clone (PLAN=data/replay-plans/x.plan [ARGS=--calls 8]; model calls; see bin/replay)
-	@test -n "$(PLAN)" || { echo "PLAN=<plan file> is required (format: bin/replay --help)"; exit 2; }
-	bin/replay $(PLAN) $(ARGS)
+replay: ## Replay model stages of stored runs via promptfoo, each call on a copy of digest_clone (CONFIG=gate/replay.yaml or /app/data/x.yaml REPS=1 J=4; model calls; make db-clone first)
+	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(COMPOSE) up -d --wait digest-pg && \
+	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-worker \
+	  npx --yes promptfoo@0.123.1 eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-4} --no-cache -o /app/data/replay-$$stamp.json
 
 band: ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (RUN=300 DATE=2026-09-18 REPS=3; model calls, ~$4/rep)
 	@stamp=band_$$(date -u +%Y%m%dT%H%M%SZ | tr 'A-Z' 'a-z'); \
