@@ -119,6 +119,26 @@ describe("the web stylesheet", () => {
   });
 });
 
+// 0-1px sizes are MJML's spacer cells, not text.
+const textSizesUnder12 = (html: string) =>
+  [...html.matchAll(/font-size\s*[:=]\s*"?(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1])).filter((n) => n > 1 && n < 12);
+
+describe("small text", () => {
+  it("sets nothing below 12px on the web issue", () => {
+    expect(textSizesUnder12(renderWeb(input(edge())))).toEqual([]);
+  });
+  it("sets nothing below 12px in the email", () => {
+    expect(textSizesUnder12(renderEmail(input(edge())))).toEqual([]);
+  });
+  // At 12px the email's dateline wraps on a phone; it may break only at a slash.
+  it("keeps each part of the email dateline on one line", () => {
+    const email = renderEmail(input(edge()));
+    for (const part of ["Friday, September 18, 2026", "min read", "must-know"]) {
+      expect(email).toMatch(new RegExp(`<span style="white-space:nowrap;">[^<]*${part}`));
+    }
+  });
+});
+
 const story = (sources: Selections["must_know"][number]["sources"]): Selections => ({
   must_know: [{ headline: "Arrests near air base", summary: "Five men held.", why_it_matters: "A 999 call.", reporting_varies: [{ source: "FT", angle: "an Iran link", bias: "center" }], sources }],
   should_know: [],
