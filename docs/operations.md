@@ -125,6 +125,11 @@ Several projects at once (worktrees): give each its own name and host ports, e.g
 shell, not `.env`). The OrbStack names follow the project. `make band` recreates the worker on the
 band's copy with broadcasting off, so do not run it while a dev run is in flight.
 
+To compare one stage across models, efforts or prompts without rerunning the pipeline, `make replay
+PLAN=...` (bin/replay) replays it from a stored run's own artifacts, each line on its own copy of
+`digest_clone`, in parallel; `make band` answers whether the issue changed, `make replay` which stage
+changed it (docs/lessons/best-practices/a-change-upstream-of-select-is-an-editorial-change.md).
+
 ## Environment notes
 
 - Claude Code intentionally has no temperature/determinism setting
