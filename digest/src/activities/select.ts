@@ -12,7 +12,7 @@ import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { recordOperatorNote } from "./operator-note.js";
 
 export const SELECT_OUTPUT = "selected.json";
-const REQUIRED = ["clusters.json", "recap.txt", "sources.csv"];
+export const REQUIRED = ["clusters.json", "recap.txt", "sources.csv"];
 const OPTIONAL = ["weekly_recap.txt", "yesterday_headlines.txt"];
 
 const Pick = z.object({ cluster_index: z.number().int(), article_ids: z.array(z.string()) });
