@@ -43,6 +43,7 @@ describe("select activity", () => {
     expect(seen.files).toEqual(["articles_1.csv", "clusters.json", "recap.txt", "sources.csv", "weekly_recap.txt"]);
     expect(seen.articles).toContain("Article URL: [link]");
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
+    expect(seen.options?.effort).toBe("high");
     expect(seen.options?.outputFormat).toMatchObject({ type: "json_schema" });
     expect(existsSync(seen.options?.cwd ?? "")).toBe(false); // scratch dir discarded
     expect(await select(300, p0, p0)).toEqual(p); // idempotent
