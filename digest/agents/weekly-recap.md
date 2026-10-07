@@ -1,7 +1,7 @@
 ---
 name: weekly-recap
 description: Summarises a week of RSS titles into the rolling weekly_recap.txt that SELECT and WRITE read for continuity. Text in, text out; runs once a week.
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 thinking: disabled
 tools:
 ---

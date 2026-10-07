@@ -1,7 +1,7 @@
 ---
 name: thread-link
 description: Decides whether each of today's stories continues an active thread or is new. Text in (the active threads and today's labels), structured JSON out; no tools.
-model: claude-haiku-4-5-20251001
+model: claude-haiku-5-5
 thinking: disabled
 tools:
 ---

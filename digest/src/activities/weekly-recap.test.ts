@@ -46,7 +46,7 @@ describe("weekly recap activity", () => {
     expect(p?.name).toBe(WEEKLY_RECAP);
     expect(await s.store.get(p!)).toBe(week("2026-09-11") + week("2026-09-18") + week("2026-09-25", "A week of talks."));
     expect(calls.prompt).toBe("- Ceasefire talks resume\n- Another");
-    expect(calls.options?.model).toBe("claude-haiku-4-5");
+    expect(calls.options?.model).toBe("claude-haiku-5-5");
     expect(calls.options?.tools).toEqual([]);
   });
   it("a recap under a week old is carried forward unchanged, with no model call", async () => {

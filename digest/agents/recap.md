@@ -1,7 +1,7 @@
 ---
 name: recap
 description: Summarises recent RSS titles into a 2-3 sentence thematic recap of the past week. Text in, text out; runs in parallel with cluster.
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 thinking: disabled
 tools:
 ---

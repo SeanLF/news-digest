@@ -1,7 +1,7 @@
 ---
 name: thread-audit
 description: Fact-checks a thread installment's claims against their cited sources. Text in, structured JSON out; no tools.
-model: claude-sonnet-5-5
+model: claude-haiku-5-5
 thinking: adaptive
 tools:
 ---
