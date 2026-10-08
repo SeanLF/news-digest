@@ -160,7 +160,6 @@ fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved c
 CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
 JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
-DIGEST_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" digest-worker
 # The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
 # scan): installed in the dev image for the in-container evals, and on the host for band and fulltext-fork.
 EVAL_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" digest-replay
