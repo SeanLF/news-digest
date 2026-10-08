@@ -119,7 +119,7 @@ check-injections: ## Render every stored issue in the dev stack's database and l
 	$(COMPOSE) run --rm --build --no-deps -e DIGEST_DATABASE_URL="postgres://digest_ro:digest_ro@digest-pg:5432/digest?sslmode=disable" digest-worker npm run --silent check-injections
 
 replay: ## Replay model stages of stored runs via promptfoo, each call on a copy of digest_clone (CONFIG=gate/replay.yaml or /app/data/x.yaml REPS=1 J=8; model calls; make db-clone first)
-	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(COMPOSE) up -d --wait digest-pg && \
+	@stamp=$$(date -u +%Y%m%dT%H%M%SZ)-$$$$; $(COMPOSE) up -d --wait digest-pg && \
 	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
 	  npx --yes promptfoo@0.123.1 eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
 
