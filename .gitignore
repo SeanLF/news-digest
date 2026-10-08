@@ -34,6 +34,7 @@ scratch/
 # ignore says about *.log (2a76a31 lost three of them silently).
 !docs/proposed/**/*.log
 digest/node_modules
+evals/node_modules
 digest/dist
 digest/bundle
 digest/sbom.cdx.json

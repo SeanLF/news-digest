@@ -74,6 +74,10 @@ CMD ["node", "dist/worker.js"]
 FROM app AS dev
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+# The eval runner (make band/planted/judges/replay), from evals/'s own lockfile: promptfoo's tree has
+# advisories the deploy's osv-scanner would refuse, so it stays out of digest/'s lock and the worker image.
+COPY evals/package.json evals/package-lock.json /app/evals/
+RUN cd /app/evals && npm ci --no-audit --no-fund && chown -R appuser /app/evals
 USER appuser
 
 FROM app AS worker
