@@ -10,6 +10,7 @@ __pycache__/
 .DS_Store
 CLAUDE.local.md
 digest/node_modules/
+evals/node_modules/
 digest/dist/
 digest/bundle/
 digest/sbom.cdx.json

@@ -171,6 +171,7 @@ services:
   # about 6 Claude CLI processes (~245 MiB each); a replay is bounded by promptfoo's -j and the Docker VM.
   digest-replay:
     extends: { service: digest-worker }
+    build: { context: ., dockerfile: digest/Dockerfile, target: dev, args: { GIT_SHA: "${GIT_SHA:-dev}" } }
     mem_limit: 0
     restart: "no"
     profiles: ["replay"]

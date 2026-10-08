@@ -26,6 +26,17 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
 
+  # The eval runner (promptfoo); its own lock, outside the deploy's osv-scanner scan.
+  - package-ecosystem: npm
+    directory: /evals
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
   - package-ecosystem: uv
     directory: /digest/python
     schedule:

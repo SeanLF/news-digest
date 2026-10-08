@@ -58,6 +58,9 @@ help: ## Show this help
 # docker-compose.yml's dev stack: Temporal and the worker, the TypeScript site and resend-fake, over one product
 # database (`digest` in digest-pg). COMPOSE picks the project, e.g. COMPOSE="docker compose -p mine".
 COMPOSE ?= docker compose
+# The eval runner, from evals/'s lock: in the dev image (in-container evals) and on the host (band, fulltext-fork).
+PROMPTFOO_IN = /app/evals/node_modules/.bin/promptfoo
+PROMPTFOO = $(CURDIR)/evals/node_modules/.bin/promptfoo
 DEV_SERVICES = digest-worker python-worker digest-site resend-fake temporal
 # What dev-up rebuilds: the services built from the tree, digest-migrate included (up --build would rebuild it
 # as a dependency). dev-import leaves resend-fake out: loading a database is no reason to restart the mail.
@@ -121,9 +124,9 @@ check-injections: ## Render every stored issue in the dev stack's database and l
 replay: ## Replay model stages of stored runs via promptfoo, each call on a copy of digest_clone (CONFIG=gate/replay.yaml or /app/data/x.yaml REPS=1 J=8; model calls; make db-clone first)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ)-$$$$; $(COMPOSE) up -d --wait digest-pg && \
 	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
-	  npx --yes promptfoo@0.123.1 eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
+	  $(PROMPTFOO_IN) eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
 
-band: ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (RUN=300 DATE=2026-09-18 REPS=3; model calls, ~$4/rep)
+band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (RUN=300 DATE=2026-09-18 REPS=3; model calls, ~$4/rep)
 	@stamp=band_$$(date -u +%Y%m%dT%H%M%SZ | tr 'A-Z' 'a-z'); \
 	$(COMPOSE) up -d --wait digest-pg && \
 	$(COMPOSE) exec -T digest-pg psql -q -U postgres -v ON_ERROR_STOP=1 -c "ALTER DATABASE digest ALLOW_CONNECTIONS false" \
@@ -131,20 +134,20 @@ band: ## Same-day curation band of the TypeScript workflow via promptfoo, on a c
 	$(COMPOSE) exec -T digest-pg psql -q -U postgres -c "ALTER DATABASE digest ALLOW_CONNECTIONS true"; test $$made = 0 && \
 	DIGEST_DB_NAME=$$stamp BROADCAST_ENABLED=false $(COMPOSE) up -d --build --wait digest-worker python-worker && \
 	$(COMPOSE) exec -T digest-worker node dist/cli/set-current.js && \
-	(cd digest && npm run build && BAND_DB=postgres://postgres:digest@127.0.0.1:$${DIGEST_PG_PORT:-5433}/$$stamp TEMPORAL_ADDRESS=127.0.0.1:$${TEMPORAL_PORT:-7233} npx --yes promptfoo@0.123.1 eval -c gate/band.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/$$stamp.json); status=$$?; \
+	(cd digest && npm run build && BAND_DB=postgres://postgres:digest@127.0.0.1:$${DIGEST_PG_PORT:-5433}/$$stamp TEMPORAL_ADDRESS=127.0.0.1:$${TEMPORAL_PORT:-7233} $(PROMPTFOO) eval -c gate/band.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/$$stamp.json); status=$$?; \
 	$(COMPOSE) up -d --force-recreate digest-worker >/dev/null; exit $$status  # the worker goes back to the digest database, broadcast on
 
 judges: ## Two judge families x5 (REPS=5) on a gate fixture (FIXTURE=day-300, or e.g. day-305/python) via promptfoo, in the worker container (model calls, ~$5)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); fx=$${FIXTURE:-day-300}; test -f docs/proposed/gate-fixtures/$$fx/digest.html || { echo "no fixture docs/proposed/gate-fixtures/$$fx/{digest.html,inputs/}"; exit 2; }; \
 	sed "s#gate-fixtures/day-300/#gate-fixtures/$$fx/#g" digest/gate/judges.yaml > digest/gate/judges.run.yaml; \
-	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) && npx --yes promptfoo@0.123.1 eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json && node dist/cli/agreement.js ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json"
+	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) && $(PROMPTFOO_IN) eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json && node dist/cli/agreement.js ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json"
 
 planted: ## COHERENCE planted-defect band on the new runner via promptfoo, in the worker container (REPS=3; ~$1/rep)
-	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(DIGEST_RUN) npx --yes promptfoo@0.123.1 eval -c gate/planted.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json
+	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(EVAL_RUN) $(PROMPTFOO_IN) eval -c gate/planted.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json
 
-fulltext-fork: ## Fulltext fork: every extractor arm over a saved corpus via promptfoo, on the host (DIR=data/fulltext-fork-<stamp>)
+fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved corpus via promptfoo, on the host (DIR=data/fulltext-fork-<stamp>)
 	@test -n "$(DIR)" || { echo "DIR=data/fulltext-fork-<stamp> is required"; exit 2; }
-	cd digest && npm run build --silent && FULLTEXT_FORK_DIR="$(CURDIR)/$(DIR)" npx --yes promptfoo@0.123.1 eval -c gate/fulltext.yaml -j 4 --no-cache -o "$(CURDIR)/$(DIR)/results.json"
+	cd digest && npm run build --silent && FULLTEXT_FORK_DIR="$(CURDIR)/$(DIR)" $(PROMPTFOO) eval -c gate/fulltext.yaml -j 4 --no-cache -o "$(CURDIR)/$(DIR)/results.json"
 
 # Evals that make model calls run in the worker image, as production calls do: the Claude Code binary
 # the SDK spawns refuses to run nested inside a Claude Code session, and the image is the pinned one.
@@ -156,5 +159,10 @@ fulltext-fork: ## Fulltext fork: every extractor arm over a saved corpus via pro
 # judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here.
 CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
-JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
+JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
 DIGEST_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" digest-worker
+# The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
+# scan): installed in the dev image for the in-container evals, and on the host for band and fulltext-fork.
+EVAL_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" digest-replay
+$(PROMPTFOO): evals/package-lock.json
+	cd evals && npm ci --no-audit --no-fund && touch $(PROMPTFOO)
