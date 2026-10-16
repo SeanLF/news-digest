@@ -3,6 +3,6 @@
   "private": true,
   "description": "The eval runner (promptfoo) for make band, planted, judges, replay and fulltext-fork. Its own lockfile: promptfoo's tree has advisories the deploy's osv-scanner would refuse, and none of it ships.",
   "dependencies": {
-    "promptfoo": "0.124.0"
+    "promptfoo": "0.124.1"
   }
 }
