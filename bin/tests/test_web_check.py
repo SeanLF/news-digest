@@ -256,7 +256,7 @@ def test_web_check_overrides_were_judged_against_these_parents():
     root = Path(__file__).resolve().parents[2] / "web-check"
     lock = json.loads((root / "package-lock.json").read_text())["packages"]
     parents = {name: lock[f"node_modules/{name}"]["version"] for name in ("@lhci/cli", "pa11y-ci")}
-    assert parents == {"@lhci/cli": "0.15.1", "pa11y-ci": "4.1.1"}
+    assert parents == {"@lhci/cli": "0.15.1", "pa11y-ci": "5.0.0"}
     overrides = json.loads((root / "package.json").read_text())["overrides"]
     installed = {
         (k.rsplit("node_modules/", 1)[1], v["version"])
