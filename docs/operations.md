@@ -73,7 +73,7 @@ after the cut-over).
 One compose project, `docker-compose.yml`, driven by `make`: Temporal and the worker, the TypeScript
 site, and `resend-fake`, over one product database (`digest` in `digest-pg`, on a volume). The worker
 writes it as `postgres`; the site reads it as `digest_ro` and runs no migrations, as on the box. Tests
-and harnesses use `ci-pg`, a scratch server with no volume; a band copies `digest` with
+and harnesses use `ci-pg`, a scratch server whose data is on tmpfs; a band copies `digest` with
 `CREATE DATABASE ... TEMPLATE`.
 
 ```bash

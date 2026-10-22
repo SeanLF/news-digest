@@ -28,11 +28,15 @@ services:
     environment:
       - DIGEST_TEST_DATABASE_URL=postgres://postgres:digest@ci-pg:5432/postgres?sslmode=disable
 
-  # Scratch Postgres for tests and one-off harnesses, each in a database of its own. The box's image and major, with no volume: every
-  # `up` starts empty, and the databases tests create and never drop leave nothing on disk. Not the
-  # dev stack's product database, which is digest-pg below.
+  # Scratch Postgres for tests and one-off harnesses, each in a database of its own. The box's image and
+  # major, its data on tmpfs: the image declares a VOLUME, so without one Docker makes an anonymous volume
+  # that compose carries across recreates (13 GB of undropped test databases by 2026-10-18). A recreate
+  # starts empty; the tests drop what they make, since the container outlives a run. Not the dev stack's
+  # product database, which is digest-pg below.
   ci-pg:
     image: postgres:18.6-alpine3.24
+    tmpfs:
+      - /var/lib/postgresql
     environment:
       - POSTGRES_PASSWORD=digest
       - POSTGRES_DB=digest

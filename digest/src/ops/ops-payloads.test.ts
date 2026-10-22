@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { migrate } from "../store/schema.js";
 
 // bin/ops reads production over SSH by piping one of these psql scripts into psql inside the box's
@@ -33,6 +33,8 @@ async function freshDatabase(): Promise<string> {
   const name = `ops_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   const created = psql(ADMIN!, `CREATE DATABASE ${name}`);
   expect(created.stderr).toBe("");
+  // Dropped as postgres.test.ts drops its own: ci-pg outlives the run.
+  onTestFinished(() => void psql(ADMIN!, `DROP DATABASE IF EXISTS ${name} WITH (FORCE)`));
   const url = withDb(ADMIN!, name);
   // The box's order: the role (a superuser's, seanfloyd-infra pg-roles), then the schema, whose
   // migration gives the role its reads. A password so this test can log in over TCP.

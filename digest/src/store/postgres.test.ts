@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { MockActivityEnvironment } from "@temporalio/testing";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import { runActivities } from "../activities/run.js";
 import { ArtifactStore } from "./artifacts.js";
 import { openDb } from "./db.js";
@@ -16,6 +16,8 @@ const ADMIN = process.env["DIGEST_TEST_DATABASE_URL"];
 async function freshDatabase(): Promise<string> {
   const name = `t_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   await openDb(ADMIN!).exec(`CREATE DATABASE ${name}`);
+  // ci-pg outlives the run, so an undropped database stays until it is recreated: 1,471 of them, 13 GB, by 2026-10-18.
+  onTestFinished(() => openDb(ADMIN!).exec(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`));
   const url = ADMIN!.replace(/\/[^/?]+(\?|$)/, `/${name}$1`);
   migrate(url);
   return url;
