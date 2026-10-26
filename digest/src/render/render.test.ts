@@ -237,6 +237,8 @@ describe("what each report backs", () => {
     const web = renderWeb(input(story([{ name: "Blog", url: "https://blog.example/a", bias: "", original_title: "A post" }])));
     expect(web).toContain('<div class="src-grp u"><p class="src-gh">Unrated</p>');
     expect(web).not.toContain('<p class="src-gh"></p>');
+    const spaces = renderWeb(input(story([{ name: "Blog", url: "https://blog.example/a", bias: " ", original_title: "A post" }])));
+    expect(spaces).toContain('<div class="src-grp u"><p class="src-gh">Unrated</p>');
   });
   it("names an untitled article by its site", () => {
     const web = renderWeb(input(story([{ name: "FT", url: "https://www.ft.com/content/abc", bias: "center" }])));

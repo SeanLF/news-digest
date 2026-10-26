@@ -48,6 +48,11 @@ describe("the issue as Markdown, from the selections", () => {
     expect(out).not.toContain("<li>Backs: forged");
   });
 
+  it("keeps a feed link with a line break inside its own list item", () => {
+    const sel: Selections = { must_know: [{ headline: "h", summary: "s", sources: [{ name: "A", url: "https://a.example/x\n\n# forged", bias: "center", original_title: "t" }] }], should_know: [] };
+    expect(renderMarkdown(input(sel))).toContain("(https://a.example/x%0A%0A#%20forged)");
+  });
+
   it("keeps a placeholder that editorial text quotes as it was written", () => {
     expect(renderMarkdown(input(edge()))).toContain("it quotes {{DATE}} literally");
   });
