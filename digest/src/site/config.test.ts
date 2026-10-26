@@ -39,4 +39,10 @@ describe("siteConfig", () => {
     expect(siteConfig({ CONTACT_EMAIL: "", RESEND_FROM: "from@example" }).contactEmail).toBe("from@example");
     expect(siteConfig({ CONTACT_EMAIL: "hi@example", RESEND_FROM: "from@example" }).contactEmail).toBe("hi@example");
   });
+
+  it("refuses to start with an EMBED_ANCESTORS entry a browser would drop", () => {
+    expect(siteConfig({ EMBED_ANCESTORS: "https://seanfloyd.dev https://seanfloyd.dev.local" }).embedAncestors).toEqual(["https://seanfloyd.dev", "https://seanfloyd.dev.local"]);
+    expect(() => siteConfig({ EMBED_ANCESTORS: "https://seanfloyd.dev/" })).toThrow(/EMBED_ANCESTORS/);
+    expect(() => siteConfig({ EMBED_ANCESTORS: "seanfloyd.dev" })).toThrow(ConfigError);
+  });
 });

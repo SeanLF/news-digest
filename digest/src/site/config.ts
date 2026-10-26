@@ -23,6 +23,8 @@ export interface SiteConfig {
   doubleOptIn: boolean;
   sourcesFile: string;
   designDir: string;
+  // The origins that may frame /embed/lead: EMBED_ANCESTORS (space-separated), else HOMEPAGE_URL's.
+  embedAncestors: string[];
 }
 
 export class ConfigError extends Error {
@@ -47,6 +49,7 @@ export function siteConfig(env: NodeJS.ProcessEnv): SiteConfig {
     doubleOptIn: !["false", "0", "no"].includes((env["SUBSCRIBE_DOUBLE_OPT_IN"] ?? "").trim().toLowerCase()),
     sourcesFile: set(env["SOURCES_FILE"]) ?? "/app/sources.json",
     designDir: set(env["DESIGN_DIR"]) ?? "/app/design",
+    embedAncestors: embedAncestors(set(env["EMBED_ANCESTORS"]), set(env["HOMEPAGE_URL"])),
   };
   if (subscriptionsEnabled(cfg)) {
     try {
@@ -69,6 +72,24 @@ export function siteConfig(env: NodeJS.ProcessEnv): SiteConfig {
     }
   }
   return cfg;
+}
+
+// A browser drops a frame-ancestors source it cannot parse without a word, so a malformed origin
+// refuses to start rather than ship an embed nobody can frame.
+const ORIGIN = /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i;
+function embedAncestors(explicit: string | undefined, homepage: string | undefined): string[] {
+  if (explicit) {
+    const origins = explicit.split(/\s+/);
+    const bad = origins.find((o) => !ORIGIN.test(o));
+    if (bad) throw new ConfigError(`EMBED_ANCESTORS: ${JSON.stringify(bad)} is not an origin (scheme://host[:port], no path)`);
+    return origins;
+  }
+  if (!homepage) return [];
+  try {
+    return [new URL(homepage).origin];
+  } catch {
+    throw new ConfigError(`HOMEPAGE_URL: ${JSON.stringify(homepage)} is not a URL`);
+  }
 }
 
 export const subscriptionsEnabled = (c: SiteConfig): boolean => c.resendApiKey !== undefined && c.resendAudienceId !== undefined;
