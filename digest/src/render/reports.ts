@@ -57,7 +57,7 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
     for (const i of idx) {
       const s = named[i]!;
       let m = members.find((x) => x.name === s.name);
-      if (!m) members.push((m = { name: s.name!, bias: s.bias ?? "", urls: [], titles: [], ids: [], origin: false }));
+      if (!m) members.push((m = { name: s.name!, bias: s.bias?.trim() ?? "", urls: [], titles: [], ids: [], origin: false }));
       if (s.url && openable(s.url)) {
         m.urls.push(s.url);
         m.titles.push(s.original_title?.trim() ?? "");

@@ -12,7 +12,8 @@ function text(s: string): string {
   out = out.replace(/^(\s*)([#>=~]|[-+](?=\s)|\d+(?=[.)]\s))/, (_m, sp: string, lead: string) => (/^\d/.test(lead) ? `${sp}${lead}\\` : `${sp}\\${lead}`));
   return out.trim();
 }
-const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(" ", "%20");
+// Whitespace percent-encoded: a feed link with a line break must not end the line it sits on.
+const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(/\s/g, (c) => encodeURIComponent(c));
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
 // Feed text can carry line breaks the page collapses; in a list row one would end the item.
