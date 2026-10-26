@@ -82,7 +82,8 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
         existing.members[0]!.titles.push(...own.titles);
         existing.members[0]!.ids.push(...own.ids);
       }
-      else reports.push({ label: own.name, leaning: own.bias, bucket: biasBucket(own.bias), wire: false, members: [own] });
+      // An empty rating is unknown, not centre: biasBucket's "" is the Python port's byte-matching.
+      else reports.push({ label: own.name, leaning: own.bias || "unrated", bucket: own.bias ? biasBucket(own.bias) : "u", wire: false, members: [own] });
     }
   }
   if (named.length && !reports.length) log.warn({ stage: "render", warning: "every source dropped (no openable article link); the story ships with no source block", sources: named.length });
@@ -131,7 +132,13 @@ export interface ReportArticle { url: string; title: string }
 // Some feeds send it HTML-escaped ("Yemen&#x27;s"); the renderers escape it again on output.
 function articleTitle(title: string, outlet: string, url: string): string {
   const t = decodeHTML(title).replace(/\s+[-–—|]\s+([^-–—|]+)$/, (m, tail: string) => (tail.trim().toLowerCase() === outlet.toLowerCase() ? "" : m)).trim();
-  return t || new URL(url).hostname.replace(/^www\./, "");
+  if (t) return t;
+  // isSafeUrl checks only the scheme, so a host can still fail to parse ("http://a b/x").
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return outlet;
+  }
 }
 const articles = (m: ReportMember, outlet: string): ReportArticle[] => m.urls.map((url, i) => ({ url, title: articleTitle(m.titles[i] ?? "", outlet, url) }));
 const sameWords = (s: string) => s.toLowerCase().replaceAll(/[^\p{L}\p{N}]+/gu, "");
@@ -152,7 +159,7 @@ export function reportRows(reports: Report[], claims: StoryClaim[] = []): { carr
         .map((m) => {
           const arts = articles(m, m.name);
           const sameCopy = origin !== undefined && arts.length === 1 && heads.has(sameWords(arts[0]!.title));
-          return { carrier: true, republished: origin !== undefined, sameCopy, name: m.name, wire: false, leaning: m.bias, bucket: m.bias ? biasBucket(m.bias) : ("u" as const), articles: arts, backs: [] };
+          return { carrier: true, republished: origin !== undefined, sameCopy, name: m.name, wire: false, leaning: m.bias || "unrated", bucket: m.bias ? biasBucket(m.bias) : ("u" as const), articles: arts, backs: [] };
         }),
     ];
   });

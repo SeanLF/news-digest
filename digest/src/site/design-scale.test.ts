@@ -12,11 +12,12 @@ const offScale = (css: string): string[] =>
     .map((m) => m[1]!.trim())
     .filter((v) => !RELATIVE.test(v) && !(/^\d+px$/.test(v) && SCALE.has(Number.parseInt(v, 10))));
 
-// design/tokens.css, "motion": a duration is a token, never a literal; a loop (the skeleton pulse) is exempt.
+// design/tokens.css, "motion": a duration is a token, never a literal. Exempt: a loop (the skeleton
+// pulse) and the reduced-motion kill switch (a sub-millisecond duration means none).
 const literalTimings = (css: string): string[] =>
-  [...css.matchAll(/(?:transition|animation)\s*:([^;}"]+)/g)]
+  [...css.matchAll(/(?:transition|animation)(?:-delay|-duration)?\s*:([^;}"]+)/g)]
     .map((m) => m[1]!.trim())
-    .filter((v) => !v.includes("infinite") && /(^|[\s,(])\.?\d*\.?\d+m?s\b/.test(v));
+    .filter((v) => !v.includes("infinite") && !/^0?\.0*1ms\b/.test(v) && /(^|[\s,(])\.?\d*\.?\d+m?s\b/.test(v));
 
 const sheets: [string, string][] = [
   ["digest.css", readFileSync(new URL("../../templates/digest.css", import.meta.url), "utf8")],
@@ -34,7 +35,7 @@ describe("the design scale", () => {
     expect(offScale("a{font-size:15px} b{font-size:0.9rem} c{font-size:14px}")).toEqual(["15px", "0.9rem"]);
   });
   it("catches a literal timing, and passes a token and a loop", () => {
-    const css = "a{transition:opacity .2s ease} b{transition:color 150ms} c{transition:opacity var(--dur-1) var(--ease)} d{animation:pulse 1s infinite}";
-    expect(literalTimings(css)).toEqual(["opacity .2s ease", "color 150ms"]);
+    const css = "a{transition:opacity .2s ease} b{transition:color 150ms} c{transition:opacity var(--dur-1) var(--ease)} d{animation:pulse 1s infinite} e{animation-delay:.08s} f{animation-delay:calc(var(--stagger) * 2)} g{transition-duration:.01ms !important}";
+    expect(literalTimings(css)).toEqual(["opacity .2s ease", "color 150ms", ".08s"]);
   });
 });

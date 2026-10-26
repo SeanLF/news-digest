@@ -133,8 +133,8 @@ footer nav a{display:inline-block;padding:4px 0;}
 .src-grp.u::before{background:repeating-linear-gradient(135deg,var(--bias-c) 0 2px,transparent 2px 4px);}
 /* on [open], not on render: removing the attribute drops the animation, so each opening replays it */
 .srcbox[open] .src-grp::before{animation:rail-grow var(--dur-3) var(--ease) both;}
-.srcbox[open] .src-grp:nth-child(2)::before{animation-delay:.08s;}
-.srcbox[open] .src-grp:nth-child(n+3)::before{animation-delay:.16s;}
+.srcbox[open] .src-grp:nth-child(2)::before{animation-delay:var(--stagger);}
+.srcbox[open] .src-grp:nth-child(n+3)::before{animation-delay:calc(var(--stagger) * 2);}
 @keyframes rail-grow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
 @media (prefers-reduced-motion:reduce){.srcbox[open] .src-grp::before{animation:none;}}
 .src-gh{margin:0 0 4px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}

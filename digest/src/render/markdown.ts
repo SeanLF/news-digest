@@ -15,14 +15,17 @@ function text(s: string): string {
 const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(" ", "%20");
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
+// Feed text can carry line breaks the page collapses; in a list row one would end the item.
+const line = (s: string) => text(s.replaceAll(/\s+/g, " "));
+
 function sources(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string[] {
   if (!g.reports.length) return [];
   const backsCol = claims.length > 0;
   const row = (r: ReturnType<typeof reportRows>[number]) => {
-    const tag = r.carrier ? ` · ${text(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
-    const arts = r.sameCopy ? "" : r.articles.map((a) => `\n    * ${link(text(a.title), a.url)}`).join("");
-    const backs = backsCol && r.backs.length ? ` — Backs: ${text(r.backs.join("; "))}` : "";
-    const name = r.sameCopy ? link(text(r.name), r.articles[0]!.url) : text(r.name);
+    const tag = r.carrier ? ` · ${line(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
+    const arts = r.sameCopy ? "" : r.articles.map((a) => `\n    * ${link(line(a.title), a.url)}`).join("");
+    const backs = backsCol && r.backs.length ? ` — Backs: ${line(r.backs.join("; "))}` : "";
+    const name = r.sameCopy ? link(line(r.name), r.articles[0]!.url) : line(r.name);
     return `* ${r.republished ? "Republished by " : ""}${name}${tag}${backs}${arts}`;
   };
   const hidden = tally(g.reports).map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ");
