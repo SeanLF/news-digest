@@ -113,10 +113,55 @@ export function searchPage(ctx: PageCtx, query: string | undefined, results: Sea
 
 // ── stats ──
 const rag = (rate: number): [string, string] => (rate >= 95 ? ["ok", "✓"] : rate >= 80 ? ["warn", "▲"] : ["bad", "✕"]);
-const tile = (value: string, cls: string, label: string, sub: string): string =>
-  `<span class="st"><span class="v ${cls}">${value}</span><span class="l">${label}</span>${sub ? `<span class="s">${sub}</span>` : ""}</span>`;
-const spectrumRow = (label: string, p: [number, number, number], aria: string): string =>
-  `<div class="balrow"><span class="rl">${label}</span><div class="barwrap"><div class="sbar" role="img" aria-label="${aria}"><span class="on-l" style="width:${p[0]}%"></span><span class="on-c" style="width:${p[1]}%"></span><span class="on-r" style="width:${p[2]}%"></span></div><div class="bkeys"><span class="bkey" style="width:${p[0]}%">${p[0]}%</span><span class="bkey" style="width:${p[1]}%">${p[1]}%</span><span class="bkey" style="width:${p[2]}%">${p[2]}%</span></div></div></div>`;
+// A status never rides on colour alone: the icon carries it, and its name is read out.
+const STATUS: Record<string, [string, string]> = { ok: ["✓", "good"], warn: ["▲", "watch"], bad: ["✕", "poor"] };
+const tile = (value: string, status: string, label: string, sub: string, trend = ""): string => {
+  const st = STATUS[status];
+  const ic = st ? `<span class="ic ${status}" role="img" aria-label="${st[1]}">${st[0]}</span>` : "";
+  return `<span class="st"><span class="v">${ic}${value}</span><span class="l">${label}</span>${sub ? `<span class="s">${sub}</span>` : ""}${trend}</span>`;
+};
+const BIAS = [
+  ["l", "Lean left"],
+  ["c", "Centre"],
+  ["r", "Lean right"],
+] as const;
+// Under this a segment's % would not fit under it; the tooltip and the bar's aria-label still carry it.
+const LABEL_MIN_PCT = 10;
+function spectrumRow(label: string, p: [number, number, number], aria: string): string {
+  const segs = BIAS.map(([k, n], i) => ({ k, n, v: p[i]! })).filter((s) => s.v > 0);
+  const bar = segs.map((s) => `<span class="on-${s.k}" style="flex-grow:${s.v}" data-tip="${s.v}% · ${s.n}"></span>`).join("");
+  const keys = segs.map((s) => `<span class="bkey" style="flex-grow:${s.v}">${s.v >= LABEL_MIN_PCT ? `${s.v}%` : ""}</span>`).join("");
+  return `<div class="balrow"><span class="rl">${label}</span><div class="barwrap"><div class="sbar" role="img" aria-label="${aria}">${bar}</div><div class="bkeys" aria-hidden="true">${keys}</div></div></div>`;
+}
+// One series, so one ink: neither a bias colour nor a status one. The bar is scaled to the largest row.
+const shareRow = (label: string, count: number, sharePct: number, barPct: number): string =>
+  `<div class="share"><span class="sn">${escapeHtml(label)}</span><span class="bar" data-tip="${count.toLocaleString("en-CA")} picks · ${fixed(sharePct, 0)}%"><span class="fill" style="width:${fixed(barPct, 0)}%"></span></span><span class="pc">${fixed(sharePct, 0)}%</span></div>`;
+// Oldest first; a run with no recorded cost breaks the line rather than reading as $0.
+function sparkline(recent: Stats["recentRuns"]): string {
+  const runs = recent.toReversed();
+  const costs = runs.flatMap((r) => (r.apiCostUsd === null ? [] : [r.apiCostUsd]));
+  if (costs.length < 2) return "";
+  const [W, H, P] = [160, 32, 6];
+  const [lo, hi] = [Math.min(...costs), Math.max(...costs)];
+  const step = (W - 2 * P) / (runs.length - 1);
+  const x = (i: number) => P + i * step;
+  const y = (c: number) => (hi === lo ? H / 2 : P + ((hi - c) * (H - 2 * P)) / (hi - lo));
+  let d = "";
+  let pen = false;
+  runs.forEach((r, i) => {
+    if (r.apiCostUsd === null) pen = false;
+    else {
+      d += `${pen ? "L" : "M"}${fixed(x(i), 1)} ${fixed(y(r.apiCostUsd), 1)}`;
+      pen = true;
+    }
+  });
+  const lastI = runs.findLastIndex((r) => r.apiCostUsd !== null);
+  const hits = runs
+    .map((r, i) => (r.apiCostUsd === null ? "" : `<rect x="${fixed(x(i) - step / 2, 1)}" y="0" width="${fixed(step, 1)}" height="${H}"><title>$${fixed(r.apiCostUsd, 2)} · ${escapeHtml(r.runAt.slice(0, 10))}</title></rect>`))
+    .join("");
+  const aria = `Cost per run over the last ${runs.length} runs: $${fixed(costs[0]!, 2)} oldest, $${fixed(costs.at(-1)!, 2)} latest, between $${fixed(lo, 2)} and $${fixed(hi, 2)}`;
+  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}"><path d="${d}"/><circle cx="${fixed(x(lastI), 1)}" cy="${fixed(y(runs[lastI]!.apiCostUsd!), 1)}" r="4"/>${hits}</svg>`;
+}
 const fixed = (x: number, d: number): string => x.toFixed(d);
 
 const aria = (w: string, p: [number, number, number]): string => `${w} mix: ${p[0]}% lean-left, ${p[1]}% centre, ${p[2]}% lean-right`;
@@ -124,7 +169,7 @@ function balance(m: Metrics): string {
   const [verdict, cls] = m.jsd < 0.05 ? ["Tracks catalog", "ok"] : m.jsd < 0.15 ? ["Slight lean", "warn"] : ["Skews the shelf", "bad"];
   const tiles =
     tile(verdict, cls, "Selection vs shelf", `<span title="Jensen–Shannon divergence: distance from shipped mix to the catalog (0 = identical)">JSD</span> ${fixed(m.jsd, 2)} — curation isn't the skew`) +
-    tile(`${m.bucketsSourced} of 7`, "warn", "Spectrum buckets sourced", "left and right fold into lean-*") +
+    tile(`${m.bucketsSourced} of 7`, "", "Spectrum buckets sourced", "left and right fold into lean-*") +
     tile(`${m.factualityHighPct}%`, m.factualityHighPct >= 90 ? "ok" : "warn", "Shipped ≥ high factuality", "MBFC High or Very High");
   return `<section>
   <div class="sec-h"><h2>Balance</h2><span class="ct">shipped vs catalog</span></div>
@@ -132,7 +177,7 @@ function balance(m: Metrics): string {
   <div class="bal">
     ${spectrumRow("Shipped", m.shippedPct, aria("Shipped", m.shippedPct))}
     ${spectrumRow("Catalog", m.catalogPct, aria("Catalog", m.catalogPct))}
-    <p class="ballegend"><span class="k k-l"><span class="sw"></span>Lean left</span><span class="k k-c"><span class="sw"></span>Centre</span><span class="k k-r"><span class="sw"></span>Lean right</span></p>
+    <p class="ballegend">${BIAS.map(([k, n]) => `<span class="k k-${k}"><span class="sw"></span>${n}</span>`).join("")}</p>
   </div>
   <p class="note">The two bars compare the shipped mix against the catalog it draws from — they track closely, so the digest is balanced <em>relative to its shelf</em>. Three buckets appear because left and right <b style="color:var(--ink2);font-weight:600;">fold into lean-left and lean-right</b> here; the catalog does hold Left-rated outlets. What it holds none of is far-left or far-right, and that is a <b style="color:var(--ink2);font-weight:600;">curation choice, not a quality law</b> — plenty of strongly-slanted outlets report accurately.</p>
 </section>`;
@@ -144,9 +189,7 @@ function concentration(m: Metrics, never: string[], days: number): string {
     tile(`${m.sourcesUsed}<span style="color:var(--muted);font-size:18px;"> / ${m.catalogTotal}</span>`, "", "Sources used", `${m.coveragePct}% catalog coverage`) +
     tile(fixed(m.hhi, 2), hhiCls, 'Concentration <span title="Herfindahl–Hirschman Index: how concentrated sourcing is; low = well spread">(HHI)</span>', `${hhiDesc} · eff. ${fixed(m.effectiveN, 0)} sources`) +
     tile(top ? `${fixed(top.sharePct, 0)}%` : "—", "", "Top source share", top ? escapeHtml(top.name) : "");
-  const shares = m.topSources
-    .map((s) => `<div class="share"><span class="sn">${escapeHtml(s.name)}</span><span class="track"><span class="fill" style="width:${fixed(s.barPct, 0)}%"></span></span><span class="pc">${fixed(s.sharePct, 0)}%</span></div>`)
-    .join("");
+  const shares = m.topSources.map((s) => shareRow(s.name, s.count, s.sharePct, s.barPct)).join("");
   const drill = never.length ? `<p class="drill">Never used in ${days} days (${never.length}): ${never.map((s) => `<code>${escapeHtml(s)}</code>`).join(", ")}.</p>` : "";
   return `<section>
   <div class="sec-h"><h2>Concentration &amp; coverage</h2><span class="ct">${m.totalShipped} source picks · ${days} days</span></div>
@@ -163,7 +206,7 @@ function health(s: Stats, names: Map<string, string>): string {
     .map((h) => {
       const [cls, ic] = rag(h.ratePct);
       n[cls as keyof typeof n]++;
-      return `<tr><td class="src">${escapeHtml(names.get(h.sourceId) ?? h.sourceId)}</td><td class="n">${h.total}</td><td class="rate-cell"><span class="rate ${cls}"><span class="ic">${ic}</span>${fixed(h.ratePct, 0)}%</span></td></tr>`;
+      return `<tr><td class="src">${escapeHtml(names.get(h.sourceId) ?? h.sourceId)}</td><td class="n">${h.total}</td><td class="rate-cell"><span class="rate ${cls}"><span class="ic" role="img" aria-label="${STATUS[cls]![1]}">${ic}</span>${fixed(h.ratePct, 0)}%</span></td></tr>`;
     })
     .join("");
   return `<section>
@@ -178,8 +221,9 @@ function cost(s: Stats): string {
   // Two questions, two tiles: what a reader's story costs (~16 a run) and what curation reads (~550).
   const perStory = c.shippedTotal > 0 ? c.costTotal / c.shippedTotal : 0;
   const perArticle = c.keptTotal > 0 ? c.costTotal / c.keptTotal : 0;
+  const spark = sparkline(s.recentRuns);
   const tiles =
-    tile(`$${fixed(perRun, 2)}`, "", "Cost / run", "API list-price equiv.") +
+    tile(`$${fixed(perRun, 2)}`, "", "Cost / run", `API list-price equiv.${spark ? ` · trend of last ${s.recentRuns.length} runs` : ""}`, spark) +
     tile(`$${fixed(perSub, 3)}`, "", "Cost / subscriber", `${c.recipientsLatest} recipients`) +
     tile(`$${fixed(perStory, 3)}`, "", "Cost / shipped story", `${c.shippedTotal} stories readers saw`) +
     tile(`$${fixed(perArticle, 4)}`, "", "Cost / article ingested", `${c.keptTotal} read by curation`);
@@ -199,9 +243,7 @@ function geographic(m: Metrics): string {
   if (!m.regions.length) return "";
   const total = m.regions.reduce((a, [, c]) => a + c, 0);
   const top = Math.max(m.regions[0]?.[1] ?? 1, 1);
-  const rows = m.regions
-    .map(([n, c]) => `<div class="share"><span class="sn">${n}</span><span class="track"><span class="fill" style="width:${fixed((c / top) * 100, 0)}%"></span></span><span class="pc">${fixed(total > 0 ? (c / total) * 100 : 0, 0)}%</span></div>`)
-    .join("");
+  const rows = m.regions.map(([n, c]) => shareRow(n, c, total > 0 ? (c / total) * 100 : 0, (c / top) * 100)).join("");
   const topPct = total > 0 ? Math.round(((m.regions[0]?.[1] ?? 0) / total) * 100) : 0;
   const tiles = tile(fixed(m.geoEffective, 1), "", "Effective regions", `of ${m.regions.length} · geo-HHI ${fixed(m.geoHhi, 2)}`) + tile(m.regions[0]?.[0] ?? "", "", "Top region", `${topPct}% of stories`);
   return `<section>

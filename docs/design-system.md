@@ -65,18 +65,21 @@ The `--accent` / `--accent-ink` split is semantic and load-bearing — keep it. 
 - **Utility / section names**: system sans (`-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif`).
 - **Datelines / labels / meta / bias**: `ui-monospace, "SF Mono", Menlo, Monaco, monospace`.
 
-### Type scale (8 steps, px)
+### Type scale (px)
+
+Held by `digest/src/site/design-scale.test.ts`: every `font-size` in the issue and chrome stylesheets is
+one of these steps, the responsive tiers included. Nothing under 12 (`app.test.ts`, "small text").
 
 | Step | Use |
 |------|-----|
-| 10 | micro-caps labels (block labels, bias code, AI-WRITTEN tag, issue) |
-| 11 | secondary caps / meta (eyebrow, dateline, section name) |
-| 12 | small sans UI (sources, footer, translate, backlink, notice, section number) |
-| 14 | secondary body (reporting-varies, brief summary) |
-| 16 | secondary UI / chrome text (why-it-matters now uses body size — see Story) |
+| 12 | small UI and caps labels (sources, footer, translate, meta, block labels, bias, section number) |
+| 13 | chrome nav (see "Nav" below) |
+| 14 | secondary body (reporting-varies, brief summary, the sources box) |
+| 16 | secondary UI / chrome text; form inputs (16 keeps iOS from zooming on focus) |
 | 18 | body, lede, brief headline |
 | 25 | story headline |
 | 27 | brand wordmark |
+| 34 | chrome page `<h1>` and the index wordmark |
 
 **Responsive tiers** (same ratios, scaled for reading comfort — mirrors the original digest's 18→20px desktop bump):
 - **mobile** (`≤400px`): body 17, story head 22, brand 23; measure full-width.
@@ -104,6 +107,13 @@ No half-pixel sizes — within a tier, the scale is the scale.
 
 Serif display 600 / body 400. Mono block-labels **600** + `--accent-ink` (WHY IT MATTERS and
 HOW REPORTING VARIES share one identical treatment). Sans section-name 700. All inline links 400.
+
+## Motion
+
+One curve, three durations, as tokens in `design/tokens.css`: `--ease` (`cubic-bezier(.2,.8,.2,1)`),
+`--dur-1` 150ms (hover, colour), `--dur-2` 200ms (small movement), `--dur-3` 300ms (a reveal: the
+sources box opening, its rails growing). No literal durations (`design-scale.test.ts`); a loading loop
+is the one exception. Everything stops under `prefers-reduced-motion`.
 
 ## Spacing
 

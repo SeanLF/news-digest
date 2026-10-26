@@ -33,7 +33,7 @@ describe("render activity", () => {
     expect(out.email.name).toBe(EMAIL_OUTPUT);
     const web = await store.get(out.html);
     expect(web).toContain("No. 3<br>Filed 10:42 UTC");
-    expect(web).toContain('<a href="https://news.google.com/rss/articles/X">1</a>');
+    expect(web).toContain('<a href="https://news.google.com/rss/articles/X">Russia votes');
     expect(web).not.toContain("Ongoing");
     expect(await store.get(out.email)).toContain("View in browser");
   });
@@ -44,13 +44,13 @@ describe("render activity", () => {
     const web = await store.get((await activity(300, selections, threads, gnews)).html);
     expect(web).toContain('<a href="https://news.example/thread/889"');
     expect(web).toContain("Polls opened.");
-    expect(web).toContain('<a href="https://www.reuters.com/world/russia-votes">1</a>');
+    expect(web).toContain('<a href="https://www.reuters.com/world/russia-votes">Russia votes');
     // The Markdown is written from the same resolved selections as the page.
     const md = await store.get((await store.find(300, MARKDOWN_OUTPUT))!);
     expect(md).toContain("### Russia votes");
     expect(md).toContain("[Ongoing · day 2 ↗](https://news.example/thread/889)");
     expect(md).toContain("Polls opened.");
-    expect(md).toContain("[1](https://www.reuters.com/world/russia-votes)");
+    expect(md).toContain("[Russia votes](https://www.reuters.com/world/russia-votes)");
   });
   it("is idempotent on its output: a retry renders at the first attempt's time and returns the same pointers", async () => {
     const { store, selections, activity, tick } = await setup();

@@ -1,5 +1,5 @@
 import { isSafeUrl, type RenderInput, type Story, type StoryClaim } from "./common.js";
-import { countsLabel, groupReports, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
+import { countsLabel, groupReports, leaningGroups, leaningLabel, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
 
 // The issue as Markdown, for agents: the body the site serves under its title line (`.md`, Accept:
 // text/markdown). Written from the selections the web issue is rendered from, never from its HTML, and
@@ -12,20 +12,21 @@ function text(s: string): string {
   out = out.replace(/^(\s*)([#>=~]|[-+](?=\s)|\d+(?=[.)]\s))/, (_m, sp: string, lead: string) => (/^\d/.test(lead) ? `${sp}${lead}\\` : `${sp}\\${lead}`));
   return out.trim();
 }
-const cell = (s: string) => text(s).replaceAll("|", "\\|").replaceAll(/\s+/g, " ");
 const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(" ", "%20");
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
 function sources(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string[] {
   if (!g.reports.length) return [];
   const backsCol = claims.length > 0;
-  const rows = reportRows(g.reports, claims).map((r) => {
-    const name = r.carrier ? `↳ ${r.name}` : `${r.name}${r.wire ? " · wire" : ""}`;
-    return `| ${cell(name)} | ${cell(r.leaning)} |${backsCol ? ` ${cell(r.backs.join("; "))} |` : ""} ${r.urls.map((u, i) => link(String(i + 1), u)).join(" ")} |`;
-  });
+  const row = (r: ReturnType<typeof reportRows>[number]) => {
+    const tag = r.carrier ? ` · ${text(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
+    const arts = r.sameCopy ? "" : r.articles.map((a) => `\n    * ${link(text(a.title), a.url)}`).join("");
+    const backs = backsCol && r.backs.length ? ` — Backs: ${text(r.backs.join("; "))}` : "";
+    const name = r.sameCopy ? link(text(r.name), r.articles[0]!.url) : text(r.name);
+    return `* ${r.republished ? "Republished by " : ""}${name}${tag}${backs}${arts}`;
+  };
   const hidden = tally(g.reports).map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ");
-  const head = backsCol ? ["| Report | Leaning | What it backs | Articles |", "| --- | --- | --- | --- |"] : ["| Report | Leaning | Articles |", "| --- | --- | --- |"];
-  return [`${countsLabel(g)} · ${hidden}`, [...head, ...rows].join("\n")];
+  return [`${countsLabel(g)} · ${hidden}`, ...leaningGroups(reportRows(g.reports, claims)).flatMap((gr) => [text(leaningLabel(gr.leaning)), gr.rows.map(row).join("\n")])];
 }
 
 function story(a: Story, brief: boolean): string[] {

@@ -34,6 +34,10 @@
   --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
   --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --mono:ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+
+  /* motion: one curve, three durations (hover and colour / small movement / reveal) */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --dur-1:150ms; --dur-2:200ms; --dur-3:300ms;
 }
 
 /* ─── CHROME additions (app surfaces only) ───────────────────────────────── */

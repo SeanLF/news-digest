@@ -75,6 +75,7 @@ export function statsJson(v: unknown, indent?: number): string {
 
 export interface SourceShare {
   name: string;
+  count: number;
   sharePct: number;
   barPct: number;
 }
@@ -155,6 +156,7 @@ export function computeMetrics(s: Stats, cat: CatalogueEntry[]): Metrics {
   const topCount = ranked[0]?.[1] ?? 0;
   const topSources = ranked.slice(0, 5).map(([id, count]) => ({
     name: meta.get(id)?.name ?? id,
+    count,
     sharePct: totalShipped > 0 ? (count / totalShipped) * 100 : 0,
     barPct: topCount > 0 ? (count / topCount) * 100 : 0,
   }));

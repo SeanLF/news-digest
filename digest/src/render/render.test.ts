@@ -157,11 +157,23 @@ describe("the sources box", () => {
   it("counts reports and outlets on the web, with the reprint under its origin", () => {
     const web = renderWeb(input(fairford));
     expect(text(web)).toContain("2 reports · 3 outlets");
-    expect(web).toMatch(/<tr class="carrier"><td class="nm">↳ Straits Times<\/td>/);
+    expect(web).toMatch(/<li class="carrier"><span class="nm"><span class="rp">Republished by <\/span>Straits Times<span class="via"> · Lean right<\/span><\/span><ul class="arts"><li><a href="[^"]+">[^<]+<\/a><\/li><\/ul><\/li>/);
     expect(web).toContain('<span class="via"> · wire</span>');
     expect(web).toContain('class="seg l"');
     expect(web).toContain('class="seg c"');
     expect(web).not.toContain('class="seg r"');
+  });
+
+  it("puts a republisher running the wire's headline on one line, its name the link", () => {
+    const web = renderWeb(input(story([
+      { name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
+      { name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Five men held", wire_agency: "reuters" },
+    ])));
+    expect(web).toContain('<li class="carrier"><span class="nm"><span class="rp">Republished by </span><a class="out" href="https://st.example/a">Straits Times</a><span class="via"> · Lean right</span></span></li>');
+  });
+
+  it("calls no one a republisher of shared copy, whose origin is unknown", () => {
+    expect(renderWeb(input(shared))).not.toContain("Republished by");
   });
 
   it("shows identical untagged headlines as shared copy, unrated", () => {
@@ -197,16 +209,38 @@ const withClaims = (): Selections => {
   ];
   return sel;
 };
+const articleLink = (url: string, title: string) => `<li><a href="${url}">${title}</a></li>`;
+const backs = (claims: string) => `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${claims}</span>`;
 describe("what each report backs", () => {
-  it("adds the column when the story has claims, each report listing what its articles back", () => {
+  it("lists under each report what its articles back, when the story has claims", () => {
     const web = renderWeb(input(withClaims()));
-    expect(web).toContain('<th scope="col">What it backs</th>');
-    expect(web).toMatch(/Reuters<span class="via"> · wire<\/span><\/td><td class="ln">center<\/td><td class="bk">five men questioned; arrests near the base<\/td>/);
-    expect(web).toMatch(/Guardian<\/td><td class="ln">lean-left<\/td><td class="bk">Streeting&#39;s partial picture; arrests near the base<\/td>/);
+    expect(web).toContain(`Reuters<span class="via"> · wire</span></span>${backs("five men questioned; arrests near the base")}`);
+    expect(web).toContain(`Guardian</span>${backs("Streeting&#39;s partial picture; arrests near the base")}`);
   });
-  it("keeps today's table when the story has no claims", () => {
+  it("links each article by its own headline, one or several alike, the outlet's name trimmed off the end", () => {
+    const sel = withClaims();
+    sel.must_know[0]!.sources.push({ article_id: "A4", name: "Guardian", url: "https://guardian.example/b", bias: "lean-left", original_title: "Second take" });
+    const web = renderWeb(input(sel));
+    expect(web).toContain(`<span class="nm">Reuters<span class="via"> · wire</span></span>`);
+    expect(web).toContain(`<ul class="arts">${articleLink("https://reuters.example/a", "Five men held")}</ul>`);
+    expect(web).toContain(`<ul class="arts">${articleLink("https://guardian.example/a", "Minister hints services knew")}${articleLink("https://guardian.example/b", "Second take")}</ul>`);
+  });
+  it("shows a headline its feed sent HTML-escaped as text, escaped once", () => {
+    const web = renderWeb(input(story([{ name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Why is Yemen&#x27;s Taiz &amp; Aden important?" }])));
+    expect(web).toContain(">Why is Yemen&#39;s Taiz &amp; Aden important?</a>");
+  });
+  it("names an untitled article by its site", () => {
+    const web = renderWeb(input(story([{ name: "FT", url: "https://www.ft.com/content/abc", bias: "center" }])));
+    expect(web).toContain('<a href="https://www.ft.com/content/abc">ft.com</a>');
+  });
+  it("labels nothing as backed when the story has no claims", () => {
     const sel = withClaims();
     delete sel.must_know[0]!.claims;
-    expect(renderWeb(input(sel))).not.toContain("What it backs");
+    expect(renderWeb(input(sel))).not.toContain('class="bk"');
+  });
+  it("groups the reports under one heading per leaning, far left to far right", () => {
+    const web = renderWeb(input(withClaims()));
+    const heads = [...web.matchAll(/<div class="src-grp (\w)"><p class="src-gh">([^<]+)<\/p>/g)].map((m) => `${m[1]} ${m[2]}`);
+    expect(heads).toEqual(["l Lean left", "c Centre"]);
   });
 });

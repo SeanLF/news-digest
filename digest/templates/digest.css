@@ -64,9 +64,9 @@ article.first{border-top:0;padding-top:0;margin-top:0;}
 .eyebrow a{color:inherit;text-decoration:none;display:inline-block;padding:4px 0;margin:-4px 0;}
 .eyebrow a:hover{text-decoration:underline;}
 .head{font-family:var(--serif);font-weight:600;font-size:25px;line-height:1.24;letter-spacing:-.01em;
-  margin:0 0 12px;text-wrap:pretty;}
-.lede{color:var(--ink);margin:0 0 4px;text-wrap:pretty;}
-p{margin:12px 0;color:var(--ink2);text-wrap:pretty;}
+  margin:0 0 12px;text-wrap:balance;}
+.lede{color:var(--ink);margin:0 0 4px;text-wrap:pretty;hanging-punctuation:first last;}
+p{margin:12px 0;color:var(--ink2);text-wrap:pretty;hanging-punctuation:first last;}
 .why{margin:16px 0;padding-left:16px;border-left:2px solid var(--accent);}
 .why .lbl{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
   color:var(--accent-ink);display:block;margin-bottom:4px;}
@@ -80,7 +80,7 @@ p{margin:12px 0;color:var(--ink2);text-wrap:pretty;}
 /* should-know: compact */
 .brief{border-top:1px solid var(--hair);padding-top:16px;margin-top:16px;}
 .section + .brief{border-top:0;padding-top:0;margin-top:0;}
-.brief h3{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.3;letter-spacing:-.01em;margin:0 0 4px;}
+.brief h3{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.3;letter-spacing:-.01em;margin:0 0 4px;text-wrap:balance;}
 .brief p.summary{margin:0;color:var(--ink2);}
 .brief .eyebrow{margin-bottom:4px;}
 
@@ -96,7 +96,7 @@ footer nav a{display:inline-block;padding:4px 0;}
 .head,.brief h3{position:relative;}
 .anchor::before{content:"#";}
 .anchor{position:absolute;left:-1.5em;top:.12em;width:1.5em;padding-right:.5em;box-sizing:border-box;opacity:0;text-decoration:none;
-  font-family:var(--mono);font-weight:400;color:var(--muted);transition:opacity .15s ease,color .15s ease;}
+  font-family:var(--mono);font-weight:400;color:var(--muted);transition:opacity var(--dur-1) var(--ease),color var(--dur-1) var(--ease);}
 .head:hover .anchor,.brief h3:hover .anchor,.anchor:focus-visible{opacity:1;color:var(--accent-ink);}
 @media (max-width:759px){.anchor{display:none;}}
 .section-gap{margin-top:48px;}
@@ -104,30 +104,59 @@ footer nav a{display:inline-block;padding:4px 0;}
 
 /* bias glyph (the web summary that reveals the source table) */
 .spread{display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1;}
-.biasbar{display:flex;height:4px;width:150px;border-radius:3px;overflow:hidden;background:var(--hair);flex:none;}
-.biasbar .seg{height:100%;}
-.biasbar .seg + .seg{box-shadow:-1px 0 0 var(--bg);}
+.biasbar{display:flex;gap:2px;height:4px;width:150px;border-radius:3px;overflow:hidden;flex:none;}
+.biasbar .seg{height:100%;min-width:2px;}
 .biasbar .l{background:var(--bias-l);}.biasbar .c{background:var(--bias-c);}.biasbar .r{background:var(--bias-r);}
 .biasbar .u{background:repeating-linear-gradient(135deg,var(--bias-c) 0 2px,transparent 2px 4px);}
-.src-table tr.carrier .nm{padding-left:1.1em;color:var(--muted);}
-.src-table .bk{font-size:12px;color:var(--ink2);}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 .spread-label{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
 .spread-label .n{color:var(--ink2);}
 /* WEB: the bias glyph IS the <summary> that reveals the source table */
 .srcbox{margin:16px 0 0;}
+/* opens smoothly where the browser can animate to an auto height; elsewhere it snaps open as before */
+@supports selector(::details-content){
+  .srcbox{interpolate-size:allow-keywords;}
+  .srcbox::details-content{block-size:0;overflow:clip;transition:block-size var(--dur-3) var(--ease),content-visibility var(--dur-3) var(--ease) allow-discrete;}
+  .srcbox[open]::details-content{block-size:auto;}
+}
+@media (prefers-reduced-motion:reduce){.srcbox::details-content{transition:none;}}
 .srcbox > summary.spread{cursor:pointer;list-style:none;padding:8px 0;}
 .srcbox > summary.spread::-webkit-details-marker{display:none;}
 .srcbox > summary.spread::after{content:"\25B8\00A0see sources";font-family:var(--sans);font-size:13px;color:var(--accent-ink);white-space:nowrap;}
 .srcbox[open] > summary.spread::after{content:"\25BE\00A0hide sources";color:var(--muted);font-weight:400;}
-.src-table{border-collapse:collapse;margin-top:16px;font-family:var(--sans);font-size:13px;width:100%;}
-.src-table th{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:0 16px 6px 0;border-bottom:1px solid var(--hair);}
-.src-table td{padding:6px 16px 6px 0;border-bottom:1px solid var(--hair);vertical-align:baseline;}
+/* reports under one heading per leaning; each group's rail is its segment of the bar, unfolding when the box opens */
+/* no rules inside the box: the headings group, whitespace separates, the next story's border closes it */
+.src-groups{margin-top:-4px;font-family:var(--sans);}
+.src-grp{position:relative;margin-top:20px;padding-left:16px;}
+.src-grp::before{content:"";position:absolute;left:0;top:4px;bottom:8px;width:3px;border-radius:2px;background:var(--bias-c);transform-origin:top;}
+.src-grp.l::before{background:var(--bias-l);}.src-grp.r::before{background:var(--bias-r);}
+.src-grp.u::before{background:repeating-linear-gradient(135deg,var(--bias-c) 0 2px,transparent 2px 4px);}
+/* on [open], not on render: removing the attribute drops the animation, so each opening replays it */
+.srcbox[open] .src-grp::before{animation:rail-grow var(--dur-3) var(--ease) both;}
+.srcbox[open] .src-grp:nth-child(2)::before{animation-delay:.08s;}
+.srcbox[open] .src-grp:nth-child(n+3)::before{animation-delay:.16s;}
+@keyframes rail-grow{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+@media (prefers-reduced-motion:reduce){.srcbox[open] .src-grp::before{animation:none;}}
+.src-gh{margin:0 0 4px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.src-list{list-style:none;margin:0;padding:0;}
+/* source order is name, claims, links (the Markdown's and a screen reader's); the eye gets the links first */
+.src-list > li{display:flex;flex-direction:column;padding:8px 0;}
+.src-list .nm{order:0;} .src-list .arts{order:1;} .src-list .bk{order:2;}
+.src-list .nm{display:block;font-size:14px;font-weight:600;color:var(--ink);line-height:1.4;}
 /* wire attribution: the agency is the credit, the outlet is only the route */
-.src-table .via{color:var(--muted);font-weight:400;}
-.src-table td.nm{color:var(--ink2);}
-.src-table td.ln{font-family:var(--mono);font-size:13px;color:var(--muted);white-space:nowrap;}
-.src-table td.ar a{font-family:var(--mono);font-size:13px;display:inline-block;min-width:24px;line-height:24px;padding:0 4px 0 0;text-decoration:underline;text-underline-offset:2px;}
+.src-list .via{color:var(--muted);font-weight:400;}
+/* supporting detail: below the links, quieter than them */
+.src-list .bk{display:block;margin:4px 0 0;font-size:14px;line-height:1.5;color:var(--muted);}
+.src-list .bk-k{font-weight:600;}
+.src-list .carrier{padding:0 0 8px 16px;}
+.src-list .carrier .nm{font-weight:600;color:var(--ink2);}
+.src-list .rp{font-weight:400;color:var(--muted);}
+/* each article by its headline, a source link as the design system draws one: accent ink, persistent underline */
+.src-list .arts{list-style:none;margin:4px 0 0;padding:0;font-size:14px;line-height:1.5;}
+.src-list .arts a{display:inline-block;color:var(--accent-ink);}
+/* drawn, not text: the Markdown and screen readers get the headline alone */
+.src-list .arts a::after, .src-list a.out::after{content:"\00a0\2197" / "";}
+.src-list a.out{color:var(--accent-ink);font-weight:400;}
 
 @media (max-width:400px){
   .paper{padding:36px 20px 72px;}
