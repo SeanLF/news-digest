@@ -38,6 +38,7 @@
   /* motion: one curve, three durations (hover and colour / small movement / reveal) */
   --ease:cubic-bezier(.2,.8,.2,1);
   --dur-1:150ms; --dur-2:200ms; --dur-3:300ms;
+  --stagger:80ms; /* between items revealed in sequence */
 }
 
 /* ─── CHROME additions (app surfaces only) ───────────────────────────────── */

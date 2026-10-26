@@ -229,6 +229,15 @@ describe("what each report backs", () => {
     const web = renderWeb(input(story([{ name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Why is Yemen&#x27;s Taiz &amp; Aden important?" }])));
     expect(web).toContain(">Why is Yemen&#39;s Taiz &amp; Aden important?</a>");
   });
+  it("names an untitled article whose link has no parseable host by its outlet, and still renders", () => {
+    const web = renderWeb(input(story([{ name: "FT", url: "http://a b/x", bias: "center" }])));
+    expect(web).toContain('<a href="http://a b/x">FT</a>');
+  });
+  it("heads an outlet with no rating as unrated, never with a blank heading", () => {
+    const web = renderWeb(input(story([{ name: "Blog", url: "https://blog.example/a", bias: "", original_title: "A post" }])));
+    expect(web).toContain('<div class="src-grp u"><p class="src-gh">Unrated</p>');
+    expect(web).not.toContain('<p class="src-gh"></p>');
+  });
   it("names an untitled article by its site", () => {
     const web = renderWeb(input(story([{ name: "FT", url: "https://www.ft.com/content/abc", bias: "center" }])));
     expect(web).toContain('<a href="https://www.ft.com/content/abc">ft.com</a>');

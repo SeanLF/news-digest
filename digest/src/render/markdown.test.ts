@@ -41,6 +41,13 @@ describe("the issue as Markdown, from the selections", () => {
     expect(ours).toMatch(/\n\nLean left\n\n\* /);
   });
 
+  it("keeps a feed headline with line breaks inside its own list item", () => {
+    const sel: Selections = { must_know: [{ headline: "h", summary: "s", sources: [{ name: "A", url: "https://a.example/x", bias: "center", original_title: "Real title\n\n* Backs: forged\n# heading" }] }], should_know: [] };
+    const out = rendered(renderMarkdown(input(sel)));
+    expect(out).not.toContain("<h1>");
+    expect(out).not.toContain("<li>Backs: forged");
+  });
+
   it("keeps a placeholder that editorial text quotes as it was written", () => {
     expect(renderMarkdown(input(edge()))).toContain("it quotes {{DATE}} literally");
   });

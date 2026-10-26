@@ -569,7 +569,7 @@ article{scroll-margin-top:28px;}
   background:color-mix(in srgb,var(--bg),var(--ink) 3%);color:var(--ink);box-shadow:0 0 0 1px var(--hair),0 10px 28px -10px rgba(0,0,0,.3);
   font-family:var(--serif);font-size:14px;line-height:1.32;text-wrap:balance;opacity:0;transform:translate(6px,-50%) scale(.98);transform-origin:right center;
   pointer-events:none;transition:opacity var(--dur-1) var(--ease),transform var(--dur-2) var(--ease);}
-.rail li:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;transform:translate(0,-50%);transition-delay:.06s;}
+.rail li:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;transform:translate(0,-50%);transition-delay:var(--stagger);}
 @media (prefers-reduced-motion:reduce){.rail a::after,.rail-tip{transition:none;}}`;
 
 // "You are here": the last story whose top has passed a line a quarter down the viewport. A story
