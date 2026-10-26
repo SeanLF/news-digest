@@ -43,7 +43,7 @@ a{color:var(--accent-ink);}
    "Switch to {next}" title. At rest only .tg-cur shows, so the control still reads as status. */
 .tglyphs{position:relative; display:inline-flex; flex:none; width:1em; height:1em; font-size:13px; line-height:1;}
 .tglyph{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; line-height:1;
-  transition:opacity .2s ease, transform .2s ease;}
+  transition:opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);}
 .tg-next{opacity:0; transform:translateY(35%);}
 .toggle:hover .tg-cur{opacity:0; transform:translateY(-35%);}
 .toggle:hover .tg-next{opacity:1; transform:translateY(0);}
@@ -60,9 +60,9 @@ a{color:var(--accent-ink);}
 /* masthead — shared: the index's big brand-as-h1 (.brand) and the sub-pages' eyebrow+title
    (.brandmark + .h1). The .masthead/.sub/.kicker/.stat frame is identical for both. */
 .masthead{border-bottom:2px solid var(--ink); padding-bottom:16px;}
-.brand{font-family:var(--serif); font-weight:600; font-size:38px; letter-spacing:-.018em; margin:0; line-height:1.02;}
+.brand{font-family:var(--serif); font-weight:600; font-size:34px; letter-spacing:-.018em; margin:0; line-height:1.02;}
 .brand em{color:var(--accent-ink); font-style:normal;}
-.brandmark{display:inline-block; font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink2);
+.brandmark{display:inline-block; font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink2);
   text-decoration:none; letter-spacing:-.005em; margin-bottom:5px;}
 .brandmark em{color:var(--accent-ink); font-style:normal;}
 .brandmark:hover{color:var(--ink);}
@@ -115,7 +115,7 @@ export const indexCss = String.raw`
 /* toolbar */
 .toolbar{display:flex; gap:12px; align-items:center; margin:24px 0 4px; flex-wrap:wrap;}
 .search{flex:1; min-width:200px; display:flex;}
-.search input{flex:1; font-family:var(--sans); font-size:15px; color:var(--ink); background:var(--panel);
+.search input{flex:1; font-family:var(--sans); font-size:16px; color:var(--ink); background:var(--panel);
   border:1px solid var(--line); border-radius:var(--r-input); padding:10px 13px; min-width:0;}
 .search input::placeholder{color:var(--muted);}
 .search input:focus-visible{outline:2px solid var(--accent); outline-offset:-1px; border-color:var(--accent);}
@@ -146,7 +146,7 @@ li.month{font-family:var(--sans); font-weight:700; font-size:12px; letter-spacin
   color:var(--ink); padding:22px 0 8px; border-bottom:1px solid var(--ink);}
 li.issue{border-bottom:1px solid var(--line);}
 li.issue > a{display:grid; grid-template-columns:72px 1fr auto; gap:6px 20px; align-items:baseline;
-  padding:14px 8px; text-decoration:none; color:inherit; border-radius:6px; transition:background .08s;}
+  padding:14px 8px; text-decoration:none; color:inherit; border-radius:6px; transition:background var(--dur-1) var(--ease);}
 li.issue > a:hover{background:var(--wash);}
 li.issue.today > a{background:var(--accent-wash);}
 li.issue > a:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
@@ -180,7 +180,7 @@ li.issue > a:hover .sumline{color:var(--accent-ink);}
 /* subscribe band — CTA at the end, not a top form-wall */
 .subband{display:flex; align-items:center; gap:40px; flex-wrap:wrap; margin-top:40px; padding:24px 28px; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--r-card);}
 .subband .copy{flex:0 1 auto; max-width:42ch;}
-.subband .copy h2{font-family:var(--serif); font-weight:600; font-size:19px; color:var(--ink); margin:0 0 3px; letter-spacing:-.01em;}
+.subband .copy h2{font-family:var(--serif); font-weight:600; font-size:18px; color:var(--ink); margin:0 0 3px; letter-spacing:-.01em;}
 .subband .copy p{font-family:var(--serif); font-size:14px; color:var(--muted); margin:0;}
 .subband form{display:flex; gap:8px; flex:1 1 300px;}
 .subband input{flex:1; font-family:var(--sans); font-size:14px; color:var(--ink); background:var(--panel);
@@ -278,7 +278,7 @@ export const sourcesCss = String.raw`
 .method a{text-decoration:none; background-image:linear-gradient(var(--accent-ink),var(--accent-ink)); background-size:100% 1px; background-repeat:no-repeat; background-position:0 100%;}
 .spectrum{margin:28px 0 8px;}
 .spec-counts, .spec-labels{display:grid; grid-template-columns:repeat(7,minmax(0,1fr));}
-.spec-counts span{text-align:center; font-family:var(--serif); font-weight:600; font-size:19px; color:var(--ink);
+.spec-counts span{text-align:center; font-family:var(--serif); font-weight:600; font-size:18px; color:var(--ink);
   font-variant-numeric:tabular-nums; line-height:1; padding-bottom:6px;}
 .spec-bar2{display:grid; grid-template-columns:repeat(7,1fr); height:36px; border-radius:6px; overflow:hidden; border:1px solid var(--line);}
 .spec-bar2 .z{display:block;}
@@ -305,13 +305,13 @@ export const sourcesCss = String.raw`
 ul.srcs{list-style:none; margin:0; padding:0;}
 ul.srcs li{border-top:1px solid var(--line);}
 ul.srcs li a.row{display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; padding:13px 8px;
-  text-decoration:none; color:inherit; border-radius:6px; transition:background .08s;}
+  text-decoration:none; color:inherit; border-radius:6px; transition:background var(--dur-1) var(--ease);}
 ul.srcs li a.row:hover{background:var(--wash);}
 ul.srcs li a.row:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
 .nm{display:block; font-family:var(--serif); font-size:17px; font-weight:600; color:var(--ink); letter-spacing:-.004em;}
 a.row:hover .nm{color:var(--accent-ink);}
 .nm .feeds{font-family:var(--mono); font-size:12px; font-weight:400; color:var(--muted); letter-spacing:0;}
-.persp{display:block; font-family:var(--sans); font-size:12.5px; color:var(--muted); margin-top:3px;}
+.persp{display:block; font-family:var(--sans); font-size:12px; color:var(--muted); margin-top:3px;}
 .fact{display:grid; grid-template-columns:14px 70px; align-items:center; gap:9px; white-space:nowrap;}
 .meter{display:inline-flex; gap:2px; align-items:flex-end; height:12px;}
 .meter i{display:block; width:3px; background:var(--ink2);}
@@ -348,7 +348,7 @@ export const searchCss = String.raw`
 .note{font-family:var(--sans); font-size:13px; color:var(--muted); margin-top:24px;}
 `;
 
-export const statsCss = "\n.toolbar{margin:24px 0 0;}\n.seg{display:inline-flex; gap:2px; background:var(--wash); border:1px solid var(--line); border-radius:var(--r-input); padding:3px;}\n.seg a{font-family:var(--sans); font-size:12px; color:var(--muted); text-decoration:none; padding:7px 15px; border-radius:4px;}\n.seg a:hover{color:var(--ink2);}\n.seg a[aria-current=\"true\"]{background:var(--panel); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(25,25,23,.10);}\n.seg a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}\nsection{margin-top:44px;}\n.sec-h{display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--ink); padding-bottom:8px;}\n.sec-h h2{font-family:var(--sans); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin:0;}\n.sec-h .ct{font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:auto; font-variant-numeric:tabular-nums;}\n.note{font-family:var(--serif); font-size:14px; color:var(--muted); line-height:1.6; margin:14px 0 0;}\n.note code{font-family:var(--mono); font-size:12px; color:var(--ink2);}\n.stats{display:flex; flex-wrap:wrap; gap:14px 40px; margin-top:16px;}\n.st .v{font-family:var(--serif); font-weight:600; font-size:27px; color:var(--ink); line-height:1; font-variant-numeric:tabular-nums; letter-spacing:-.01em; display:block;}\n.st .v.ok{color:var(--ok-ink);} .st .v.warn{color:var(--warn-ink);} .st .v.bad{color:var(--accent-ink);}\n.st .l{font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-top:6px; display:block;}\n.st .s{font-family:var(--sans); font-size:12px; color:var(--ink2); margin-top:2px; display:block;}\n/* balance spectrum */\n.bal{margin-top:20px;}\n.balrow{display:grid; grid-template-columns:76px 1fr; gap:14px; align-items:start; margin-bottom:14px;}\n.balrow .rl{font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:right; padding-top:6px;}\n.sbar{display:flex; height:22px; border-radius:5px; overflow:hidden; border:1px solid var(--line);}\n.sbar span{display:block;}\n.sbar .on-l{background:var(--bias-l);} .sbar .on-c{background:var(--bias-c);} .sbar .on-r{background:var(--bias-r);}\n/* each bucket's % sits directly under its portion of the bar (box width == segment width) */\n.bkeys{display:flex; margin-top:5px; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums;}\n.bkey{text-align:center; white-space:nowrap; overflow:hidden; font-weight:600; color:var(--ink2);}\n/* one shared colour-key legend for both bars (redundant colour + name, legible in greyscale) */\n.ballegend{display:flex; gap:20px; font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:10px 0 16px 90px;}\n.ballegend .k{display:inline-flex; align-items:center; gap:7px;}\n.ballegend .sw{width:9px; height:9px; border-radius:2px; flex:none;}\n.ballegend .k-l .sw{background:var(--bias-l);} .ballegend .k-c .sw{background:var(--bias-c);} .ballegend .k-r .sw{background:var(--bias-r);}\n/* concentration share bars */\n.shares{margin-top:16px; display:flex; flex-direction:column; gap:8px;}\n.share{display:grid; grid-template-columns:130px 1fr 42px; gap:12px; align-items:center;}\n.share .sn{font-family:var(--serif); font-size:14px; color:var(--ink2);}\n.share .track{height:8px; background:var(--wash); border-radius:999px; overflow:hidden;}\n/* display:block is load-bearing -- .track is a grid child so it blockifies, but\n   .fill is a plain inline span and silently ignores width/height, so every share\n   bar rendered as an empty track in production. `.sbar span` above has the same fix. */\n.share .fill{display:block; height:100%; background:var(--bias-c); border-radius:999px;}\n.share .pc{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right; font-variant-numeric:tabular-nums;}\n.drill{font-family:var(--sans); font-size:13px; color:var(--muted); margin-top:14px;}\n.drill code{font-family:var(--mono); font-size:12px; color:var(--ink2);}\n/* tables */\n.tbl-wrap{overflow-x:auto; margin-top:8px;}\ntable{width:100%; border-collapse:collapse; min-width:460px;}\nthead th{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);\n  font-weight:400; text-align:left; padding:12px 10px 8px; border-bottom:1px solid var(--line-strong); white-space:nowrap;}\nthead th.n{text-align:right;}\ntbody tr:hover{background:var(--wash);}\ntbody td{padding:10px; border-bottom:1px solid var(--line); vertical-align:baseline;}\ntd.src{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink);}\ntd.n{font-family:var(--mono); font-size:13px; color:var(--ink2); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}\ntd.time{font-family:var(--mono); font-size:12.5px; color:var(--ink2); white-space:nowrap; font-variant-numeric:tabular-nums;}\n.rate{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums; justify-content:flex-end;}\n.rate .ic{font-family:var(--sans); font-size:12px;}\n.rate.ok{color:var(--ok-ink);} .rate.ok .ic{color:var(--ok);}\n.rate.warn{color:var(--warn-ink);} .rate.warn .ic{color:var(--warn);}\n.rate.bad{color:var(--accent-ink);} .rate.bad .ic{color:var(--accent);}\ntd.rate-cell{text-align:right;}\n@media (max-width:560px){\n  .balrow{grid-template-columns:1fr;} .balrow .rl{text-align:left;}\n  .ballegend{margin-left:0;}\n  .share{grid-template-columns:100px 1fr 40px;}\n}\n";
+export const statsCss = "\n.toolbar{margin:24px 0 0;}\n.seg{display:inline-flex; gap:2px; background:var(--wash); border:1px solid var(--line); border-radius:var(--r-input); padding:3px;}\n.seg a{font-family:var(--sans); font-size:12px; color:var(--muted); text-decoration:none; padding:7px 15px; border-radius:4px;}\n.seg a:hover{color:var(--ink2);}\n.seg a[aria-current=\"true\"]{background:var(--panel); color:var(--ink); font-weight:600; box-shadow:0 1px 2px rgba(25,25,23,.10);}\n.seg a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}\nsection{margin-top:44px;}\n.sec-h{display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--ink); padding-bottom:8px;}\n.sec-h h2{font-family:var(--sans); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink); margin:0;}\n.sec-h .ct{font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:auto; font-variant-numeric:tabular-nums;}\n.note{font-family:var(--serif); font-size:14px; color:var(--muted); line-height:1.6; margin:14px 0 0;}\n.note code{font-family:var(--mono); font-size:12px; color:var(--ink2);}\n.stats{display:flex; flex-wrap:wrap; gap:14px 40px; margin-top:16px;}\n.st .v{font-family:var(--sans); font-weight:600; font-size:27px; color:var(--ink); line-height:1; letter-spacing:-.01em; display:block;}\n.st .v .ic{font-size:16px; margin-right:8px; vertical-align:.2em;}\n.st .ic.ok{color:var(--ok);} .st .ic.warn{color:var(--warn);} .st .ic.bad{color:var(--accent);}\n.st .l{font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-top:6px; display:block;}\n.st .s{font-family:var(--sans); font-size:12px; color:var(--ink2); margin-top:2px; display:block;}\n/* balance spectrum */\n.bal{margin-top:20px;}\n.balrow{display:grid; grid-template-columns:76px 1fr; gap:14px; align-items:start; margin-bottom:14px;}\n.balrow .rl{font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:right; padding-top:6px;}\n/* a 2px page-coloured gap separates the segments; square at the baseline, 4px round at the data end */\n.sbar{display:flex; gap:2px; height:22px;}\n.sbar span{display:block; flex:1 1 0; min-width:0;}\n.sbar span:last-child{border-radius:0 4px 4px 0;}\n.sbar .on-l{background:var(--bias-l);} .sbar .on-c{background:var(--bias-c);} .sbar .on-r{background:var(--bias-r);}\n/* each bucket's % sits under its segment: same flex-grow, same gap */\n.bkeys{display:flex; gap:2px; margin-top:5px; font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums;}\n.bkey{flex:1 1 0; min-width:0; text-align:center; white-space:nowrap; font-weight:600; color:var(--ink2);}\n/* one shared colour-key legend for both bars (redundant colour + name, legible in greyscale) */\n.ballegend{display:flex; gap:20px; font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:10px 0 16px 90px;}\n.ballegend .k{display:inline-flex; align-items:center; gap:7px;}\n.ballegend .sw{width:9px; height:9px; border-radius:2px; flex:none;}\n.ballegend .k-l .sw{background:var(--bias-l);} .ballegend .k-c .sw{background:var(--bias-c);} .ballegend .k-r .sw{background:var(--bias-r);}\n/* concentration share bars */\n.shares{margin-top:16px; display:flex; flex-direction:column; gap:8px;}\n.share{display:grid; grid-template-columns:130px 1fr 42px; gap:12px; align-items:center;}\n.share .sn{font-family:var(--serif); font-size:14px; color:var(--ink2);}\n/* no track: a full-width track reads as 100%, but the bars scale to the largest row */\n.share .bar{height:8px;}\n/* display:block is load-bearing -- .bar is a grid child so it blockifies, but\n   .fill is a plain inline span and silently ignores width/height, so every share\n   bar rendered empty in production. `.sbar span` above has the same fix. */\n.share .fill{display:block; height:100%; background:var(--ink2); border-radius:0 4px 4px 0;}\n.share .pc{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right; font-variant-numeric:tabular-nums;}\n.drill{font-family:var(--sans); font-size:13px; color:var(--muted); margin-top:14px;}\n.drill code{font-family:var(--mono); font-size:12px; color:var(--ink2);}\n/* tables */\n.tbl-wrap{overflow-x:auto; margin-top:8px;}\ntable{width:100%; border-collapse:collapse; min-width:460px;}\nthead th{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted);\n  font-weight:400; text-align:left; padding:12px 10px 8px; border-bottom:1px solid var(--line-strong); white-space:nowrap;}\nthead th.n{text-align:right;}\ntbody tr:hover{background:var(--wash);}\ntbody td{padding:10px; border-bottom:1px solid var(--line); vertical-align:baseline;}\ntd.src{font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink);}\ntd.n{font-family:var(--mono); font-size:13px; color:var(--ink2); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}\ntd.time{font-family:var(--mono); font-size:12px; color:var(--ink2); white-space:nowrap; font-variant-numeric:tabular-nums;}\n.rate{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:13px; font-variant-numeric:tabular-nums; justify-content:flex-end;}\n.rate .ic{font-family:var(--sans); font-size:12px;}\n.rate{color:var(--ink2);} .rate.ok .ic{color:var(--ok);} .rate.warn .ic{color:var(--warn);} .rate.bad .ic{color:var(--accent);}\ntd.rate-cell{text-align:right;}\n/* hover: the row or segment is the target; values lead in the tooltip */\n[data-tip]{position:relative;}\n.sbar span:hover, .share:hover .fill{opacity:.8;}\n.sbar span:hover::after, .share:hover .bar::after{content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:0; z-index:2; pointer-events:none; white-space:nowrap;\n  font-family:var(--sans); font-size:12px; font-weight:600; color:var(--ink); background:var(--panel); border:1px solid var(--line-strong); border-radius:4px; padding:4px 8px; box-shadow:0 2px 6px rgba(25,25,23,.12);}\n.spark{display:block; margin-top:8px; overflow:visible;}\n.spark path{fill:none; stroke:var(--muted); stroke-width:2; stroke-linejoin:round; stroke-linecap:round;}\n.spark circle{fill:var(--ink); stroke:var(--bg); stroke-width:2;}\n.spark rect{fill:transparent;} .spark rect:hover{fill:var(--wash);}\n@media (max-width:560px){\n  .balrow{grid-template-columns:1fr;} .balrow .rl{text-align:left;}\n  .ballegend{margin-left:0;}\n  .share{grid-template-columns:100px 1fr 40px;}\n}\n";
 
 export const threadsCss = String.raw`
 .loadmore{text-align:center; margin:32px 0 0; display:flex; flex-direction:column; align-items:center; gap:10px;}
@@ -363,7 +363,7 @@ ul.threads{list-style:none; margin:0; padding:0;}
 ul.threads li{border-top:1px solid var(--line);}
 ul.threads li:first-child{border-top:none;}
 ul.threads li a{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:baseline; padding:15px 8px;
-  text-decoration:none; color:inherit; border-radius:6px; transition:background .08s;}
+  text-decoration:none; color:inherit; border-radius:6px; transition:background var(--dur-1) var(--ease);}
 ul.threads li a:hover{background:var(--wash);}
 ul.threads li a:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
 .mk{width:9px; height:9px; margin-top:7px;}
@@ -425,7 +425,7 @@ export const threadsJs = String.raw`(function(){
 
 export const threadCss = String.raw`
 .mast{border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:24px;}
-.brandline{font-family:var(--serif); font-size:15px; color:var(--muted); margin:0 0 14px;}
+.brandline{font-family:var(--serif); font-size:16px; color:var(--muted); margin:0 0 14px;}
 .brandline em{color:var(--accent-ink); font-style:normal; font-weight:600;}
 .statusrow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 10px;}
 .dot{width:9px; height:9px; border-radius:50%; flex:none;}
@@ -469,7 +469,7 @@ h1{font-family:var(--serif); font-weight:600; font-size:30px; line-height:1.15; 
 
 export const feedbackCss = String.raw`
 .narrow{max-width:620px;}
-.lede{font-family:var(--serif); font-size:19px; color:var(--ink2); line-height:1.55; margin:20px 0 0;}
+.lede{font-family:var(--serif); font-size:18px; color:var(--ink2); line-height:1.55; margin:20px 0 0;}
 .body{font-family:var(--serif); font-size:16px; color:var(--muted); line-height:1.65; margin:16px 0 0;}
 .cta{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:28px;}
 .cta .btn{font-size:14px; padding:12px 22px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;}
@@ -480,7 +480,7 @@ export const feedbackCss = String.raw`
 .helps h2{font-family:var(--sans); font-weight:700; font-size:12px; letter-spacing:.16em;
   text-transform:uppercase; color:var(--ink); margin:0 0 12px;}
 .helps ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:9px;}
-.helps li{font-family:var(--serif); font-size:15px; color:var(--ink2); line-height:1.5; padding-left:18px; position:relative;}
+.helps li{font-family:var(--serif); font-size:16px; color:var(--ink2); line-height:1.5; padding-left:18px; position:relative;}
 .helps li::before{content:"—"; position:absolute; left:0; color:var(--accent-ink);}
 @media (max-width:560px){ .cta .btn{width:100%; justify-content:center;} }
 `;
@@ -489,12 +489,12 @@ export const notFoundCss = String.raw`
 .narrow{max-width:560px;}
 .nf-code{font-family:var(--sans); font-weight:700; font-size:13px; letter-spacing:.18em;
   text-transform:uppercase; color:var(--accent-ink); margin:24px 0 0;}
-.lede{font-family:var(--serif); font-size:19px; color:var(--ink2); line-height:1.55; margin:14px 0 0;}
+.lede{font-family:var(--serif); font-size:18px; color:var(--ink2); line-height:1.55; margin:14px 0 0;}
 .body{font-family:var(--serif); font-size:16px; color:var(--muted); line-height:1.65; margin:14px 0 0;}
 .ways{margin-top:30px; display:flex; gap:12px; flex-wrap:wrap;}
 .ways a{font-family:var(--sans); font-size:14px; text-decoration:none; display:inline-flex;
   align-items:center; gap:8px; border:1px solid var(--line); border-radius:8px; padding:11px 18px;
-  color:var(--ink2); transition:border-color .15s ease,color .15s ease;}
+  color:var(--ink2); transition:border-color var(--dur-1) var(--ease),color var(--dur-1) var(--ease);}
 .ways a:hover{border-color:var(--accent); color:var(--accent-ink);}
 .ways a.primary{border-color:var(--accent); color:var(--accent-ink);}
 .ways a:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
@@ -514,7 +514,7 @@ export const skipLinkCss = String.raw`
     background: var(--bg, #fafaf8);
     color: var(--ruby, #c45a3b);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 0.9rem;
+    font-size: 14px;
     text-decoration: none;
     border: 2px solid var(--ruby, #c45a3b);
     border-radius: 4px;
@@ -537,7 +537,7 @@ export const reducedMotionCss = String.raw`
     html { scroll-behavior: auto; }
 }`;
 
-export const digestNavCss = "\n/* pull the paper's top padding in now that a utility bar sits above the masthead */\n.paper{padding-top:28px;}\n\n/* top utility bar */\n.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:30px;}\n.topnav{font-family:var(--sans);font-size:13px;line-height:normal;display:flex;align-items:center;flex-wrap:nowrap;}\n.topnav a{color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;min-height:24px;}\n.topnav a:hover{color:var(--accent-ink);}\n.topnav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n.topnav .sep{color:var(--hair);padding:0 10px;}\n.topright{display:flex;align-items:center;gap:12px;}\n\n/* translate pill -- a quiet accent-outlined chip (matches the chrome surfaces' `.pill`) */\n.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12px;\n  color:var(--accent-ink);text-decoration:none;line-height:normal;\n  border:1px solid var(--accent);border-radius:999px;padding:5px 12px;\n  transition:background .15s ease,border-color .15s ease;}\n.pill .g{font-family:var(--serif);}\n.pill:hover{background:color-mix(in srgb,var(--accent) 12%,var(--bg));}\n.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n\n/* theme toggle -- shared TOGGLE_BTN markup: two stacked glyphs crossfade on hover\n   (current -> next-state), a visual echo of its \"Switch to {next}\" title. */\n.toggle{font-family:var(--sans);font-size:12px;color:var(--muted);background:none;\n  border:1px solid var(--hair);border-radius:6px;padding:6px 10px;cursor:pointer;line-height:normal;\n  display:inline-flex;align-items:center;gap:6px;min-height:24px;}\n.toggle:hover{color:var(--accent-ink);border-color:var(--accent);}\n.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n.tglyphs{position:relative;display:inline-flex;flex:none;width:1em;height:1em;font-size:13px;line-height:1;}\n.tglyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;line-height:1;\n  transition:opacity .2s ease,transform .2s ease;}\n.tg-next{opacity:0;transform:translateY(35%);}\n.toggle:hover .tg-cur{opacity:0;transform:translateY(-35%);}\n.toggle:hover .tg-next{opacity:1;transform:translateY(0);}\n\n/* Hide the pill once the reader is on Google's translate.goog proxy -- redundant\n   there (Google's own language bar is the backstop). Two signals: Google's own\n   translated-* class on <html>, and the via-proxy hostname flag (head script). */\nhtml.translated-ltr .pill,\nhtml.translated-rtl .pill,\n.via-proxy .pill {\n    display: none;\n}\n\n/* Feedback invitation -- its own line, clearly clickable, so it doesn't read as\n   just another footer link. */\n.footer-feedback {\n    margin: 12px 0 4px;\n    color: var(--muted);\n}\n.footer-feedback a {\n    color: var(--accent-ink);\n    font-weight: 600;\n    text-decoration: underline;\n    text-underline-offset: 2px;\n}\n\n@media (max-width:420px){.tword{display:none;}.toggle{padding:6px 9px;}}\n";
+export const digestNavCss = "\n/* pull the paper's top padding in now that a utility bar sits above the masthead */\n.paper{padding-top:28px;}\n\n/* top utility bar */\n.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:30px;}\n.topnav{font-family:var(--sans);font-size:13px;line-height:normal;display:flex;align-items:center;flex-wrap:nowrap;}\n.topnav a{color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;min-height:24px;}\n.topnav a:hover{color:var(--accent-ink);}\n.topnav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n.topnav .sep{color:var(--hair);padding:0 10px;}\n.topright{display:flex;align-items:center;gap:12px;}\n\n/* translate pill -- a quiet accent-outlined chip (matches the chrome surfaces' `.pill`) */\n.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12px;\n  color:var(--accent-ink);text-decoration:none;line-height:normal;\n  border:1px solid var(--accent);border-radius:999px;padding:5px 12px;\n  transition:background var(--dur-1) var(--ease),border-color var(--dur-1) var(--ease);}\n.pill .g{font-family:var(--serif);}\n.pill:hover{background:color-mix(in srgb,var(--accent) 12%,var(--bg));}\n.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n\n/* theme toggle -- shared TOGGLE_BTN markup: two stacked glyphs crossfade on hover\n   (current -> next-state), a visual echo of its \"Switch to {next}\" title. */\n.toggle{font-family:var(--sans);font-size:12px;color:var(--muted);background:none;\n  border:1px solid var(--hair);border-radius:6px;padding:6px 10px;cursor:pointer;line-height:normal;\n  display:inline-flex;align-items:center;gap:6px;min-height:24px;}\n.toggle:hover{color:var(--accent-ink);border-color:var(--accent);}\n.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}\n.tglyphs{position:relative;display:inline-flex;flex:none;width:1em;height:1em;font-size:13px;line-height:1;}\n.tglyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;line-height:1;\n  transition:opacity var(--dur-2) var(--ease),transform var(--dur-2) var(--ease);}\n.tg-next{opacity:0;transform:translateY(35%);}\n.toggle:hover .tg-cur{opacity:0;transform:translateY(-35%);}\n.toggle:hover .tg-next{opacity:1;transform:translateY(0);}\n\n/* Hide the pill once the reader is on Google's translate.goog proxy -- redundant\n   there (Google's own language bar is the backstop). Two signals: Google's own\n   translated-* class on <html>, and the via-proxy hostname flag (head script). */\nhtml.translated-ltr .pill,\nhtml.translated-rtl .pill,\n.via-proxy .pill {\n    display: none;\n}\n\n/* Feedback invitation -- its own line, clearly clickable, so it doesn't read as\n   just another footer link. */\n.footer-feedback {\n    margin: 12px 0 4px;\n    color: var(--muted);\n}\n.footer-feedback a {\n    color: var(--accent-ink);\n    font-weight: 600;\n    text-decoration: underline;\n    text-underline-offset: 2px;\n}\n\n@media (max-width:420px){.tword{display:none;}.toggle{padding:6px 9px;}}\n";
 
 export const proxyTranslateHideScript = String.raw`if(location.hostname.indexOf("translate.goog")>-1)document.documentElement.className+=" via-proxy";`;
 
@@ -556,7 +556,7 @@ article{scroll-margin-top:28px;}
 .rail li.gap{height:10px;}
 .rail a{position:relative;display:block;width:44px;height:13px;outline:none;text-decoration:none;}
 .rail a::after{content:"";position:absolute;right:2px;top:5.5px;height:2px;border-radius:2px;width:calc(var(--w,12px) * var(--m));
-  background:color-mix(in srgb,var(--ink) 22%,transparent);transition:width .22s cubic-bezier(.3,1.3,.5,1),background .2s ease;}
+  background:color-mix(in srgb,var(--ink) 22%,transparent);transition:width var(--dur-2) var(--ease),background var(--dur-2) var(--ease);}
 .rail .mk a{--w:18px;}
 .rail a[aria-current]{--w:28px;}
 .rail a[aria-current]::after{background:var(--ink);}
@@ -567,8 +567,8 @@ article{scroll-margin-top:28px;}
 .rail a:focus-visible{--m:1.9;}
 .rail-tip{position:absolute;right:54px;top:50%;width:max-content;max-width:300px;padding:8px 12px 9px;border-radius:9px;
   background:color-mix(in srgb,var(--bg),var(--ink) 3%);color:var(--ink);box-shadow:0 0 0 1px var(--hair),0 10px 28px -10px rgba(0,0,0,.3);
-  font-family:var(--serif);font-size:14.5px;line-height:1.32;text-wrap:balance;opacity:0;transform:translate(6px,-50%) scale(.98);transform-origin:right center;
-  pointer-events:none;transition:opacity .12s ease,transform .18s cubic-bezier(.2,.8,.2,1);}
+  font-family:var(--serif);font-size:14px;line-height:1.32;text-wrap:balance;opacity:0;transform:translate(6px,-50%) scale(.98);transform-origin:right center;
+  pointer-events:none;transition:opacity var(--dur-1) var(--ease),transform var(--dur-2) var(--ease);}
 .rail li:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;transform:translate(0,-50%);transition-delay:.06s;}
 @media (prefers-reduced-motion:reduce){.rail a::after,.rail-tip{transition:none;}}`;
 

@@ -1,7 +1,7 @@
 import { htmlEscape as esc } from "escape-goat";
 import { transform } from "lightningcss";
 import { codePoints, dates, isSafeUrl, readingTime, slugger, storyCounts, type RenderInput, type Story, type StoryClaim } from "./common.js";
-import { countsLabel, groupReports, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
+import { countsLabel, groupReports, leaningGroups, leaningLabel, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
 
 // The web issue, ported from newsroom/src/render.py (render_digest, then replace_placeholders).
 
@@ -11,20 +11,24 @@ function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] =
   const segs = counts.map(([b, n]) => `<span class="seg ${b}" style="flex:${n}"></span>`).join("");
   const spread = `<span class="n">${countsLabel(g)}</span><span class="vh"> · ${counts.map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ")}</span>`;
   const backsCol = claims.length > 0;
-  const rows = reportRows(g.reports, claims)
-    .map((r) => {
-      const links = r.urls.map((u, i) => `<a href="${esc(u)}">${i + 1}</a>`).join(" ");
-      const name = r.carrier ? `↳ ${esc(r.name)}` : `${esc(r.name)}${r.wire ? '<span class="via"> · wire</span>' : ""}`;
-      const backs = backsCol ? `<td class="bk">${esc(r.backs.join("; "))}</td>` : "";
-      return `<tr${r.carrier ? ' class="carrier"' : ""}><td class="nm">${name}</td><td class="ln">${esc(r.leaning)}</td>${backs}<td class="ar">${links}</td></tr>`;
-    })
+  const row = (r: ReturnType<typeof reportRows>[number]) => {
+    // Each article by its own headline, one or several alike, so the link says where it goes; a
+    // republisher running the origin's headline links by its name instead of repeating it.
+    const arts = r.articles.length && !r.sameCopy ? `<ul class="arts">${r.articles.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a></li>`).join("")}</ul>` : "";
+    const tag = r.carrier ? ` · ${esc(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
+    const label = r.sameCopy ? `<a class="out" href="${esc(r.articles[0]!.url)}">${esc(r.name)}</a>` : esc(r.name);
+    const name = `${r.republished ? '<span class="rp">Republished by </span>' : ""}${label}${tag ? `<span class="via">${tag}</span>` : ""}`;
+    // The hidden dash is for the Markdown converter and screen readers; the layout separates it by eye.
+    const backs = backsCol && r.backs.length ? `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${esc(r.backs.join("; "))}</span>` : "";
+    return `<li${r.carrier ? ' class="carrier"' : ""}><span class="nm">${name}</span>${backs}${arts}</li>`;
+  };
+  const groups = leaningGroups(reportRows(g.reports, claims))
+    .map((gr) => `<div class="src-grp ${gr.bucket}"><p class="src-gh">${esc(leaningLabel(gr.leaning))}</p><ul class="src-list">${gr.rows.map(row).join("")}</ul></div>`)
     .join("");
   return (
     `<details class="srcbox"><summary class="spread"><span class="biasbar" aria-hidden="true">${segs}</span>` +
     `<span class="spread-label">${spread}</span></summary>` +
-    '<table class="src-table"><thead><tr>' +
-    `<th scope="col">Report</th><th scope="col">Leaning</th>${backsCol ? '<th scope="col">What it backs</th>' : ""}<th scope="col">Articles</th>` +
-    `</tr></thead><tbody>${rows}</tbody></table></details>`
+    `<div class="src-groups">${groups}</div></details>`
   );
 }
 

@@ -38,7 +38,7 @@ describe("the issue as Markdown, from the selections", () => {
     const fromHtml = issueMarkdownBody(renderWeb(i), "2026-09-18");
     const ours = renderMarkdown(i);
     if (!sameDocument(fromHtml!, ours)) expect(rendered(ours).split("<h3>")).toEqual(rendered(fromHtml!).split("<h3>"));
-    expect(ours).toContain("What it backs");
+    expect(ours).toMatch(/\n\nLean left\n\n\* /);
   });
 
   it("keeps a placeholder that editorial text quotes as it was written", () => {
@@ -53,7 +53,7 @@ describe("the issue as Markdown, from the selections", () => {
     const out = rendered(renderMarkdown(input(sel)));
     expect(out).toContain("<h3>*Not* [a link] &lt;b&gt;</h3>");
     expect(out).toContain("<p># not a heading</p>");
-    expect(out).toContain("<td>A | B</td>");
-    expect(out).toContain('<a href="https://a.example/x_(1)">1</a>');
+    expect(out).toContain("A | B");
+    expect(out).toContain('<a href="https://a.example/x_(1)">a.example</a>');
   });
 });
