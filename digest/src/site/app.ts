@@ -13,6 +13,8 @@ import { feedbackPage, notFoundPage, searchPage, sourcesPage, statsPage } from "
 import { threadPage, threadsFragment, threadsPage } from "./pages/threads.js";
 import { RateLimiter, clientKey } from "./ratelimit.js";
 import { securityHeaders } from "./security.js";
+import { latestLead, leaningOf } from "./embed.js";
+import { embedEmptyPage, embedLeadPage } from "./pages/embed.js";
 import { type CatalogueEntry, sourceRows } from "./sources.js";
 import { computeMetrics, statsFrom, statsJson, statsValue } from "./stats.js";
 import { type Mail, CONFIRM_TTL_S, addContact, isValidEmail, makeToken, sendConfirmation, verifyToken } from "./subscribe.js";
@@ -52,7 +54,7 @@ function intQuery(c: Context, name: string, unsigned: boolean): number | undefin
 // method does not, as axum answered.
 const METHODS: [RegExp, string][] = [
   [/^\/subscribe$/, "POST"],
-  [/^\/(|confirm|privacy|health|favicon\.ico|robots\.txt|llms\.txt|llms-full\.txt|index\.md|apple-touch-icon(-precomposed)?\.png|og-image\.png|sources|feed\.xml|stats|stats\.json|archive|threads|threads\/more|search|feedback|today|translate|today\/translate)$/, "GET,HEAD"],
+  [/^\/(|confirm|privacy|health|favicon\.ico|robots\.txt|llms\.txt|llms-full\.txt|index\.md|apple-touch-icon(-precomposed)?\.png|og-image\.png|sources|feed\.xml|stats|stats\.json|archive|threads|threads\/more|search|feedback|today|translate|today\/translate|embed\/lead)$/, "GET,HEAD"],
   [/^\/(thread|issues)\/[^/]+$/, "GET,HEAD"],
   [/^\/issues\/[^/]+\/translate$/, "GET,HEAD"],
   [/^\/assets\/fonts\/[^/]+$/, "GET,HEAD"],
@@ -220,6 +222,22 @@ export function siteApp(deps: SiteDeps): Hono {
     return latest(c, (d) => redirect(c, `/issues/${d}/translate${lang ? `?lang=${lang}` : ""}`, 307));
   });
   app.get("/translate", (c) => redirect(c, proxyTarget(cfg.digestDomain, validTranslatePath(c.req.query("to")) ?? "/", c.req.query("lang"), c.req.header("accept-language")), 307));
+
+  // ── the framable lead story (seanfloyd.dev's homepage) ──
+  const leaning = leaningOf(catalogue);
+  app.get("/embed/lead", async (c) => {
+    c.set("frameAncestors", cfg.embedAncestors);
+    let found;
+    try {
+      found = await latestLead(data);
+    } catch (e) {
+      return unavailable(c, "Digest unavailable", e);
+    }
+    // A few minutes, so the frame picks up the morning's issue soon after it publishes.
+    const headers = { "cache-control": "public, max-age=300" };
+    if (!found) return c.html(embedEmptyPage(ctx, assets.tokensCss), 404, headers);
+    return c.html(embedLeadPage(ctx, found.row, found.issue, leaning), 200, headers);
+  });
 
   // ── the feed and the discovery files ──
   app.get("/feed.xml", async (c) => {

@@ -200,6 +200,7 @@ services:
       # The confirmation link is https://<DIGEST_DOMAIN>/confirm: OrbStack serves the dev site there.
       DIGEST_DOMAIN: *dev-site-domain
       HOMEPAGE_URL: "${HOMEPAGE_URL:-}"
+      EMBED_ANCESTORS: "${EMBED_ANCESTORS:-}"
       SOURCE_URL: "${SOURCE_URL:-}"
       CONTACT_EMAIL: reader-replies@dev.invalid
       SUBSCRIBE_TOKEN_SECRET: dev-only-subscribe-token-secret
