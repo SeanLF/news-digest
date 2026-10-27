@@ -7,7 +7,7 @@ updates:
     schedule:
       interval: weekly
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       # The Temporal SDK's packages must share one version; a split bump fails at worker start.
       temporal:
@@ -21,7 +21,7 @@ updates:
     schedule:
       interval: weekly
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -32,7 +32,7 @@ updates:
     schedule:
       interval: weekly
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       minor-and-patch:
         update-types: [minor, patch]
@@ -42,7 +42,7 @@ updates:
     schedule:
       interval: weekly
     cooldown:
-      default-days: 7
+      default-days: 3
     groups:
       minor-and-patch:
         update-types: [minor, patch]
