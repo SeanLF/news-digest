@@ -4,7 +4,7 @@
 #
 # Base images by digest, so a rebuild is the image that was tested. Bump them together with
 # `docker buildx imagetools inspect python:3.15-slim` and `... ghcr.io/astral-sh/uv:<version>`.
-FROM ghcr.io/astral-sh/uv:0.13.5@sha256:32a7bb39b496babbd997b0a39a4d66c126bdaf5661b302bf6f06abda8deca6ff AS uv
+FROM ghcr.io/astral-sh/uv:0.13.6@sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0 AS uv
 FROM python:3.15-slim@sha256:490c3463f3766091067a01528e6be3208104eebcca11a306beab5de9672ee893 AS base
 RUN useradd --create-home appuser
 ENV PATH=/app/.venv/bin:$PATH PYTHONPATH=/app/src PYTHONUNBUFFERED=1
