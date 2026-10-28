@@ -27,7 +27,7 @@ only once it polls, so a failed migration fails the deploy with the old worker s
 is then made the current Temporal version, and one that never becomes current is rolled back.
 Migrations only add (a rollback runs old code on the new schema).
 
-Kamal keeps the running container and the three before it per service, so a rollback to any of those
+Kamal keeps the running container and the two before it per service, so a rollback to any of those
 needs no registry. Container logs: `kamal app logs -c config/deploy/digest-worker.yml` in seanfloyd-infra.
 
 ## Database
