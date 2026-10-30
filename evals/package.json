@@ -3,9 +3,9 @@
   "private": true,
   "description": "The eval runner (promptfoo) for make band, planted, judges, replay and fulltext-fork. Its own lockfile: promptfoo's tree has advisories the deploy's osv-scanner would refuse, and none of it ships.",
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.310",
+    "@anthropic-ai/claude-agent-sdk": "0.3.311",
     "@openai/codex-sdk": "0.164.0",
-    "promptfoo": "0.125.0"
+    "promptfoo": "0.125.1"
   },
   "overrides": {
     "basic-ftp": "6.2.3"
