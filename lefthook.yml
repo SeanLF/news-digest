@@ -1,12 +1,24 @@
 # Git hooks via lefthook. The global hooks (core.hooksPath) hand off to this only in a clone that
 # trusts it: git config --local hooks.lefthook true
+glob_matcher: doublestar
 
-# The suites the staged paths reach, the TypeScript one without its Temporal-server tests.
+# Format what is staged and stage the result, then run the suites the staged paths reach: for
+# sources alone, only the unit tests that import them; never the Temporal-server tests.
 pre-commit:
+  piped: true
   commands:
-    ci:
-      run: bin/ci --staged
+    1-oxfmt:
+      root: digest/
+      glob: "digest/src/**/*.ts"
+      exclude: ["digest/src/**/fixtures/**", "digest/src/store/schema.gen.ts"]
+      run: docker compose run --rm -v "$(git rev-parse --show-toplevel)/digest/src:/app/digest/src" ci-ts npx oxfmt {staged_files}
       stage_fixed: true
+    2-ruff:
+      glob: "{bin/tests,digest/python}/**/*.py"
+      run: docker compose run --rm ci-scripts sh -c 'ruff check --fix {staged_files} && ruff format {staged_files}'
+      stage_fixed: true
+    3-ci:
+      run: bin/ci --staged
 
 # The full run, Temporal-server tests included, skipped when this committed tree already passed one.
 pre-push:

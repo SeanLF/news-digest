@@ -11,6 +11,7 @@ Usage:
 """
 
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -79,14 +80,14 @@ ROOT = Path(__file__).resolve().parent.parent
 QUIET = os.environ.get("CLAUDECODE") == "1"
 
 
-def suite_commands(fix_mode: bool, staged: bool = False) -> dict[str, list[str]]:
+def suite_commands(fix_mode: bool, staged: bool = False, paths: list[str] | None = None) -> dict[str, list[str]]:
     """The docker compose command each suite runs as, keyed by suite. A staged run (the pre-commit
     hook) leaves out the Temporal-server tests; a full run (pre-push, GitHub CI) has them."""
     return {
         # ci-ts COPYs digest/ in; under --fix, src is mounted so the formatter writes back.
         TS: ["docker", "compose", "run", "--rm", "--build"]
         + (["-v", f"{ROOT}/digest/src:/app/digest/src"] if fix_mode else [])
-        + ["-e", "GITHUB_ACTIONS", "ci-ts", "sh", "-c", ts_cmd(fix_mode, staged)],
+        + ["-e", "GITHUB_ACTIONS", "ci-ts", "sh", "-c", ts_cmd(fix_mode, staged, paths)],
         WORKER: [
             "docker", "compose", "run", "--rm", "--build", "ci-python",
             "python", "-m", "pytest", "-q", "-n", "auto", "-p", "no:cacheprovider", "/app/tests",
@@ -106,11 +107,22 @@ def scripts_cmd(fix_mode: bool) -> str:
     return f"{lint}; pytest -q -n auto -p no:cacheprovider bin/tests; t=$?; [ $r -eq 0 ] && [ $f -eq 0 ] && [ $t -eq 0 ]"
 
 
-def ts_cmd(fix_mode: bool, staged: bool = False) -> str:
+def unit_tests(paths: list[str] | None) -> str:
+    """The staged run's tests: only those importing the staged sources when every staged path is a
+    source under digest/src; otherwise every unit test, since configs, templates, prompts and the
+    lock reach tests through fs, not imports."""
+    ts = [p for p in paths or [] if p.startswith("digest/src/")]
+    if not paths or len(ts) != len(paths):
+        return "npm test -- --project unit"
+    rel = " ".join(shlex.quote(p.removeprefix("digest/")) for p in ts)
+    return f"npx vitest related --run --project unit --passWithNoTests {rel}"
+
+
+def ts_cmd(fix_mode: bool, staged: bool = False, paths: list[str] | None = None) -> str:
     """Format, typecheck and lint (about 1 s together), then vitest; every step runs, so one failure
     hides no other. A tsgolint killed for memory shows only "Error running tsgolint"."""
     fmt = "npm run format; f=$?" if fix_mode else "npm run format:check; f=$?"
-    test = "npm test -- --project unit" if staged else "npm test"
+    test = unit_tests(paths) if staged else "npm test"
     return (
         f"{fmt}; npm run typecheck; t=$?; npm run lint; l=$?; {test}; v=$?; "
         "[ $f -eq 0 ] && [ $t -eq 0 ] && [ $l -eq 0 ] && [ $v -eq 0 ]"
@@ -171,6 +183,7 @@ def run_in_docker() -> int:
         return 0
 
     suites = selected_suites(args)
+    paths = None
     if "--staged" in args:
         paths = staged_paths()
         suites = ALL_SUITES if paths is None else suites_for(paths)
@@ -185,7 +198,8 @@ def run_in_docker() -> int:
 
     # In quiet mode, capture output and only show on failure
     capture = {"stdout": subprocess.PIPE, "stderr": subprocess.STDOUT} if QUIET else {}
-    commands = suite_commands(fix_mode, staged="--staged" in args)
+    present = [p for p in paths if (ROOT / p).exists()] if paths else None
+    commands = suite_commands(fix_mode, staged="--staged" in args, paths=present)
     full_run = suites == ALL_SUITES and not fix_mode and "--staged" not in args
     started = tree_stamp() if full_run else None
     start = time.monotonic()

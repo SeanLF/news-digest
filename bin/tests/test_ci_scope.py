@@ -206,3 +206,23 @@ def test_when_git_cannot_say_every_suite_runs(monkeypatch):
     monkeypatch.setattr(ci.subprocess, "Popen", FakePopen)
     assert ci.run_in_docker() == 0
     assert len(started) == len(ALL)
+
+
+def test_staged_source_files_run_only_the_unit_tests_related_to_them():
+    cmd = ci.ts_cmd(False, staged=True, paths=["digest/src/site/feed.ts", "digest/src/site/feed.test.ts"])
+    assert "vitest related --run --project unit --passWithNoTests src/site/feed.ts src/site/feed.test.ts" in cmd
+
+
+@pytest.mark.parametrize(
+    "other",
+    [
+        "digest/package.json",
+        "digest/vitest.config.ts",
+        "digest/templates/digest.css",
+        "digest/agents/write.md",
+        "design/tokens.css",
+    ],
+)
+def test_a_staged_file_outside_src_runs_every_unit_test(other):
+    cmd = ci.ts_cmd(False, staged=True, paths=["digest/src/site/feed.ts", other])
+    assert "npm test -- --project unit" in cmd and "related" not in cmd
