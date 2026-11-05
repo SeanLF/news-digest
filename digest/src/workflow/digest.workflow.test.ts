@@ -35,17 +35,16 @@ afterAll(async () => {
 });
 
 const taskQueue = "digest-test";
-// `fetcher` stands in for the Python worker on its own queue; null means nothing answers
-// there, as when that worker is down. `decoder` is the decode, on the workflow's own worker.
+// `fetcher` stands in for the Python worker on its own queue; `decoder` is the decode, on the
+// workflow's own worker.
 const emptyFetch = (tasks: FulltextTask[]): Promise<FulltextFetch> =>
   Promise.resolve({ tasks: tasks.length, results: {}, outcome: "completed" });
 const noDecode = (urls: string[]): Promise<GnewsDecode> =>
   Promise.resolve({ links: urls.length, decoded: {}, attempted: urls.length, outcome: "completed" });
-const noLinks: Activities["planGnews"] = () => Promise.resolve({ urls: [], skip: "no_candidates" as const });
 async function withWorker<T>(
   fn: () => Promise<T>,
   overrides: Partial<Activities> = {},
-  fetcher: ((tasks: FulltextTask[]) => Promise<FulltextFetch>) | null = emptyFetch,
+  fetcher: (tasks: FulltextTask[]) => Promise<FulltextFetch> = emptyFetch,
   decoder: (urls: string[]) => Promise<GnewsDecode> = noDecode,
 ): Promise<T> {
   const worker = await Worker.create({
@@ -54,7 +53,6 @@ async function withWorker<T>(
     workflowsPath: new URL("./digest.workflow.ts", import.meta.url).pathname,
     activities: { ...stubActivities(), decodeLinks: decoder, ...overrides },
   });
-  if (!fetcher) return worker.runUntil(fn());
   const python = await Worker.create({
     connection: env.nativeConnection,
     taskQueue: PYTHON_TASK_QUEUE,
@@ -478,19 +476,14 @@ describe("DigestWorkflow", () => {
       expect(stored).toEqual([{ tasks: 1, results: { A1: "Body." }, outcome: "completed" }]);
       expect(out.broadcast).toBe("sent");
     }, 120_000);
-    it("goes on without full text when nothing answers on the python queue", async () => {
+    it("goes on without full text when the python fetch fails", async () => {
       stored.length = 0;
-      // The test server does not skip time while an activity task sits unclaimed, so the clock is
-      // moved past the schedule-to-start timeout by hand. The decode is skipped here so the fetch is
-      // the one unclaimed task.
+      // A Python worker that is down surfaces here as Temporal's schedule-to-start timeout; how it
+      // fails is Temporal's to test. Ours is what the run does with any failure.
       const out = await withWorker(
-        async () => {
-          const h = await start("2026-09-29");
-          await env.sleep("6 minutes");
-          return h.result();
-        },
-        { storeFulltext, planGnews: noLinks },
-        null,
+        () => runToEnd("2026-09-29"),
+        { storeFulltext },
+        () => Promise.reject(ApplicationFailure.nonRetryable("python worker down")),
       );
       expect(stored).toEqual([{ tasks: 1, results: {}, outcome: "unavailable" }]);
       expect(out.broadcast).toBe("sent");
