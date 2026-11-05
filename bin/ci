@@ -113,8 +113,9 @@ def scripts_cmd(fix_mode: bool) -> str:
 def unit_tests(paths: list[str] | None) -> str:
     """The staged run's tests: only those importing the staged sources when every staged path is a
     source under digest/src; otherwise every unit test, since configs, templates, prompts and the
-    lock reach tests through fs, not imports."""
-    ts = [p for p in paths or [] if p.startswith("digest/src/")]
+    lock reach tests through fs, not imports. The workflow is one of those: replay.test.ts bundles it
+    from its path to replay the recorded histories."""
+    ts = [p for p in paths or [] if p.startswith("digest/src/") and not p.startswith("digest/src/workflow/")]
     if not paths or len(ts) != len(paths):
         return "npm test -- --project unit"
     rel = " ".join(shlex.quote(p.removeprefix("digest/")) for p in ts)
