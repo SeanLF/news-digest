@@ -14,7 +14,9 @@
     "bundle:site": "esbuild src/site/main.ts --bundle --platform=node --format=esm --target=node26 --external:pg-native --banner:js=\"import{createRequire}from'node:module';const require=createRequire(import.meta.url);\" --outfile=bundle/dist/site/main.js --metafile=bundle/meta.json --log-level=warning",
     "sbom:site": "node dist/cli/site-sbom.js package-lock.json bundle/meta.json bundle/site.cdx.json",
     "check-injections": "node dist/cli/check-injections.js",
-    "sbom": "npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cdx.json"
+    "sbom": "npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.cdx.json",
+    "format": "oxfmt src",
+    "format:check": "oxfmt --check src"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.310",
@@ -63,6 +65,7 @@
     "kysely-codegen": "0.20.0",
     "linkedom": "0.18.14",
     "markdown-it": "15.0.3",
+    "oxfmt": "0.75.0",
     "oxlint": "1.89.0",
     "oxlint-tsgolint": "7.0.2005",
     "protobufjs": "8.8.1",
@@ -80,6 +83,9 @@
     "@dbmate/darwin-arm64": "2.37.0",
     "@dbmate/linux-arm64": "2.37.0",
     "@dbmate/linux-x64": "2.37.0",
+    "@oxfmt/binding-darwin-arm64": "0.75.0",
+    "@oxfmt/binding-linux-arm64-gnu": "0.75.0",
+    "@oxfmt/binding-linux-x64-gnu": "0.75.0",
     "@oxlint-tsgolint/darwin-arm64": "7.0.2005",
     "@oxlint-tsgolint/linux-arm64": "7.0.2005",
     "@oxlint-tsgolint/linux-x64": "7.0.2005",

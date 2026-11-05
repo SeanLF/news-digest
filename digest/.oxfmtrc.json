@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 120,
+  "embeddedLanguageFormatting": "off",
+  "ignorePatterns": ["src/store/schema.gen.ts", "**/fixtures/**", "src/workflow/histories/**"]
+}
