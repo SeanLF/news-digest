@@ -172,9 +172,8 @@ export function siteStore(db: Sql): SiteData {
     },
 
     // A literal phrase, stemmed English, ranked by ts_rank; unstemmed (`simple`) only when English
-    // leaves no lexeme. One row per story, its best-ranked source's. Chosen by the pre-registered
-    // evaluation at docs-archive-2026-11-04:docs/proposed/2026-09-23-search-tuning (its candidate `dedup`). The two branches
-    // keep each index usable.
+    // leaves no lexeme. One row per story, its best-ranked source's. The two branches keep each index
+    // usable.
     async search(query, limit): Promise<SearchHit[]> {
       const rows = await db.all<SearchRow>(
         `WITH q AS (SELECT phraseto_tsquery('english', $1) AS e, phraseto_tsquery('simple', $1) AS s),

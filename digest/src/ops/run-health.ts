@@ -2,8 +2,7 @@ import type { Sql } from "../store/db.js";
 import { COHERENCE_FIELDS, FAILURE_KINDS } from "../contracts/coherence.js";
 
 // The post-run health rules, over the run tables. The keys stay snake_case and the messages
-// byte-identical to the Python pipeline's, so archived runs and new ones read alike. Each rule's
-// rationale is in that pipeline's run_health.py: git show e925e9d^:newsroom/src/run_health.py.
+// byte-identical to the Python pipeline's, so archived runs and new ones read alike.
 export interface RunHealth {
   run_id: number;
   shipped: number;

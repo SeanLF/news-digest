@@ -1,6 +1,5 @@
-# Planted-defect recall of the TypeScript checker on planted278 (8 planted fabrications, 24 clean
-# fields), the fixture and key the old checker's band was measured on (recall 8/8 every rep, false
-# drops 1-3; docs-archive-2026-11-04:docs/proposed/coherence-planted/band-2026-09-18). Run with
+# Planted-defect recall of the checker on planted278 (8 planted fabrications, 24 clean fields). The
+# bar is the old checker's band on the same fixture: recall 8/8 every rep, false drops 1-3. Run with
 # `make planted`.
 description: COHERENCE planted-defect band on the new runner
 prompts: ["planted278"]
