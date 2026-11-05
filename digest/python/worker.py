@@ -11,12 +11,11 @@ import signal
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import fulltext
+import settings
 from temporalio import activity
 from temporalio.client import Client
 from temporalio.worker import Worker
-
-import fulltext
-import settings
 
 TASK_QUEUE = "python"
 # The image's HEALTHCHECK passes while this file is under a minute old, so Kamal counts a new worker

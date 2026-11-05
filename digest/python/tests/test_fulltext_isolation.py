@@ -19,9 +19,8 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
-import pytest
-
 import fulltext
+import pytest
 import settings
 
 # One <p> per sentence, no nesting: trafilatura's readability comparison is superlinear in node
@@ -42,9 +41,7 @@ def _normal_document() -> bytes:
         f"agenda, after a debate lasting most of the afternoon.</p>"
         for i in range(12)
     )
-    return (
-        f"<html><head><title>Council funds bridge</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'><link rel='canonical' href='https://news.example/a'></head><body><article>{body}</article></body></html>".encode()
-    )
+    return f"<html><head><title>Council funds bridge</title><meta property='article:published_time' content='2026-09-26T07:21:00Z'><link rel='canonical' href='https://news.example/a'></head><body><article>{body}</article></body></html>".encode()
 
 
 def _cpu_seconds() -> float:
@@ -236,9 +233,8 @@ class TestTheIsolatedWorkerStillDoesTheJob:
     def test_worker_log_lines_reach_the_parents_logger(self, caplog):
         """The child logs to its own stderr; those lines must end up in the run's log (stdout AND
         the rotating file), or every per-article diagnostic this module writes would vanish."""
-        with _serving({}) as base:  # every URL 404s
-            with caplog.at_level("INFO"):
-                assert _collect({"A1": f"{base}/missing"})[0] == {}
+        with _serving({}) as base, caplog.at_level("INFO"):  # every URL 404s
+            assert _collect({"A1": f"{base}/missing"})[0] == {}
 
         assert any("A1" in r.getMessage() for r in caplog.records)
         assert not any("127.0.0.1" in r.getMessage() and "/missing" in r.getMessage() for r in caplog.records)

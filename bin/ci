@@ -5,7 +5,7 @@ Local CI: every suite in its own container, in parallel.
 Usage:
     bin/ci           Run every suite
     bin/ci --staged  Run only the suites the staged paths reach (the pre-commit hook)
-    bin/ci --fix     Let the linters fix what they can (ruff in the scripts suite)
+    bin/ci --fix     Let the linters fix what they can (oxfmt in the TypeScript suite, ruff over bin/tests and digest/python)
 """
 
 import os
@@ -23,9 +23,9 @@ ALL_SUITES = frozenset({TS, WORKER, SCRIPTS})
 # test_ci_scope.py holds this table to the COPY lists that define each container.
 _SCOPE: tuple[tuple[str, frozenset[str]], ...] = (
     ("digest/package-lock.json", frozenset({TS})),
-    ("digest/python/pyproject.toml", frozenset({WORKER, TS})),
-    # The ci-ts image COPYs all of digest/, python/ included.
-    ("digest/python/", frozenset({WORKER, TS})),
+    ("digest/python/pyproject.toml", frozenset({WORKER, TS, SCRIPTS})),
+    # The ci-ts image COPYs all of digest/, python/ included; ci-scripts runs ruff over it.
+    ("digest/python/", frozenset({WORKER, TS, SCRIPTS})),
     # bin/ops's Postgres payloads: executed in ci-ts, and read by bin/tests/test_ops.py.
     ("digest/db/ops/", frozenset({TS, SCRIPTS})),
     ("digest/", frozenset({TS})),
@@ -80,7 +80,10 @@ QUIET = os.environ.get("CLAUDECODE") == "1"
 def suite_commands(fix_mode: bool) -> dict[str, list[str]]:
     """The docker compose command each suite runs as, keyed by suite."""
     return {
-        TS: ["docker", "compose", "run", "--rm", "--build", "ci-ts", "sh", "-c", TS_CMD],
+        # ci-ts COPYs digest/ in; under --fix, src is mounted so the formatter writes back.
+        TS: ["docker", "compose", "run", "--rm", "--build"]
+        + (["-v", f"{ROOT}/digest/src:/app/digest/src"] if fix_mode else [])
+        + ["ci-ts", "sh", "-c", ts_cmd(fix_mode)],
         WORKER: [
             "docker", "compose", "run", "--rm", "--build", "ci-python",
             "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "/app/tests",
@@ -90,17 +93,24 @@ def suite_commands(fix_mode: bool) -> dict[str, list[str]]:
 
 
 def scripts_cmd(fix_mode: bool) -> str:
-    """bin/tests: ruff, then pytest; every step runs, so one failure hides no other."""
+    """ruff over bin/tests and digest/python (ruff.toml), then pytest over bin/tests; every step
+    runs, so one failure hides no other."""
+    py = "bin/tests digest/python"
     if fix_mode:
-        lint = "ruff check --fix bin/tests; r=$?; ruff format bin/tests; f=$?"
+        lint = f"ruff check --fix {py}; r=$?; ruff format {py}; f=$?"
     else:
-        lint = "ruff check bin/tests; r=$?; ruff format --check bin/tests; f=$?"
+        lint = f"ruff check {py}; r=$?; ruff format --check {py}; f=$?"
     return f"{lint}; pytest -q -n auto -p no:cacheprovider bin/tests; t=$?; [ $r -eq 0 ] && [ $f -eq 0 ] && [ $t -eq 0 ]"
 
 
-# Typecheck and lint (about 1 s together) run before vitest, not in its wake; every step runs, so
-# one failure hides no other. A tsgolint killed for memory shows only "Error running tsgolint".
-TS_CMD = "npm run typecheck; t=$?; npm run lint; l=$?; npm test; v=$?; [ $t -eq 0 ] && [ $l -eq 0 ] && [ $v -eq 0 ]"
+def ts_cmd(fix_mode: bool) -> str:
+    """Format, typecheck and lint (about 1 s together), then vitest; every step runs, so one failure
+    hides no other. A tsgolint killed for memory shows only "Error running tsgolint"."""
+    fmt = "npm run format; f=$?" if fix_mode else "npm run format:check; f=$?"
+    return (
+        f"{fmt}; npm run typecheck; t=$?; npm run lint; l=$?; npm test; v=$?; "
+        "[ $f -eq 0 ] && [ $t -eq 0 ] && [ $l -eq 0 ] && [ $v -eq 0 ]"
+    )
 
 SUITE_NAMES = {
     TS: "TypeScript CI",

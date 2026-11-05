@@ -7,8 +7,8 @@ deadline takes what finished. The process bound is proved in test_fulltext_isola
 """
 
 import logging
-from types import SimpleNamespace
 from concurrent.futures import Future
+from types import SimpleNamespace
 
 import fulltext
 
@@ -164,7 +164,8 @@ class TestOnlyArticlesAreKept:
     ARTICLE = (
         '<html><head><title>Bangkok declares flood disaster</title><meta property="og:title" content="Bangkok declares flood disaster">'
         '<meta property="article:published_time" content="2026-09-26T07:21:00Z"><link rel="canonical" href="https://www.bbc.com/b"></head><body><article><h1>Bangkok declares flood disaster</h1>'
-        + "<p>Bangkok's governor declared a disaster zone across the capital's 50 districts on Saturday after nearly 300mm of rain.</p>" * 6
+        + "<p>Bangkok's governor declared a disaster zone across the capital's 50 districts on Saturday after nearly 300mm of rain.</p>"
+        * 6
         + "</article></body></html>"
     )
 

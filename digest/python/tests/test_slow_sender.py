@@ -89,9 +89,11 @@ def test_a_fetch_that_outlives_its_limit_is_no_page_even_if_the_stream_ends_clea
     taken for the article."""
     monkeypatch.setattr(fulltext, "_PER_FETCH_WALL_S", 1.0)
     close_delimited = b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n<html><body>"
-    with _trickling(close_delimited, b"<p>partial</p>", interval=0.05) as port:
-        with pytest.raises(fulltext.FetchRefused, match="wall-clock"):
-            fulltext._download(f"http://127.0.0.1:{port}/a", allow=_exempt(port))
+    with (
+        _trickling(close_delimited, b"<p>partial</p>", interval=0.05) as port,
+        pytest.raises(fulltext.FetchRefused, match="wall-clock"),
+    ):
+        fulltext._download(f"http://127.0.0.1:{port}/a", allow=_exempt(port))
 
 
 def test_a_trickling_host_is_logged_as_over_its_limit(monkeypatch, caplog):
