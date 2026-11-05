@@ -1,11 +1,3 @@
-// A run is pinned to the worker build that started it (src/deployment.ts): a deploy never replays it on
-// changed code, so a change to the commands this issues (and threads.ts, bounded.ts) needs no
-// patched() gate. It must still replay on its own build after a worker restart: replay.test.ts replays
-// recorded histories against this file. A change to the commands (an activity or timer added, removed
-// or reordered) fails it: re-record the fixtures in the same commit. Such a change also means a run
-// moved onto this build by hand (runbook, "Stranded runs") fails with a nondeterminism error.
-// Activity bodies are free, and so are an activity's options: replay matches an activity by type,
-// not by timeout or retry policy.
 import {
   ActivityFailure,
   ApplicationFailure,
@@ -42,35 +34,22 @@ import { approveSignal, operatorNoteSignal, retrySignal } from "./signals.js";
 import { threadsPhase } from "./threads.js";
 
 export const WORKFLOW_RUN_TIMEOUT = `${RUN_TIMEOUT_HOURS} hours` as const;
-// The workflow's own deadline, under the run timeout. The server's run timeout ends a run without
-// running any of its code, so a run that reached it would fail silently; at this deadline the run is
-// still alive to alert, ping the dead-man's switch and fail. DEADLINE_MARGIN_MS covers the alert.
 export const RUN_DEADLINE_MS = 230 * 60 * 1000;
 export const DEADLINE_MARGIN_MS = 10 * 60 * 1000;
-// A run that fails a pre-send check (ops/pre-send.ts) holds this long for the operator, then sends
-// anyway (spec §2.3, 2026-09-24); a clean run does not hold, unless the cut-over hold is on
-// (HOLD_ALWAYS_THROUGH), which checkPreSend reports as one more line. In ms: the notification names its end.
 export const HOLD_TIMEOUT = 15 * 60 * 1000;
-// What the tail after the hold is given of the budget; a test holds TAIL_WORST_CASE_MS under it.
 export const TAIL_MARGIN_MS = 30 * 60 * 1000;
 
-// One budget: the deadline, and under the run timeout when a start sets one.
 function deadlineMs(): number {
   const { runTimeoutMs } = workflowInfo();
   return runTimeoutMs
     ? Math.max(60_000, Math.min(RUN_DEADLINE_MS, runTimeoutMs - DEADLINE_MARGIN_MS))
     : RUN_DEADLINE_MS;
 }
-// What the deadline leaves before the tail must start; at or under 0 the send cannot fit.
 function sendBudget(): number {
   return workflowInfo().runStartTime.getTime() + deadlineMs() - TAIL_MARGIN_MS - Date.now();
 }
-// Workflow identity replaces the dup-run guard for every kind of start (spec §2.1).
 export const workflowIdFor = (runDate: string): string => `digest-${runDate}`;
 
-// Three retry classes under one run budget (spec §2.1). Model calls: bounded retries inside the
-// outage-sized run timeout, with heartbeats. Network: quick retries. Verdicts and the send: one
-// attempt (a verdict is a result; a send is at-most-once).
 const model = proxyActivities<Activities>({
   startToCloseTimeout: "45 minutes",
   heartbeatTimeout: "2 minutes",
@@ -81,27 +60,19 @@ const network = proxyActivities<Activities>({
   retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
 });
 const once = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", retry: { maximumAttempts: 1 } });
-// Render and assemble: the same inputs give the same output (render keeps its timestamp and issue
-// number), so an attempt a deploy interrupts is retried instead of failing the run: 3 attempts, the
-// retries about 10 s then 20 s after (the default backoff coefficient, 2).
 const rebuild = proxyActivities<Activities>({
   startToCloseTimeout: "10 minutes",
   retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
 });
-// The send: one attempt, heartbeating, so a timed-out or cancelled attempt is told to stop.
 const send = proxyActivities<Activities>({
   startToCloseTimeout: "10 minutes",
   heartbeatTimeout: "2 minutes",
   retry: { maximumAttempts: 1 },
 });
-// The run's record: idempotent database writes, so a retry is safe, retried like a fetch.
 const record = proxyActivities<Activities>({
   startToCloseTimeout: "2 minutes",
   retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
 });
-// A verdict is a result, never re-sampled until something passes (spec §2.2 tier 3): one attempt,
-// and a failure parks on the retry signal for an operator.
-// Attribution is optional: a few minutes at most, one attempt, never at the cost of the send.
 const attributing = proxyActivities<Activities>({
   startToCloseTimeout: "10 minutes",
   heartbeatTimeout: "2 minutes",
@@ -112,31 +83,21 @@ const verdict = proxyActivities<Activities>({
   heartbeatTimeout: "2 minutes",
   retry: { maximumAttempts: 1 },
 });
-// The Python fetch bounds itself (a 120 s deadline plus 30 s grace, then SIGKILL); the start-to-close
-// covers that with room. A worker that never picks the task up is the schedule-to-start timeout.
 const python = proxyActivities<FulltextFetcher>({
   taskQueue: PYTHON_TASK_QUEUE,
   scheduleToStartTimeout: "5 minutes",
   startToCloseTimeout: "4 minutes",
   retry: { maximumAttempts: 2 },
 });
-// The decode (gnews-decode.ts) checks its 120 s deadline between links, so a pass can overrun it by
-// one link: the 2 s pace and one 15 s decode, which the library bounds as a whole. A pass queued
-// behind another waits up to 60 s first. It heartbeats before each link, so a timed-out pass stops at
-// the next one. One attempt: a retry would spend the per-IP daily budget again on links the first
-// attempt already tried.
 const decoder = proxyActivities<LinkDecoder>({
   startToCloseTimeout: "6 minutes",
   heartbeatTimeout: "3 minutes",
   retry: { maximumAttempts: 1 },
 });
-// Alerts and pings: quick retries, and the activity gives up (logging what it would have said) on the last.
 const ops = proxyActivities<Activities>({
   startToCloseTimeout: "2 minutes",
   retry: { maximumAttempts: OPS_MAX_ATTEMPTS, initialInterval: "10 seconds" },
 });
-// The tail after the hold: quick, bounded retries, so its worst case is a known sum (below) that the
-// budget reserves before the send may start. Everything here is an idempotent write or a ping.
 const TAIL_ATTEMPT_MS = 60_000;
 const TAIL_ATTEMPTS = 2;
 const TAIL_RETRY_MS = 5_000;
@@ -144,13 +105,10 @@ const tail = proxyActivities<Activities>({
   startToCloseTimeout: TAIL_ATTEMPT_MS,
   retry: { maximumAttempts: TAIL_ATTEMPTS, initialInterval: TAIL_RETRY_MS, maximumInterval: TAIL_RETRY_MS },
 });
-// The hold notice: one short attempt (it reports its own failure), so a hold cut to under a minute
-// overruns into the tail's margin by at most this; a test holds it inside the margin's slack.
 export const NOTIFY_MS = 60_000;
 const notify = proxyActivities<Activities>({ startToCloseTimeout: NOTIFY_MS, retry: { maximumAttempts: 1 } });
-const SEND_MS = 10 * 60 * 1000; // the send proxy's start-to-close, one attempt
-const OPS_WORST_MS = 3 * 2 * 60 * 1000 + 30_000; // the ops policy: 3 attempts of 2 min, 10 s then 20 s apart
-// saveDigest, the send, recordShownHeadlines, finishRun, the success ping, the health check, its alert.
+const SEND_MS = 10 * 60 * 1000;
+const OPS_WORST_MS = 3 * 2 * 60 * 1000 + 30_000;
 export const TAIL_WORST_CASE_MS =
   SEND_MS + 5 * (TAIL_ATTEMPTS * TAIL_ATTEMPT_MS + (TAIL_ATTEMPTS - 1) * TAIL_RETRY_MS) + OPS_WORST_MS;
 const weekly = proxyActivities<Activities>({
@@ -159,7 +117,6 @@ const weekly = proxyActivities<Activities>({
   retry: { maximumAttempts: WEEKLY_RECAP_MAX_ATTEMPTS, initialInterval: "10 seconds" },
 });
 
-// Never fails the run it serves; only a cancellation passes through.
 async function bestEffort<T>(fn: () => Promise<T>): Promise<T | undefined> {
   try {
     return await fn();
@@ -179,22 +136,17 @@ interface RunState {
   sent: boolean;
 }
 
-// The systemd OnFailure alert's successor. Everything the run does is inside a scope with a deadline; on
-// any failure but an operator's cancellation the workflow pings the dead-man's switch and emails, then
-// fails. What no workflow code can report (the worker or the server down, a workflow task that keeps
-// failing) is the dead-man's switch's: its start ping was sent and no success follows.
 export async function DigestWorkflow(input: DigestInput): Promise<DigestOutput> {
   const state: RunState = { runId: null, sent: false };
   try {
     return await CancellationScope.withTimeout(deadlineMs(), () => runDigest(input, state));
   } catch (e) {
-    if (CancellationScope.current().consideredCancelled) throw e; // the operator cancelled the workflow
+    if (CancellationScope.current().consideredCancelled) throw e;
     const timedOut = isCancellation(e);
     const failure = timedOut
       ? ApplicationFailure.nonRetryable(`run deadline of ${deadlineMs() / 60_000} minutes exceeded`, "RunDeadline")
       : e;
     await CancellationScope.nonCancellable(async () => {
-      // A digest that reached readers is the delivery the switch watches for, whatever failed after it.
       if (state.sent)
         await bestEffort(() =>
           ops.healthcheck("success", `sent, but the run failed after the send: ${causes(failure)}`),
@@ -217,8 +169,8 @@ export async function DigestWorkflow(input: DigestInput): Promise<DigestOutput> 
 
 async function runDigest(input: DigestInput, state: RunState): Promise<DigestOutput> {
   let approval: "approve" | "reject" | undefined;
-  const approvalNow = () => approval; // read through a call: signals change it across awaits
-  const retryDecisions: ("retry" | "abort")[] = []; // a queue: a decision sent before the failure is kept
+  const approvalNow = () => approval;
+  const retryDecisions: ("retry" | "abort")[] = [];
   const notes: Record<string, string> = {};
   setHandler(approveSignal, ({ decision }) => {
     approval = decision;
@@ -232,7 +184,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
 
   const { runId, sourceIds, lastRun } = await once.startRun(input);
   state.runId = runId;
-  const monitored = input.resumeRun === undefined; // the day's first run owns the dead-man's switch
+  const monitored = input.resumeRun === undefined;
   if (monitored) await bestEffort(() => ops.healthcheck("start"));
 
   async function alertOn(check: () => Promise<AlertRequest | null>): Promise<void> {
@@ -241,9 +193,6 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
   }
   const notSent = (reason: "disabled" | "held-out", detail: string) =>
     alertOn(() => Promise.resolve({ kind: "not-sent", workflowId: workflowInfo().workflowId, runId, reason, detail }));
-  // Delivered: the success ping comes before the health check, since a violated invariant is a quality
-  // signal about a run that did deliver. An operator's reject or abort is deliberate, so it closes the
-  // day's /start with a note rather than leaving it to page. Disabled is no delivery: no ping.
   async function finish(out: Omit<DigestOutput, "runId">): Promise<DigestOutput> {
     if (out.broadcast !== "sent") await bestEffort(() => tail.threadsRetract(runId));
     await tail.finishRun(runId, out);
@@ -256,15 +205,11 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
         ),
       );
     else if (out.broadcast === "held-out") await bestEffort(() => tail.healthcheck("fail"));
-    // Judged on delivered runs only: the shown headlines are recorded by the send, so every other
-    // outcome would read as ZERO_STORIES, and each of those already told the operator itself.
     if (out.broadcast === "sent") await alertOn(() => tail.checkRunHealth(runId, true));
     return { runId, ...out };
   }
 
   try {
-    // Retries exhausted: park on the retry signal (spec §2.3 signal 2). Returns undefined on abort.
-    // Only an activity's own failure parks; a cancellation or a workflow-code error propagates.
     async function guarded<T>(fn: () => Promise<T>): Promise<T | undefined> {
       for (;;) {
         try {
@@ -277,19 +222,14 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       }
     }
 
-    // One activity per feed under the network policy; a feed that fails is recorded and the run goes on
-    // thin (a thin day ships and logs, spec §2), so failures are settled rather than thrown.
     const fetched = (await Promise.allSettled(sourceIds.map((s) => network.fetchFeed(runId, s, lastRun)))).flatMap(
       (r) => (r.status === "fulfilled" ? [r.value] : []),
     );
     await alertOn(() => ops.checkFeeds(runId, sourceIds));
     const { articles } = await once.prepare(runId, fetched, input.force);
     await bestEffort(() => ops.healthcheckLog(`curation start: run ${runId}`));
-    // Best-effort and awaited before SELECT, which reads it (as WRITE does).
     const weeklyP = bestEffort(() => weekly.weeklyRecap(runId, input.force));
-    weeklyP.catch(() => undefined); // observed; awaited below
-    // CLUSTER = plan → extract fan-out (one model call per batch, each under its own retry policy)
-    // → deterministic join; a batch that exhausts its retries is a lost batch the join title-falls back.
+    weeklyP.catch(() => undefined);
     const recapP = model.recap(runId, input.force);
     const { batches } = await once.planBatches(runId, articles);
     const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => model.extractBatch(runId, b, input.force));
@@ -298,19 +238,15 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     await weeklyP;
     const selected = await guarded(() => model.select(runId, clusters, recap, notes["select"], input));
     if (!selected) return await finish({ stories: 0, broadcast: "skipped" });
-    // Full text is best-effort, as in production: a fetcher that is down or fails leaves the run on
-    // the RSS summaries, recorded as "unavailable" in fulltext_health.json.
     const plan = await once.planFulltext(runId, selected, input.force);
     const fetch = async (): Promise<FulltextFetch> => {
-      if (plan.skip) return { tasks: 0, results: {}, outcome: plan.skip }; // nothing to send to Python
+      if (plan.skip) return { tasks: 0, results: {}, outcome: plan.skip };
       return python.fetchFulltext(plan.tasks).catch((e: unknown): FulltextFetch => {
         if (isCancellation(e)) throw e;
         return { tasks: plan.tasks.length, results: {}, outcome: "unavailable" };
       });
     };
     if (!plan.existing) await once.storeFulltext(runId, await fetch(), input.force);
-    // WRITE fans out one story per call, four at a time; a story that exhausts its retries fails the
-    // phase rather than letting the digest ship one story short.
     const { plans } = await once.planStories(runId, selected, clusters);
     const storyCount = plans.length;
     const written = await mapBounded(plans, MODEL_FANOUT_LIMIT, (p) =>
@@ -320,11 +256,10 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     if (failed) throw failed.reason;
     const drafts = written.flatMap((w) => (w.status === "fulfilled" ? [w.value] : []));
     const preheaderP = model.preheader(runId, drafts, input.force).catch((e: unknown) => {
-      if (isCancellation(e)) throw e; // best-effort, never at the cost of a cancellation
+      if (isCancellation(e)) throw e;
       return null;
     });
-    preheaderP.catch(() => undefined); // observed while the checker may be parked; awaited below
-    // The first fetch ran before WRITE chose its citations; this one reads what it cited, for the checker.
+    preheaderP.catch(() => undefined);
     const topup = await once.planFulltextTopup(runId, drafts, input.force);
     const fetchTopup = async (): Promise<FulltextFetch> => {
       if (topup.skip) return { tasks: 0, results: {}, outcome: topup.skip };
@@ -338,14 +273,12 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     const preheader = await preheaderP;
     if (!report) return await finish({ stories: 0, broadcast: "skipped" });
     const repair = await model.repair(runId, drafts, report, input.force);
-    // Best-effort: without it assemble shows the checker's own list of what backs each claim and removes nothing.
     const attribution = await attributing.attribute(runId, drafts, report, repair, input.force).catch((e: unknown) => {
       if (isCancellation(e)) throw e;
       log.warn("attribution failed; the issue goes on without it", { runId, error: String(e) });
       return null;
     });
     const selections = await rebuild.assemble(runId, drafts, report, repair, preheader, attribution, input.force);
-    // Best-effort, as in production: a decode that fails ships the raw Google-News links.
     const decodeLinks = async () => {
       const links = await once.planGnews(runId, selections, input.force);
       if (links.existing) return links.existing;
@@ -359,14 +292,11 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     };
     const [gnews, threads] = await Promise.all([decodeLinks(), threadsPhase(runId, input.force)]);
 
-    // db.archive_selections/archive_clusters: a trace, fail-soft as in the Python, never at the
-    // cost of the issue.
     await record.archiveRun(runId, selections, clusters).catch((e: unknown) => {
       if (isCancellation(e)) throw e;
       log.warn("archiving the run's selections and clusters failed; the issue goes on", { runId, error: String(e) });
     });
     const { html, email } = await rebuild.render(runId, selections, threads, gnews);
-    // The pre-send checks (ops/pre-send.ts). A check that cannot run is a failed check: it holds.
     const failures = await record.checkPreSend(runId).catch((e: unknown): string[] => {
       if (isCancellation(e)) throw e;
       return [`PRE_SEND_CHECK_ERROR: the checks could not run: ${causes(e)}`];
@@ -375,8 +305,6 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     if (failedChecks.length) log.warn("pre-send checks failed", { runId, failures: failedChecks });
     if (failures.length > failedChecks.length) log.info("the cut-over hold is on", { runId });
 
-    // Only a real send publishes: with the send disabled the run ends like a rejected one, with no
-    // web copy, no story sources and no sent outcome, and the operator is told.
     if (!(await record.sendEnabled())) {
       log.warn("BROADCAST_ENABLED is not true: nothing published, sent or recorded as shown", { runId });
       await notSent(
@@ -385,10 +313,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       );
       return await finish({ stories: storyCount, broadcast: "disabled" });
     }
-    // An operator's reject stops the send whenever it lands before it, held or not.
     if (approval === "reject") return await finish({ stories: storyCount, broadcast: "rejected" });
-    // The send and its record need the tail's margin before the deadline. Without it the run is not
-    // sent, clean or flagged: a send the deadline could cut is one that may reach readers unrecorded.
     const budget = sendBudget();
     if (budget <= 0) {
       log.warn("no run budget left for the send; not sending", { runId, budgetMs: budget });
@@ -398,12 +323,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       );
       return await finish({ stories: storyCount, broadcast: "held-out" });
     }
-    // The pre-send hold (spec §2.3 signal 1), only for a run that failed a check: the operator is
-    // emailed what failed and may approve or reject; unanswered, it sends when the hold ends. Cut to
-    // the budget and never refused for being short: its timeout sends anyway, so a shorter hold
-    // changes only how long the operator has. Nothing reaches readers before it ends.
     if (failures.length) {
-      // The hold ends at a fixed time: the notification's own duration comes out of it, not on top of it.
       const holdEnds = Date.now() + Math.min(HOLD_TIMEOUT, budget);
       await notify.notifyHold(runId, selections, new Date(holdEnds).toISOString(), failures).catch((e: unknown) => {
         if (isCancellation(e)) throw e;
@@ -413,20 +333,14 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       if (left > 0) await condition(() => approval !== undefined, left);
       if (approvalNow() === "reject") return await finish({ stories: storyCount, broadcast: "rejected" });
     }
-    // From here the deadline cannot cut in: a send in progress and the record of one that landed are
-    // never cancelled, since a cancelled send can still reach readers and a cut record would call it
-    // failed. The budget check above left the tail its margin.
     return await CancellationScope.nonCancellable(async () => {
       await tail.saveDigest(runId, html, selections);
-      const sent = await send.broadcast(runId, email); // at most once: one attempt (spec §2.1)
+      const sent = await send.broadcast(runId, email);
       state.sent = true;
-      // After a delivered send every step is an idempotent write, retried: a locked database here
-      // must not mark a run that reached readers failed.
       await tail.recordShownHeadlines(runId, selections);
       return await finish({ stories: storyCount, broadcast: "sent", recipients: sent.recipients });
     });
   } catch (e) {
-    // db.abort_run: marked failed, never deleted, whatever the cause, cancellation included.
     await CancellationScope.nonCancellable(() =>
       record.abortRun(
         runId,

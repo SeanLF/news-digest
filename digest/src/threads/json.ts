@@ -1,7 +1,3 @@
-// JSON objects inside a model's free-text reply, as thread_synthesis reads them with
-// json.JSONDecoder.raw_decode: a candidate starts at a "{" and ends at its matching "}", strings
-// and escapes respected; whatever follows is ignored.
-
 function objectEnd(text: string, start: number): number {
   let depth = 0;
   let inString = false;
@@ -29,7 +25,6 @@ function decodeAt(text: string, start: number): { value: unknown; end: number } 
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
-// thread_synthesis._parse_json: the object that starts at the first "{", or a throw.
 export function firstJsonObject(text: string): Record<string, unknown> {
   const start = text.indexOf("{");
   const got = start >= 0 ? decodeAt(text, start) : undefined;
@@ -38,8 +33,6 @@ export function firstJsonObject(text: string): Record<string, unknown> {
   return got.value;
 }
 
-// thread_synthesis._json_objects: every top-level object in the reply, in order; a "{" that does
-// not open a valid object is prose and skipped.
 export function jsonObjects(text: string): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
   let i = text.indexOf("{");

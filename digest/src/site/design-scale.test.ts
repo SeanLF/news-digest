@@ -2,9 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import * as blobs from "./pages/blobs.js";
 
-// docs/design-system.md, "Type scale": the base steps, 13 for the chrome nav, and the mobile and desktop tiers.
 const SCALE = new Set([12, 13, 14, 16, 17, 18, 20, 22, 23, 25, 27, 29, 30, 34]);
-// Relative sizes scale an element already on the scale.
 const RELATIVE = /^(inherit|1em|100%)$/;
 
 const offScale = (css: string): string[] =>
@@ -12,8 +10,6 @@ const offScale = (css: string): string[] =>
     .map((m) => m[1]!.trim())
     .filter((v) => !RELATIVE.test(v) && !(/^\d+px$/.test(v) && SCALE.has(Number.parseInt(v, 10))));
 
-// design/tokens.css, "motion": a duration is a token, never a literal. Exempt: a loop (the skeleton
-// pulse) and the reduced-motion kill switch (a sub-millisecond duration means none).
 const literalTimings = (css: string): string[] =>
   [...css.matchAll(/(?:transition|animation)(?:-delay|-duration)?\s*:([^;}"]+)/g)]
     .map((m) => m[1]!.trim())

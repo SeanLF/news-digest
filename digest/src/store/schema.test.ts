@@ -12,8 +12,6 @@ const STATES: State[] = [
 const show = (s: State) => ("outcome" in s ? `completed(${s.outcome})` : s.status);
 const outcomeOf = (s: State) => ("outcome" in s ? s.outcome : null);
 
-// §4.1: running -> completed | failed; failed -> running; completed -> running unless sent; a write
-// that leaves status and outcome as they were is always allowed.
 function legal(from: State, to: State): boolean {
   if (show(from) === show(to)) return true;
   if (from.status === "running") return to.status !== "running";
@@ -141,7 +139,6 @@ describe("the product schema", () => {
     await db.query(
       "INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (10, 1, 'a', false), (10, 2, 'b', true), (11, 2, 'c', false), (11, 7, 'unsent', true)",
     );
-    // 11's run-7 update is unpublished, so it was last seen in run 2, with runs 3-6 after it.
     expect(
       await rows(
         db,
@@ -169,7 +166,6 @@ describe("the product schema", () => {
     }
     await db.query("INSERT INTO threads (id, created_run_id) VALUES (10, 2)");
     await db.query("INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (10, 2, 'a', false)");
-    // Runs 3, 4, 5 between it and the newest (6): 3, not more than 3. Counting the newest would say 4.
     expect(await rows(db, "SELECT status FROM thread_state")).toEqual([{ status: "active" }]);
     await db.query("INSERT INTO runs (id, started_at) VALUES (7, '2026-09-17 10:25:00+00')");
     expect(await rows(db, "SELECT status FROM thread_state")).toEqual([{ status: "dormant" }]);
@@ -181,7 +177,6 @@ describe("the product schema", () => {
     await runsOn(db, days);
     for (const [i, d] of days.entries()) {
       await db.query("INSERT INTO issues (issue_date, revision, run_id, html) VALUES ($1, 1, $2, '')", [d, i + 1]);
-      // Runs 4 and 5 put their issue up and their send failed: published, never sent.
       await db.query(
         [4, 5].includes(i + 1)
           ? "UPDATE runs SET status='failed' WHERE id=$1"
@@ -191,9 +186,7 @@ describe("the product schema", () => {
     }
     await db.query("INSERT INTO threads (id, created_run_id) VALUES (10, 1)");
     await db.query("INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (10, 1, 'a', false)");
-    // Sent between it and the newest (7): runs 2, 3 and 6, not more than 3.
     expect(await rows(db, "SELECT status FROM thread_state")).toEqual([{ status: "active" }]);
-    // Run 4 resumed and sent: now 4.
     await db.query("UPDATE runs SET status='running' WHERE id=4");
     await db.query("UPDATE runs SET status='completed', outcome='sent' WHERE id=4");
     expect(await rows(db, "SELECT status FROM thread_state")).toEqual([{ status: "dormant" }]);

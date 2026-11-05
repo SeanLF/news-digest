@@ -38,8 +38,6 @@ export interface ResolutionDoc {
   fault?: string;
 }
 
-// A failure repair can handle: failed_fields a non-empty subset of the three text fields, on every
-// matching failure (repair.build_repair_requests). Anything else stays on the drop path.
 export function buildRepairRequests(draft: Draft, report: CoherenceReport): RepairRequest[] {
   const failed = report.results.filter((r) => !r.pass);
   const out: RepairRequest[] = [];
@@ -75,8 +73,6 @@ const Patch = z.object({
 export const RepairedSchema = z.object({ results: z.array(Patch) });
 const key = (ids: string[]) => [...new Set(ids)].toSorted().join(",");
 
-// A story is patched only if the repairer returned exactly the flagged fields, each non-empty and
-// free of internal ids (repair.apply_repairs). A story split across objects is merged first, last wins.
 export function applyRepairs(requests: RepairRequest[], repaired: z.infer<typeof RepairedSchema>): Resolution[] {
   const merged = new Map<string, Partial<Record<Field, string>>>();
   for (const r of repaired.results) {
@@ -109,10 +105,6 @@ export function applyRepairs(requests: RepairRequest[], repaired: z.infer<typeof
   });
 }
 
-// A patched story is kept only if the scoped recheck passed it: at least one result matches the
-// patched story (by ids, or by headline for a result without them) and none of the matching results
-// fails. No verdict, or any failing verdict, confirms nothing. Stricter than the Python, which keyed
-// on ids alone and so let a headline-matched failure through.
 export function resolve(applied: Resolution[], recheck: CoherenceReport, scoped: Draft): Resolution[] {
   const stories = [...scoped.must_know, ...scoped.should_know];
   return applied.map((a) => {
@@ -128,19 +120,16 @@ export function resolve(applied: Resolution[], recheck: CoherenceReport, scoped:
 
 export interface RepairDeps extends CoherenceDeps {
   query?: SdkQuery;
-  // Attempts the workflow's model policy allows; only the last one records a fault as the answer.
   maxAttempts: number;
 }
 const currentAttempt = (): number => {
   try {
     return Context.current().info.attempt;
   } catch {
-    return Number.POSITIVE_INFINITY; // outside an activity (tests, CLIs): every attempt is the last
+    return Number.POSITIVE_INFINITY;
   }
 };
 
-// Best-effort and fail-closed: any failure (other than a cancellation) leaves a resolution with
-// no `repaired` verdict, so assemble drops exactly what the checker failed.
 export function repairActivity(deps: RepairDeps) {
   return async (runId: number, drafts: Pointer[], report: Pointer, force = false): Promise<Pointer> => {
     const { store } = deps;
@@ -150,7 +139,7 @@ export function repairActivity(deps: RepairDeps) {
     const existing = await store.find(runId, REPAIR_OUTPUT);
     if (existing && !force) {
       const prior = JSON.parse(await store.get(existing)) as ResolutionDoc;
-      if (prior.input === input && prior.fault === undefined) return existing; // a cached fault is rerun
+      if (prior.input === input && prior.fault === undefined) return existing;
       await store.quarantine(runId, REPAIR_OUTPUT);
     }
     const write = (doc: ResolutionDoc) =>
@@ -204,7 +193,7 @@ export function repairActivity(deps: RepairDeps) {
         });
         repaired = RepairedSchema.parse(r.structured);
       } finally {
-        rmSync(dir, { recursive: true, force: true }); // the mkdtemp directory this call created
+        rmSync(dir, { recursive: true, force: true });
       }
       applied = applyRepairs(requests, repaired);
       const toCheck = applied.filter((a) => a.status === "recheck_failed");
@@ -233,9 +222,8 @@ export function repairActivity(deps: RepairDeps) {
       });
       return write({ input, results: resolve(applied, checked.report, scoped), recheck: checked.report });
     } catch (e) {
-      // A cancellation is not a fault: Temporal's own, or the SDK's AbortError once our signal fired.
       if (e instanceof CancelledFailure || deps.signal?.()?.aborted) throw e;
-      if (currentAttempt() < deps.maxAttempts) throw e; // let the model retry policy try again
+      if (currentAttempt() < deps.maxAttempts) throw e;
       return write({
         input,
         results: applied.map((a) => ({

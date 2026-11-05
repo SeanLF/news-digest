@@ -1,15 +1,11 @@
 import { parse as parseYaml } from "yaml";
 import { z } from "zod";
 
-// Read and Grep on the input directory only (spec §2.2): publisher text reaches a model with
-// nothing to mutate and nothing to exfiltrate to. Write is gone by contract: the result is the
-// final message.
 const StageToolSchema = z.enum(["Read", "Grep"]);
 export type StageTool = z.infer<typeof StageToolSchema>;
 const EffortSchema = z.enum(["low", "medium", "high", "xhigh", "max"]);
 export type Effort = z.infer<typeof EffortSchema>;
 
-// An agent file's frontmatter. `tools` is a comma list ("Read, Grep") or empty.
 const FrontmatterSchema = z.strictObject({
   name: z.string().min(1),
   description: z.string().optional(),

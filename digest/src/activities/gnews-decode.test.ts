@@ -14,8 +14,6 @@ const failed = (reason: "http" | "parse" | "timeout" | "network" = "parse"): Dec
 const real = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const RATE_LIMITED: DecodeResult = { ok: false, reason: "rate_limited", status: 429, message: "HTTP 429" };
 
-// The pass as production configures it (GNEWS_RESOLVE_*: 15 s, 2 s, 120 s), on a fake clock and a
-// fake decoder that answers by token.
 function harness(answers: Record<string, DecodeResult>, over: Partial<LinkDecoderDeps> = {}) {
   let clock = 0;
   const seen: { token: string; timeoutMs: number }[] = [];
@@ -91,7 +89,7 @@ describe("decodeLinks (gnews-decoder)", () => {
       ...h.deps,
       decode: (url) => {
         h.seen.push({ token: tokenOf(url), timeoutMs: 15_000 });
-        h.tick(119_000); // with the 2 s pace, the second link starts past 120 s
+        h.tick(119_000);
         return Promise.resolve(ok(`https://www.reuters.com/${tokenOf(url).toLowerCase()}`));
       },
     });
@@ -108,7 +106,7 @@ describe("decodeLinks (gnews-decoder)", () => {
     const first = await h.decoder.decodeLinks([GN("R1"), "https://news.google.com/rss/articles/R1?hl=en-US"]);
     const second = await h.decoder.decodeLinks([GN("R1")]);
     expect([first.attempted, second.attempted]).toEqual([1, 1]);
-    expect(h.seen).toHaveLength(2); // the worker outlives a run: a failure must not be cached into the next
+    expect(h.seen).toHaveLength(2);
   });
 
   it("a link the decoder cannot read as Google News spends nothing and is not counted", async () => {
@@ -187,7 +185,6 @@ describe("decodeLinks (gnews-decoder)", () => {
   });
 
   it("two passes at once run one after the other", async () => {
-    // Google counts requests per IP: two runs decoding at once would double the request rate.
     let now = 0;
     let peak = 0;
     const h = harness({});
@@ -212,8 +209,6 @@ describe("decodeLinks (gnews-decoder)", () => {
   });
 
   it("a pass that cannot get the lock in time spends nothing and says busy", async () => {
-    // The wait sits inside the activity's own start-to-close. Unbounded, a pass queued behind a long
-    // one could time out and be stored as a settled "failed" having decoded nothing.
     let release!: () => void;
     const h = harness({});
     const calls: string[] = [];
@@ -229,7 +224,7 @@ describe("decodeLinks (gnews-decoder)", () => {
     const second = await decoder.decodeLinks([GN("R1")]);
     expect(second).toEqual({ links: 1, decoded: {}, attempted: 0, outcome: "busy" });
     expect(calls).toEqual([GN("R0")]);
-    expect(h.beats.length).toBeGreaterThan(1); // the wait heartbeats
+    expect(h.beats.length).toBeGreaterThan(1);
     release();
     expect((await first).outcome).toBe("completed");
   });

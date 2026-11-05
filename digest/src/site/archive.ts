@@ -2,9 +2,6 @@ import type { IssueRowData, SiteData } from "./data.js";
 import { type Bucket, type CatalogueEntry, knownBucket } from "./sources.js";
 import { escapeHtml, formatDayMonth, formatMonthYear } from "./text.js";
 
-// The archive's running order: one page of issues with their bias split,
-// rendered as the <li> rows the index and the /archive load-more fragment share.
-
 export const DEFAULT_LIMIT = 30;
 export const MAX_LIMIT = 100;
 
@@ -17,12 +14,9 @@ export interface IssueRow extends Omit<IssueRowData, "sourceIds"> {
 export interface ArchivePage {
   issues: IssueRow[];
   hasMore: boolean;
-  // The oldest date on this page, when another page follows.
   nextBefore: string | null;
 }
 
-// A parked source is kept: an issue really was built from it, and dropping its id would restate that
-// issue's bias bar (measured on 150 issues: they moved a median 2 points).
 export function biasMap(cat: CatalogueEntry[]): Map<string, Bucket> {
   const m = new Map<string, Bucket>();
   for (const s of cat) {
@@ -42,7 +36,6 @@ export function withBias(row: IssueRowData, bias: Map<string, Bucket>): IssueRow
   return { ...rest, sourceCount: n.l + n.c + n.r, biasL: n.l, biasC: n.c, biasR: n.r };
 }
 
-// `year` wins over `before`; a year is unpaginated.
 export async function fetchArchive(
   data: SiteData,
   bias: Map<string, Bucket>,
@@ -59,10 +52,8 @@ export async function fetchArchive(
   return { issues, hasMore, nextBefore: hasMore ? (issues.at(-1)?.date ?? null) : null };
 }
 
-// Half-away-from-zero, as Rust's f64::round.
 const round = (x: number): number => Math.sign(x) * Math.round(Math.abs(x));
 
-// One issue <li>. The bias bar's aria-label carries the split as text (WCAG 1.4.1).
 export function rowHtml(row: IssueRow, isToday: boolean): string {
   const total = row.biasL + row.biasC + row.biasR;
   let bias = "";
@@ -80,7 +71,6 @@ export function rowHtml(row: IssueRow, isToday: boolean): string {
   );
 }
 
-// Rows with a "Month YYYY" divider before each month's newest issue. Appended pages pass no `today`.
 export function rowsHtml(rows: IssueRow[], today: string | null): string {
   return rows
     .map(
@@ -90,7 +80,6 @@ export function rowsHtml(rows: IssueRow[], today: string | null): string {
     .join("");
 }
 
-// The /archive fragment: rows, then a hidden sentinel carrying the next cursor when more remain.
 export function fragmentHtml(page: ArchivePage): string {
   const sentinel = page.nextBefore
     ? `<li class="more-sentinel" data-next-before="${page.nextBefore}" hidden aria-hidden="true"></li>`

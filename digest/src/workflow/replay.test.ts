@@ -3,9 +3,6 @@ import { Worker } from "@temporalio/worker";
 import { describe, expect, it } from "vitest";
 import { changedWorkflowPath } from "./deploy-variant.js";
 
-// Recorded histories of every representative path (src/cli/record-histories.ts), replayed against
-// the workflow code as it is now: what a worker restart within one build does to a run in flight.
-// A change to the workflow's commands fails here; re-record in the same commit (top of digest.workflow.ts).
 const dir = new URL("./histories/", import.meta.url);
 const fixtures = readdirSync(dir)
   .filter((f) => f.endsWith(".json"))
@@ -53,7 +50,6 @@ describe("workflow replay", () => {
     expect(types).not.toContain("broadcast");
   });
 
-  // Control on the fixtures: a clean run sends with no hold, a flagged one after its timer fires.
   it.each([
     ["sent", false],
     ["resume", false],
@@ -69,7 +65,6 @@ describe("workflow replay", () => {
     expect(fromChecks.slice(0, fromChecks.indexOf("broadcast")).includes("EVENT_TYPE_TIMER_FIRED")).toBe(held);
   });
 
-  // Control on the fixtures themselves: the decision landed during the hold, not before it.
   it.each([
     ["approved-in-hold", "broadcast"],
     ["rejected-in-hold", undefined],
@@ -93,13 +88,13 @@ describe("workflow replay", () => {
   it("negative control: an activity added before the send's budget check fails every history that got that far", async () => {
     expect(await replay(changedWorkflowPath())).toEqual({
       "approved-in-hold": "DeterminismViolationError",
-      disabled: "ok", // ends before the budget check
+      disabled: "ok",
       failed: "ok",
       "flagged-sent": "DeterminismViolationError",
       "held-out": "DeterminismViolationError",
       "in-hold": "DeterminismViolationError",
       "parked-abort": "ok",
-      rejected: "ok", // rejected before the budget check
+      rejected: "ok",
       "rejected-in-hold": "DeterminismViolationError",
       resume: "DeterminismViolationError",
       sent: "DeterminismViolationError",

@@ -4,10 +4,6 @@ import { threadCss, threadsCss, threadsJs } from "./blobs.js";
 import { type PageCtx, brand, pageBody, pageHead, script, subChrome, subMasthead } from "./chrome.js";
 import { TAGLINE_ALL } from "./sub.js";
 
-// The threads index (a status-grouped list that pages like the archive) and a thread's page (status,
-// the story so far, the "still watching" ledger and a dated timeline).
-
-// Only "active" is live; everything else, dormant or unknown, is the hollow muted state.
 const statusParts = (status: string): [string, string] =>
   status === "active" ? ["on", "Ongoing"] : ["dorm", "Dormant"];
 const tsDate = (ts: string): string => formatDayMonthYear(ts.slice(0, 10));
@@ -18,13 +14,11 @@ function threadRow(t: ThreadSummary): string {
   return `<li><a href="/thread/${t.id}"><span class="mk ${cls}" aria-hidden="true"></span><span class="tl"><span class="lbl">${escapeHtml(t.label)}</span>${last}</span><span class="meta"><span class="st ${cls}">${label}</span><span class="upd">${tsDate(t.updatedAt)} &middot; ${t.updateCount} update${t.updateCount === 1 ? "" : "s"}</span></span></a></li>`;
 }
 
-// `total` is the full count: "30 threads" above a paged list of 607 would be a lie.
 function section(rows: ThreadSummary[], label: string, total: number, id: string): string {
   if (!rows.length) return "";
   return `<section><div class="sec-h"><h2>${label}</h2><span class="ct">${total} ${total === 1 ? "thread" : "threads"}</span></div><ul class="threads" id="${id}" data-total="${total}">${rows.map(threadRow).join("")}</ul></section>`;
 }
 
-// The cursor rides in the markup, so the fragment stays a list the browser can render unaided.
 const sentinel = (next: ThreadIndexPage["nextBefore"]): string =>
   next
     ? `<li class="more-sentinel" hidden data-next-before="${escapeHtml(next.updatedAt)}" data-next-id="${next.id}"></li>`
@@ -41,7 +35,6 @@ export function threadsPage(ctx: PageCtx, page: ThreadIndexPage, deep: boolean):
     "A thread groups a running story's daily updates. Ongoing threads carry today's digest forward.",
   );
   const empty = !page.ongoing.length && !page.older.length;
-  // A real <a href> so the list pages with JS off.
   const more = page.nextBefore
     ? `<div class="loadmore" id="loadmore"><a class="btn secondary" id="loadMore" rel="next" href="/threads?before=${escapeHtml(encodeURIComponent(page.nextBefore.updatedAt))}&amp;before_id=${page.nextBefore.id}">Load older threads</a><p class="loadmore-status" role="status" aria-live="polite"></p></div>`
     : "";
@@ -69,7 +62,6 @@ function timelineEntry(e: ThreadEntry): string {
     ? `<a class="issue" href="/issues/${e.issueDate}">&rarr; in the ${formatDayMonthYear(e.issueDate)} issue</a>`
     : "";
   const when = `<div class="when"><span class="date">${formatDayMonthYear(e.day)}</span>${issue}</div>`;
-  // An update with no renderable facts is a quiet, carried-forward day.
   if (!e.facts.length) {
     const head = e.headline
       ? escapeHtml(e.headline)

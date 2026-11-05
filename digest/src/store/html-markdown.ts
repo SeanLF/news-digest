@@ -1,11 +1,6 @@
 import TurndownService from "turndown";
 import { log } from "../log.js";
 
-// Stored issue HTML to Markdown: what the site served at request
-// time until the pipeline wrote Markdown itself. It now runs once, in cli/backfill-markdown, to fill
-// issues.markdown for the issues published before that.
-
-// The editorial <main> of a stored issue, or the whole document for older blobs without one.
 function extractMain(html: string): string {
   const start = html.indexOf("<main");
   if (start < 0) return html;
@@ -19,9 +14,6 @@ function extractMain(html: string): string {
 
 const hasClass = (el: HTMLElement, c: string): boolean => (el.getAttribute("class") ?? "").split(/\s+/).includes(c);
 
-// htmd's escaping, so the Markdown matches what the Rust server served: a leading `=`, `~` or `>`, a
-// list marker, an ATX heading or an ordered-list number is escaped, and so are \ * _ ` [ ] anywhere;
-// then "<" that would open a tag.
 function escapeText(text: string): string {
   const first = text[0];
   if (first === undefined) return text;
@@ -37,7 +29,6 @@ function escapeText(text: string): string {
   );
 }
 
-// Characters as Rust counts them: code points, not UTF-16 units.
 const charLen = (s: string): number => Array.from(s).length;
 const normCell = (s: string): string =>
   s
@@ -46,10 +37,7 @@ const normCell = (s: string): string =>
     .replaceAll("|", "&#124;")
     .replace(/^[\t\n\r ]+|[\t\n\r ]+$/g, "");
 
-// htmd's table: a header row, a dashed rule, cells padded to each column's widest raw cell, pipes in a
-// cell written as &#124;.
 function tableMarkdown(table: HTMLElement, cell: (el: HTMLElement) => string): string {
-  // Array.from: domino's collections are array-like, not iterable.
   const rowsOf = (sel: string): HTMLElement[] => Array.from(table.querySelectorAll<HTMLElement>(sel));
   const cells = (tr: HTMLElement, tag: string) =>
     Array.from(tr.childNodes)
@@ -90,8 +78,6 @@ function converter(): TurndownService {
   });
   td.escape = escapeText;
   td.remove(["script", "style"]);
-  // An issue from before the template had a <main> is converted whole, head included, and htmd sets its
-  // <title> apart as a block.
   td.addRule("title", { filter: "title", replacement: (content) => `\n\n${content}\n\n` });
   const cellTd = new TurndownService({
     headingStyle: "atx",
@@ -105,13 +91,10 @@ function converter(): TurndownService {
     replacement: (_content, node) =>
       tableMarkdown(node, (el) => cellTd.turndown(el.innerHTML).replace(/^[\t\n\r ]+|[\t\n\r ]+$/g, "")),
   });
-  // aria-hidden is the markup saying "decoration, do not read aloud"; a Markdown reader asks the same
-  // question a screen reader does.
   td.addRule("decorative", {
     filter: (n) => n.nodeType === 1 && n.getAttribute("aria-hidden") === "true",
     replacement: () => "",
   });
-  // Styled labels are bolded, never dropped: `tag` also marked bias labels in the 2025-12 issues.
   td.addRule("label", {
     filter: (n) => (n.nodeName === "SPAN" || n.nodeName === "DIV") && (hasClass(n, "lbl") || hasClass(n, "tag")),
     replacement: (content) => {
@@ -119,7 +102,6 @@ function converter(): TurndownService {
       return t && !t.includes("\n") ? `**${t}** ` : content;
     },
   });
-  // An anchor with no words (the copy-link anchor, an icon) is not something a reader can read.
   td.addRule("empty-link", {
     filter: (n) => n.nodeName === "A" && !(n.textContent ?? "").trim(),
     replacement: () => "",
@@ -128,12 +110,9 @@ function converter(): TurndownService {
 }
 let td: TurndownService | undefined;
 
-// An issue's Markdown body, the document under the site's title line, or undefined when its HTML
-// yields none (the backfill then leaves the issue without Markdown rather than store an empty one).
 export function issueMarkdownBody(html: string, date: string): string | undefined {
   let body: string;
   try {
-    // htmd trims the spaces a line ends on before a block starts (a bolded label before its paragraph).
     body = (td ??= converter())
       .turndown(extractMain(html))
       .replaceAll(/ +(?=\n\n)/g, "")

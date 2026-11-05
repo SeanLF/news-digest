@@ -15,11 +15,9 @@ import { threadsConfigFrom } from "./threads.js";
 export interface OpsDeps {
   dbUrl: string;
   env: Record<string, string | undefined>;
-  // The attempts the workflow's alert policy allows; only the last one gives up on a send.
   maxAttempts: number;
   send?: SendEmail;
   fetch?: typeof fetch;
-  // The worker's own instance, so its stage /log lines and these pings share one throttle.
   healthcheck?: Healthcheck;
 }
 
@@ -28,12 +26,10 @@ const activityInfo = (): { attempt: number; key?: string } => {
     const { attempt, activityId, workflowExecution: wf } = Context.current().info;
     return { attempt, key: wf ? `${wf.workflowId}/${wf.runId}/${activityId}` : activityId };
   } catch {
-    return { attempt: Number.POSITIVE_INFINITY }; // outside an activity every attempt is the last
+    return { attempt: Number.POSITIVE_INFINITY };
   }
 };
 
-// The operations activities: everything that tells the operator a run went wrong. None can fail a run
-// that delivered; all but checkPreSend are best-effort.
 export function opsActivities(deps: OpsDeps) {
   const hc = deps.healthcheck ?? healthcheck(deps.env, deps.fetch);
   const send: SendEmail =
@@ -44,7 +40,6 @@ export function opsActivities(deps: OpsDeps) {
       hc.ping(event === "success" ? undefined : event, note),
     healthcheckLog: (message: string): Promise<void> => hc.log(message),
 
-    // Feeds that keep failing, as run.py alerts on source_fetches after the fetch.
     checkFeeds: async (runId: number, sourceIds: string[]): Promise<AlertRequest | null> => {
       try {
         return await feedHealthAlert(
@@ -59,8 +54,6 @@ export function opsActivities(deps: OpsDeps) {
       }
     },
 
-    // run.py's _alert_on_run_health and _log_coherence_kinds on a finished run. Not knowing whether an
-    // invariant held is strictly better than turning a delivered digest into a failed run.
     checkRunHealth: async (runId: number, broadcasting: boolean): Promise<AlertRequest | null> => {
       try {
         const db = openDb(deps.dbUrl);
@@ -82,7 +75,6 @@ export function opsActivities(deps: OpsDeps) {
           );
         const found = violations(health);
         if (!found.length) return null;
-        // Logged before any send: if the send fails or alerting is off, this line is the only copy.
         log.error(`Run ${runId} violated post-run invariants: ${found.join("; ")}`);
         return { kind: "run-health", runId, violations: found };
       } catch (e) {
@@ -91,9 +83,6 @@ export function opsActivities(deps: OpsDeps) {
       }
     },
 
-    // The pre-send checks on the assembled issue. Unlike the checks above this one throws: a check
-    // that cannot run is not a clean run, and the workflow holds it. The cut-over hold rides along as
-    // one more line, so the workflow holds it with no command of its own.
     checkPreSend: async (runId: number): Promise<string[]> => {
       const db = openDb(deps.dbUrl);
       const input = await readPreSend(db, runId, {
@@ -119,7 +108,7 @@ export function opsActivities(deps: OpsDeps) {
           );
           if (day) req = { ...req, broadcastStatus: day.status, date: day.date };
         } catch (e) {
-          log.error(`could not read the day's broadcast state for run ${runId}: ${String(e)}`); // the alert goes anyway
+          log.error(`could not read the day's broadcast state for run ${runId}: ${String(e)}`);
         }
       }
       await sendAlert(req, {

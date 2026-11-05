@@ -1,5 +1,3 @@
-// Scores a replayed stage against the run's own artifact (the reference: what production produced), as
-// numbers a pre-registered rule can hold. Pure; replay-assert.ts applies them.
 import type { Mode } from "./stage-replay.js";
 
 type Scores = Record<string, number>;
@@ -32,8 +30,6 @@ function pairs(c: Clusters): Set<string> {
   return s;
 }
 
-// keeps: share of the reference's co-clustered pairs the replay keeps; adds: pairs the reference lacks,
-// as a share of the reference's (lumping).
 export function scoreCluster(out: Clusters, ref: Clusters): Scores {
   const p = pairs(out),
     r = pairs(ref);
@@ -46,7 +42,6 @@ export function scoreCluster(out: Clusters, ref: Clusters): Scores {
   };
 }
 
-// On the same clusters (a SELECT replay reads the run's): agreement of the must-know set and of every pick.
 export function scoreSelect(out: Selected, ref: Selected): Scores {
   const must = (s: Selected) => new Set(s.must_know.map((x) => x.cluster_index));
   const all = (s: Selected) => new Set([...s.must_know, ...s.should_know].map((x) => x.cluster_index));
@@ -58,8 +53,6 @@ export function scoreSelect(out: Selected, ref: Selected): Scores {
   };
 }
 
-// Per story (by its article ids): misses are stories the reference failed and the replay passed,
-// extras the reverse; unmatched counts stories one side lacks.
 const storyKey = (r: { article_ids: string[] }): string => r.article_ids.toSorted().join(",");
 const sameSet = (a: string[], b: string[]): boolean =>
   a.length === b.length && a.toSorted().join() === b.toSorted().join();
@@ -101,8 +94,6 @@ export function scoreCoherence(out: Report, ref: Report): CoherenceScores {
   };
 }
 
-// Per claim: whether the replay's supporting and differing articles are the same sets as the reference's;
-// differs and refDiffers count the same (matched) claims, so they compare.
 export function scoreAttribute(out: Attribution, ref: Attribution): Scores {
   let claims = 0,
     identical = 0,
@@ -129,7 +120,6 @@ export function scoreAttribute(out: Attribution, ref: Attribution): Scores {
   return { claims, identical: claims ? identical / claims : 1, differs, refDiffers };
 }
 
-// The scores a rule can bound, and for COHERENCE the headlines behind its misses and extras.
 export function score(mode: Mode, out: unknown, ref: unknown): { scores: Scores; missed?: string[]; extra?: string[] } {
   if (mode === "cluster") return { scores: scoreCluster(out as Clusters, ref as Clusters) };
   if (mode === "select") return { scores: scoreSelect(out as Selected, ref as Selected) };
@@ -138,7 +128,6 @@ export function score(mode: Mode, out: unknown, ref: unknown): { scores: Scores;
   return { scores, missed, extra };
 }
 
-// A pre-registered rule: bounds on named scores ({ misses: { max: 0 }, disagree: { max: 0.1 } }).
 export type Rule = Record<string, { min?: number; max?: number }>;
 export function breaches(scores: Scores, rule: Rule): string[] {
   const out: string[] = [];

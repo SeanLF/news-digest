@@ -3,25 +3,18 @@ import { log } from "../log.js";
 import type { ThreadStore } from "./store.js";
 import { cited, cleanQuestions } from "./text.js";
 
-// thread_synthesis.py, ported: late binding, the synthesis and audit prompts, the audit's answer
-// check, and the persisted installment.
-
 export interface Art {
   title: string;
   summary: string;
 }
 export type Arts = ReadonlyMap<string, Art>;
 
-// How much of each article summary the synthesis and audit prompts carry. Code points, as the
-// Python slices.
 export const SUMMARY_CHARS = 400;
 const head = (s: string, n = SUMMARY_CHARS): string => {
   const cps = Array.from(s);
   return cps.length <= n ? s : cps.slice(0, n).join("");
 };
 
-// Late binding: widen a thread's seed articles to their entity-similar neighbourhood across the
-// run, with hub entities (Trump, US) dropped so they cannot fuse unrelated stories.
 const ENTITY = /[A-Z][A-Za-z'&.-]+(?:\s+[A-Z][A-Za-z'&.-]+)*/g;
 const LB_STOP = new Set([
   "the",
@@ -77,7 +70,6 @@ export function expandNeighbourhood(
   hubMaxDf = 0.12,
 ): string[] {
   const sigs = new Map([...arts].map(([id, a]) => [id, articleSignature(a)]));
-  // IDF hub-stripping only bites at run scale; on tiny sets every entity looks like a hub.
   const hubs = sigs.size >= 30 ? hubEntities(sigs, hubMaxDf) : new Set<string>();
   const disc = new Map([...sigs].map(([id, s]) => [id, new Set([...s].filter((t) => !hubs.has(t)))]));
   const seed = seedIds.filter((a) => arts.has(a));
@@ -90,7 +82,6 @@ export function expandNeighbourhood(
     const best = Math.max(0, ...seedSigs.map((s) => jaccard(disc.get(id)!, s)));
     if (best >= threshold) scored.push([best, id]);
   }
-  // Python sorts (score, id) tuples in reverse: ties go to the larger id string.
   scored.sort((x, y) => y[0] - x[0] || (y[1] < x[1] ? -1 : y[1] > x[1] ? 1 : 0));
   return [...seedIds, ...scored.slice(0, maxExtra).map(([, id]) => id)];
 }
@@ -116,17 +107,13 @@ export function synthesisPrompt(
   return `RECENT UPDATES:\n${updates}\nOPEN QUESTIONS:\n${questions}\n\nTODAY'S SOURCE ARTICLES:\n${bundle(articleIds, arts)}`;
 }
 
-// An installment as the model wrote it: production stores the parsed object whole, so it is kept
-// whole here, and every field is read as leniently as thread_synthesis reads it.
 export type Installment = Record<string, unknown>;
 const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 export const whatsNewOf = (inst: Installment): unknown[] => list(inst["whats_new"]);
 
-// synthesize_installment's parse: the first JSON object in the reply; a reply without one throws.
 export const parseInstallment = (text: string): Installment => firstJsonObject(text);
 
-// Python's repr of a str, for the problem text the re-ask quotes back to the model.
 export function pyRepr(s: string): string {
   const q = s.includes("'") && !s.includes('"') ? '"' : "'";
   const body = Array.from(s, (c) => {
@@ -156,8 +143,6 @@ const pyType = (v: unknown): string =>
               : "float"
             : "dict";
 
-// audit_whats_new's prompt. A fact that is not an object, or sources that cannot be iterated, is the
-// AttributeError/TypeError that makes production's audit fail open; it throws here for the same end.
 export function auditPrompt(whatsNew: unknown[], arts: Arts): string {
   return whatsNew
     .map((f, i) => {
@@ -182,7 +167,6 @@ export const auditReask = (problem: string, n: number): string =>
 
 const TRUTHY = new Set(["true", "yes", "y", "1"]);
 const FALSY = new Set(["false", "no", "n", "0"]);
-// _read_supported: what a value plainly states, or undefined when it states nothing readable.
 export function readSupported(v: unknown): boolean | undefined {
   if (typeof v === "boolean") return v;
   if (v === 0 || v === 1) return v === 1;
@@ -194,8 +178,6 @@ export function readSupported(v: unknown): boolean | undefined {
   return undefined;
 }
 
-// _verdict_pairs: (id, supported) per verdict object carrying both keys; an unreadable `supported`
-// reads as unsupported and is counted.
 function verdictPairs(raw: unknown[]): { pairs: [unknown, boolean][]; unreadable: number } {
   const pairs: [unknown, boolean][] = [];
   let unreadable = 0;
@@ -211,7 +193,6 @@ function verdictPairs(raw: unknown[]): { pairs: [unknown, boolean][]; unreadable
   return { pairs, unreadable };
 }
 
-// _answer_for: an object answers n claims only if `verdicts` holds exactly n verdicts with ids exactly 1..n.
 export function answerFor(
   obj: Record<string, unknown>,
   n: number,
@@ -225,7 +206,6 @@ export function answerFor(
   return { supported: Array.from({ length: n }, (_, i) => byId.get(i + 1)!), unreadable };
 }
 
-// _describe_mismatch: why an object failed answerFor, in the words the re-ask carries.
 export function describeMismatch(obj: Record<string, unknown>, n: number): string {
   const raw = obj["verdicts"] === undefined ? [] : obj["verdicts"];
   if (!Array.isArray(raw)) return `\`verdicts\` was ${pyType(raw)}, not a list of ${n}`;
@@ -236,8 +216,6 @@ export function describeMismatch(obj: Record<string, unknown>, n: number): strin
   return `verdicts missing/misaligned for claim(s) ${missing.length ? pyList(missing) : "none"} (${raw.length} element(s), ${pairs.length} usable, ids ${pyList(ids)})`;
 }
 
-// One audit reply read as audit_whats_new reads it: the LAST object that answers the claims wins,
-// since a second object is the model's correction of the first.
 export function readAudit(text: string, n: number): { supported: boolean[]; unreadable: number } | { problem: string } {
   const objects = jsonObjects(text);
   if (!objects.length)
@@ -246,9 +224,6 @@ export function readAudit(text: string, n: number): { supported: boolean[]; unre
   return usable.length ? usable.at(-1)! : { problem: describeMismatch(objects.at(-1)!, n) };
 }
 
-// A fact that cites none of its own story's articles and some of another story's is that story's
-// fact, carried in by the late-binding neighbourhood (run 310: the RAF Fairford arrests in the Hormuz
-// thread). A fact citing only articles no story planned is kept: that is what the neighbourhood is for.
 export function offThread(facts: unknown[], own: Set<string>, others: Set<string>): boolean[] {
   return facts.map((f) => {
     const ids = isObject(f) ? cited(f["sources"]) : [];
@@ -256,8 +231,6 @@ export function offThread(facts: unknown[], own: Set<string>, others: Set<string
   });
 }
 
-// apply_installment: drop the unsupported facts, resolve the carried questions today answers, raise
-// the new ones, and store the verified installment. The caller owns the transaction.
 export async function applyInstallment(
   store: ThreadStore,
   threadId: number,
@@ -268,7 +241,6 @@ export async function applyInstallment(
 ): Promise<Installment> {
   const whatsNew = whatsNewOf(installment);
   const kept = whatsNew.filter((_, i) => supported[i] === true);
-  // PRE-audit citations: the grounding scope for this run's questions (a dropped fact's ids too).
   const citedIds = [...new Set(whatsNew.flatMap((f) => (isObject(f) ? cited(f["sources"]) : [])))].toSorted();
   const verified = { ...installment, whats_new: kept, cited_ids: citedIds };
   const open = new Set(openNow);
@@ -279,7 +251,6 @@ export async function applyInstallment(
       await store.resolveQuestion(threadId, question, runId, typeof r["how"] === "string" ? r["how"] : "");
   }
   const fresh = list(installment["new_questions"]).filter((q): q is string => typeof q === "string");
-  // Stored unchanged and suppressed at render time: dropping one here would erase it for good.
   if (fresh.length && JSON.stringify(cleanQuestions(fresh, citedIds)) !== JSON.stringify(fresh))
     log.warn({
       stage: "threads",

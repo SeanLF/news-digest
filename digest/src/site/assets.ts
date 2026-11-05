@@ -1,9 +1,5 @@
 import { readFileSync } from "node:fs";
 
-// The static assets the site serves and inlines: the design tokens (design/tokens.css, shared with the
-// email render), the vendored Source Serif 4 woff2 at a content-hashed path, and the icons.
-
-// digest/assets/site, from src/site and from dist/site alike.
 const ASSET_DIR = new URL("../../assets/site/", import.meta.url);
 
 export interface Assets {
@@ -14,8 +10,6 @@ export interface Assets {
   appleTouchIcon: Buffer;
 }
 
-// The FNV-1a 64-bit hash of the bytes, folded to 32 bits as 8 hex: the fingerprint the Rust server used, so
-// the font keeps the URL browsers already cache it under.
 export function fontHash(bytes: Uint8Array): string {
   let h = 0xcbf29ce484222325n;
   for (const b of bytes) h = ((h ^ BigInt(b)) * 0x100000001b3n) & 0xffffffffffffffffn;
@@ -34,7 +28,6 @@ export function loadAssets(designDir: string): Assets {
   };
 }
 
-// font-display:swap: Georgia shows at once and Source Serif 4 replaces it once loaded.
 export const fontFace = (url: string): string =>
   `@font-face{font-family:"Source Serif 4";font-style:normal;font-weight:380 640;font-display:swap;src:url("${url}") format("woff2");}`;
 

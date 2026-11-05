@@ -1,6 +1,3 @@
-// Run `fn` over `items` with at most `limit` in flight, results in input order. Deterministic
-// (no timers, no I/O), so it is safe inside workflow code; the model fan-outs use it because
-// the subscription tolerated 4 concurrent calls with no rate-limit failures and 17 is untested.
 export async function mapBounded<T, R>(
   items: readonly T[],
   limit: number,

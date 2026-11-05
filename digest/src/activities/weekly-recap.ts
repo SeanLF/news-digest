@@ -19,7 +19,6 @@ export interface WeeklyRecapDeps {
   store: ArtifactStore;
   dbUrl: string;
   agentsDir: string;
-  // The attempts the workflow's policy allows; only the last one gives up and carries the old recap.
   maxAttempts: number;
   attempt?: () => number;
   query?: SdkQuery;
@@ -32,13 +31,10 @@ const currentAttempt = (): number => {
   try {
     return Context.current().info.attempt;
   } catch {
-    return Number.POSITIVE_INFINITY; // outside an activity every attempt is the last
+    return Number.POSITIVE_INFINITY;
   }
 };
 
-// run.py's maybe_update_weekly_recap. The rolling file lives in the archive rather than in data/: each
-// run's copy is the latest earlier run's, with a new week appended (last six kept) once the newest
-// entry is a week old. Stored before SELECT, so the run that writes a week also reads it.
 export function weeklyRecapActivity(
   deps: WeeklyRecapDeps,
 ): (runId: number, force?: boolean) => Promise<Pointer | null> {
@@ -65,7 +61,7 @@ export function weeklyRecapActivity(
     const today = await store.runDate(runId);
     const last = prior === null ? undefined : [...prior.matchAll(/^## Week of (\d{4}-\d{2}-\d{2})/gm)].at(-1)?.[1];
     const age = last ? (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${last}T00:00:00Z`)) / DAY_MS : Number.NaN;
-    if (age < 7) return carry(); // NaN (no entry, or an unreadable date) regenerates
+    if (age < 7) return carry();
     if (!titles) return carry();
     assertNoUrls(titles);
     let summary: string;
@@ -100,7 +96,6 @@ export function weeklyRecapActivity(
     } catch (e) {
       if (deps.signal?.()?.aborted) throw e;
       if ((deps.attempt ?? currentAttempt)() < deps.maxAttempts) throw e;
-      // Best-effort, as in the Python: the run goes on with last week's recap.
       log.warn(`Weekly recap generation failed (non-fatal): ${String(e)}`);
       return carry();
     }

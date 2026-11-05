@@ -1,7 +1,3 @@
-// usage: site-sbom <package-lock.json> <esbuild metafile> <out.cdx.json>
-// The site image ships an esbuild bundle and no node_modules, so an image scan finds no npm packages.
-// Its SBOM is instead the lockfile's entries for exactly the packages the bundle's metafile says it
-// contains: the versions npm installed, as CycloneDX 1.6 with npm purls.
 import { readFileSync, writeFileSync } from "node:fs";
 
 interface LockEntry {
@@ -36,8 +32,6 @@ export interface Bom {
   components: Component[];
 }
 
-// The deepest package directory an input sits in: node_modules/pg/node_modules/pg-types/index.js is
-// the nested pg-types, not pg.
 const PACKAGE_DIR = /^(.*node_modules\/(?:@[^/]+\/)?[^/]+)\//;
 
 function component(dir: string, entry: LockEntry): Component {
@@ -67,7 +61,7 @@ export function siteSbom(lock: Lock, meta: Metafile, name = "digest-site"): Bom 
     if (!entry?.version) throw new Error(`site-sbom: the bundle contains ${dir}, which the lockfile does not list`);
     return component(dir, entry);
   });
-  components.sort((a, b) => (a.purl < b.purl ? -1 : 1)); // by code unit, so the order is the same everywhere
+  components.sort((a, b) => (a.purl < b.purl ? -1 : 1));
   return {
     bomFormat: "CycloneDX",
     specVersion: "1.6",

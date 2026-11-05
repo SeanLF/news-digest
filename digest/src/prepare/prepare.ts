@@ -17,7 +17,6 @@ export interface Source {
   factuality: string;
   perspective: string;
 }
-// author is optional: the live fetch has it, the archive (articles) never stored it.
 export interface Fetched {
   title: string;
   url: string;
@@ -41,12 +40,6 @@ export interface Prepared {
   urlDuplicates: number;
 }
 
-// prepare.prepare_claude_input's article pass, pure: in source order, drop unsafe and repeated URLs,
-// escape and cap titles and summaries, drop a title too close to a recently shown one, number the
-// survivors A1.., and split the rows into files of about MAX_TOKENS_PER_FILE tokens.
-// scrubLinks (the default) replaces links inside titles and summaries with a token: the Python let Hacker
-// News summaries carry "Article URL: https://..." to every model stage. Parity with the archive is
-// checked with it off.
 export function prepareArticles(
   sources: Source[],
   fetched: Map<string, Fetched[]>,
@@ -70,7 +63,6 @@ export function prepareArticles(
         continue;
       }
       seen.add(canonical);
-      // Links are scrubbed before the cap, so a cap never leaves half a URL behind.
       const title = truncate(escapeHtml(scrub(stripHtml(a.title ?? ""))), MAX_TITLE_LENGTH);
       const summary = truncate(escapeHtml(scrub(stripHtml(a.summary ?? ""))), MAX_SUMMARY_LENGTH);
       if (matcher && title) {
@@ -110,6 +102,5 @@ export function prepareArticles(
   return { files, index, filtered, urlDuplicates };
 }
 
-// Python's csv.writer, minimal quoting, with the LF line ends the archive holds.
 export const toCsv = (header: readonly string[], rows: string[][]): string =>
   stringify([[...header], ...rows], { record_delimiter: "\n" });

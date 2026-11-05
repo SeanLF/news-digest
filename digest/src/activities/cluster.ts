@@ -21,9 +21,7 @@ import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import type { ExtractBatch } from "./index.js";
 
 export const EXTRACT_BATCH = 40;
-export const SUMMARY_CAP = 300; // chars of summary shown per article (the title carries most of the signal)
-// Reject the stage if more than this fraction of articles fall back to title-only tags: extraction is
-// broken, and a title-only partition is near-degenerate. Fail closed rather than ship it.
+export const SUMMARY_CAP = 300;
 export const MAX_FALLBACK_FRACTION = 0.25;
 export const CLUSTERS_OUTPUT = "clusters.json";
 const batchName = (i: number) => `cluster_tags_b${i}.json`;
@@ -67,10 +65,7 @@ export function planBatches(articles: Article[], size = EXTRACT_BATCH): ExtractB
   }));
 }
 
-// TSV of (article_id, title, summary) for one extraction batch, as the Python stage builds it.
-// Summaries are scrubbed of links: the words are the clustering signal, the address is not.
 const clean = (s: string) => scrubUrls(s.replaceAll("\n", " ").replaceAll("\t", " "));
-// JSON with object keys sorted at every level, as the Python's sort_keys=True writes it.
 const stableJson = (v: unknown) =>
   JSON.stringify(v, (_k, val: unknown) =>
     val && typeof val === "object" && !Array.isArray(val)
@@ -123,9 +118,6 @@ export function clusterActivities(deps: ClusterDeps) {
       return { batches: planBatches(articles) };
     },
 
-    // One model call over one batch, structured output decoded against the items schema (shape,
-    // never count). Idempotent on its own artifact; zero usable items is a retryable failure, so
-    // Temporal's bounded retry replaces the Python stage's blind single re-attempt.
     extractBatch: async (runId: number, batch: ExtractBatch, force = false): Promise<Pointer> => {
       const name = batchName(batch.index);
       const existing = await store.find(runId, name);
@@ -178,17 +170,12 @@ export function clusterActivities(deps: ClusterDeps) {
       return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
     },
 
-    // The deterministic join over every batch's tags. Coverage is gated on usable tags: a lost
-    // batch or an extractor echoing empty schema both yield tagless articles, and too many of those
-    // is a degenerate partition the run must not ship. The minority fall back to title-only.
     joinClusters: async (runId: number, tagBatches: (Pointer | null)[], force = false): Promise<Pointer> => {
       const existing = await store.find(runId, CLUSTERS_OUTPUT);
       if (existing && !force) {
         const doc = JSON.parse(await store.get(existing)) as { clusters?: unknown[] };
         if (Array.isArray(doc.clusters) && doc.clusters.length > 0) return existing;
       }
-      // The three outputs are one write: regenerating quarantines every sibling a previous attempt
-      // left, or put would conflict on the ones that differ.
       if (!force)
         for (const name of [CLUSTERS_OUTPUT, "cluster_tags.json", "cluster_health.json"])
           if (await store.find(runId, name)) await store.quarantine(runId, name);

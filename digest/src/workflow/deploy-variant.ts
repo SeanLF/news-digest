@@ -2,10 +2,6 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Test support: the workflow as a later build that changes WORKFLOW code would ship it, with one
-// activity call added before the send's budget check, ahead of the pre-send hold. Written under dist/
-// (the build output, never committed; the bundler compiles no TypeScript under node_modules), with
-// the relative imports made absolute.
 const here = dirname(fileURLToPath(import.meta.url));
 const ANCHOR = "    const budget = sendBudget();\n";
 export function changedWorkflowPath(): string {

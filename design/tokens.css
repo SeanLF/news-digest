@@ -1,63 +1,42 @@
-/*
- * Canonical design tokens — single source of truth for the news-digest visual system.
- *
- * This file is the CODE source of truth; docs/design-system.md is the human one.
- *
- * Its readers:
- *   - the site (digest/src/site/assets.ts) inlines it into each page's <style>: no
- *     render-blocking external CSS;
- *   - the web render (digest/src/render/web.ts) prepends it to digest.css;
- *   - the email render (digest/src/render/email.ts) resolves the light tokens to literal hex.
- *
- * Two token families share one core, on purpose (the documented "editorial content vs
- * app chrome" divergence): the DIGEST keeps solid hairlines + flat severity; the CHROME
- * (index/sources/stats/threads/thread-detail/feedback) adds panels, alpha hairlines,
- * status axis, and soft radius. The SHARED CORE below is byte-identical for both.
- */
 
-/* ─── SHARED CORE (identical for digest + chrome) ─────────────────────────── */
 :root {
-  --bg:        #fafaf8;   /* page ground. chrome aliases this as --paper */
-  --ink:       #191917;   /* headlines, emphasis, top rule */
-  --ink2:      #3b3a36;   /* body copy */
-  --muted:     #6f6d65;   /* meta, eyebrows, dateline, bias codes */
-  --accent:    #b1352a;   /* NON-TEXT marks only: borders, ticks, focus, live-dot */
-  --accent-ink:#8f2a20;   /* accent TEXT/links (AA-safe): the "Digest" splash, labels */
-  --bias-l:    #5f7391;   /* source bias spectrum — low-sat slate  (left)   */
-  --bias-c:    #928f86;   /* ...                     grey   (center) */
-  --bias-r:    #b0604e;   /* ...                     terracotta (right) */
+  --bg:        #fafaf8;
+  --ink:       #191917;
+  --ink2:      #3b3a36;
+  --muted:     #6f6d65;
+  --accent:    #b1352a;
+  --accent-ink:#8f2a20;
+  --bias-l:    #5f7391;
+  --bias-c:    #928f86;
+  --bias-r:    #b0604e;
 
   --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
   --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
   --mono:ui-monospace, "SF Mono", Menlo, Monaco, monospace;
 
-  /* motion: one curve, three durations (hover and colour / small movement / reveal) */
   --ease:cubic-bezier(.2,.8,.2,1);
   --dur-1:150ms; --dur-2:200ms; --dur-3:300ms;
-  --stagger:80ms; /* between items revealed in sequence */
+  --stagger:80ms;
 }
 
-/* ─── CHROME additions (app surfaces only) ───────────────────────────────── */
 :root {
   --paper:      var(--bg);
-  --panel:      #ffffff;             /* raised card / segmented-control pill */
-  --panel-2:    #f4f3ee;            /* recessed track */
-  --line:       rgba(25,25,23,.12); /* alpha hairline — one token works over any bg */
+  --panel:      #ffffff;
+  --panel-2:    #f4f3ee;
+  --line:       rgba(25,25,23,.12);
   --line-strong:rgba(25,25,23,.22);
-  --wash:       rgba(25,25,23,.035);/* hover / today-row tint */
+  --wash:       rgba(25,25,23,.035);
   --accent-wash:rgba(177,53,42,.06);
-  --ok:         #2f9b5e;  --ok-ink:  #1f7a47;  /* status axis — RAG, chrome-only */
+  --ok:         #2f9b5e;  --ok-ink:  #1f7a47;
   --warn:       #a8760c;  --warn-ink:#8a5f00;
-  --r-input:    6px;      /* inputs / buttons / segmented control */
-  --r-card:     8px;      /* cards */
+  --r-input:    6px;
+  --r-card:     8px;
 }
 
-/* ─── DIGEST additions (editorial content only) ──────────────────────────── */
 :root {
-  --hair:#dddcd4; /* SOLID hairline — the digest's flat-wire severity (not alpha) */
+  --hair:#dddcd4;
 }
 
-/* ─── DARK (system) ──────────────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:#16150f; --ink:#eceae1; --ink2:#cbc9bd; --muted:#9d9a8e;
@@ -71,7 +50,6 @@
   }
 }
 
-/* ─── DARK (explicit toggle) ─────────────────────────────────────────────── */
 :root[data-theme="dark"] {
   --bg:#16150f; --ink:#eceae1; --ink2:#cbc9bd; --muted:#9d9a8e;
   --accent:#e2675b; --accent-ink:#ec7d72;
@@ -83,7 +61,6 @@
   --hair:#2d2b22;
 }
 
-/* ─── LIGHT (explicit toggle — re-assert light over a dark system pref) ───── */
 :root[data-theme="light"] {
   --bg:#fafaf8; --ink:#191917; --ink2:#3b3a36; --muted:#6f6d65;
   --accent:#b1352a; --accent-ink:#8f2a20;

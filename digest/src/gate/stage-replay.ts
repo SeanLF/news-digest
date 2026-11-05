@@ -1,8 +1,3 @@
-// Replays one model stage of a stored run from the run's own artifacts, in a scratch copy of the
-// product database (replay-provider.ts makes one per call), and returns what the stage produced with its cost.
-// One attempt per activity, under production's start-to-close:
-// a failure is a result to count, not something to retry away (a run's retries would hide a variant
-// that fails one call in three), and the output says what a run would have done with it.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { attributeActivity } from "../activities/attribute.js";
@@ -21,8 +16,6 @@ export const MODES = ["cluster", "select", "coherence", "attribute"] as const;
 export type Mode = (typeof MODES)[number];
 
 const MIN = 60_000;
-// Production's policy per stage: the workflow's proxies (model, verdict, attributing in
-// digest.workflow.ts); stage-replay.test.ts holds this table to them.
 export const PROD_POLICY: Record<Mode, { timeoutMs: number; perCall: boolean; onFailure: string }> = {
   cluster: {
     timeoutMs: 45 * MIN,
@@ -64,7 +57,6 @@ export interface Replayed {
   failure?: { error: string; prodOnFailure: string };
 }
 
-// `test` swaps in a fake model call and a shorter timeout; the command passes neither.
 export async function replay(
   mode: Mode,
   store: ArtifactStore,
@@ -80,8 +72,6 @@ export async function replay(
     if (!usage.efforts.includes(r.effort)) usage.efforts.push(r.effort);
     for (const [k, v] of Object.entries(r.tokens)) usage.tokens[k] = (usage.tokens[k] ?? 0) + v;
   };
-  // One activity's budget: per model call where the activity is one call (or one batch), else one
-  // signal for the whole activity, as attribute's 10 minutes cover all its per-story calls.
   const { perCall, onFailure } = PROD_POLICY[mode];
   const timeoutMs = test.timeoutMs ?? PROD_POLICY[mode].timeoutMs;
   const whole = perCall ? undefined : AbortSignal.timeout(timeoutMs);
@@ -92,11 +82,6 @@ export async function replay(
     signal: () => whole ?? AbortSignal.timeout(timeoutMs),
     ...(test.query ? { query: test.query } : {}),
   };
-  // Everything the stage reads is read and validated first, outside the try: the agent file as the plan
-  // overrode it, the articles, drafts, report and repair. A missing or malformed input, database or run
-  // is the harness's failure and fails the replay, never a variant's (a broken instrument must not read
-  // as a result). What is left inside is the stage's own work; a database dropping mid-stage would still
-  // count against it.
   const stage = await prepare(mode, deps, store, run, usage);
   let out: Pointer;
   try {
@@ -135,7 +120,6 @@ async function prepare(
     const c = clusterActivities(deps);
     const { batches } = await c.planBatches(run);
     return async () => {
-      // Bounded as in a run; a lost batch is part of the result, as in a run (joinClusters falls back to titles).
       const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => c.extractBatch(run, b, true));
       const tags = settled.map((r, i) => {
         if (r.status === "fulfilled") return r.value;

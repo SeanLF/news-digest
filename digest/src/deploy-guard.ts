@@ -1,8 +1,5 @@
 import type { Client } from "@temporalio/client";
 
-// A deploy restarts the one worker a run is pinned to (deployment.ts), and a paused schedule drops the
-// slot it misses, so a deploy is refused from 10:00 UTC (before the 10:25 start, client.ts) to 11:45
-// UTC (past a normal run's end), and while a DigestWorkflow runs.
 const WINDOW = { from: 1000, to: 1145 };
 
 const utcHhmm = (now: Date): number => now.getUTCHours() * 100 + now.getUTCMinutes();
@@ -14,8 +11,6 @@ export const inRunWindow = (now: Date): boolean => {
 
 export const RUNNING_DIGESTS_QUERY = 'WorkflowType="DigestWorkflow" AND ExecutionStatus="Running"';
 
-// A run whose workflow task keeps failing (a nondeterminism error) carries the server's
-// TemporalReportedProblems search attribute; it cannot take a signal, so it is named apart.
 export async function runningDigests(client: Client): Promise<string[]> {
   const ids: string[] = [];
   for await (const w of client.workflow.list({ query: RUNNING_DIGESTS_QUERY })) {
@@ -25,7 +20,6 @@ export async function runningDigests(client: Client): Promise<string[]> {
   return ids;
 }
 
-// Every reason to refuse, empty when a deploy may go ahead. A listing that fails is a reason too.
 export async function guard(client: Client, now = new Date()): Promise<string[]> {
   const problems: string[] = [];
   if (inRunWindow(now)) {

@@ -3,8 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import { log } from "../log.js";
 import { dbUrl, openDb, utcText } from "./db.js";
 
-// A stand-in Postgres: accepts a connection without a password, answers one simple query, then drops
-// the connection while the client sits idle in the pool, as a Postgres restart does.
 const msg = (type: string, body: Buffer) => {
   const b = Buffer.alloc(5 + body.length);
   b.write(type, 0);

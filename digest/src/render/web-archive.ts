@@ -5,7 +5,6 @@ const STRIPPED = new Set(["email-only", "preheader"]);
 
 function strip(parent: ParentNode): void {
   for (const node of t.getChildNodes(parent).slice()) {
-    // detaching mutates the live list
     if (t.isCommentNode(node)) {
       if (t.getCommentNodeContent(node).includes("[if mso")) t.detachNode(node);
     } else if (t.isElementNode(node)) {
@@ -20,10 +19,6 @@ function strip(parent: ParentNode): void {
   }
 }
 
-// db.prepare_for_web: the web archive's copy of the issue, stripped of what only the inbox shows
-// (email-only nodes, the preheader, the Outlook-only MSO conditionals). The web tier injects its
-// chrome at fixed string needles in this blob, so it is re-serialised by the spec parser, which
-// keeps each element's attributes in their written order.
 export function webArchiveHtml(html: string): string {
   const doc = parse(html);
   strip(doc);

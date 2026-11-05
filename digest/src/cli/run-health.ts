@@ -1,6 +1,3 @@
-// usage: run-health <first-run> [last-run] [--broadcasting]
-// Prints one JSON line per run: its post-run violations and COHERENCE failure kinds, read-only over
-// DIGEST_DATABASE_URL. THREADS_ENABLED is read from the environment, as the worker reads it.
 import { threadsConfigFrom } from "../activities/threads.js";
 import { dbUrl, openDb, type RowOf } from "../store/db.js";
 import { coherenceKindCounts, getRunHealth, threadsEnabled, violations } from "../ops/run-health.js";
@@ -28,4 +25,4 @@ for (let run = first; run <= (last ?? first); run++) {
     )?.content ?? null;
   console.log(JSON.stringify({ run, violations: violations(health), kinds: coherenceKindCounts(text) }));
 }
-process.exit(0); // the pool would otherwise hold the process open
+process.exit(0);

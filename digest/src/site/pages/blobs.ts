@@ -1,6 +1,3 @@
-// The pages' CSS and script bodies (the design and its a11y and Lighthouse tuning live in them). Scripts are bodies without their <script> tag; the CSP
-// allows each by its hash (security.ts).
-
 export const chromeCss = String.raw`
 *{box-sizing:border-box;}
 /* on html so rubber-band overscroll past the top/bottom shows the paper ground, not white */
@@ -542,10 +539,6 @@ export const digestNavCss =
 
 export const proxyTranslateHideScript = String.raw`if(location.hostname.indexOf("translate.goog")>-1)document.documentElement.className+=" via-proxy";`;
 
-// The story rail on an issue page: one tick per story at the right edge, longer for must-know. It is
-// passive: the story being read is marked by ink and length (not colour alone); the ticks swell
-// toward the pointer and a tick names its story on hover or focus, all in CSS, so without the script
-// only the "you are here" mark is lost. Shown where the paper leaves a margin for it.
 export const railCss = String.raw`
 article{scroll-margin-top:28px;}
 .rail{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:5;display:none;}
@@ -572,8 +565,4 @@ article{scroll-margin-top:28px;}
 .rail li:hover .rail-tip,.rail a:focus-visible .rail-tip{opacity:1;transform:translate(0,-50%);transition-delay:var(--stagger);}
 @media (prefers-reduced-motion:reduce){.rail a::after,.rail-tip{transition:none;}}`;
 
-// "You are here": the last story whose top has passed a line a quarter down the viewport. A story
-// reached from the rail stays marked while it is still in the upper part of the page, because the last
-// briefs of an issue can never scroll up to that line; however the reader moves on (wheel, keys, the
-// scrollbar), position releases it.
 export const railJs = String.raw`(function(){var r=document.querySelector('.rail');if(!r)return;var links=[].slice.call(r.querySelectorAll('a[href^="#"]'));var targets=links.map(function(a){return document.getElementById(a.getAttribute('href').slice(1));});var cur=null,pinned=-1,ticking=false;function mark(i){var a=links[i];if(a===cur)return;if(cur)cur.removeAttribute('aria-current');if(a)a.setAttribute('aria-current','location');cur=a||null;}function update(){ticking=false;if(pinned>=0){var t=targets[pinned]&&targets[pinned].getBoundingClientRect();if(t&&t.top<=innerHeight*0.6&&t.bottom>=0){mark(pinned);return;}pinned=-1;}var line=innerHeight*0.25,best=0;for(var i=0;i<targets.length;i++){if(targets[i]&&targets[i].getBoundingClientRect().top<=line)best=i;}mark(best);}addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(update);}},{passive:true});links.forEach(function(a,i){a.addEventListener('click',function(){pinned=i;mark(i);});});update();})();`;

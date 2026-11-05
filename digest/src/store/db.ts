@@ -3,20 +3,13 @@ import pg from "pg";
 import { log } from "../log.js";
 import type { DB } from "./schema.gen.js";
 
-// The product database is Postgres (data-model design, top). DIGEST_DATABASE_URL names it; tests
-// pass theirs, or register in-process PGlite databases under `pglite:` keys (store/test-db.ts). No
-// default: a guessed localhost lets a misconfigured worker start clean and fail at the day's run.
 export function dbUrl(env: Record<string, string | undefined> = process.env): string {
   const url = env["DIGEST_DATABASE_URL"]?.trim();
   if (!url) throw new Error("DIGEST_DATABASE_URL is unset: it names the product Postgres database");
   return url;
 }
 
-// A row of a product table or view as a query returns it through the parsers below: the types
-// schema.gen.ts generates from the migrations (`make schema-types`). A query that selects computed
-// columns names its own row type; one that names none gets `unknown`, not a record of anything.
 export type RowOf<T extends keyof DB> = Selectable<DB[T]>;
-// Statements with $n parameters. exec runs a script of several statements and takes none.
 export interface Sql {
   all<T = unknown>(text: string, params?: unknown[]): Promise<T[]>;
   one<T = unknown>(text: string, params?: unknown[]): Promise<T | undefined>;
@@ -24,13 +17,9 @@ export interface Sql {
   exec(text: string): Promise<void>;
 }
 export interface Db extends Sql {
-  // One transaction. With `lock`, it first takes a transaction-scoped advisory lock on that name,
-  // so a check-then-write on the same thing from two attempts runs one after the other.
   tx<T>(fn: (t: Sql) => Promise<T>, lock?: string): Promise<T>;
 }
 
-// Times come back as the UTC text the pipeline has always compared ("YYYY-MM-DD HH:MM:SS"), dates as
-// "YYYY-MM-DD", bigints (ids, counts) as numbers. Every session runs in UTC.
 export function utcText(v: string): string {
   const iso = v.replace(" ", "T");
   const d = new Date(/(?:[+-]\d\d(?::?\d\d)?|Z)$/.test(iso) ? iso.replace(/([+-]\d\d)$/, "$1:00") : `${iso}Z`);
@@ -68,8 +57,6 @@ function sqlOn(
 
 function poolDb(url: string): Db {
   const pool = new pg.Pool({ connectionString: url, types: pgTypes, options: "-c TimeZone=UTC", max: 8 });
-  // An idle client's connection can drop (a Postgres restart); the pool discards that client and the
-  // next query opens a new one. Unhandled, the pool's error event would take the worker down.
   pool.on("error", (e) => log.error(`an idle Postgres connection was lost; the pool replaces it: ${e.message}`));
   const base = sqlOn(
     (text, params) => pool.query(text, params),
@@ -100,13 +87,11 @@ function poolDb(url: string): Db {
   };
 }
 
-// A database that is not a URL: tests register PGlite under a key.
 const registered = new Map<string, () => Db>();
 export function registerDb(key: string, make: () => Db): void {
   registered.set(key, make);
 }
 
-// One pool per URL for the life of the process: activities open it per call and never close it.
 const pools = new Map<string, Db>();
 export function openDb(url: string): Db {
   const test = registered.get(url);

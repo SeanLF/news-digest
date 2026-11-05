@@ -1,14 +1,9 @@
 import { escapeHtml, formatDate } from "./text.js";
 
-// The Atom 1.0 feed of the newest issues, byte for byte what the Rust server served: feed readers
-// already hold its entry ids.
-
 export const FEED_ENTRY_LIMIT = 30;
 
-// `rows` newest first; `base` is "https://<domain>" or "" (links then stay root-relative).
 export function atomFeed(feedName: string, base: string, rows: { date: string; preheader: string }[]): string {
   const title = escapeHtml(feedName);
-  // Atom requires a feed-level <updated>: the newest issue's date, or the epoch with no issues yet.
   const updated = rows[0] ? `${rows[0].date}T00:00:00Z` : "1970-01-01T00:00:00Z";
   const entries = rows
     .map((r) => {

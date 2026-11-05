@@ -4,10 +4,6 @@ import type { WorkerDeploymentOptions } from "@temporalio/worker";
 
 export const DEPLOYMENT_NAME = "digest";
 
-// Pinned as the worker's default rather than on DigestWorkflow: the SDK requires a default once
-// versioning is on, and every workflow this worker runs must finish on the build that started it.
-// The build id is the image's GIT_SHA (CI's build arg): two builds sharing one would replay
-// each other's runs.
 export function deploymentOptions(env: Record<string, string | undefined> = process.env): WorkerDeploymentOptions {
   const buildId = env["GIT_SHA"]?.trim();
   if (!buildId)
@@ -22,17 +18,9 @@ export function deploymentOptions(env: Record<string, string | undefined> = proc
 export type Stranded = { workflowId: string; buildId: string };
 const RUNNING_DIGESTS = 'WorkflowType="DigestWorkflow" AND ExecutionStatus="Running"';
 
-// temporal.api.enums.v1.TaskQueueType; @temporalio/proto is only a dev dependency.
 const WORKFLOW_QUEUE = 1;
 export const ACTIVITY_QUEUE = 2;
 
-// Makes `buildId` the version new runs (manual and scheduled) start on, once a worker of that build
-// polls `taskQueue` and the server has registered the build on its workflow and activity queues:
-// waited for up to `waitMs`. The poller alone is not enough. The server lists a poller before it
-// registers the poller's build, one queue type at a time, and until both are registered it refuses
-// the build: NOT_FOUND, or FAILED_PRECONDITION ("missing active task queues") while the current
-// build has work on a queue the new one has not registered yet. Nor is registration alone enough:
-// a build can be made current before its worker exists (allowNoPollers, by hand).
 export async function setCurrentVersion(
   client: Client,
   buildId: string,
@@ -71,7 +59,7 @@ export async function setCurrentVersion(
   }
 }
 
-const NOT_FOUND = 5; // gRPC status: the build has no queue registered yet
+const NOT_FOUND = 5;
 
 async function registeredQueueTypes(
   client: Client,
@@ -90,10 +78,6 @@ async function registeredQueueTypes(
   }
 }
 
-// The running digests that no worker has taken yet: not pinned, and no workflow task completed. Such a
-// run starts on whatever version is current once that version's worker polls; while current names a
-// build with no worker (a deploy that could not make its build current) it sits, with no alert, and
-// strandedRuns cannot see it, since it is pinned to nothing. set-current names these when it fails.
 export async function waitingRuns(client: Client): Promise<string[]> {
   const waiting: string[] = [];
   for await (const w of client.workflow.list({ query: RUNNING_DIGESTS })) {
@@ -106,12 +90,9 @@ export async function waitingRuns(client: Client): Promise<string[]> {
   return waiting;
 }
 
-// set-current's line for them, for the operator reading the deploy's output.
 export const waitingLine = (ids: string[]): string =>
   `waiting: ${ids.join(" ")} -- no worker has taken these; they start once a polling build is current`;
 
-// The running digests pinned to a build other than `buildId`. On this one-worker box that build's
-// worker is gone, so each sits, with no alert, until moved (runbook, "Stranded runs").
 export async function strandedRuns(client: Client, buildId: string): Promise<Stranded[]> {
   const stranded: Stranded[] = [];
   for await (const w of client.workflow.list({ query: RUNNING_DIGESTS })) {

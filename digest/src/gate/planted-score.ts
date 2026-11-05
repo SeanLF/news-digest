@@ -12,8 +12,6 @@ interface DraftStory {
   sources: { article_id: string }[];
 }
 
-// Which fields the checker failed, per story in draft order (must_know then should_know): the index
-// the planted key uses.
 export function flaggedFields(
   report: CoherenceReport,
   draft: { must_know: DraftStory[]; should_know?: DraftStory[] },

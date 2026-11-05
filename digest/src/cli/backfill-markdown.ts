@@ -1,9 +1,3 @@
-// usage: backfill-markdown
-// Fills issues.markdown, once, for the issues published before the pipeline wrote Markdown itself:
-// each row still NULL is converted from its stored HTML by the converter the site ran per request
-// until then, so agents get the Markdown they got before. Rows already filled are left alone, so a
-// rerun is a no-op. Exits 1 naming each revision whose HTML yielded no Markdown (the site 404s those
-// as Markdown and still serves the page).
 import { dbUrl, openDb, type Sql } from "../store/db.js";
 import { issueMarkdownBody } from "../store/html-markdown.js";
 
@@ -30,5 +24,5 @@ if (process.argv[1]?.endsWith("backfill-markdown.js")) {
   console.log(
     `backfill-markdown: ${filled} issue revisions filled${failed.length ? `; no Markdown from ${failed.join(", ")}` : ""}`,
   );
-  process.exit(failed.length ? 1 : 0); // the pool would otherwise hold the process open
+  process.exit(failed.length ? 1 : 0);
 }

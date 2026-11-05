@@ -16,19 +16,12 @@ export interface StageResult {
   usage: Record<string, number>;
   durationMs: number;
   numTurns: number;
-  // What model_calls.effort records: the effort the request carried, or "(sdk default)" (the Python's
-  // token) when it carried none. A default is still reached by settings the SDK loads (effortLevel).
   effort: string;
 }
 export type SdkQuery = typeof query;
 
-// Model-call traces to PostHog AI Observability, when the worker has a project token (telemetry.ts);
-// model_calls keeps the costs the budget check reads.
 const posthogClaude = posthogClient ? instrument({ client: posthogClient, privacyMode: true }) : undefined;
 
-// `tools` is the SDK's base set of built-ins and the only option that restricts availability;
-// `allowedTools` merely skips the permission prompt. The disallow list is belt and braces for
-// the tools a preset would otherwise add.
 const BUILTIN = [
   "Read",
   "Grep",
@@ -67,10 +60,6 @@ function controllerFor(signal: AbortSignal): AbortController {
 const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig =>
   t === "adaptive" ? { type: "adaptive" } : { type: "disabled" };
 
-// One stage: system prompt from the spec, the stage's input as the user turn, tools scoped to
-// Read and Grep over the input directory, the result as the final message (structured when a
-// schema is given). Tool calls are recorded so a checker's "no FAIL without a Grep behind it"
-// can be checked in the transcript rather than asked for in prose (spec §2.2).
 export async function runStage(
   spec: StageSpec,
   input: StageInput,
@@ -93,7 +82,6 @@ export async function runStage(
             ...(options ? { options } : {}),
             posthog: {
               traceId: randomUUID(),
-              // The SDK overwrites $ai_session_id with its own session, so the run is a property of ours.
               properties: {
                 ...(opts.runId === undefined ? {} : { run_id: opts.runId }),
                 stage: spec.name,
@@ -115,10 +103,7 @@ export async function runStage(
     permissionMode: "acceptEdits",
     thinking: thinkingFor(spec.thinking),
     ...(spec.effort ? { effort: spec.effort } : {}),
-    // cwd alone does not confine Read or Grep: an absolute path reaches the whole disk. This does.
     settings: { permissions: { blockReadsOutsideWorkingDirectories: true } },
-    // A cancelled activity (its workflow terminated or cancelled) stops the model call; otherwise a
-    // zombie attempt keeps running and can still write its artifact after the run is gone.
     ...(opts.signal ? { abortController: controllerFor(opts.signal) } : {}),
     ...(opts.maxBudgetUsd !== undefined ? { maxBudgetUsd: opts.maxBudgetUsd } : {}),
     ...(opts.outputSchema ? { outputFormat: { type: "json_schema", schema: opts.outputSchema } } : {}),
@@ -126,7 +111,6 @@ export async function runStage(
   const toolCalls: { name: string; target: string }[] = [];
   const texts: string[] = [];
   let result: Extract<SDKMessage, { type: "result" }> | undefined;
-  // A model call can outlast the activity's heartbeat timeout; beat on every message and every 30 s.
   const beat = opts.heartbeat;
   const timer = beat ? setInterval(beat, 30_000) : undefined;
   try {
@@ -147,8 +131,6 @@ export async function runStage(
   }
   if (!result) throw new Error(`stage ${spec.name}: no result message`);
   if (result.subtype !== "success" || result.is_error) throw new Error(`stage ${spec.name}: ${result.subtype}`);
-  // The SDK re-prompts on schema mismatch and ends with error_max_structured_output_retries; a
-  // success WITHOUT structured_output when a schema was requested is also a failure.
   const structured = result.structured_output;
   if (opts.outputSchema && structured === undefined)
     throw new Error(`stage ${spec.name}: success without structured output`);

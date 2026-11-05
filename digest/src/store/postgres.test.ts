@@ -8,15 +8,11 @@ import { ArtifactStore } from "./artifacts.js";
 import { openDb } from "./db.js";
 import { MIGRATIONS_DIR, migrate } from "./schema.js";
 
-// What PGlite cannot show: it is one connection, so every transaction runs alone and a lock is never
-// contended. These run against the real Postgres CI starts beside the tests (docker-compose ci-pg,
-// the box's image and major), each in a database of its own.
 const ADMIN = process.env["DIGEST_TEST_DATABASE_URL"];
 
 async function freshDatabase(): Promise<string> {
   const name = `t_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   await openDb(ADMIN!).exec(`CREATE DATABASE ${name}`);
-  // ci-pg outlives the run, so an undropped database stays until it is recreated: 1,471 of them, 13 GB, by 2026-10-18.
   onTestFinished(() => openDb(ADMIN!).exec(`DROP DATABASE IF EXISTS ${name} WITH (FORCE)`));
   const url = ADMIN!.replace(/\/[^/?]+(\?|$)/, `/${name}$1`);
   migrate(url);
@@ -59,7 +55,6 @@ describe.skipIf(!ADMIN)("on real Postgres", () => {
     expect(await openDb(url).one("SELECT count(*) AS n FROM runs")).toEqual({ n: 1 });
   });
 
-  // The legacy copy through node-postgres, whose array serialization the PGlite tests never reach.
   it("two claims on one day's send at once: exactly one row, the other refused by its key", async () => {
     const url = await freshDatabase();
     const db = openDb(url);

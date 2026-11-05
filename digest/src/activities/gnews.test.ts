@@ -21,7 +21,6 @@ const index = {
   A5: entry("Reuters", GN("R5"), "Unshown story - Reuters"),
   A6: entry("Reuters", GN("R6"), "Yen falls - Reuters"),
 };
-// A5 is in the index but no story cites it; A6 is a verbatim repost of A3, shown under the same report.
 const selections = {
   must_know: [{ headline: "Russia votes", sources: [{ article_id: "A1" }, { article_id: "A2" }] }],
   should_know: [

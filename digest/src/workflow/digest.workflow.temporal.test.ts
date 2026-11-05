@@ -27,7 +27,6 @@ import { PYTHON_TASK_QUEUE } from "./policy.js";
 import { approveSignal, retrySignal } from "./signals.js";
 
 let env: TestWorkflowEnvironment;
-// One bundle for the file: workflowsPath would re-bundle the workflow code for every worker.
 let workflowBundle: WorkflowBundle;
 beforeAll(async () => {
   [env, workflowBundle] = await Promise.all([
@@ -40,8 +39,6 @@ afterAll(async () => {
 });
 
 const taskQueue = "digest-test";
-// `fetcher` stands in for the Python worker on its own queue; `decoder` is the decode, on the
-// workflow's own worker.
 const emptyFetch = (tasks: FulltextTask[]): Promise<FulltextFetch> =>
   Promise.resolve({ tasks: tasks.length, results: {}, outcome: "completed" });
 const noDecode = (urls: string[]): Promise<GnewsDecode> =>
@@ -77,7 +74,6 @@ function retracting() {
     } as Partial<Activities>,
   };
 }
-// A clean run sends without a signal: none is needed, and one sent after it ends would fail.
 const runToEnd = async (runDate: string) => (await start(runDate)).result();
 const start = (runDate: string, extra: Record<string, unknown> = {}, opts: Record<string, unknown> = {}) =>
   env.client.workflow.start(DigestWorkflow, {
@@ -104,7 +100,6 @@ function spy(overrides: Partial<Activities>) {
   return { seen, acts };
 }
 
-// Records the operations calls in order, with SELECT among them to check what runs before it.
 function recorder(over: Partial<Activities> = {}) {
   const calls: unknown[][] = [];
   const stubs = stubActivities() as unknown as Record<string, (...a: unknown[]) => Promise<unknown>>;
@@ -126,7 +121,6 @@ function recorder(over: Partial<Activities> = {}) {
 }
 const named = (calls: unknown[][], name: string) => calls.filter((c) => c[0] === name);
 const failed = (reason: string) => () => Promise.reject(ApplicationFailure.nonRetryable(reason, "TestFailure"));
-// Every tail activity logs its name; the stubs answer.
 function tail(overrides: Partial<Activities> = {}) {
   const calls: string[] = [];
   const stub = stubActivities();
@@ -151,7 +145,6 @@ function tail(overrides: Partial<Activities> = {}) {
   ] as const;
   return { calls, acts: Object.assign({}, ...names.map((n) => logged(n))) as Partial<Activities> };
 }
-// A run that fails its pre-send checks, and what its hold notification was told.
 const FAILED = [
   "INTERNAL_ID_LEAK: 1 leak(s): must_know.summary '(A2)' in 'Deal signed'",
   "THREAD_AUDIT_FAILED: 1 thread update(s) shipped facts their audit could not check (it fails open)",
@@ -167,14 +160,12 @@ function flagged(failures: string[] = FAILED) {
   };
   return { notices, acts };
 }
-// A send that records itself.
 const sending =
   (sends: string[]): Activities["broadcast"] =>
   () => {
     sends.push("sent");
     return Promise.resolve({ broadcastId: "b", status: "sent", recipients: 3 });
   };
-// The timers the run started after the render: the hold's, when there is one.
 async function timersAfterRender(h: {
   fetchHistory: () => Promise<{
     events?:
@@ -194,12 +185,10 @@ async function timersAfterRender(h: {
       e.timerStartedEventAttributes ? [Number(e.timerStartedEventAttributes.startToFireTimeout?.seconds ?? 0)] : [],
     );
 }
-// Until the flagged run's hold notification went out (the hold's timer follows it at once).
 async function untilNotified(notices: unknown[]): Promise<void> {
   while (!notices.length) await new Promise((r) => setTimeout(r, 20));
 }
 
-// SELECT fails once and parks until the operator retries it. Nobody approves the hold.
 function parkedOnce(over: Partial<Activities> = {}) {
   let n = 0;
   const select: Activities["select"] = (runId, ...rest) =>
@@ -228,7 +217,7 @@ describe("DigestWorkflow", () => {
     const { notices, acts } = flagged();
     const out = await withWorker(async () => {
       const h = await start("2026-09-20");
-      const result = await h.result(); // no signal: time-skipping runs the hold out
+      const result = await h.result();
       return { result, timers: await timersAfterRender(h) };
     }, acts);
     expect(out.result.broadcast).toBe("sent");
@@ -258,7 +247,7 @@ describe("DigestWorkflow", () => {
       { ...acts, broadcast: sending(sends) },
     );
     expect(out.broadcast).toBe("sent");
-    expect(out.fired).toBe(0); // the approve ended the hold, not its timer
+    expect(out.fired).toBe(0);
     expect(sends).toEqual(["sent"]);
   }, 120_000);
   it("a reject during the hold does not send", async () => {
@@ -298,7 +287,6 @@ describe("DigestWorkflow", () => {
         return h.result();
       },
       {
-        // The checks end only once the reject is in.
         checkPreSend: async () => {
           await delivered;
           return [];
@@ -315,7 +303,7 @@ describe("DigestWorkflow", () => {
       ).rejects.toThrow();
       await h.signal(approveSignal, { decision: "approve" });
       await h.result();
-    }, flagged().acts); // held, so the first is still running at the second start
+    }, flagged().acts);
   }, 120_000);
   it("parks on the retry signal when select fails non-retryably, and aborts on 'abort'", async () => {
     const out = await withWorker(async () => {
@@ -328,7 +316,7 @@ describe("DigestWorkflow", () => {
   it("a retry decision sent before the failure is not lost", async () => {
     const out = await withWorker(async () => {
       const h = await start("2026-09-25", { failStage: "select" });
-      await h.signal(retrySignal, { decision: "abort" }); // may arrive before select runs
+      await h.signal(retrySignal, { decision: "abort" });
       return h.result();
     });
     expect(out.broadcast).toBe("skipped");
@@ -424,7 +412,6 @@ describe("DigestWorkflow", () => {
     }, 120_000);
     it("a run that hangs fails loudly at its own deadline, before the server's run timeout can kill it silently", async () => {
       const { calls, acts } = recorder();
-      // Parked on the retry signal with nobody answering: only the deadline ends it.
       const err = await withWorker(
         async () =>
           (await start("2026-11-07", { failStage: "select" }, { workflowRunTimeout: WORKFLOW_RUN_TIMEOUT }))
@@ -483,8 +470,6 @@ describe("DigestWorkflow", () => {
     }, 120_000);
     it("goes on without full text when the python fetch fails", async () => {
       stored.length = 0;
-      // A Python worker that is down surfaces here as Temporal's schedule-to-start timeout; how it
-      // fails is Temporal's to test. Ours is what the run does with any failure.
       const out = await withWorker(
         () => runToEnd("2026-09-29"),
         { storeFulltext },
@@ -532,7 +517,7 @@ describe("DigestWorkflow", () => {
       return stubActivities().storeGnews(runId, decoded);
     };
     const render: Activities["render"] = (runId, selections, threads, gnews) => {
-      rendered.push(`${gnews.name}@${gnews.sha256.slice(0, 4)}`); // the stub store hashes to 0000
+      rendered.push(`${gnews.name}@${gnews.sha256.slice(0, 4)}`);
       return stubActivities().render(runId, selections, threads, gnews);
     };
     const reset = () => {
@@ -715,7 +700,7 @@ describe("DigestWorkflow", () => {
         await h.signal(approveSignal, { decision: "reject" });
         return h.result();
       }, acts);
-      expect(calls).toEqual(["archiveRun", "render", "checkPreSend", "sendEnabled", "finishRun"]); // rejected before the hold: no hold notice
+      expect(calls).toEqual(["archiveRun", "render", "checkPreSend", "sendEnabled", "finishRun"]);
       expect(out.broadcast).toBe("rejected");
     }, 120_000);
     it("a send that fails is not retried: the run is marked failed and the workflow fails", async () => {
@@ -771,15 +756,14 @@ describe("DigestWorkflow", () => {
     it("a flagged run's hold is cut to what the deadline leaves after the send, still sends, and the notice says when it ends", async () => {
       const f = flagged();
       const out = await withWorker(async () => {
-        // A 50-minute run timeout: a 40-minute deadline, 10 minutes before the tail's margin.
         const h = await start("2026-10-08", {}, { workflowRunTimeout: "50 minutes" });
         const { startTime } = await h.describe();
-        const result = await h.result(); // no signal: the cut hold runs out
+        const result = await h.result();
         return { result, startTime };
       }, f.acts);
       expect(out.result.broadcast).toBe("sent");
       const held = Date.parse(f.notices[0]!.holdEndsAt) - out.startTime.getTime();
-      expect(held).toBeLessThanOrEqual(50 * 60 * 1000 - DEADLINE_MARGIN_MS - TAIL_MARGIN_MS + 1000); // the server's start time and the run's can differ by a millisecond
+      expect(held).toBeLessThanOrEqual(50 * 60 * 1000 - DEADLINE_MARGIN_MS - TAIL_MARGIN_MS + 1000);
       expect(held).toBeLessThan(HOLD_TIMEOUT);
       expect(held).toBeGreaterThan(9 * 60 * 1000);
     }, 120_000);
@@ -809,7 +793,6 @@ describe("DigestWorkflow", () => {
     describe("one budget: the deadline never cuts a send, and the hold is cut to it", () => {
       it("the tail's worst case, every step timing out on every attempt, fits its margin", () => {
         expect(TAIL_WORST_CASE_MS).toBeLessThanOrEqual(TAIL_MARGIN_MS);
-        // A flagged run's hold notice can start with under a minute of budget left and overrun it.
         expect(TAIL_WORST_CASE_MS + NOTIFY_MS).toBeLessThanOrEqual(TAIL_MARGIN_MS);
       });
       it("an early approval does not skip the budget: approved, then parked to 229 minutes, the run is held out", async () => {
@@ -887,8 +870,6 @@ describe("DigestWorkflow", () => {
         ]);
       }, 120_000);
       it("a cancellation that lands mid-send cancels neither the send nor its record", async () => {
-        // The tail's worst case fits its margin, so the deadline cannot reach it; an operator's
-        // cancellation can, and the send and its record are shielded from it the same way.
         const flags = { started: false };
         let release!: () => void;
         const gate = new Promise<void>((r) => (release = r));

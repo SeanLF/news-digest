@@ -15,9 +15,6 @@ import { recordOperatorNote } from "./operator-note.js";
 export const COHERENCE_OUTPUT = "coherence_report.json";
 export const DRAFT_OUTPUT = "draft_selections.json";
 
-// orchestrate.build_inline_grep_body, ported: only steps 1 and 3 change (how the input arrives, how
-// the result leaves). Step 2 -- verify ONLY against the story's cited ids -- is untouched, and a
-// drifted prompt throws rather than quietly checking against the wrong rule.
 const STEP_1 = "1. Use the Read tool to read these files:";
 const STEP_2 = "2. For each story in draft_selections.json";
 const WRITE_STEP = /3\. Use the Write tool to write the result to `[^`]*coherence_report\.json`\n/;
@@ -35,9 +32,6 @@ export function buildInlineGrepBody(body: string, inputDir: string): string {
   return out.replace("before writing that story's result", "before giving that story's result");
 }
 
-// orchestrate.build_read_only_body, ported: the shipped checker with Write removed; it still Reads the
-// files and returns the report as its final message. The other side of the spec's pre-registered
-// checker fork (inline+Grep vs the Read loop).
 export function buildReadLoopBody(body: string): string {
   if (!WRITE_STEP.test(body) || !body.includes(TOOLS_RULE))
     throw new Error("coherence body drifted: the Write step or the tools rule is not where buildReadLoopBody expects");
@@ -49,8 +43,6 @@ export function buildReadLoopBody(body: string): string {
 }
 export type CheckerShape = "inline-grep" | "read-loop";
 
-// Fails whose reason quotes no Grep pattern of the attempt (eval_coherence.unbacked_fail_count):
-// approximate attribution, reported with the usage, never gated.
 export function unbackedFails(report: CoherenceReport, toolCalls: { name: string; target: string }[]): number {
   const pats = toolCalls
     .filter((t) => t.name === "Grep" && t.target.trim().length >= 4)
@@ -60,7 +52,6 @@ export function unbackedFails(report: CoherenceReport, toolCalls: { name: string
 
 export type Draft = { must_know: DraftStory[]; should_know: DraftStory[]; preheader: string };
 
-// Fan-in in SELECT's order onto SELECT's tier (write_fanout.assemble_draft).
 export async function draftFrom(store: ArtifactStore, drafts: Pointer[]): Promise<Draft> {
   const out: Draft = { must_know: [], should_know: [], preheader: "" };
   const items: { plan: StoryPlan; story: DraftStory }[] = [];
@@ -70,8 +61,6 @@ export async function draftFrom(store: ArtifactStore, drafts: Pointer[]): Promis
   return out;
 }
 
-// Every draft story must have a matching result: an unchecked story is a stage failure, not a
-// soft signal (orchestrate.validate_coherence). Identity-based, never count-based.
 export function uncovered(report: CoherenceReport, draft: Draft): string[] {
   return [...draft.must_know, ...draft.should_know]
     .filter((s) => !report.results.some((r) => resultMatches(r, itemIds(s.sources), normHeadline(s.headline))))
@@ -87,8 +76,6 @@ export interface CoherenceDeps {
   onUsage?: (row: UsageRow) => void | Promise<void>;
 }
 
-// The checker is a verdict: one attempt (spec §2.1), so a failure here parks or fails the run
-// rather than re-sampling until something passes.
 export function coherenceActivity(deps: CoherenceDeps) {
   return async (
     runId: number,
@@ -109,7 +96,7 @@ export function coherenceActivity(deps: CoherenceDeps) {
     }
     if (!force) {
       if (existing) await store.quarantine(runId, COHERENCE_OUTPUT);
-      if (existingDraft && !sameDraft) await store.quarantine(runId, DRAFT_OUTPUT); // a matching draft is kept
+      if (existingDraft && !sameDraft) await store.quarantine(runId, DRAFT_OUTPUT);
     }
     await recordOperatorNote(store, runId, "coherence", note);
     const checked = await runChecker(deps, runId, draftText, note);
@@ -141,9 +128,6 @@ export function coherenceActivity(deps: CoherenceDeps) {
   };
 }
 
-// One checker run over a draft: the draft, the article CSVs and the fulltext inline and on disk,
-// links scrubbed, the checker body derived from the shipped prompt. The scoped recheck after a
-// repair is this same run over a draft holding only the patched stories.
 export async function runChecker(deps: CoherenceDeps, runId: number, draftText: string, note?: string) {
   const { store } = deps;
   const corpus: [string, string][] = [];
@@ -154,15 +138,13 @@ export async function runChecker(deps: CoherenceDeps, runId: number, draftText: 
   return checkDraft(deps, draftText, corpus, await store.runDate(runId), note, "read-loop", runId);
 }
 
-// The checker over explicit files, with no store: what the activity runs, and what the planted-defect
-// band runs over a fixture directory.
 export async function checkDraft(
   deps: Pick<CoherenceDeps, "agentsDir" | "query" | "heartbeat" | "signal">,
   draftText: string,
   corpus: [string, string][],
   today: string,
   note?: string,
-  shape: CheckerShape = "read-loop", // planted band 2026-09-23: 8/8 recall 3/3 at $0.86; inline-grep 6/8 once
+  shape: CheckerShape = "read-loop",
   runId?: number,
 ) {
   const dir = mkdtempSync(join(tmpdir(), "coherence-"));
@@ -209,6 +191,6 @@ export async function checkDraft(
       unbacked: shape === "inline-grep" ? unbackedFails(parsed.data, r.toolCalls) : null,
     };
   } finally {
-    rmSync(dir, { recursive: true, force: true }); // the mkdtemp directory this call created
+    rmSync(dir, { recursive: true, force: true });
   }
 }

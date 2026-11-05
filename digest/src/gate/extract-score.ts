@@ -1,8 +1,5 @@
-// Scoring for the fulltext fork: success (M1), token F1 against trafilatura (M2), boilerplate line
-// share (M3). A promptfoo assertion reports them as named scores; nothing here passes or fails an arm.
-
 export const MIN_CHARS = 200;
-const BOILERPLATE = /\b(subscribe|newsletter|cookies?|sign[- ]in|advertisement|copyright|related|read more)\b/i; // the pre-registered list, no more
+const BOILERPLATE = /\b(subscribe|newsletter|cookies?|sign[- ]in|advertisement|copyright|related|read more)\b/i;
 
 const tokens = (s: string) => s.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
 
@@ -36,7 +33,7 @@ export const succeeded = (text: string) => Array.from(text.trim()).length >= MIN
 export default function extractAssert(output: string, context: { vars: { reference: string } }) {
   const ok = succeeded(output);
   const both = ok && succeeded(context.vars.reference);
-  const f1 = both ? tokenF1(output, context.vars.reference) : -1; // -1: not comparable, excluded from M2
+  const f1 = both ? tokenF1(output, context.vars.reference) : -1;
   return {
     pass: true,
     score: ok ? 1 : 0,

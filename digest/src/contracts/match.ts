@@ -1,6 +1,3 @@
-// How a coherence result is matched to a draft story (merge._result_matches): by the cited
-// article_ids set, falling back to the normalised headline for a result without ids. Validation and
-// assembly share this, so "covered" means the same thing in both.
 export function normHeadline(headline: string): string {
   let t = (headline ?? "").normalize("NFKC");
   for (const [f, p] of [
@@ -12,7 +9,6 @@ export function normHeadline(headline: string): string {
     ["–", "-"],
   ] as const)
     t = t.replaceAll(f, p);
-  // str.casefold() differs from toLowerCase() on ß and final sigma; those two are folded explicitly.
   return t
     .replace(/\s+/g, " ")
     .trim()
@@ -30,7 +26,7 @@ export function resultMatches(
   norm: string,
 ): boolean {
   const rids = result.article_ids ?? [];
-  const rset = new Set(rids); // a set, as Python's frozenset: duplicate ids in a result still match
+  const rset = new Set(rids);
   if (rset.size && ids.size && rset.size === ids.size && [...rset].every((r) => ids.has(r))) return true;
   return result.headline !== undefined && normHeadline(result.headline) === norm;
 }

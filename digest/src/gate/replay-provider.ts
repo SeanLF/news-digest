@@ -1,11 +1,3 @@
-// A promptfoo provider that replays one model stage of a stored run (vars.run) with a variant
-// (config.overrides on the stage prompts' frontmatter), each call on its own scratch copy of the
-// template database (default digest_clone, from make db-clone), and scores nothing itself: the output
-// carries the replay and the run's own artifact as the reference, for replay-assert.ts.
-// Runs in the worker image (make replay); REPLAY_ADMIN_URL is a superuser URL on that Postgres.
-// promptfoo's -j runs calls in parallel and --repeat makes the reps; nothing else bounds them (the
-// subscription took 48 simultaneous calls without a failure or a slowdown, 2026-10-07). A cluster or
-// attribute call runs 4 model calls of its own, each a Claude CLI process of ~245 MiB.
 import { randomUUID } from "node:crypto";
 import { rmSync } from "node:fs";
 import pg from "pg";

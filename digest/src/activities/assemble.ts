@@ -18,7 +18,6 @@ import { SelectedSchema } from "./select.js";
 
 export const SELECTIONS_OUTPUT = "selections.json";
 
-// A repair is taken whole or not at all: every patched value a repairable, non-empty, leak-free string.
 const validPatch = (p: Record<string, unknown>) =>
   Object.keys(p).length > 0 &&
   Object.entries(p).every(
@@ -29,8 +28,6 @@ const validPatch = (p: Record<string, unknown>) =>
       !leaksInternalId(v),
   );
 
-// The cluster label holding the most of a story's distinct cited ids, ties to the earliest cited
-// (utils.cluster_for_articles): the join key threads and render share.
 export function clusterFor(ids: string[], owner: Map<string, string>): string | undefined {
   const counts = new Map<string, number>();
   for (const a of new Set(ids)) {
@@ -55,16 +52,8 @@ export interface AssembleOptions {
 }
 type Read = "full" | "truncated" | "summary";
 const TRUNCATED = "\n[truncated]";
-// Below this many words a fetched page is too thin to conclude it backs nothing: a video page's
-// player text and one-line description (run 311: a 68-word Al Jazeera clip, a 118-word France 24
-// page), a paywall teaser, a site footer. Such a page is kept as a source, never removed.
 export const MIN_READ_WORDS = 150;
 
-// merge.assemble_selections, ported. For each story, in order: passed → keep; repaired with a
-// patch covering exactly the flagged fields and a passed recheck → keep, patched; only
-// why_it_matters failed → keep, blanked (a brief has none to blank); anything else → drop. No
-// must_know left → abort rather than send an empty digest. Then the reader-facing guards and the
-// contract.
 export async function assemble(
   store: ArtifactStore,
   runId: number,
@@ -248,7 +237,6 @@ export async function assemble(
   return { selections: parsed.data, report: out };
 }
 
-// removeUnsupported is KITCHEN_SINK_REMOVAL; it acts only on a story whose attribution is complete.
 export function assembleActivity(deps: { store: ArtifactStore; removeUnsupported?: boolean }) {
   return async (
     runId: number,

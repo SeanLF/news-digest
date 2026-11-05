@@ -16,7 +16,6 @@ import {
 } from "./coherence.js";
 
 const AGENTS = new URL("../../agents/", import.meta.url).pathname;
-// digest/agents/coherence.md carries the production body verbatim; a host-only test holds the two equal.
 const PROD = new URL("../../agents/coherence.md", import.meta.url).pathname;
 
 describe("buildInlineGrepBody", () => {
@@ -146,7 +145,7 @@ describe("coherence activity", () => {
     expect(seen.files?.["articles_1.csv"]).toContain("[link]");
     expect(JSON.stringify(seen.files)).not.toContain("https://");
     expect(seen.options?.tools).toEqual(["Read"]);
-    expect(rows[0]?.unbackedFails).toBeNull(); // attribution by Grep pattern means nothing without Grep
+    expect(rows[0]?.unbackedFails).toBeNull();
     expect(await act(300, drafts, ft)).toEqual(p);
     expect(seen.n).toBe(1);
   });

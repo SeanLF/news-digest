@@ -1,18 +1,3 @@
-/* Digest web-archive component styles.
- *
- * These styles drive ONLY the web archive. The email is rendered separately as
- * MJML (digest/src/render/email.ts), so this file carries no email-safety hacks
- * (presentation-table section rules, &nbsp; glue, !important, MSO wrappers,
- * .email-only/.web-only flips).
- *
- * Design tokens (:root --bg/--ink/--hair/--accent/… + the Source Serif 4
- * @font-face) live in design/tokens.css and are PREPENDED to this file at
- * render time (digest/src/render/web.ts). Do NOT redefine :root here.
- *
- * The site injects the web-nav chrome (topbar, translate pill, theme toggle,
- * skip link) at serve time (digest/src/site/pages/issue.ts), so that is NOT
- * defined here.
- */
 
 *{box-sizing:border-box;}
 body{margin:0;background:var(--bg);color:var(--ink);
@@ -22,13 +7,6 @@ body{margin:0;background:var(--bg);color:var(--ink);
 a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:.6px;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 
-/* masthead */
-/* Table layout (not flex): flex mangles in Outlook's Word engine and Gmail. A
-   presentation table renders identically in email and browsers. */
-/* margin:0 so the masthead's 2px rule abuts the notice's 1px top rule as one
-   deliberate double-rule (per mockup); the breathing room lives ABOVE the rule
-   in .mh-dateline's bottom padding. (A 40px margin HERE opened a dead gap
-   between the two rules that read as missing content.) */
 .masthead{width:100%;border-collapse:collapse;border-bottom:2px solid var(--ink);margin:0;}
 .mh-brand{text-align:left;vertical-align:bottom;padding:0 12px 10px 0;}
 .mh-issue{text-align:right;vertical-align:bottom;padding:0 0 10px;white-space:nowrap;
@@ -40,20 +18,17 @@ a{color:var(--accent-ink);text-decoration:underline;text-underline-offset:2px;te
 .mh-dateline .tick{color:var(--accent);font-size:12px;}
 .mh-dateline .sep{color:var(--hair);padding:0 6px;}
 
-/* AI notice */
 .notice{font-family:var(--sans);font-size:13px;line-height:1.6;color:var(--ink2);
   border-top:1px solid var(--ink);border-bottom:1px solid var(--hair);
   padding:12px 0;margin:0 0 40px;}
 .notice .tag{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--accent-ink);font-weight:600;margin-right:8px;white-space:nowrap;}
 
-/* section rule */
 .section{display:flex;align-items:center;gap:12px;margin:0 0 24px;}
 .section .num{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent-ink);letter-spacing:.08em;}
 .section .name{font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin:0;}
 .section .rule{flex:1;height:1px;background:var(--ink);}
 
-/* story */
 article{border-top:1px solid var(--hair);padding-top:24px;margin-top:32px;}
 article.first{border-top:0;padding-top:0;margin-top:0;}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
@@ -75,7 +50,6 @@ p{margin:12px 0;color:var(--ink2);text-wrap:pretty;hanging-punctuation:first las
 .varies p{margin:8px 0;color:var(--ink2);}
 .varies b{color:var(--ink);font-weight:600;}
 
-/* should-know: compact */
 .brief{border-top:1px solid var(--hair);padding-top:16px;margin-top:16px;}
 .section + .brief{border-top:0;padding-top:0;margin-top:0;}
 .brief h3{font-family:var(--serif);font-weight:600;font-size:20px;line-height:1.3;letter-spacing:-.01em;margin:0 0 4px;text-wrap:balance;}
@@ -90,7 +64,6 @@ footer nav a{display:inline-block;padding:4px 0;}
 .not-covered{font-size:13px;color:var(--muted);margin:0 0 8px;}
 .generated-at{font-size:13px;color:var(--muted);margin:8px 0 0;}
 
-/* anchor (copy-link affordance, web only -- hidden below the wide breakpoint) */
 .head,.brief h3{position:relative;}
 .anchor::before{content:"#";}
 .anchor{position:absolute;left:-1.5em;top:.12em;width:1.5em;padding-right:.5em;box-sizing:border-box;opacity:0;text-decoration:none;
@@ -100,7 +73,6 @@ footer nav a{display:inline-block;padding:4px 0;}
 .section-gap{margin-top:48px;}
 @media (prefers-reduced-motion:reduce){.anchor{transition:none;}}
 
-/* bias glyph (the web summary that reveals the source table) */
 .spread{display:flex;align-items:center;gap:8px;flex-wrap:wrap;line-height:1;}
 .biasbar{display:flex;gap:2px;height:4px;width:150px;border-radius:3px;overflow:hidden;flex:none;}
 .biasbar .seg{height:100%;min-width:2px;}
@@ -109,9 +81,7 @@ footer nav a{display:inline-block;padding:4px 0;}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 .spread-label{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);}
 .spread-label .n{color:var(--ink2);}
-/* WEB: the bias glyph IS the <summary> that reveals the source table */
 .srcbox{margin:16px 0 0;}
-/* opens smoothly where the browser can animate to an auto height; elsewhere it snaps open as before */
 @supports selector(::details-content){
   .srcbox{interpolate-size:allow-keywords;}
   .srcbox::details-content{block-size:0;overflow:clip;transition:block-size var(--dur-3) var(--ease),content-visibility var(--dur-3) var(--ease) allow-discrete;}
@@ -122,14 +92,11 @@ footer nav a{display:inline-block;padding:4px 0;}
 .srcbox > summary.spread::-webkit-details-marker{display:none;}
 .srcbox > summary.spread::after{content:"\25B8\00A0see sources";font-family:var(--sans);font-size:13px;color:var(--accent-ink);white-space:nowrap;}
 .srcbox[open] > summary.spread::after{content:"\25BE\00A0hide sources";color:var(--muted);font-weight:400;}
-/* reports under one heading per leaning; each group's rail is its segment of the bar, unfolding when the box opens */
-/* no rules inside the box: the headings group, whitespace separates, the next story's border closes it */
 .src-groups{margin-top:-4px;font-family:var(--sans);}
 .src-grp{position:relative;margin-top:20px;padding-left:16px;}
 .src-grp::before{content:"";position:absolute;left:0;top:4px;bottom:8px;width:3px;border-radius:2px;background:var(--bias-c);transform-origin:top;}
 .src-grp.l::before{background:var(--bias-l);}.src-grp.r::before{background:var(--bias-r);}
 .src-grp.u::before{background:repeating-linear-gradient(135deg,var(--bias-c) 0 2px,transparent 2px 4px);}
-/* on [open], not on render: removing the attribute drops the animation, so each opening replays it */
 .srcbox[open] .src-grp::before{animation:rail-grow var(--dur-3) var(--ease) both;}
 .srcbox[open] .src-grp:nth-child(2)::before{animation-delay:var(--stagger);}
 .srcbox[open] .src-grp:nth-child(n+3)::before{animation-delay:calc(var(--stagger) * 2);}
@@ -137,22 +104,17 @@ footer nav a{display:inline-block;padding:4px 0;}
 @media (prefers-reduced-motion:reduce){.srcbox[open] .src-grp::before{animation:none;}}
 .src-gh{margin:0 0 4px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
 .src-list{list-style:none;margin:0;padding:0;}
-/* source order is name, claims, links (the Markdown's and a screen reader's); the eye gets the links first */
 .src-list > li{display:flex;flex-direction:column;padding:8px 0;}
 .src-list .nm{order:0;} .src-list .arts{order:1;} .src-list .bk{order:2;}
 .src-list .nm{display:block;font-size:14px;font-weight:600;color:var(--ink);line-height:1.4;}
-/* wire attribution: the agency is the credit, the outlet is only the route */
 .src-list .via{color:var(--muted);font-weight:400;}
-/* supporting detail: below the links, quieter than them */
 .src-list .bk{display:block;margin:4px 0 0;font-size:14px;line-height:1.5;color:var(--muted);}
 .src-list .bk-k{font-weight:600;}
 .src-list .carrier{padding:0 0 8px 16px;}
 .src-list .carrier .nm{font-weight:600;color:var(--ink2);}
 .src-list .rp{font-weight:400;color:var(--muted);}
-/* each article by its headline, a source link as the design system draws one: accent ink, persistent underline */
 .src-list .arts{list-style:none;margin:4px 0 0;padding:0;font-size:14px;line-height:1.5;}
 .src-list .arts a{display:inline-block;color:var(--accent-ink);}
-/* drawn, not text: the Markdown and screen readers get the headline alone */
 .src-list .arts a::after, .src-list a.out::after{content:"\00a0\2197" / "";}
 .src-list a.out{color:var(--accent-ink);font-weight:400;}
 
@@ -160,7 +122,6 @@ footer nav a{display:inline-block;padding:4px 0;}
   .paper{padding:36px 20px 72px;}
   .brand{font-size:23px;}
   .brand{white-space:nowrap;}
-  /* break before the story counts, not mid-phrase */
   .mh-dateline .sep:last-of-type{display:block;height:0;overflow:hidden;padding:0;}
   .head{font-size:22px;}
   body{font-size:17px;}
@@ -168,8 +129,6 @@ footer nav a{display:inline-block;padding:4px 0;}
 
 @media (min-width:760px){
   .paper{max-width:800px;padding:56px 40px 96px;}
-  /* full-width frame (masthead, section rules, dateline) but a reading column capped
-     at ~680px = ~68 characters/line -- the readability sweet spot (evidence: 45-75 CPL). */
   article,.brief{max-width:680px;}
   body{font-size:20px;}
   .brand{font-size:30px;}

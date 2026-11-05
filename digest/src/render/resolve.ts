@@ -3,7 +3,6 @@ import { log } from "../log.js";
 import { wireFromFullText } from "../prepare/wire.js";
 import { AGENCY_LABELS, titleCase, type Selections, type Source, type Story, type ThreadContext } from "./common.js";
 
-// One article_index.json entry, as prepare writes it; wire_agency predates some archived indexes.
 const IndexEntry = z.object({
   name: z.string(),
   url: z.string(),
@@ -14,8 +13,6 @@ const IndexEntry = z.object({
   wire_agency: z.string().nullable().optional(),
 });
 
-// digest._repost_key: a title normalised for verbatim-repost matching, less the " - <Source>"
-// suffix Google-News-fetched feeds append, matched against the source's own name only.
 export function repostKey(title: string, sourceName: string): string {
   const suffix = ` - ${sourceName}`;
   let t = title;
@@ -27,8 +24,6 @@ export function repostKey(title: string, sourceName: string): string {
     .trim();
 }
 
-// digest.resolve_article_ids: each {article_id} becomes its outlet, link and leaning from the run's
-// article index; an id the index lacks is dropped, and so is a story left with no source.
 export function resolveArticleIds(
   selections: Selections,
   index: Record<string, unknown>,
@@ -71,7 +66,6 @@ export function resolveArticleIds(
   return out;
 }
 
-// Google-News redirect links upgraded to the publisher URL, where the decoder found one.
 export function applyDecodedLinks(selections: Selections, links: Record<string, string>): Selections {
   const decoded = (src: Source): Source => {
     const to = src.url && Object.hasOwn(links, src.url) ? links[src.url] : undefined;
@@ -81,8 +75,6 @@ export function applyDecodedLinks(selections: Selections, links: Record<string, 
   return { ...selections, must_know: tier(selections.must_know), should_know: tier(selections.should_know) };
 }
 
-// The join in digest.attach_thread_context: a story takes its cluster's thread context, unless two
-// stories share the cluster, when the delta that replaces the summary would render both alike.
 export function attachThreads(selections: Selections, contexts: Record<string, ThreadContext>): Selections {
   const counts = new Map<string, number>();
   for (const s of [...selections.must_know, ...selections.should_know])

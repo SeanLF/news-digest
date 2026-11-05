@@ -27,10 +27,6 @@ describe("waitingLine", () => {
   });
 });
 
-// The server lists a poller before it has registered the poller's build (Temporal 1.32: matching's
-// PollTask records the poller, then registers the build in the deployment). In that window the build
-// is not in the deployment, and setting it current fails NOT_FOUND. The window is one registration
-// call, too short to hold open on a real server; this fake server holds it for two describes.
 describe("setCurrentVersion", () => {
   it("does not set a build that polls but is not yet registered in the deployment (NOT_FOUND)", async () => {
     let describes = 0;
@@ -64,7 +60,7 @@ describe("setCurrentVersion", () => {
     vi.useFakeTimers();
     try {
       const set = setCurrentVersion(client, "build-z", TASK_QUEUE, 30_000);
-      await vi.runAllTimersAsync(); // its 2 s polls, without the wait
+      await vi.runAllTimersAsync();
       await set;
     } finally {
       vi.useRealTimers();

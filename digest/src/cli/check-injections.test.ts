@@ -4,7 +4,6 @@ import { loadAssets } from "../site/assets.js";
 import { testConfig } from "../site/testing.js";
 import { checkInjections } from "./check-injections.js";
 
-// The pipeline's web template, whose markup the issue page's injections are anchored to.
 const TEMPLATE = readFileSync(new URL("../../templates/digest-template.html", import.meta.url), "utf8");
 const GOOD = TEMPLATE.replace("{{STYLES}}", "body{}").replaceAll(/\{\{[A-Z_]+\}\}/g, "");
 const cfg = testConfig();

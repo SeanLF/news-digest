@@ -3,11 +3,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { resolveBinary } from "dbmate";
 
-// digest/db/migrations, from src/store and from dist/store alike.
 export const MIGRATIONS_DIR = new URL("../../db/migrations/", import.meta.url).pathname;
 
-// Applies every pending migration to the database at `url` with dbmate. The exit is checked here
-// rather than through dbmate's own CLI wrapper, which exits 0 when the binary is killed.
 export function migrate(url: string): void {
   const r = spawnSync(resolveBinary(), ["--url", url, "--migrations-dir", MIGRATIONS_DIR, "--no-dump-schema", "up"], {
     encoding: "utf8",
@@ -17,8 +14,6 @@ export function migrate(url: string): void {
     throw new Error(`dbmate up failed (${r.signal ?? `exit ${String(r.status)}`}): ${r.stderr.trim()}`);
 }
 
-// Every identity column restarted after its table's highest id: rows inserted with explicit ids (the
-// import, test fixtures) do not move an identity, and the next default id would collide with them.
 export const RESET_IDENTITIES = `DO $$
 DECLARE r record;
 BEGIN
@@ -27,8 +22,6 @@ BEGIN
   END LOOP;
 END $$`;
 
-// Every migration's up section, in order: what dbmate applies, for an in-process PGlite that dbmate
-// cannot reach. dbmate's file format: `-- migrate:up` ... `-- migrate:down` ...
 export function upSections(): string[] {
   return readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))

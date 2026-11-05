@@ -10,21 +10,13 @@ import type {
   ThreadSummaryData,
 } from "./data.js";
 
-// The site's reads against the product schema (digest/db/migrations). Readers see an issue date's
-// highest revision, and a thread's updates only from published runs (thread_state does the same).
-
 const LATEST = `latest AS (SELECT DISTINCT ON (issue_date) issue_date, revision, run_id, html, preheader FROM issues ORDER BY issue_date, revision DESC)`;
 const n = (v: unknown): number => Number(v ?? 0);
 const nullable = (v: unknown): number | null => (v === null || v === undefined ? null : Number(v));
 
-// Updates readers can see: a published run's.
 const PUBLISHED_UPDATE = "u.run_id IN (SELECT run_id FROM published_runs)";
-// Thread cursors compare whole seconds: the cursor travels as "YYYY-MM-DD HH:MM:SS" text.
 const SECOND = "date_trunc('second', t.updated_at)";
 
-// A sum of doubles taken exactly and rounded once. SQLite sums with compensation (Kahan-Babuska-
-// Neumaier), so its totals are the correctly rounded ones, where a plain float sum here differs in the
-// last bit. Through text, because a float8 cast to numeric keeps only 15 digits.
 const EXACT_SUM = (col: string): string => `sum(${col}::text::numeric)::float8`;
 
 const str = (v: unknown): string => (typeof v === "string" ? v : "");
@@ -32,9 +24,6 @@ const strOrNull = (v: unknown): string | null => (typeof v === "string" ? v : nu
 
 const SUMMARY_COLS = `t.id, t.label, t.status, t.updated_at, t.update_count,
     (SELECT u.content FROM thread_updates u WHERE u.thread_id = t.id AND ${PUBLISHED_UPDATE} ORDER BY u.run_id DESC LIMIT 1) AS latest_content`;
-// The row types: a table's or view's columns from the generated schema types, and each computed
-// column as the query spells it (count and sum are bigints and numerics, which the pool parses to
-// numbers; ::text and to_char are strings).
 type SummaryRow = Pick<RowOf<"thread_state">, "id" | "label" | "status" | "updated_at" | "update_count"> & {
   latest_content: RowOf<"thread_updates">["content"];
 };
@@ -121,7 +110,6 @@ export function siteStore(db: Sql): SiteData {
     },
 
     async archive(q): Promise<IssueRowData[]> {
-      // A year no issue can have is an empty page, as SQLite's string compare answered, not a failed cast.
       if (q.year !== undefined && (q.year < 1 || q.year > 9999)) return [];
       const rows = await db.all<ArchiveRow>(
         `WITH ${LATEST},
@@ -151,8 +139,6 @@ export function siteStore(db: Sql): SiteData {
       }));
     },
 
-    // By the date's text, so a lenient date the route accepts ("2026-1-24") finds nothing rather than
-    // failing a cast.
     async issue(date) {
       return db.one<Pick<RowOf<"issues">, "html" | "preheader" | "markdown">>(
         "SELECT html, preheader, markdown FROM issues WHERE issue_date::text = $1 ORDER BY revision DESC LIMIT 1",
@@ -171,9 +157,6 @@ export function siteStore(db: Sql): SiteData {
       );
     },
 
-    // A literal phrase, stemmed English, ranked by ts_rank; unstemmed (`simple`) only when English
-    // leaves no lexeme. One row per story, its best-ranked source's. The two branches keep each index
-    // usable.
     async search(query, limit): Promise<SearchHit[]> {
       const rows = await db.all<SearchRow>(
         `WITH q AS (SELECT phraseto_tsquery('english', $1) AS e, phraseto_tsquery('simple', $1) AS s),
@@ -231,7 +214,6 @@ export function siteStore(db: Sql): SiteData {
          ORDER BY u.run_id DESC`,
         [id],
       );
-      // Each open question with the update that raised it: its ids ground the question's citations.
       const questions = await db.all<QuestionRow>(
         `SELECT q.question, u.content FROM thread_question_state q
          LEFT JOIN thread_updates u ON u.thread_id = q.thread_id AND u.run_id = q.raised_run_id
@@ -253,9 +235,6 @@ export function siteStore(db: Sql): SiteData {
     },
 
     async stats(days, now): Promise<StatsData> {
-      // Past ~5.8 million days Postgres's interval arithmetic overflows; the whole archive fits far inside.
-      // The window never reaches past year 1: SQLite's date arithmetic turned NULL there and matched nothing,
-      // where a negative year here would be refused by Postgres.
       const since = new Date(Math.max(now.getTime() - days * 86_400_000, Date.UTC(1, 0, 1)))
         .toISOString()
         .replace(/^\+0*/, "");
@@ -271,7 +250,6 @@ export function siteStore(db: Sql): SiteData {
            GROUP BY source_id, tier ORDER BY count DESC, source_id, tier`,
           [since],
         ),
-        // The ten newest emailed runs, whatever the window.
         db.all<RecentRunRow>(
           `SELECT to_char(r.started_at, 'YYYY-MM-DD HH24:MI:SS') AS run_at, r.articles_kept,
                   COALESCE((SELECT s.recipients FROM sends s WHERE s.run_id = r.id ORDER BY s.issue_date DESC LIMIT 1), 0) AS recipients,
@@ -305,7 +283,6 @@ export function siteStore(db: Sql): SiteData {
       return {
         sourceHealth: health.map((h) => ({ sourceId: h.source_id, total: n(h.total), successes: n(h.successes) })),
         sourceUsage: usage.map((u) => ({ sourceId: u.source_id, tier: u.tier, count: n(u.count) })),
-        // A run with no kept count has no row to show (the Rust server dropped it the same way).
         recentRuns: runs
           .filter((r) => r.articles_kept !== null)
           .map((r) => ({

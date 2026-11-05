@@ -31,7 +31,6 @@ function fakeQuery(reply: string | Error, calls: Calls): SdkQuery {
   }) as unknown as SdkQuery;
 }
 
-// Run 300 on 2026-09-18 and run 301 on 2026-09-25; shown titles in the week before run 301.
 async function setup(prior: string | null) {
   const path = await freshDb([300, 301]);
   const db = openDb(path);

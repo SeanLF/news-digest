@@ -3,8 +3,6 @@ import { log } from "../log.js";
 import type { SendEmail } from "../mail/resend.js";
 import { ACCEPTED_BROADCAST_STATES, CLAIMED, clearClaimCommand } from "./broadcast-state.js";
 
-// The operational alerts broadcast.py sends, to the same address (HEALTH_ALERT_EMAIL), plus
-// run-failed: the systemd OnFailure alert's successor, raised by the workflow itself.
 export type AlertRequest =
   | { kind: "run-health"; runId: number; violations: string[] }
   | { kind: "archival"; runId: number | null; failed: string[] }
@@ -15,8 +13,6 @@ export type AlertRequest =
       totalSources: number;
       threshold: number;
     }
-  // `sent`: the workflow saw the broadcast return. `broadcastStatus` and `date`: the day's broadcast
-  // columns, which the alert activity reads, so a send the workflow never heard back from still counts.
   | {
       kind: "run-failed";
       workflowId: string;
@@ -27,7 +23,6 @@ export type AlertRequest =
       broadcastStatus?: string | null;
       date?: string;
     }
-  // The run ended without a delivery for a reason no exception carries.
   | { kind: "not-sent"; workflowId: string; runId: number; reason: "disabled" | "held-out"; detail: string };
 
 const resumeHint = (runId: number | null) => `<code>make digest-start DATE=... ARGS="--resume ${runId ?? "N"}"</code>`;
@@ -35,7 +30,6 @@ const resumeHint = (runId: number | null) => `<code>make digest-start DATE=... A
 const FOOTER =
   '<p style="color: #777; font-size: 0.85em;">This is an automated alert from your News Digest system.</p>\n';
 
-// `dropped` is the alert in one line: what the log keeps when the email cannot be sent.
 export function alertEmail(req: AlertRequest): { subject: string; html: string; dropped: string } {
   switch (req.kind) {
     case "run-health": {
@@ -84,7 +78,6 @@ ${FOOTER}`,
       const status = req.broadcastStatus ?? null;
       const delivered = req.sent || (status !== null && ACCEPTED_BROADCAST_STATES.has(status));
       const claimed = !delivered && status?.startsWith(CLAIMED);
-      // Never suggest a resume after an accepted broadcast; with a claim held, only once Resend is checked.
       const [headline, state, next] = delivered
         ? [
             `${what} after the digest was sent`,
@@ -98,8 +91,7 @@ ${FOOTER}`,
               `Check Resend for the day's broadcast before anything else. If nothing went out, clear the claim in the worker container with <code>${htmlEscape(clearClaimCommand(req.date ?? "DATE"))}</code>, then resume: ${resumeHint(req.runId)}.`,
             ]
           : status !== null
-            ? // A draft exists (status "created"): its send may or may not have been accepted.
-              [
+            ? [
                 `${what} with delivery unknown`,
                 `A broadcast draft exists (status ${htmlEscape(status)}), and whether Resend accepted its send is unknown.`,
                 `Check Resend for the day's broadcast before any resume. A resume probes that draft and sends it only if it never went out: ${resumeHint(req.runId)}.`,
@@ -149,9 +141,6 @@ export interface AlertDeps {
   idempotencyKey?: string;
 }
 
-// Alerting is the monitor, so an alert that cannot be delivered is the one failure no alert can
-// report: both undeliverable paths log at ERROR with the alert's content. A failed send throws while
-// the activity has attempts left, so Temporal's retry policy is the retry.
 export async function sendAlert(req: AlertRequest, deps: AlertDeps): Promise<"sent" | "dropped"> {
   const { subject, html, dropped } = alertEmail(req);
   const to = deps.env["HEALTH_ALERT_EMAIL"];

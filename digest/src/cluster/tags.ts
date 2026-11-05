@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-// One article's extracted tags. Every value is a string: model JSON is not normalised
-// (`"entities": null`, `"entities": [2026]`) and the bag builder lowercases directly.
 export interface Tag {
   entities: string[];
   keywords: string[];
@@ -10,10 +8,8 @@ export interface Tag {
 
 export const TAG_BAG_WEIGHTS = { entities: 3, keywords: 1, primary_event: 2 } as const;
 
-// sklearn's default token pattern `(?u)\b\w\w+\b`: a run of two or more word characters.
 export const TOKEN_RE = /[\p{L}\p{N}_]{2,}/u;
 
-// Model JSON is tolerated where the Python coerces it: null lists, numbers among strings.
 export const ExtractItemSchema = z.object({
   article_id: z.string(),
   entities: z.array(z.union([z.string(), z.number()])).nullish(),
@@ -22,7 +18,6 @@ export const ExtractItemSchema = z.object({
 });
 export const ExtractItemsSchema = z.object({ items: z.array(ExtractItemSchema) });
 
-// Shape only, never count (2026-08-21): the model is decoded against this.
 export function extractItemsJsonSchema(): Record<string, unknown> {
   return z.toJSONSchema(ExtractItemsSchema, { target: "draft-07" });
 }
@@ -42,9 +37,6 @@ export function coerceTag(item: object): Tag {
   };
 }
 
-// Term bag: entities x3 (the strongest same-story signal), keywords x1, primary_event x2.
-// "" when the article has no usable tags; the caller substitutes a per-article unique token so
-// tagless articles stay singletons instead of collapsing into one junk blob.
 export function tagBag(tag: Tag | undefined): string {
   if (!tag) return "";
   const ents = tag.entities.map((e) => e.toLowerCase());
@@ -60,9 +52,6 @@ export function tagBag(tag: Tag | undefined): string {
 
 export const usable = (tag: Tag | undefined): boolean => TOKEN_RE.test(tagBag(tag));
 
-// The items a batch's response may key: article_id must be one THIS batch asked about, first
-// seen wins. A model that renumbers its output would otherwise write one batch's tags onto
-// another batch's articles, silently.
 export function itemsForBatch<T extends { article_id: string }>(items: T[], batch: string[]): T[] {
   const wanted = new Set(batch);
   const seen = new Set<string>();

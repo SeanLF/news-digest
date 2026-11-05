@@ -197,7 +197,7 @@ describe("writeStory activity", () => {
     });
     expect(seen.options?.maxBudgetUsd).toBe(1);
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
-    expect(await acts.writeStory(300, plan, sel)).toEqual(p); // idempotent for the same plan
+    expect(await acts.writeStory(300, plan, sel)).toEqual(p);
     expect(seen.n).toBe(1);
   });
   it("shows the writer the other stories in the issue, never its own (run 301 led two stories with one bill)", async () => {

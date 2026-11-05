@@ -1,7 +1,6 @@
 import { parseFeed } from "feedsmith";
 import type { Fetched } from "../prepare/prepare.js";
 
-// sources.json entry; the catalogue keeps parked sources so past issues keep their attribution.
 export interface CatalogueSource {
   id: string;
   name: string;
@@ -15,9 +14,6 @@ export interface CatalogueSource {
   fulltext_reason?: string;
 }
 
-// feeds.load_catalogue + load_sources: validate every entry, return the ones to fetch.
-// The sources whose article pages are never fetched ("fulltext": false): their sites refuse
-// automated fetching. Their feeds are still read.
 export function notFetchedSources(catalogue: unknown): Set<string> {
   if (!Array.isArray(catalogue)) throw new Error("sources.json is not a list");
   return new Set(
@@ -46,11 +42,10 @@ export function activeSources(catalogue: unknown): CatalogueSource[] {
   });
 }
 
-// Python's datetime(...).isoformat() in UTC: "2026-09-18T09:43:43+00:00".
 export function isoUtc(value: string | undefined): string | null {
   if (!value) return null;
   const t = Date.parse(value);
-  if (Number.isNaN(t)) return value; // feedparser falls back to the raw string when it cannot parse
+  if (Number.isNaN(t)) return value;
   return new Date(t).toISOString().replace(/\.\d{3}Z$/, "+00:00");
 }
 
@@ -58,9 +53,6 @@ const text = (v: unknown): string =>
   typeof v === "string" ? v : v && typeof v === "object" && "value" in v && typeof v.value === "string" ? v.value : "";
 const cap = (s: string, n: number) => Array.from(s).slice(0, n).join("");
 
-// feeds.fetch_source's per-entry mapping over any format feedsmith reads (RSS, Atom, RDF, JSON Feed):
-// title stripped, link, published as UTC isoformat, summary raw and capped at 500, author capped at 200.
-// Entries without a title or a link are dropped, as the Python drops them.
 export function parseArticles(body: string): Fetched[] {
   const { format, feed } = parseFeed(body);
   const items: Record<string, unknown>[] =
@@ -109,7 +101,6 @@ export function parseArticles(body: string): Fetched[] {
   return out;
 }
 
-// feeds.fetch_feeds' age filter: keep an entry published after the last completed run, or undated.
 export const newerThan = (articles: Fetched[], lastRun: string | null): Fetched[] =>
   lastRun
     ? articles.filter(

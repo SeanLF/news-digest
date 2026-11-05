@@ -1,6 +1,3 @@
-// A promptfoo provider that runs the TypeScript checker over a fixture directory (a draft plus the
-// day's CSVs and fulltext), for the planted-defect band. The report is the output; promptfoo's
-// --repeat makes the reps and planted-assert.ts scores each against the key.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkDraft, type CheckerShape } from "../activities/coherence.js";

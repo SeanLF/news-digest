@@ -15,8 +15,6 @@ export interface ShownRow {
   cluster_id: string | null;
 }
 
-// render.extract_headlines: one row per source per story, over the selections as resolved against
-// the run's article index. The next day's prepare reads these back for dedup.
 export function shownHeadlines(selections: Selections, index: Record<string, unknown>): ShownRow[] {
   const resolved = resolveArticleIds(selections, index);
   return (["must_know", "should_know"] as const).flatMap((tier) =>
@@ -38,26 +36,17 @@ export interface RecordDeps {
   track?: Track;
 }
 
-// The run's record in the tables the web tier and the next day's run read (db.save_digest,
-// record_shown_headlines, abort_run). Each is idempotent per run: a retried or resumed activity
-// leaves the rows one run would have written.
 export function recordActivities(deps: RecordDeps) {
   const { store } = deps;
   const db = () => openDb(deps.dbUrl);
   const selectionsOf = async (p: Pointer) => JSON.parse(await store.get(p)) as Selections;
   return {
-    // The selections and clusters are already the run's artifacts; the tables this once copied them
-    // into are gone. Kept as an activity because recorded workflow histories schedule it.
     archiveRun: (_runId: number, _selections: Pointer, _clusters: Pointer): Promise<void> => Promise.resolve(),
 
-    // The web publication: a new revision of the run's UTC day, unless the latest one is already
-    // this run's page (a retried or resumed save). A forced re-run of a published day adds a
-    // revision; the old one stays, and the send record names the revision it mailed.
     saveDigest: async (runId: number, html: Pointer, selections: Pointer): Promise<{ date: string }> => {
       const date = await store.runDate(runId);
       const web = webArchiveHtml(await store.get(html));
       const preheader = (await selectionsOf(selections)).preheader ?? "";
-      // NULL when the run rendered no Markdown (rendered before the render wrote it): the site 404s its .md.
       const mdPtr = await store.find(runId, MARKDOWN_OUTPUT);
       const markdown = mdPtr ? await store.get(mdPtr) : null;
       await db().tx(async (t) => {
@@ -76,8 +65,6 @@ export function recordActivities(deps: RecordDeps) {
     },
 
     recordShownHeadlines: async (runId: number, selections: Pointer): Promise<{ rows: number }> => {
-      // Without the index every row would carry no source_id and no source_title, and the next
-      // day's dedup would match nothing: fail rather than write them.
       const indexPtr = await store.find(runId, "article_index.json");
       if (!indexPtr)
         throw ApplicationFailure.nonRetryable(
@@ -99,8 +86,6 @@ export function recordActivities(deps: RecordDeps) {
       return { rows: rows.length };
     },
 
-    // Marked, never deleted: a run that failed after its send keeps its record (2026-06-16). Only a
-    // running run fails; a completed one keeps its outcome, and the attempt carries the error.
     abortRun: async (runId: number, error: string): Promise<void> => {
       const closed = await db().tx(async (t) => {
         await t.run("UPDATE runs SET status='failed', error=$1 WHERE id=$2 AND status='running'", [error, runId]);

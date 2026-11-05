@@ -4,23 +4,17 @@ import { type SiteConfig, baseUrl, ogImageUrl, privacyUrl, subscriptionsEnabled 
 import { brandHtml } from "../text.js";
 import { chromeCss, toggleJs } from "./blobs.js";
 
-// The frame every page but the issue shares: the head, the top
-// bar, the footer and the theme toggle.
-
-// What every page render needs: the configuration and the assets.
 export interface PageCtx {
   cfg: SiteConfig;
   assets: Assets;
 }
 
-// An inline script runs only if its body is one security.ts hashes.
 export const script = (body: string): string => `<script>${body}</script>`;
 export const style = (body: string): string => `<style>${body}</style>`;
 
 export const SKIP_HTML = '<a class="skip" href="#main">Skip to content</a>';
 const FAVICON =
   '<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%222%22 fill=%22%23b1352a%22/%3E%3C/svg%3E">';
-// Runs before first paint, so a stored light/dark choice shows no flash of the other theme.
 export const NO_FLASH_JS =
   "(function(){try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();";
 export const TOGGLE_BTN =
@@ -44,7 +38,6 @@ export const topbar = (nav: [string, string][], right: string): string =>
 export const footer = (links: [string, string][], tagline: string): string =>
   `<footer class="site-foot"><div class="row">${navRow(links)}</div><p style="margin:0;">${tagline}</p></footer>`;
 
-// A " · "-separated line whose parts each stay on one line (`.kw`), breaking only between them.
 export const wholeParts = (line: string): string =>
   line
     .split(" &middot; ")
@@ -61,7 +54,6 @@ export const ogImageTags = (imageUrl: string): string => `<meta property="og:ima
 
 export const brand = (ctx: PageCtx): string => brandHtml(ctx.cfg.digestName);
 
-// The inlined critical sheet: the @font-face, the shared tokens, the chrome, then the page's own CSS.
 export function pageHead(ctx: PageCtx, title: string, description: string, pageCss: string, extraHead = ""): string {
   const canonical = baseUrl(ctx.cfg);
   return `<!DOCTYPE html>
@@ -99,9 +91,6 @@ function footerLinks(cfg: SiteConfig): [string, string][] {
   return links;
 }
 
-// The top bar and footer every page but the index uses. `current` ("sources" | "threads" | "stats",
-// or "" to keep all three) is left out of the nav; `translatePath` is this page's own path, so the
-// Translate pill translates the page the reader is on.
 export function subChrome(
   cfg: SiteConfig,
   current: string,
@@ -136,7 +125,6 @@ export function indexChrome(cfg: SiteConfig): { topbar: string; footer: string }
   };
 }
 
-// The frame around a page's <main>: skip link, top bar, footer, and the scripts at the end of <body>.
 export function pageBody(
   ctx: PageCtx,
   chrome: { topbar: string; footer: string },

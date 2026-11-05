@@ -2,9 +2,6 @@ import { z } from "zod";
 import { log } from "../log.js";
 import type { ActiveThread, ThreadStore } from "./store.js";
 
-// threads.py's linker half, ported: which selected stories the run has, the linker's prompt, the
-// validation of its answer, and the assignment that persists identity.
-
 export interface StoryLabel {
   story: string;
   tier: "must_know" | "should_know";
@@ -41,18 +38,12 @@ export interface Links {
   links: { story: number | null; thread: number | null }[];
 }
 
-// The linker answers in free text, not a schema: on run 304, four schema-constrained samples all
-// dropped a continuation that free text made 6 of 6 times (3 Python, 3 TypeScript).
-// threads._as_index: a digit string is the same answer as the number (run 244 quoted every id);
-// anything else, "NEW" and null included, is a new thread.
 export function asIndex(v: unknown): number | null {
   if (typeof v === "number") return Number.isInteger(v) ? v : null;
   if (typeof v === "string" && /^\s*\d+\s*$/.test(v)) return Number(v.trim());
   return null;
 }
 
-// threads._parse_links: the {"links": [...]} object between the first "{" and the last "}", tolerant
-// of fences and prose; throws when nothing usable is there, so the attempt is re-sampled.
 export function parseLinks(text: string): Links {
   const s = text.indexOf("{");
   const e = text.lastIndexOf("}");
@@ -66,8 +57,6 @@ export function parseLinks(text: string): Links {
   if (!parsed.success) throw new Error(`the linker returned no parseable links: ${JSON.stringify(text.slice(0, 300))}`);
   return {
     links: parsed.data.links.flatMap((ln) => {
-      // The Python calls .get on each entry outside its try, so one such entry loses the run's
-      // threads there; here it is skipped.
       if (!ln || typeof ln !== "object" || Array.isArray(ln)) return [];
       const { story, thread } = ln as { story?: unknown; thread?: unknown };
       return [{ story: asIndex(story), thread: asIndex(thread) }];
@@ -86,8 +75,6 @@ interface Pick {
 
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
-// utils.cluster_for_articles: the cluster label holding the most of these DISTINCT ids; ties keep
-// the earliest cited.
 export function clusterForArticles(articleIds: unknown, owner: ReadonlyMap<string, string>): string | undefined {
   const counts = new Map<string, number>();
   for (const a of new Set(strings(articleIds))) {
@@ -99,15 +86,12 @@ export function clusterForArticles(articleIds: unknown, owner: ReadonlyMap<strin
   return best;
 }
 
-// threads.selected_labels: each SELECT pick's cluster label, keyed on its article ids (the index is
-// a model's count into hundreds of clusters and drifts); the index only for a pick with no ids, and
-// a pick whose ids map to no cluster is skipped rather than mislabelled.
 export function selectedLabels(clustersDoc: unknown, selectedDoc: unknown): StoryLabel[] {
   const clusters = ((clustersDoc as { clusters?: unknown })?.clusters ?? []) as Cluster[];
   const owner = new Map<string, string>();
   for (const c of clusters) {
     if (typeof c.story !== "string" || !c.story) continue;
-    for (const a of strings(c.article_ids)) owner.set(a, c.story); // a later cluster wins, as in the Python's dict
+    for (const a of strings(c.article_ids)) owner.set(a, c.story);
   }
   const out: StoryLabel[] = [];
   for (const tier of ["must_know", "should_know"] as const) {
@@ -151,8 +135,6 @@ export function linkPrompt(active: ActiveThread[], labels: string[]): string {
   return `ACTIVE THREADS:\n${threads}\n\nTODAY'S STORIES:\n${today}\n\nMap each today-story to a thread id or NEW.`;
 }
 
-// link_threads' validation: a link counts only for an in-range story and an offered thread id;
-// the last valid link for a story wins, as in the Python's loop.
 export function validateLinks(
   links: Links,
   active: ActiveThread[],
@@ -176,9 +158,6 @@ export function validateLinks(
   return { mapping, health: { ok: true, proposed, validated } };
 }
 
-// resolve_threads after the linker has answered: continue each validly-linked thread at most once
-// per run, start a new thread for everything else, and record why a proposal was refused. Writes
-// through `store`; the caller owns the transaction.
 export async function assignThreads(
   store: ThreadStore,
   stories: StoryLabel[],

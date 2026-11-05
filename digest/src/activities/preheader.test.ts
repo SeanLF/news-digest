@@ -73,7 +73,6 @@ describe("preheader activity", () => {
       should_know: [{ headline: "Yen jumps" }],
     });
     expect(seen.options?.tools).toEqual([]);
-    // rewritten drafts mean a new preheader, never the stale one
     const d2 = await store.put(
       300,
       "draft_s02.json",

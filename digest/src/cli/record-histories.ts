@@ -1,8 +1,3 @@
-// usage: record-histories OUT_DIR
-// Runs each representative DigestWorkflow path over the stub activities on the Temporal at
-// TEMPORAL_ADDRESS (a dev server: `temporal server start-dev`) and writes each history as JSON, the
-// fixtures replay.test.ts replays against the current workflow code. Re-record in the commit that
-// changes the workflow's commands, from that commit's code.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client, Connection, type WorkflowHandle } from "@temporalio/client";
@@ -37,14 +32,11 @@ const signalled = (decision: "approve" | "reject") => async (h: WorkflowHandle<t
   await h.signal(approveSignal, { decision });
   return h.result();
 };
-// The decision arrives during the hold: the hold's timer is started, then cancelled by the signal.
 const inHoldThen = (decision: "approve" | "reject") => async (h: WorkflowHandle<typeof DigestWorkflow>) => {
   await inHold(h);
   return signalled(decision)(h);
 };
-// A run that fails a pre-send check holds; one that passes sends at once.
 const FLAGGED: Partial<Activities> = { checkPreSend: () => Promise.resolve(["TEST: a failed pre-send check"]) };
-// A clean run's reject must land before its send: the checks end only once it has been delivered.
 let rejectDelivered!: () => void;
 const delivered = new Promise<void>((r) => (rejectDelivered = r));
 const SLOW_CHECKS: Partial<Activities> = {
@@ -59,15 +51,11 @@ const rejectedEarly = async (h: WorkflowHandle<typeof DigestWorkflow>) => {
   return h.result();
 };
 export const SCENARIOS: Scenario[] = [
-  // Clean: sent with no hold, or rejected before the send.
   { name: "sent", drive: (h) => h.result() },
   { name: "rejected", activities: SLOW_CHECKS, drive: rejectedEarly },
-  // Flagged: the hold's timer runs out and it sends. A 41 min run timeout leaves a 31 min deadline,
-  // about a minute of hold after the tail's margin, so it records in a minute.
   { name: "flagged-sent", activities: FLAGGED, runTimeout: "41 minutes", drive: (h) => h.result() },
   { name: "approved-in-hold", activities: FLAGGED, drive: inHoldThen("approve") },
   { name: "rejected-in-hold", activities: FLAGGED, drive: inHoldThen("reject") },
-  // A 40 min run timeout leaves a 30 min deadline, all of it the tail's margin: no budget for the send.
   { name: "held-out", runTimeout: "40 minutes", drive: (h) => h.result() },
   { name: "disabled", activities: { sendEnabled: () => Promise.resolve(false) }, drive: (h) => h.result() },
   { name: "resume", input: { resumeRun: 303 }, drive: (h) => h.result() },
@@ -84,7 +72,6 @@ export const SCENARIOS: Scenario[] = [
     activities: { writeStory: () => Promise.reject(ApplicationFailure.nonRetryable("the model is gone", "Record")) },
     drive: (h) => h.result().catch(() => undefined),
   },
-  // A run a deploy would find: waiting in the pre-send hold. Recorded open, then terminated.
   { name: "in-hold", activities: FLAGGED, drive: async (h) => inHold(h) },
 ];
 

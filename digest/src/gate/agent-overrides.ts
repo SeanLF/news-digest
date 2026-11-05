@@ -1,5 +1,3 @@
-// A variant of the stage prompts for a replay: a copy of the agents directory with frontmatter fields
-// overridden per stage ({ select: { effort: "high" } }). The body is never touched.
 import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -16,7 +14,6 @@ export function setFrontmatter(md: string, field: string, value: string): string
   return `---\n${lines.join("\n")}\n---\n${md.slice(m[0].length)}`;
 }
 
-// A fresh directory under the OS temp dir; refuses a stage with no agent file, so a typo is not a no-op.
 export function agentsWith(src: string, overrides: Overrides = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "agents-"));
   try {

@@ -1,6 +1,3 @@
-// What an artifact's name encodes (data-model design, Appendix C): the stage that wrote it, what
-// kind of record it is, and the branch of a fan-out it belongs to. Stored beside the name so a
-// query can ask for "every WRITE output" without parsing names.
 export interface ArtifactKind {
   stage: string | null;
   kind: string | null;

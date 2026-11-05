@@ -13,7 +13,6 @@ describe("tfidf, sklearn defaults", () => {
     ]);
   });
   it("matches sklearn's smooth idf and l2 norm on a hand-computed corpus", () => {
-    // docs: "a b", "a c"; n=2; df(a)=2, df(b)=1, df(c)=1 → idf(a)=ln(3/3)+1=1, idf(b)=ln(3/2)+1
     const [d0, d1] = tfidf(["aa bb", "aa cc"]);
     const idfB = Math.log(3 / 2) + 1;
     const norm = Math.sqrt(1 + idfB * idfB);

@@ -275,7 +275,6 @@ describe("getRunHealth", () => {
     await db.exec(
       "INSERT INTO threads (id, created_run_id) VALUES (1, 7), (2, 11); INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 7, 's', false), (2, 11, 't', false)",
     );
-    // Thread 1 was last seen in run 7, with runs 8, 9, 10 completed since: 3 runs.
     expect(await getRunHealth(db, 11, { ...opts, dormantAfter: 3 })).toMatchObject({ threads_available: 1 });
     expect(await getRunHealth(db, 11, { ...opts, dormantAfter: 2 })).toMatchObject({ threads_available: 0 });
   });

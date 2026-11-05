@@ -19,10 +19,7 @@ import { DECODED_LINKS, THREAD_CONTEXT } from "./index.js";
 
 export const WEB_OUTPUT = "digest.html";
 export const EMAIL_OUTPUT = "email.html";
-// The issue as Markdown, which saveDigest stores beside the page. Not in the activity's result:
-// recorded workflow histories fix that shape, and saveDigest finds the artifact by the run.
 export const MARKDOWN_OUTPUT = "digest.md";
-// The render's clock and edition number, fixed by the first attempt so a retry renders the same bytes.
 export const RENDER_CONTEXT = "render_context.json";
 interface RenderContext {
   renderedAt: string;
@@ -37,10 +34,6 @@ export interface RenderDeps {
   now?: () => Date;
 }
 
-// RENDER: resolve article ids against the run's
-// index, upgrade decoded Google-News links, attach thread context, then render the web issue and the
-// email. threads and gnews are optional inputs: a pointer whose artifact the store does not hold
-// means that stage has not run, and the render is the Python's without it.
 export function renderActivity(deps: RenderDeps) {
   const { store } = deps;
   const optional = async (p: Pointer, name: string): Promise<unknown> => {

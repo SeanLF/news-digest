@@ -3,8 +3,6 @@ import { type Db, openDb } from "../store/db.js";
 import { migratedDb } from "../store/test-db.js";
 import { siteStore } from "./store.js";
 
-// The site's reads against the real schema, on PGlite. Runs 1-5: 1-4 completed and sent on
-// 2026-08-28..31, run 5 held (completed, not sent, not on the web).
 let db: Db;
 const store = () => siteStore(db);
 
@@ -81,12 +79,10 @@ describe("the site's reads", () => {
     expect(rows[0]!.sourceIds).toEqual([]);
     expect((await store().archive({ before: "2026-08-31", limit: 1 })).map((r) => r.date)).toEqual(["2026-08-29"]);
     expect((await store().archive({ year: 2026, before: "2026-08-29", limit: 1 })).length).toBe(4);
-    // Any text is a cursor, compared as text as SQLite did, never a failed cast.
     expect((await store().archive({ before: "not a date", limit: 5 })).length).toBe(4);
   });
 
   it("searches a literal phrase, operators and all, one row per story, with the issue it ran in", async () => {
-    // Run 1's story is cited by two sources: one row, not two.
     const hits = await store().search("ceasefire holds", 50);
     expect(hits.map((h) => h.headline)).toEqual(["Ceasefire holds in the north"]);
     expect(hits[0]!.date).toBe("2026-08-28");
@@ -124,17 +120,13 @@ describe("the site's reads", () => {
     expect(s.dedup.avg).toBeCloseTo(0.15, 12);
     expect(s.neverSelected).toEqual(["dead_feed"]);
     expect(s.sourceUsage[0]).toEqual({ sourceId: "reuters", tier: "should_know", count: 2 });
-    // Emailed runs only (run 5 was held), newest first, recipients from the send.
     expect(s.recentRuns.map((r) => [r.runAt, r.recipients, r.apiCostUsd])).toEqual([
       ["2026-08-31 10:25:00", 0, null],
       ["2026-08-30 10:25:00", 12, null],
       ["2026-08-29 10:25:00", 11, 1.5],
-      // Summed exactly and rounded once: 0.3, where a float sum gives 0.30000000000000004.
       ["2026-08-28 10:25:00", 10, 0.3],
     ]);
-    // Run 4 has no send yet, so the subscriber count is the newest one recorded, run 3's.
     expect(s.cost).toEqual({ runs: 4, keptTotal: 2010, costTotal: 1.8, shippedTotal: 4, recipientsLatest: 12 });
-    // A week back from 2026-09-20 reaches none of the fetches (the database's own clock is later still).
     const later = await store().stats(7, new Date("2026-09-20T00:00:00Z"));
     expect([later.sourceHealth, later.dedup.count, later.cost.runs]).toEqual([[], 0, 0]);
   });

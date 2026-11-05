@@ -1,5 +1,3 @@
-// English, French, German and Spanish function words:
-// the dedup matcher filters them so formulaic non-English headlines do not collide on grammar.
 export const STOPWORDS: ReadonlySet<string> = new Set([
   "a",
   "aber",

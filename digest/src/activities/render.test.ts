@@ -18,7 +18,6 @@ const stub = (runId: number, name: string): Pointer => ({ runId, name, sha256: "
 
 async function setup() {
   const dbUrl = await freshDb([300]);
-  // Two days already published, the first in two revisions: the issue number counts days.
   await openDb(dbUrl).exec(
     "INSERT INTO issues (issue_date, revision, html) VALUES ('2026-09-16', 1, ''), ('2026-09-16', 2, ''), ('2026-09-17', 1, '')",
   );
@@ -95,7 +94,6 @@ describe("render activity", () => {
     expect(web).toContain('<a href="https://news.example/thread/889"');
     expect(web).toContain("Polls opened.");
     expect(web).toContain('<a href="https://www.reuters.com/world/russia-votes">Russia votes');
-    // The Markdown is written from the same resolved selections as the page.
     const md = await store.get((await store.find(300, MARKDOWN_OUTPUT))!);
     expect(md).toContain("### Russia votes");
     expect(md).toContain("[Ongoing · day 2 ↗](https://news.example/thread/889)");

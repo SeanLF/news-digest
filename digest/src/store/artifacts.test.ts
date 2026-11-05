@@ -105,7 +105,6 @@ describe("model_calls", () => {
     expect(await runCost(db, 300, "2000-01-01 00:00:00")).toEqual({ costUsd: 0.75, calls: 2 });
     expect(await runCost(db, 300, "2999-01-01 00:00:00")).toEqual({ costUsd: 0, calls: 0 });
     expect(await db.one("SELECT cache_read_input_tokens AS c FROM model_calls WHERE stage='write'")).toEqual({ c: 7 });
-    // config-drift.sql reads NULL as "(not recorded)": each call records the effort it ran under.
     expect(await db.all("SELECT stage, request_model, effort, branch, outcome FROM model_calls ORDER BY id")).toEqual([
       { stage: "write", request_model: "claude-sonnet-5", effort: "(sdk default)", branch: "s02", outcome: "ok" },
       { stage: "coherence", request_model: "claude-sonnet-5", effort: "high", branch: null, outcome: "ok" },

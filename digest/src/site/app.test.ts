@@ -9,7 +9,6 @@ import type { SiteData } from "./data.js";
 const get = (app: ReturnType<typeof testApp>, path: string, headers: Record<string, string> = {}, method = "GET") =>
   app.request(path, { method, headers });
 
-// The pipeline's web template, whose markup the issue page's injections are anchored to.
 const TEMPLATE = readFileSync(new URL("../../templates/digest-template.html", import.meta.url), "utf8");
 const ISSUE_HTML = TEMPLATE.replace("{{STYLES}}", "body{}").replaceAll(/\{\{[A-Z_]+\}\}/g, "");
 
@@ -22,7 +21,6 @@ const withIssue = (over: Partial<SiteData> = {}) =>
     ...over,
   });
 
-// Tags and their bodies; a <style> element's CSS may name "<style>" in a comment (tokens.css does).
 const inlineBlocks = (html: string) =>
   [...html.matchAll(/<(script|style)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi)].map((m) => ({
     kind: m[1]!.toLowerCase(),
@@ -114,8 +112,6 @@ describe("security headers", () => {
   });
 });
 
-// Issues from before the 2026-07-05 redesign: no .paper, their own stylesheet (which defines its own
-// --accent and --bg), and on 2026-01-16..18 a <body> with attributes.
 const LEGACY = `<!DOCTYPE html>
 <html lang="en">
 <head><title>Old</title><style>:root{--accent:#00f;--bg:#000}body{max-width:600px;margin:0 auto}a{color:var(--accent)}</style></head>
@@ -136,7 +132,6 @@ const legacyPage = async (html: string) => {
   return { errors, page: await res.text() };
 };
 
-// An issue with stories as web.ts writes them: must-know articles, then should-know briefs.
 const RAIL_HTML = TEMPLATE.replace("{{STYLES}}", "body{}")
   .replace(
     "{{MUST_KNOW}}",
@@ -217,7 +212,6 @@ describe("the issue page", () => {
     expect(after.indexOf('class="topbar"')).toBeLessThan(after.indexOf('<div class="container">'));
     expect(page).toContain('href="/issues/2026-09-01/translate"');
     expect(page).toContain("footer-feedback");
-    // The skip link lands past the nav, since an old issue has no #main of its own.
     expect(after.indexOf('id="main"')).toBeGreaterThan(after.indexOf('class="topbar"'));
     expect(after.indexOf('id="main"')).toBeLessThan(after.indexOf('<div class="container">'));
   });
@@ -229,11 +223,9 @@ describe("the issue page", () => {
     const scoped = /\.site-chrome\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
     for (const token of ["--sans", "--muted", "--hair", "--accent", "--accent-ink", "--bg"])
       expect(scoped, token).toContain(`${token}:`);
-    // Every rule the fallback adds (the end of the nav's stylesheet) is under .site-chrome: nothing restyles the frozen body.
     const legacyCss = css.slice(css.indexOf(".site-chrome"));
     for (const [, selector] of legacyCss.matchAll(/(?:^|})\s*([^{}@]+)\{/g))
       expect(selector!.trim(), selector).toMatch(/^\.site-chrome\b/);
-    // The toggle switches the site's theme; a frozen body cannot follow it, so it is not offered there.
     expect(page).not.toContain('id="themeBtn"');
   });
 
@@ -460,7 +452,6 @@ describe("the retired /ask and MCP surface", () => {
     const res = await get(app, path);
     expect(res.status).toBe(404);
     expect(await res.text()).toContain('<p class="nf-code">404</p>');
-    // A POST is refused as any other unknown path is (a 405 where the legacy /:date route matches).
     expect([404, 405]).toContain((await get(app, path, {}, "POST")).status);
   });
 
@@ -481,7 +472,6 @@ describe("health", () => {
   });
 });
 
-// Found by review (2026-09-23), each reproduced live before the fix.
 const stream = (chunks: Uint8Array[], fail = false) =>
   new ReadableStream<Uint8Array>({
     start(ctl) {
@@ -512,8 +502,6 @@ describe("hostile requests", () => {
 });
 
 describe("the top bar", () => {
-  // axe's region rule: the subscribe link, translate pill and theme toggle sat in a bare div, outside
-  // every landmark. The masthead is the page's banner, so a second <header> would fail another rule.
   it.each(["/", "/sources", "/issues/2026-09-01"])("keeps every control inside a named nav on %s", async (path) => {
     const html = await (await get(testApp(withIssue()), path)).text();
     expect(html).toMatch(
@@ -536,7 +524,6 @@ describe("landmarks (axe's region rule)", () => {
   });
 });
 
-// The issue's own styles are held to this in render.test.ts; these are the site's other pages.
 const under12 = (html: string) =>
   [...html.matchAll(/font-size\s*:\s*(\d*\.?\d+)(px|rem)/g)]
     .map((m) => Number(m[1]) * (m[2] === "rem" ? 16 : 1))
@@ -569,7 +556,6 @@ describe("small text", () => {
       ).toBe(true);
     }
   });
-  // At 12px the counts under a title ("30 runs · 12 subscribers · ...") are wider than a 320px phone.
   it("lets the counts under a title wrap between their parts", async () => {
     for (const path of ["/", "/sources", "/stats"]) {
       const html = await (await get(testApp(withIssue()), path)).text();
@@ -582,7 +568,6 @@ describe("small text", () => {
       expect(html).not.toMatch(/\.stat\{[^}]*white-space:nowrap/);
     }
   });
-  // Seven equal columns: a long label must not widen its column off the bar above it.
   it("keeps the spectrum labels under their bars", async () => {
     expect(await (await get(testApp(withIssue()), "/sources")).text()).toMatch(
       /\.spec-counts, \.spec-labels\{display:grid; grid-template-columns:repeat\(7,minmax\(0,1fr\)\);\}/,

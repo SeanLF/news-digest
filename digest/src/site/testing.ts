@@ -5,9 +5,6 @@ import { type SiteConfig, siteConfig } from "./config.js";
 import type { SiteData } from "./data.js";
 import { loadCatalogue } from "./sources.js";
 
-// Test wiring: the real assets, catalogue and config parser, with the data and the clock the test gives.
-
-// The ci-ts image copies design/ to /app; a checkout has it beside digest/.
 const firstOf = (...paths: string[]): string => paths.find((p) => existsSync(p)) ?? paths[0]!;
 export const DESIGN_DIR = firstOf("/app/design", new URL("../../../design", import.meta.url).pathname);
 export const SOURCES_FILE = new URL("../../catalogue/sources.json", import.meta.url).pathname;
@@ -35,7 +32,6 @@ export function testApp(data: SiteData, over: Partial<SiteDeps> = {}) {
   });
 }
 
-// A SiteData from fixed rows, for route tests that are not about SQL.
 const none = async (): Promise<undefined> => undefined;
 export function fakeData(over: Partial<SiteData> = {}): SiteData {
   return {

@@ -1,6 +1,3 @@
-// usage: deploy-guard [--force]   exit 0 when a deploy may go ahead: outside 10:00-11:45 UTC
-// and no DigestWorkflow running on the Temporal at TEMPORAL_ADDRESS. Otherwise names every reason and
-// exits 1; --force names them and exits 0. seanfloyd-infra's Kamal pre-deploy hook runs it.
 import { connect } from "../client.js";
 import { guard } from "../deploy-guard.js";
 

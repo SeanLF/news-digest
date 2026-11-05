@@ -16,7 +16,6 @@ export const REQUIRED = ["clusters.json", "recap.txt", "sources.csv"];
 const OPTIONAL = ["weekly_recap.txt", "yesterday_headlines.txt"];
 
 const Pick = z.object({ cluster_index: z.number().int(), article_ids: z.array(z.string()) });
-// Shape only, never count: the tier targets live in the prompt, not the grammar.
 export const SelectedSchema = z.object({
   must_know: z.array(Pick),
   should_know: z.array(Pick),
@@ -25,9 +24,6 @@ export const SelectedSchema = z.object({
 export type Selected = z.infer<typeof SelectedSchema>;
 export const selectedJsonSchema = (): Record<string, unknown> => z.toJSONSchema(SelectedSchema, { target: "draft-07" });
 
-// The content checks the Python never made: every cited id exists in the run and every pick cites
-// at least one. A violation is a content problem, so the activity fails retryably and the next
-// attempt is a fresh sample (spec §2.2, failure tier 2), never a patched one.
 export function checkSelected(s: Selected, knownIds: ReadonlySet<string>): string[] {
   const problems: string[] = [];
   for (const tier of ["must_know", "should_know"] as const)
@@ -54,8 +50,6 @@ export interface SelectDeps {
   onUsage?: (row: UsageRow) => void | Promise<void>;
 }
 
-// SELECT keeps its read loop: ~250 KB of inputs, read selectively. The inputs are materialised
-// into a scratch directory, links scrubbed, as the model's only Read surface, and discarded after.
 export function selectActivity(deps: SelectDeps) {
   return async (
     runId: number,
@@ -124,7 +118,7 @@ export function selectActivity(deps: SelectDeps) {
       const text = JSON.stringify(parsed.data, null, 2);
       return force ? await store.replace(runId, SELECT_OUTPUT, text) : await store.put(runId, SELECT_OUTPUT, text);
     } finally {
-      rmSync(dir, { recursive: true, force: true }); // a mkdtemp directory this call created
+      rmSync(dir, { recursive: true, force: true });
     }
   };
 }

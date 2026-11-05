@@ -1,5 +1,3 @@
-// The selections contract: sources, reporting-varies, articles, should-know articles and the whole
-// selections document. `.strict()` is additionalProperties: false.
 import { z } from "zod";
 import { Claim } from "./coherence.js";
 export const PREHEADER_MAX_CHARS = 157;
@@ -19,8 +17,6 @@ const Story = z
     cluster_id: z.string().optional(),
   })
   .strict();
-// Briefs render headline + summary only; why_it_matters is tolerated, not required (archived
-// selections before 2026-09-03 carry one, and --resume re-renders those).
 const Brief = Story.extend({ why_it_matters: z.string().optional() }).strict();
 export const SelectionsSchema = z
   .object({

@@ -1,5 +1,3 @@
-// Negative control for the read sandbox (~$0.01): a stage in an empty scratch dir is told to Read a
-// file outside it. Expect the file's marker NOT to appear in the reply.
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

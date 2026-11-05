@@ -5,12 +5,6 @@ import type { Lead, Leaning, StoredIssue } from "../embed.js";
 import { brandHtml, escapeHtml } from "../text.js";
 import { type PageCtx, style } from "./chrome.js";
 
-// /embed/lead: the newest issue's lead story as a card another site frames (seanfloyd.dev's
-// homepage). It wears the issue's own stylesheet, so it follows the digest's design; the rules here
-// only fit it to the frame. It fills whatever box it is given and clips what runs past the bottom.
-
-// Every size is in rem off one root that tracks the frame's width, so the card reads the same in a
-// 360, 680 or 1300 wide frame: 16px at 680, clamped so a phone stays legible and a wall stays sane.
 const EMBED_CSS = `html{font-size:clamp(14px,2.35vw,32px)}
 html,body{height:100%;overflow:hidden}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);font-size:1rem;line-height:1.5}
@@ -97,7 +91,6 @@ ${story(issue.lead, issueUrl, base, leaning)}
 </html>`;
 }
 
-// No issue with a lead yet: the frame still gets a card, pointing at the archive.
 export function embedEmptyPage(ctx: PageCtx, tokensCss: string): string {
   const base = baseUrl(ctx.cfg);
   return `${head(ctx, escapeHtml(ctx.cfg.digestName), `${base}/`, [tokensCss])}

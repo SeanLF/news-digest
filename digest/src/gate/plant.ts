@@ -1,8 +1,5 @@
 import type { Selections } from "../contracts/selections.js";
 
-// A defect planted in a draft before the checker runs (spec §7 item 1): ground truth by
-// construction. wrong-number rewrites the first number in a field; a field with no number gets an
-// invented specific appended.
 export interface Plant {
   storyIndex: number;
   field: "headline" | "summary" | "why_it_matters";

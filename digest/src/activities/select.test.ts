@@ -67,8 +67,8 @@ describe("select activity", () => {
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
     expect(seen.options?.effort).toBe("high");
     expect(seen.options?.outputFormat).toMatchObject({ type: "json_schema" });
-    expect(existsSync(seen.options?.cwd ?? "")).toBe(false); // scratch dir discarded
-    expect(await select(300, p0, p0)).toEqual(p); // idempotent
+    expect(existsSync(seen.options?.cwd ?? "")).toBe(false);
+    expect(await select(300, p0, p0)).toEqual(p);
     expect(seen.n).toBe(1);
   });
   it("persists an operator note as an input artifact of the run", async () => {

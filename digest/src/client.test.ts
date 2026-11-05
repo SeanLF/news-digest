@@ -27,8 +27,6 @@ describe("startOptions", () => {
   });
 });
 
-// A new run's issue is dated the day it starts (runs.started_at, UTC): the date a start names only
-// names the workflow. Naming another day would file today's issue under a workflow id that says otherwise.
 describe("make digest-start's arguments", () => {
   const today = "2026-09-24";
   it("with no date, starts today (UTC)", () => {
@@ -91,7 +89,7 @@ describe("the daily schedule", () => {
               state: unknown;
             };
             expect(next.spec).toEqual(scheduleOptions().spec);
-            expect(next.state).toEqual({ paused: false, note: "live pipeline: temporal" }); // an update never re-pauses a live schedule
+            expect(next.state).toEqual({ paused: false, note: "live pipeline: temporal" });
             return Promise.resolve();
           },
         }),

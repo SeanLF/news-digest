@@ -2,8 +2,6 @@ import { log } from "../log.js";
 import { readFileSync } from "node:fs";
 import type { Sql } from "../store/db.js";
 
-// The shape the web and email renders consume: selections after article ids are resolved and thread
-// context is attached. Fields are optional because archived selections predate some of them.
 export interface Source {
   article_id?: string;
   name?: string;
@@ -47,7 +45,6 @@ export interface Selections {
   preheader?: string;
   not_covered_blurb?: string | null;
 }
-// The deployment's environment, as the Python reads it: DIGEST_NAME unset means "News Digest".
 export interface RenderEnv {
   digestName?: string | undefined;
   digestDomain: string;
@@ -86,15 +83,12 @@ export function loadAssets(dirs: { templates: string; design: string }): RenderA
   };
 }
 
-// Python's round() rounds halves to even; Math.round would put 2.5 minutes, or a 12.5% bias-bar
-// cell, one higher than the Python does.
 export function roundHalfEven(x: number): number {
   const f = Math.floor(x);
   const d = x - f;
   if (d !== 0.5) return d < 0.5 ? f : f + 1;
   return f % 2 === 0 ? f : f + 1;
 }
-// Python slices and counts by code point, JavaScript by UTF-16 unit.
 export const codePoints = (s: string, n: number) => Array.from(s).slice(0, n).join("");
 
 export function slugify(text: string, maxLength = 60): string {
@@ -118,7 +112,6 @@ export function slugger(): (headline: string) => string {
 }
 
 export const isSafeUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
-// urllib.parse.urlparse's path, params split off the last segment: a bare domain links to a homepage.
 function urlPath(url: string): string {
   const rest = url.replace(/^[A-Za-z][A-Za-z0-9+.-]*:/, "");
   const path = (rest.startsWith("//") ? rest.slice(2).replace(/^[^/?#]*/, "") : rest).replace(/[?#].*$/s, "");
@@ -187,8 +180,6 @@ export const AGENCY_LABELS: Record<string, string> = {
   "press association": "PA Media",
   tass: "TASS",
 };
-// Media Bias/Fact Check's ratings of the agencies prepare recognises (prepare/wire.ts), on the
-// catalogue's scale, read 2026-09-28. PA Media and IANS have no MBFC page, so they render unrated.
 export const AGENCY_RATINGS: Record<string, { bias: string; factuality: string; source: string }> = {
   Reuters: { bias: "center", factuality: "very-high", source: "https://mediabiasfactcheck.com/reuters/" },
   AP: { bias: "lean-left", factuality: "high", source: "https://mediabiasfactcheck.com/associated-press/" },
@@ -221,12 +212,9 @@ export const AGENCY_RATINGS: Record<string, { bias: string; factuality: string; 
   Xinhua: { bias: "left", factuality: "mixed", source: "https://mediabiasfactcheck.com/xinhua-news-agency/" },
   "Anadolu Agency": { bias: "right", factuality: "mixed", source: "https://mediabiasfactcheck.com/anadolu-agency/" },
 };
-// str.title(): each run of letters capitalised, the rest of the run lowered.
 export const titleCase = (s: string) =>
   s.replaceAll(/\p{L}+/gu, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 
-// The light-mode design tokens: the plain :root blocks of tokens.css, the dark-mode media block
-// removed first, so the email's colours are the web's.
 function stripMediaBlock(css: string, keyword: string): string {
   const open = new RegExp(`@media\\s*\\([^)]*${keyword.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^)]*\\)\\s*\\{`);
   let out = "";
@@ -263,7 +251,6 @@ export function dates(now: Date) {
   };
 }
 
-// db.get_issue_number: the edition's rank among published days, counting this one if it is not yet published.
 export async function issueNumber(db: Sql, date: string): Promise<number> {
   const r = await db.one<{ n: number; stored: boolean }>(
     "SELECT COUNT(DISTINCT issue_date) AS n, bool_or(issue_date = $1::date) AS stored FROM issues WHERE issue_date <= $1::date",

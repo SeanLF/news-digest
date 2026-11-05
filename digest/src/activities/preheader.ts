@@ -10,12 +10,9 @@ import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import type { StoryPlan } from "./index.js";
 import type { DraftStory } from "./write.js";
 
-// {input, line}: the headlines it was written from, so a resume with rewritten drafts writes a new one.
 export const PREHEADER_OUTPUT = "preheader.json";
 export const preheaderLine = (text: string): string => (JSON.parse(text) as { line: string }).line;
 
-// Truncate to <= max chars ending in an ellipsis, on a word boundary (merge._truncate_on_word_boundary).
-// Counted in code points, as Python's len() and slicing do, so an emoji at the cut is never split.
 export function truncateOnWordBoundary(input: string, max: number): string {
   const text = Array.from(input);
   if (text.length <= max) return input;
@@ -28,8 +25,6 @@ export function truncateOnWordBoundary(input: string, max: number): string {
   return `${head.trimEnd()}…`;
 }
 
-// A closed set of label prefixes, not a shape: `^word+:` would decapitate "WHO: companies filed..."
-// (orchestrate.clean_preheader, measured against 1,225 archived headlines).
 const LABELS = ["preheader", "preheader line", "here is the preheader", "the preheader"];
 const LABEL_RE = new RegExp(
   `^\\**\\s*(?:${LABELS.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*\\**\\s*:\\**\\s*`,
@@ -43,8 +38,6 @@ const QUOTES: [string, string][] = [
   ["‘", "’"],
 ];
 
-// The first usable line, unlabelled, unlisted, unquoted, within the cap. "" when nothing usable is
-// left, which assemble fills from the first headline: this field degrades, it never aborts a digest.
 export function cleanPreheader(text: string): string {
   const lines = text
     .split("\n")
@@ -67,8 +60,6 @@ export interface PreheaderDeps {
   onUsage?: (row: UsageRow) => void | Promise<void>;
 }
 
-// Best-effort by design: a failed call or an unusable reply stores "" and assemble substitutes the
-// top headline. Only a successful non-empty write is kept for idempotency.
 export function preheaderActivity(deps: PreheaderDeps) {
   return async (runId: number, drafts: Pointer[], force = false): Promise<Pointer> => {
     const { store } = deps;

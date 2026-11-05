@@ -11,7 +11,6 @@ import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 export const RECAP_INPUT = "recent_rss_titles.csv";
 export const RECAP_OUTPUT = "recap.txt";
 
-// orchestrate.validate_recap, ported: present and non-empty. Shape only.
 export function validRecap(text: string): boolean {
   return text.trim().length > 0;
 }
@@ -25,9 +24,6 @@ export interface RecapDeps {
   onUsage?: (row: UsageRow) => void | Promise<void>;
 }
 
-// The first real activity. Idempotent on output (spec §2.1): a valid archived recap is returned
-// without a model call; one that fails the validator is quarantined and a fresh sample produced;
-// force replaces. Text in (the titles CSV inline), text out (the final message): no tools.
 export function recapActivity(deps: RecapDeps): (runId: number, force?: boolean) => Promise<Pointer> {
   return async (runId, force = false) => {
     const { store } = deps;
@@ -40,7 +36,7 @@ export function recapActivity(deps: RecapDeps): (runId: number, force?: boolean)
     if (!input)
       throw ApplicationFailure.nonRetryable(`run ${runId} has no ${RECAP_INPUT}; prepare has not run`, "MissingInput");
     const titles = await store.get(input);
-    assertNoUrls(titles); // the invariant, checked where text leaves code (spec §1)
+    assertNoUrls(titles);
     const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "recap.md"), "utf8"));
     deps.heartbeat?.();
     const r = await runStage(

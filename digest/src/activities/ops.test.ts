@@ -7,7 +7,6 @@ import { freshDb, migratedDb } from "../store/test-db.js";
 import { opsActivities } from "./ops.js";
 
 const db = (): Promise<string> => freshDb([305]);
-// Nothing listens on port 1: every query fails to connect.
 const UNREACHABLE = "postgres://nobody@127.0.0.1:1/none";
 const env = {
   HEALTH_ALERT_EMAIL: "ops@example.com",
@@ -108,7 +107,7 @@ describe("ops activities", () => {
   });
   it("checkPreSend adds the cut-over hold to a clean run dated on or before HOLD_ALWAYS_THROUGH, and not after", async () => {
     vi.spyOn(log, "info").mockImplementation(() => undefined);
-    const path = await db(); // run 305 on 2026-09-18
+    const path = await db();
     const sel = {
       must_know: [{ ...story("Ceasefire holds", ["A1"]), why_it_matters: "It matters." }],
       should_know: [story("Storm nears", ["A2"]), story("Chips report", ["A3"]), story("Vote delayed", ["A4"])],

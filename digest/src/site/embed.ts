@@ -3,28 +3,21 @@ import { AGENCY_RATINGS } from "../render/common.js";
 import type { IssueRowData, SiteData } from "./data.js";
 import { type Bucket, type CatalogueEntry, knownBucket } from "./sources.js";
 
-// The lead story of a stored issue, read from the HTML web.ts rendered, so the embed shows what the
-// issue page shows. Text fields are the stored, already-escaped HTML text.
-
 export type Leaning = Bucket | "u";
 
 export interface Lead {
   slug: string;
   headline: string;
-  // The thread page's id when the eyebrow links one; day is the thread's day in this issue.
   thread: { id: number | null; day: number } | undefined;
   why: string;
   varies: { outlet: string; angle: string }[];
-  // The bias bar's segments as stored, and its two labels: "5 reports · 5 outlets", "2 left · 2 center · 1 right".
   segments: { leaning: Leaning; n: number }[];
   counts: string;
   split: string;
 }
 
 export interface StoredIssue {
-  // The issue's own inline stylesheets, which style its markup.
   styles: string[];
-  // The masthead's brand markup, e.g. "Sean's Daily <b>Digest</b>".
   brand: string | undefined;
   lead: Lead | undefined;
 }
@@ -74,8 +67,6 @@ function readLead(html: string): Lead | undefined {
   };
 }
 
-// An outlet's leaning by the name the issue prints: resolve names an angle after the catalogue entry
-// or, for wire copy, the agency, so those are the two places to look. Anything else is unrated.
 export function leaningOf(catalogue: CatalogueEntry[]): (outlet: string) => Leaning {
   const byName = new Map<string, Leaning>();
   for (const [name, r] of Object.entries(AGENCY_RATINGS)) byName.set(name.toLowerCase(), knownBucket(r.bias) ?? "u");
@@ -83,11 +74,8 @@ export function leaningOf(catalogue: CatalogueEntry[]): (outlet: string) => Lean
   return (outlet) => byName.get(decodeHTML(outlet).trim().toLowerCase()) ?? "u";
 }
 
-// How far back the embed looks for an issue with a lead: an issue without one (a pre-redesign page,
-// a day with no must-know) falls through to the one before.
 export const LOOKBACK = 7;
 
-// The newest issue with a lead story, with its archive row (number and story counts).
 export async function latestLead(
   data: SiteData,
 ): Promise<{ row: IssueRowData; issue: StoredIssue & { lead: Lead } } | undefined> {

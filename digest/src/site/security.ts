@@ -4,12 +4,6 @@ import { secureHeaders } from "hono/secure-headers";
 import { NO_FLASH_JS } from "./pages/chrome.js";
 import { indexJs, proxyTranslateHideScript, railJs, threadsJs, toggleJs } from "./pages/blobs.js";
 
-// The security headers seanfloyd.dev sends from the same box (spec §3), on every response. Inline
-// <script> and <style> run only by their sha256 hash, so the policy is a function of the body alone;
-// style *attributes* stay allowed (the bias bars' widths are inline), which cannot run script.
-
-// The only inline scripts the site writes. A script is hashed only when it is one of these: a stored
-// issue is the pipeline's HTML, and a <script> that ever reached it must stay refused.
 const SITE_SCRIPTS: ReadonlySet<string> = new Set([
   NO_FLASH_JS,
   toggleJs,
@@ -20,19 +14,15 @@ const SITE_SCRIPTS: ReadonlySet<string> = new Set([
 ]);
 
 const INLINE = /<(script|style)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi;
-// A browser hashes the element's text after its input stream turned CR and CRLF into LF.
 const sha256 = (body: string) =>
   `'sha256-${createHash("sha256").update(body.replaceAll(/\r\n?/g, "\n"), "utf8").digest("base64")}'`;
 
-// A route another site may frame sets this to the origins allowed to; every other response may be
-// framed only by the site itself.
 declare module "hono" {
   interface ContextVariableMap {
     frameAncestors: string[];
   }
 }
 
-// The Content-Security-Policy for a response whose body is `html` (empty for a body that is not HTML).
 export function contentSecurityPolicy(html: string, frameAncestors: string[] = []): string {
   const scripts = new Set<string>();
   const styles = new Set<string>();
@@ -57,7 +47,6 @@ export function contentSecurityPolicy(html: string, frameAncestors: string[] = [
 
 export const CORP = "cross-origin";
 
-// Reads an HTML body once the handler has built it, and sets the policy from what it holds.
 const csp = (): MiddlewareHandler => async (c, next) => {
   await next();
   const html =
@@ -65,11 +54,7 @@ const csp = (): MiddlewareHandler => async (c, next) => {
   const framed = c.get("frameAncestors");
   const ancestors = framed ?? [];
   c.res.headers.set("content-security-policy", contentSecurityPolicy(html, ancestors));
-  // Browsers that predate frame-ancestors read only X-Frame-Options, whose SAMEORIGIN would refuse the frame.
   if (ancestors.length) c.res.headers.delete("x-frame-options");
-  // A page that sends COEP require-corp (seanfloyd.dev does) can frame only a document that sends its
-  // own COEP and a CORP letting the framer load it. frame-ancestors decides who may frame it, so CORP
-  // need not narrow it again.
   if (framed) {
     c.res.headers.set("cross-origin-embedder-policy", "require-corp");
     c.res.headers.set("cross-origin-resource-policy", CORP);
@@ -92,7 +77,6 @@ const headers = (): MiddlewareHandler =>
       payment: [],
       usb: [],
     },
-    // Social previews and other sites embed the og:image, so resources stay embeddable cross-origin.
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: "same-origin",

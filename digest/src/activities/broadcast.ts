@@ -11,7 +11,6 @@ import { openDb } from "../store/db.js";
 import { ACCEPTED_BROADCAST_STATES, sendRow, claimText, clearClaimCommand } from "../ops/broadcast-state.js";
 import { CUTOVER_HOLD, isCutoverHold } from "../ops/cutover-hold.js";
 
-// The slice of the Resend client the send uses; tests pass a fake with the same shape.
 export interface Mail {
   broadcasts: Pick<Resend["broadcasts"], "create" | "send" | "get">;
   contacts: Pick<Resend["contacts"], "list">;
@@ -19,7 +18,7 @@ export interface Mail {
 }
 
 export { ACCEPTED_BROADCAST_STATES };
-export const CONTACT_THRESHOLD = 900; // Resend's free tier stops at 1,000 contacts (spec §3)
+export const CONTACT_THRESHOLD = 900;
 
 interface Execution {
   namespace: string;
@@ -39,12 +38,10 @@ const currentExecution = (): Execution => {
 export interface BroadcastDeps {
   store: ArtifactStore;
   dbUrl: string;
-  mail: () => Mail; // lazy: the Resend client refuses to construct without a key
+  mail: () => Mail;
   env: NodeJS.ProcessEnv;
   retryDelayMs?: number;
   execution?: () => Execution;
-  // The activity's cancellation (a timeout or a cancelled workflow): checked before anything that
-  // could reach readers. The Resend client is bounded by the same signal (mail/resend.ts).
   signal?: () => AbortSignal | undefined;
   heartbeat?: () => void;
 }
@@ -62,7 +59,6 @@ class ResendFailure extends Error {
 }
 type Reply<T> = { data: T; error: null } | { data: null; error: ErrorResponse };
 
-// "%B %d, %Y" of the run's UTC day, as the Python stamps the subject and the broadcast's name.
 const longDate = (day: string): string => {
   const d = new Date(`${day}T00:00:00Z`);
   return `${d.toLocaleString("en-US", { month: "long", timeZone: "UTC" })} ${String(d.getUTCDate()).padStart(2, "0")}, ${d.getUTCFullYear()}`;
@@ -71,12 +67,8 @@ const longDate = (day: string): string => {
 const headlineList = (tier: Selections["must_know"]) =>
   tier.map((s) => `<li>${htmlEscape(s.headline ?? "")}</li>`).join("");
 
-// broadcast.py and run._deliver: Resend audience broadcasts, idempotent per digest date through the
-// date's sends row (the 2026-06-16 incident).
 export function broadcastActivities(deps: BroadcastDeps) {
   const { store, env } = deps;
-  // Resend's rate limit is a refusal, never an acceptance, so it alone is retried, as broadcast.py
-  // retries RateLimitError; anything else comes back to the caller as the reply it is.
   const call = <T>(fn: () => Promise<Reply<T>>): Promise<Reply<T>> =>
     pRetry(
       async () => {
@@ -98,14 +90,10 @@ export function broadcastActivities(deps: BroadcastDeps) {
   };
 
   const db = () => openDb(deps.dbUrl);
-  // A read failure throws: "cannot read the broadcast state" must never look like "nothing was sent".
   const readRow = async (date: string) => {
     const published = (await db().one("SELECT 1 FROM issues WHERE issue_date=$1 LIMIT 1", [date])) !== undefined;
     return { published, send: await sendRow(db(), date) };
   };
-  // Every write after the claim is conditional on it: `holder` is this attempt's claim string, and
-  // once a draft exists, its id. A write that matches no row means the date is no longer this
-  // attempt's, and nothing more may be sent from it.
   const record = async (
     date: string,
     holder: { claim: string } | { id: string },
@@ -130,10 +118,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
       );
   };
 
-  // The date's claim is its sends row, inserted under a lock on the date: the one attempt that
-  // inserted it may create a broadcast. A claim is never taken over, however old: an attempt that
-  // looks dead may still be in Resend's create, and taking over sent twice. An operator clears it
-  // after checking Resend. The row names the claiming run and the issue revision it mails.
   const claim = (date: string, runId: number): Promise<string> =>
     db().tx(async (t) => {
       const row = await sendRow(t, date);
@@ -144,10 +128,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
             : `claimed by another attempt (${row.id ?? row.status})`;
         throw ApplicationFailure.nonRetryable(`the send for ${date} is ${why}; not sending`, "SendClaimed");
       }
-      // A day mailed before broadcasts has no send (imported: its counts are in Resend), only a run
-      // whose outcome says it went out. A forced re-run publishes a new revision and never re-sends.
-      // 'sent' only, not all of sent_runs: an 'unrecorded' Python run has no evidence it emailed
-      // anyone, and refusing it would leave a day nobody can deliver.
       const mailed = await t.one<{ id: number }>(
         "SELECT id FROM runs WHERE outcome = 'sent' AND (started_at AT TIME ZONE 'UTC')::date = $1::date ORDER BY id LIMIT 1",
         [date],
@@ -179,7 +159,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
     deps.signal?.()?.throwIfAborted();
   };
 
-  // Best-effort: a probe that cannot read the status answers null and the caller assumes nothing.
   const probe = async (id: string): Promise<string | null> => {
     try {
       const r = await call(() => deps.mail().broadcasts.get(id));
@@ -193,8 +172,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
       return null;
     }
   };
-  // broadcast.resend_existing: send a draft that already exists, never create one; a failed send
-  // that Resend nonetheless accepted is a delivery.
   const sendExisting = async (id: string): Promise<string> => {
     try {
       await must(() => deps.mail().broadcasts.send(id));
@@ -216,9 +193,9 @@ export function broadcastActivities(deps: BroadcastDeps) {
     let count = 0;
     let after: string | undefined;
     do {
-      stopIfCancelled(); // a large audience is many pages: beat on each, and stop when told
+      stopIfCancelled();
       const r = await call(() => deps.mail().contacts.list({ segmentId, limit: 100, ...(after ? { after } : {}) }));
-      if (r.error) return 0; // informational only, as broadcast.get_audience_contact_count
+      if (r.error) return 0;
       count += r.data.data.filter((c) => !c.unsubscribed).length;
       after = r.data.has_more ? r.data.data.at(-1)?.id : undefined;
     } while (after);
@@ -230,8 +207,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
     return v;
   };
 
-  // Off unless asked for: a worker pointed at a copy of the database, or started for a test, must
-  // never mail the audience.
   const enabled = () => env["BROADCAST_ENABLED"] === "true";
 
   return {
@@ -239,8 +214,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
 
     broadcast: async (runId: number, email: Pointer): Promise<BroadcastResult> => {
       const date = await store.runDate(runId);
-      // The workflow asks sendEnabled first; this refuses anyway, so no path mails the audience
-      // from a worker that was not told to.
       if (!enabled())
         throw ApplicationFailure.nonRetryable("BROADCAST_ENABLED is not true; nothing sent", "SendDisabled");
       const html = await store.get(email);
@@ -258,8 +231,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
         return { broadcastId: row.id, status: row.status, recipients: row.recipients ?? 0 };
       }
       if (row.id) {
-        // An earlier attempt created this draft and never recorded its delivery: re-probe, and
-        // re-send the same draft only if it never went out.
         const status = await probe(row.id);
         if (status !== null && ACCEPTED_BROADCAST_STATES.has(status)) {
           await record(date, { id: row.id }, row.id, status);
@@ -270,12 +241,11 @@ export function broadcastActivities(deps: BroadcastDeps) {
         const sent = await sendExisting(row.id);
         await record(date, { id: row.id }, row.id, sent);
         logEvent("re-sent the existing draft", { id: row.id, status: sent });
-        return { broadcastId: row.id, status: sent, recipients: 0 }; // the send API returns no count
+        return { broadcastId: row.id, status: sent, recipients: 0 };
       }
       const segmentId = required("RESEND_AUDIENCE_ID");
       const from = required("RESEND_FROM");
       const name = env["DIGEST_NAME"] || "News Digest";
-      // Counted before the claim: the claim is held only across the create, as briefly as it can be.
       stopIfCancelled();
       const recipients = await contactCount(segmentId);
       if (recipients >= CONTACT_THRESHOLD)
@@ -299,21 +269,18 @@ export function broadcastActivities(deps: BroadcastDeps) {
             ...(env["CONTACT_EMAIL"] ? { replyTo: env["CONTACT_EMAIL"] } : {}),
           }),
         ));
-        stopIfCancelled(); // a cancelled attempt stops here: a draft is not a send
+        stopIfCancelled();
       } catch (e) {
-        await release(date, mine); // no draft recorded, so the next attempt may create one
+        await release(date, mine);
         throw e;
       }
-      await record(date, { claim: mine }, id, "draft"); // before the send, and only while the claim is still ours
+      await record(date, { claim: mine }, id, "draft");
       const status = await sendExisting(id);
       await record(date, { id }, id, status, recipients);
       logEvent("sent", { id, status, recipients });
       return { broadcastId: id, status, recipients };
     },
 
-    // The pre-send hold's notification (spec §2.3): the checks that failed, when the hold ends, how
-    // to approve or reject, the run's Temporal UI link and its headlines, to the operator's alert
-    // address. Best-effort: the hold proceeds without it.
     notifyHold: async (
       runId: number,
       selections: Pointer,
@@ -325,7 +292,6 @@ export function broadcastActivities(deps: BroadcastDeps) {
       const to = env["HEALTH_ALERT_EMAIL"];
       const from = env["RESEND_FROM"];
       const until = holdEndsAt.slice(11, 16);
-      // The cut-over hold (ops/pre-send.ts) arrives as a line but is not a failed check.
       const checks = failures.filter((f) => !isCutoverHold(f));
       const cutover = failures.filter(isCutoverHold).map((f) => f.slice(CUTOVER_HOLD.length + 1).trim());
       const what = checks.length

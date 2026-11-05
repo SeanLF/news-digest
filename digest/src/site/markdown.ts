@@ -1,16 +1,10 @@
 import type { IndexMeta } from "./data.js";
 import type { IssueRow } from "./archive.js";
 
-// The Markdown representations: Accept negotiation, an issue's stored
-// Markdown under the site's title line, and the archive index as Markdown.
-
 export type Negotiated = "html" | "markdown" | "not-acceptable";
 
 const EPS = 1e-4;
 
-// HTML versus Markdown from an Accept header: q-values compared, never substring-matched; a tie goes to
-// Markdown only when text/markdown is named outright (a coding agent), never on a wildcard (a
-// browser); 406 when neither is acceptable; no header is HTML.
 export function negotiate(accept: string | null | undefined): Negotiated {
   if (!accept?.trim()) return "html";
   let html: number | undefined;
@@ -24,7 +18,6 @@ export function negotiate(accept: string | null | undefined): Negotiated {
     let q = 1;
     for (const p of params) {
       if (p.startsWith("q=")) {
-        // A present q overrides 1; out of range clamps; an unparseable one is 0, never the strongest.
         const v = Number.parseFloat(p.slice(2).trim());
         q =
           Number.isFinite(v) && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(p.slice(2))
@@ -52,8 +45,6 @@ export function negotiate(accept: string | null | undefined): Negotiated {
   return md !== undefined && Math.abs(md - m) < EPS ? "markdown" : "html";
 }
 
-// An issue's stored Markdown body as a standalone document. The title is the site's, so the stored
-// body never carries a deployment's name.
 export const issueMarkdown = (digestName: string, date: string, body: string): string =>
   `# ${digestName} — ${date}\n\n${body}\n`;
 
@@ -76,6 +67,5 @@ export function indexMarkdown(digestName: string, meta: IndexMeta, issues: Issue
 export const markdownLinkTag = (url: string): string => `<link rel="alternate" type="text/markdown" href="${url}">`;
 export const markdownLinkHeader = (url: string): string => `<${url}>; rel="alternate"; type="text/markdown"`;
 export const htmlLinkHeader = (url: string): string => `<${url}>; rel="alternate"; type="text/html"`;
-// For the reader who pastes the page's URL into a chat assistant: hidden from sight and from screen readers.
 export const hiddenPointer = (url: string): string =>
   `<div aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;">A Markdown version of this page is available at ${url}.</div>`;

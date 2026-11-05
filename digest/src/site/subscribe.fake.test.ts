@@ -6,8 +6,6 @@ import { resendFake, type ResendFake } from "../devmail/fake.js";
 import { siteConfig } from "./config.js";
 import { addContact, sendConfirmation } from "./subscribe.js";
 
-// Subscribe and confirm against the dev stack's fake, through the client main.ts builds: the
-// confirmation lands in the fake and the confirmed reader is a contact the broadcast then counts.
 let fake: ResendFake;
 let server: ServerType;
 let base: string;
@@ -36,7 +34,7 @@ describe("subscribe against resend-fake", () => {
       true,
     );
     expect(await addContact(cfg, mail, "reader@example.com")).toBe(true);
-    expect(await addContact(cfg, mail, "reader@example.com")).toBe(true); // Resend upserts
+    expect(await addContact(cfg, mail, "reader@example.com")).toBe(true);
     expect(fake.messages()).toMatchObject([
       {
         kind: "email",

@@ -1,6 +1,3 @@
-// usage: pollers [queue...]   exit 0 when every named task queue (default: python) has a worker polling
-// it on the Temporal at TEMPORAL_ADDRESS; otherwise names each one that has none and exits 1.
-// seanfloyd-infra's bin/deploy-digest runs it after the workers deploy.
 import { connect } from "../client.js";
 import { missingPollers } from "../pollers.js";
 import { PYTHON_TASK_QUEUE } from "../workflow/policy.js";

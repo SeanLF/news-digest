@@ -28,8 +28,6 @@ describe("text", () => {
 });
 
 describe("the confirmation token", () => {
-  // Computed outside either implementation (Python hmac over the same payload): a link the Rust server
-  // mailed must still confirm.
   const VECTOR = "cmVhZGVyQGdtYWlsLmNvbQoyMDAw.DqdrQT-AEjKtDOxD8rXgJ1hhhVIbS30RaZOrb4hWvko";
   it("keeps the Rust wire format", () => {
     expect(makeToken("top-secret-key", "reader@gmail.com", 2000)).toBe(VECTOR);
@@ -209,10 +207,8 @@ const files = (dir: string): string[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory() ? files(join(dir, e.name)) : e.name.endsWith(".ts") ? [join(dir, e.name)] : [],
   );
-// Every module specifier: `from "x"`, side-effect `import "x"`, and `import("x")`.
 const imports = (f: string) =>
   [...readFileSync(f, "utf8").matchAll(/(?:from|import)\s*\(?\s*"([^"]+)"/g)].map((m) => m[1]!);
-// The production modules the site reaches, following relative imports transitively (tests excluded).
 function reachable(entries: string[]): Map<string, string[]> {
   const seen = new Map<string, string[]>();
   const queue = entries.map((f) => [f, [f]] as [string, string[]]);
@@ -231,9 +227,6 @@ function reachable(entries: string[]): Map<string, string[]> {
 const PIPELINE = /\/(workflow|activities|runner|fulltext|gate|mail|ops)\/|@temporalio|claude-agent-sdk/;
 
 describe("the site's boundary", () => {
-  // The site runs as its own process and must not die with the pipeline: it imports no workflow,
-  // activity, runner or SDK of the pipeline's, and nothing of the pipeline's imports it.
-
   it("reaches none of the pipeline's machinery, directly or through a shared module", () => {
     const mods = reachable(files(join(src, "site")).filter((f) => !f.endsWith(".test.ts")));
     const bad = [...mods].flatMap(([f, path]) =>
@@ -242,12 +235,9 @@ describe("the site's boundary", () => {
       ),
     );
     expect(bad).toEqual([]);
-    // Negative control: the walk does reach shared modules outside site/.
     expect([...mods.keys()].some((f) => f.endsWith("/contracts/leaks.ts"))).toBe(true);
   });
 
-  // Tests may: the backfill's is held to the page the site serves, the Markdown renderer's to the site's
-  // notion of the same document.
   it("is imported by nothing outside it but its CLIs and tests", () => {
     const bad = files(src)
       .filter(

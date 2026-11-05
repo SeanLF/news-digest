@@ -79,8 +79,8 @@ describe("cluster activities", () => {
     const items = (JSON.parse(await store.get(p)) as { items: { article_id: string }[] }).items.map(
       (i) => i.article_id,
     );
-    expect(items).toEqual(["A1", "A2"]); // A99 is not in the batch; A3 has no usable tags
-    expect(await acts.extractBatch(300, batches[0]!)).toEqual(p); // idempotent
+    expect(items).toEqual(["A1", "A2"]);
+    expect(await acts.extractBatch(300, batches[0]!)).toEqual(p);
     expect(seen.prompts.length).toBe(1);
   });
   it("a batch with zero usable items is a retryable failure and stores nothing", async () => {
@@ -108,7 +108,7 @@ describe("cluster activities", () => {
     expect(JSON.parse(await store.content(300, "cluster_tags.json"))).toMatchObject({
       tag_bag_weights: { entities: 3, keywords: 1, primary_event: 2 },
     });
-    expect(await acts.joinClusters(300, [p])).toEqual(c); // idempotent
+    expect(await acts.joinClusters(300, [p])).toEqual(c);
   });
   it("scrubs a link inside a summary before it reaches the extract prompt", async () => {
     const prompt = buildExtractPrompt(

@@ -10,14 +10,6 @@ import { DigestWorkflow, WORKFLOW_RUN_TIMEOUT, workflowIdFor } from "./digest.wo
 import { PYTHON_TASK_QUEUE } from "./policy.js";
 import { approveSignal, retrySignal } from "./signals.js";
 
-// What a worker restart does to a run in flight: the old worker stops mid-run (SIGTERM is
-// Worker.shutdown: polling stops, running activities are cancelled) and a new one picks the run up.
-// Unversioned workers: in production a new build's worker never picks up a run pinned to the old
-// build (deployment.temporal.test.ts), so this is a restart within one build, or a run moved onto a new build
-// by hand. On the time-skipping server by default. That server does not skip an activity's retry
-// backoff, so there a retried model call is checked as far as its next attempt being scheduled. With
-// DEPLOY_SAFETY_ADDRESS naming a dev server (`temporal server start-dev`), the activity tests wait out
-// the real 2 min heartbeat timeout and 5 min backoff and see the run send (about 15 minutes).
 const devServer = process.env["DEPLOY_SAFETY_ADDRESS"];
 const LONG = devServer ? 20 * 60_000 : 180_000;
 let env: TestWorkflowEnvironment;
@@ -26,7 +18,6 @@ beforeAll(async () => {
   env = devServer
     ? await TestWorkflowEnvironment.createFromExistingServer({ address: devServer })
     : await TestWorkflowEnvironment.createTimeSkipping();
-  // The Python worker's queue answers throughout: its container is not what these deploys restart.
   const w = await Worker.create({
     connection: env.nativeConnection,
     taskQueue: PYTHON_TASK_QUEUE,
@@ -43,17 +34,13 @@ afterAll(async () => {
 });
 
 const currentCode = new URL("./digest.workflow.ts", import.meta.url).pathname;
-// Every run here fails a pre-send check, so it holds, as the restarts below need.
 const stub: Activities = { ...stubActivities(), checkPreSend: () => Promise.resolve(["TEST: held for the operator"]) };
-const nonce = Date.now().toString(36); // a dev server keeps its workflows between runs
+const nonce = Date.now().toString(36);
 const deferred = () => {
   let resolve!: () => void;
   const promise = new Promise<void>((r) => (resolve = r));
   return { promise, resolve };
 };
-// No workflow cache, so no sticky queue: a restarted process has no cache either, and the
-// time-skipping server does not move its clock to a dead worker's sticky-queue timeout (seen: the
-// run waits on it).
 const worker = (taskQueue: string, activities: Partial<Activities>, workflowsPath = currentCode) =>
   Worker.create({
     connection: env.nativeConnection,
@@ -88,7 +75,6 @@ async function untilCompleted(h: WorkflowHandle, type: string): Promise<void> {
   }
   throw new Error(`${type} never completed`);
 }
-// The run is in the hold once the hold's timer is started after the hold notification.
 async function untilInHold(h: WorkflowHandle): Promise<void> {
   for (let i = 0; i < 600; i++) {
     const evs = await events(h);
@@ -98,7 +84,6 @@ async function untilInHold(h: WorkflowHandle): Promise<void> {
   }
   throw new Error("the run never reached the hold");
 }
-// The old worker runs until `interrupted`, then is shut down as a deploy shuts it down.
 async function oldWorkerUntil(
   taskQueue: string,
   activities: Partial<Activities>,
@@ -110,7 +95,7 @@ async function oldWorkerUntil(
   await interrupted;
   w.shutdown();
   if (awaitDrain) await drained;
-  return { drained }; // wrapped: an async function returning the promise itself would wait on it
+  return { drained };
 }
 function opsRecorder() {
   const calls: { name: string; args: unknown[] }[] = [];
@@ -126,8 +111,6 @@ function opsRecorder() {
   };
   return { calls, acts };
 }
-// writeStory for story 0: the old worker's version blocks (until cancelled, or for ever), the new
-// worker's answers. Every other story answers at once.
 function writes(old: "cancellable" | "killed") {
   const attempts: string[] = [];
   const inFlight = deferred();
@@ -137,10 +120,10 @@ function writes(old: "cancellable" | "killed") {
     if (plan.index !== 0) return stub.writeStory(runId, plan, ...rest);
     attempts.push(`old:${Context.current().info.attempt}`);
     inFlight.resolve();
-    if (old === "killed") await zombie.promise; // no heartbeat, no cancellation: SIGKILL as the server sees it
+    if (old === "killed") await zombie.promise;
     else
       try {
-        await Context.current().cancelled; // the real model calls abort on this (run-stage.ts)
+        await Context.current().cancelled;
       } catch (e) {
         cancelled = true;
         throw e;
@@ -154,7 +137,6 @@ function writes(old: "cancellable" | "killed") {
   return { attempts, inFlight, zombie, oldWrite, newWrite, wasCancelled: () => cancelled };
 }
 
-// Runs a day to its hold on the current code, then restarts the worker onto `newCode`.
 async function restartInHold(q: string, runDate: string, newCode: string, runTimeout?: string) {
   const { calls, acts } = opsRecorder();
   const inHold = deferred();
@@ -173,7 +155,7 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
       const h = await start("graceful", "2026-12-01");
       await h.signal(approveSignal, { decision: "approve" });
       await oldWorkerUntil("graceful", { writeStory: w.oldWrite }, w.inFlight.promise);
-      expect(w.wasCancelled()).toBe(true); // control: the restart landed mid-activity
+      expect(w.wasCancelled()).toBe(true);
       expect(await pending(h, "writeStory")).toEqual({
         attempt: 2,
         lastFailure: "Worker is shutting down and this activity did not complete in time",
@@ -187,8 +169,6 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
     LONG,
   );
 
-  // Dev server only: the time-skipping server holds its clock while an activity attempt is out on a
-  // worker, so a hung attempt never reaches its heartbeat timeout there.
   it.runIf(devServer)(
     "a model call on a worker killed outright is retried after its 2 min heartbeat timeout, and the run sends",
     async () => {
@@ -198,7 +178,7 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
       const { drained } = await oldWorkerUntil("killed", { writeStory: w.oldWrite }, w.inFlight.promise, false);
       const next = await worker("killed", { writeStory: w.newWrite });
       const out = await next.runUntil(async () => {
-        expect(await pending(h, "writeStory")).toMatchObject({ attempt: 1 }); // control: not retried before the timeout
+        expect(await pending(h, "writeStory")).toMatchObject({ attempt: 1 });
         return h.result();
       });
       expect(w.attempts).toEqual(["old:1", "new:2"]);
@@ -209,8 +189,6 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
     LONG,
   );
 
-  // Render and assemble rebuild the same output from the same inputs (render keeps its timestamp and
-  // issue number in render_context.json), so they are retried like a fetch rather than run once.
   it.each(["render", "assemble"] as const)(
     "a deterministic step (%s) the shutdown interrupts is retried on the new worker, and the run sends",
     async (step) => {
@@ -256,7 +234,6 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
       };
       const h = await start("coherence", "2026-12-04");
       await h.signal(approveSignal, { decision: "approve" });
-      // The preheader runs beside the checker: let it finish, so the restart interrupts COHERENCE alone.
       await oldWorkerUntil(
         "coherence",
         { coherence: oldCheck },
@@ -267,7 +244,7 @@ describe("a worker restart mid-activity, the workflow code unchanged", () => {
       ).runUntil(async () => {
         await realPause(3000);
         const d = await h.describe();
-        expect(checks).toBe(1); // parked: the new worker did not retry it
+        expect(checks).toBe(1);
         expect(d.status.name).toBe("RUNNING");
         expect(d.raw.pendingActivities ?? []).toEqual([]);
         await h.signal(retrySignal, { decision: "retry" });
@@ -294,9 +271,6 @@ describe("changed workflow code under a run waiting in the hold", () => {
     180_000,
   );
 
-  // On the time-skipping server the clock stays put while a workflow task keeps failing, so the run
-  // timeout is seen only on a dev server, with a 42 min run timeout (the least that still holds: 40
-  // minutes of deadline and tail margin, and a minute of slack).
   it(
     "changed workflow code fails replay with a nondeterminism error: the run is stuck, with no alert",
     async () => {
@@ -335,10 +309,10 @@ describe("changed workflow code under a run waiting in the hold", () => {
       expect(seen.failure).toMatch(/nondetermin/i);
       expect(seen.status).toBe("RUNNING");
       if (devServer) {
-        expect(seen.taskAttempt).toBeGreaterThan(1); // the workflow task is retried, never failed (the test server reports no attempt)
+        expect(seen.taskAttempt).toBeGreaterThan(1);
         expect(seen.finalStatus).toBe("TIMED_OUT");
       }
-      expect(calls).toEqual([]); // no alert and no failure ping: only the dead-man's switch can notice
+      expect(calls).toEqual([]);
     },
     devServer ? 90 * 60_000 : 180_000,
   );

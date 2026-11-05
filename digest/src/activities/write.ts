@@ -19,9 +19,6 @@ export const WRITE_BRANCH_BUDGET_USD = 1.0;
 const SHARED = ["recap.txt", "weekly_recap.txt", "recent_digest_headlines.txt"];
 export const draftName = (index: number) => `draft_s${String(index).padStart(2, "0")}.json`;
 
-// The cluster holding the most of the story's distinct citations; ties keep the earliest cited.
-// SELECT's cluster_index is a position a model counts into hundreds of clusters and drifts (14% of
-// archived stories), so the citations decide.
 export function resolveClusterIndex(clusters: { article_ids: string[] }[], storyIds: string[]): number | undefined {
   const owner = new Map<string, number>();
   clusters.forEach((c, i) => c.article_ids.forEach((a) => owner.has(a) || owner.set(a, i)));
@@ -35,9 +32,6 @@ export function resolveClusterIndex(clusters: { article_ids: string[] }[], story
   return best;
 }
 
-// One plan per selected story in SELECT's order: its tier, its citations, and the evidence it may
-// see (its cluster unioned with its citations, restricted to ids the run has). A story with no
-// evidence is dropped rather than written from nothing.
 export function planStories(
   selectedJson: string,
   clustersJson: string,
@@ -50,7 +44,6 @@ export function planStories(
   let index = 0;
   for (const tier of ["must_know", "should_know"] as const)
     for (const pick of selected[tier]) {
-      // The citations decide; SELECT's stated index is only the fallback when no cited id has a cluster.
       const byCitation = resolveClusterIndex(clusters, pick.article_ids);
       const resolved =
         byCitation ??
@@ -80,18 +73,12 @@ const DraftStory = z.object({
     .array(z.object({ source: z.string(), angle: z.string(), bias: z.string(), article_id: z.string().optional() }))
     .optional(),
 });
-// The prompt's own output shape, kept so the prompt text carries over; shape only, never count.
 export const BranchDraftSchema = z.object({
   must_know: z.array(DraftStory).optional(),
   should_know: z.array(DraftStory).optional(),
 });
 export type DraftStory = z.infer<typeof DraftStory>;
 
-// Exactly one well-formed story, the fields its tier requires, and only citations to the branch's
-// own evidence; anything else fails retryably and the next attempt is a fresh sample.
-// A writer that splits its cluster into several stories (Sonnet 5.5 did, 2 times in 3, on run 310's
-// OpenAI and South Africa clusters) keeps the one citing most of SELECT's articles, the event the
-// cluster was selected for; a retry would only re-roll the split, and three failures fail the run.
 export function checkBranch(
   draft: z.infer<typeof BranchDraftSchema>,
   plan: StoryPlan,
@@ -109,7 +96,7 @@ export function checkBranch(
   const allowed = new Set(plan.contextIds);
   const stray = story.sources.map((s) => s.article_id).filter((a) => !allowed.has(a));
   if (stray.length) problems.push(`cites ids outside its evidence: ${stray.slice(0, 5).join(",")}`);
-  if (plan.tier === "should_know") delete story.why_it_matters; // briefs render no why_it_matters
+  if (plan.tier === "should_know") delete story.why_it_matters;
   return { story, problems, ...(stories.length > 1 ? { set_aside: stories.length - 1 } : {}) };
 }
 
@@ -120,15 +107,10 @@ export interface WriteDeps {
   query?: SdkQuery;
   heartbeat?: () => void;
   onUsage?: (row: UsageRow) => void | Promise<void>;
-  // A progress line for the off-box monitor (healthchecks.io /log).
   log?: (message: string) => void;
 }
 
-// The stories SELECT chose that WRITE never ran: run_health's STORIES_DROPPED_AT_WRITE reads `dropped`.
 export const WRITE_BRANCHES = "write_branches.json";
-// The issue's story budget, as a newsroom's: every planned story's tier and cluster label. Each writer
-// sees the others', since a writer alone led with a neighbour's event from a dual-topic article (runs
-// 294, 296, 301: the same event twice in one issue).
 export const ISSUE_BUDGET = "issue_budget.json";
 type BudgetLine = { index: number; tier: string; cluster?: number; story: string };
 
@@ -195,7 +177,7 @@ export function writeActivities(deps: WriteDeps) {
       if (existing && !force) {
         const prior = JSON.parse(await store.get(existing)) as { plan?: StoryPlan };
         if (JSON.stringify(prior.plan) === JSON.stringify(plan)) return existing;
-        await store.quarantine(runId, name); // written for a different story or evidence
+        await store.quarantine(runId, name);
       }
       const sel = SelectedSchema.parse(JSON.parse(await store.get(selected)));
       const pick = {
@@ -238,8 +220,6 @@ export function writeActivities(deps: WriteDeps) {
         }
         const budget = await store.find(runId, ISSUE_BUDGET);
         if (budget) {
-          // A story on this writer's own cluster carries this writer's own label, which the rule would
-          // tell it to steer away from; joinTags's "cluster N" fallback names no event at all.
           const others = (JSON.parse(await store.get(budget)) as BudgetLine[]).filter(
             (b) =>
               b.index !== plan.index &&
@@ -296,7 +276,7 @@ export function writeActivities(deps: WriteDeps) {
         const text = JSON.stringify({ plan, story }, null, 2);
         return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
       } finally {
-        rmSync(dir, { recursive: true, force: true }); // the mkdtemp directory this call created
+        rmSync(dir, { recursive: true, force: true });
       }
     },
   };

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { plantDefects } from "./plant.js";
 
-// Every field carries a number, so every plant is a wrong-number plant and the shape check always runs.
 const draft = {
   must_know: [
     {

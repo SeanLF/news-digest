@@ -1,6 +1,3 @@
-// A promptfoo JavaScript assertion for replay-provider.ts: scores the replay against the run's own
-// artifact (replay-score.ts) and holds the scores to the experiment's pre-registered rule (vars.rule,
-// bounds on named scores). A stage that failed fails, scored `failed: 1`; the rule bounds the rest.
 import { breaches, score, type Rule } from "./replay-score.js";
 import type { Mode } from "./stage-replay.js";
 
@@ -16,7 +13,6 @@ export default function replayAssert(output: string, context: { vars: { rule?: R
   const rule: Rule =
     typeof context.vars.rule === "string" ? (JSON.parse(context.vars.rule) as Rule) : (context.vars.rule ?? {});
   if (o.failure) {
-    // Always a fail: a failed replay has nothing else to score, whatever the rule says about failures.
     return {
       pass: false,
       score: 0,

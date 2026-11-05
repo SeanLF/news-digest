@@ -1,6 +1,3 @@
-// A promptfoo JavaScript assertion: score one checker report against the planted key. Passes at the
-// old checker's band on the same fixture (spec §2.2's threshold: not worse on recall, not worse on
-// false drops): every plant caught and at most maxFalseDrops clean fields dropped.
 import { readFileSync } from "node:fs";
 import { CoherenceReportSchema } from "../contracts/coherence.js";
 import { scorePlanted, type PlantedKey } from "./planted-score.js";

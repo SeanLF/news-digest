@@ -13,9 +13,6 @@ import {
 } from "./common.js";
 import { countsLabel, groupReports } from "./reports.js";
 
-// The email: MJML compiled by mrml, the Rust engine
-// mjml-python wraps, here as its WebAssembly build. Colours are the light design tokens; fonts are
-// web-safe stacks, since custom web fonts are unreliable in mail clients.
 const SERIF = "Georgia, 'Times New Roman', serif";
 const SANS = "Arial, Helvetica, sans-serif";
 const MONO = "'Courier New', monospace";
@@ -52,8 +49,6 @@ function palette(tokensCss: string): Palette {
   };
 }
 
-// Each mj-text carries only the attributes that differ from the <mj-attributes> defaults, which
-// are built from this same map, so the two cannot drift.
 type TxtKey = "font-family" | "font-size" | "color" | "line-height" | "align" | "padding";
 interface TxtOpts {
   size?: number;
@@ -66,7 +61,6 @@ interface TxtOpts {
   extra?: string;
 }
 
-// A continuing thread's delta, today's verified facts, replaces the summary.
 function bodyOf(a: Story): string {
   const delta = (a.thread?.delta ?? "").trim();
   return delta ? esc(delta) : esc(a.summary ?? "");
@@ -110,7 +104,6 @@ function renderer(p: Palette) {
     if (extra) attrs += ` ${extra}`;
     return `<mj-text ${attrs}>${content}</mj-text>`;
   };
-  // Mail clients do not inherit link colour, so every <a> is styled inline.
   const link = (url: string, text: string, color = p.accentInk) =>
     `<a href="${url}" style="color:${color};">${text}</a>`;
   const eyebrow = (label: string) =>
@@ -121,8 +114,6 @@ function renderer(p: Palette) {
       : `<mj-column>${inner}</mj-column>`;
     return `<mj-section padding="${padding}">${col}</mj-section>`;
   };
-  // The label cell is fixed at 150px and the rule cell has no width: a percentage rule cell starved
-  // the label to nothing in Outlook, and a shrinking one char-wrapped it on narrow screens.
   const sectionHeader = (num: string, name: string, gap: boolean) => {
     const label =
       `<span style="font-family:${MONO};font-size:12px;font-weight:600;color:${p.accentInk};letter-spacing:.08em;">${num}</span>` +
@@ -146,8 +137,6 @@ function renderer(p: Palette) {
       `<a href="${esc(href)}" style="font-family:${SANS};font-size:12px;text-transform:none;letter-spacing:0;color:${p.accentInk};">Sources and coverage →</a>`;
     return `<mj-section padding="16px ${SIDE} 0"><mj-column>${txt(label, { size: 12, color: p.muted, font: MONO, extra: MONO_UP })}</mj-column></mj-section>`;
   };
-  // "Ongoing · day N" sits under the headline like a dateline. A relative thread URL would resolve
-  // against the mail client's origin, so only an absolute one becomes a link.
   const threadEyebrow = (thread: ThreadContext, pad = "0 0 12px") => {
     const day = thread.day ?? 0;
     if (day < 2) return "";
@@ -177,7 +166,6 @@ function renderer(p: Palette) {
       txt(esc(a.headline ?? ""), { size: 20, color: p.ink, lh: "1.3", weight: "600", padding: "0 0 4px" }) +
       threadEyebrow(a.thread ?? {}, "0 0 4px") +
       txt(bodyOf(a));
-    // The first brief needs a gap below the section header; later ones get it from the separator.
     return section(inner, { padding: first ? `20px ${SIDE} 0` : `0 ${SIDE}` }) + sources(a, slug, homepage);
   };
   return { defaults, txt, link, section, sectionHeader, separator, story, brief };
@@ -289,7 +277,6 @@ export function renderEmail(
     "</mj-head>" +
     `<mj-body background-color="${p.bg}" width="660px">${body.join("")}</mj-body></mjml>`;
   const result = new Engine().toHtml(mjml);
-  // A compile error or an empty result must never reach a send.
   if (result.type === "error") throw new Error(`MJML compile error, refusing to send: ${result.message}`);
   if (!result.content.trim()) throw new Error("render_email produced empty HTML; refusing to send");
   return result.content;

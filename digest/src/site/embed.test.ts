@@ -6,9 +6,6 @@ import { leaningOf, readIssue } from "./embed.js";
 import { loadCatalogue } from "./sources.js";
 import { SOURCES_FILE, fakeData, testApp, testConfig } from "./testing.js";
 
-// The embed reads the lead out of the HTML web.ts writes, so it is held against the renderer itself:
-// a change to the issue's markup that the embed no longer reads fails here, not on seanfloyd.dev.
-
 const REPO = new URL("../../../", import.meta.url).pathname;
 const renderAssets = loadAssets({ templates: `${REPO}digest/templates`, design: `${REPO}design` });
 const renderEnv = {
@@ -142,7 +139,6 @@ describe("GET /embed/lead", () => {
     );
     expect(res.headers.get("x-frame-options")).toBeNull();
     expect(res.headers.get("cache-control")).toBe("public, max-age=300");
-    // A framer that sends COEP require-corp loads only a frame that sends both.
     expect(res.headers.get("cross-origin-embedder-policy")).toBe("require-corp");
     expect(res.headers.get("cross-origin-resource-policy")).toBe("cross-origin");
   });

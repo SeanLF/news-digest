@@ -4,8 +4,6 @@ import { DECODED_LINKS, STORY_COUNT_STUB, THREAD_CONTEXT, type Activities, type 
 
 const ptr = (runId: number, name: string): Pointer => ({ runId, name, sha256: "0".repeat(64) });
 
-// Every activity returns a plausible pointer and nothing else, so the workflow's sequencing,
-// signals, identity and budget can be exercised end to end before any stage is real.
 export function stubActivities(): Activities {
   return {
     startRun: (input: DigestInput) =>

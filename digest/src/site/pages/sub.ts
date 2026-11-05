@@ -5,14 +5,10 @@ import { escapeHtml, formatDayMonthYear } from "../text.js";
 import { feedbackCss, notFoundCss, searchCss, sourcesCss, statsCss } from "./blobs.js";
 import { type PageCtx, brand, pageBody, pageHead, subChrome, subMasthead } from "./chrome.js";
 
-// The sub-pages: sources, search, stats, feedback and the
-// friendly 404, each in the shared frame.
-
 const name = (ctx: PageCtx) => escapeHtml(ctx.cfg.digestName);
 const TAG_ALL =
   "An automated daily briefing. Curated and fact-checked by Claude; no human edits any issue. &copy; Sean Floyd";
 
-// ── 404 ──
 export function notFoundPage(ctx: PageCtx, heading: string, message: string): string {
   const chrome = subChrome(ctx.cfg, "", "/", "Lost? Every issue is one tap from the archive.");
   const inner = `<main id="main" class="narrow">
@@ -30,13 +26,11 @@ export function notFoundPage(ctx: PageCtx, heading: string, message: string): st
   return pageHead(ctx, name(ctx), message, notFoundCss) + pageBody(ctx, chrome, inner);
 }
 
-// ── sources ──
 function factualityMeter(f: string): string {
   const [on, label] = (
     {
       "very-high": [3, "Very high"],
       high: [2, "High"],
-      // MBFC's Mostly Factual sits between High and Mixed: High's bars, its own label.
       "mostly-factual": [2, "Mostly factual"],
       mixed: [1, "Mixed"],
       low: [1, "Low"],
@@ -89,7 +83,6 @@ export function sourcesPage(ctx: PageCtx, sources: SourceRow[]): string {
   );
 }
 
-// ── search ──
 const tierParts = (tier: string): [string, string] =>
   tier === "must_know"
     ? ["must", "Must Know"]
@@ -134,9 +127,7 @@ export function searchPage(ctx: PageCtx, query: string | undefined, results: Sea
   );
 }
 
-// ── stats ──
 const rag = (rate: number): [string, string] => (rate >= 95 ? ["ok", "✓"] : rate >= 80 ? ["warn", "▲"] : ["bad", "✕"]);
-// A status never rides on colour alone: the icon carries it, and its name is read out.
 const STATUS: Record<string, [string, string]> = { ok: ["✓", "good"], warn: ["▲", "watch"], bad: ["✕", "poor"] };
 const tile = (value: string, status: string, label: string, sub: string, trend = ""): string => {
   const st = STATUS[status];
@@ -148,7 +139,6 @@ const BIAS = [
   ["c", "Centre"],
   ["r", "Lean right"],
 ] as const;
-// Under this a segment's % would not fit under it; the tooltip and the bar's aria-label still carry it.
 const LABEL_MIN_PCT = 10;
 function spectrumRow(label: string, p: [number, number, number], aria: string): string {
   const segs = BIAS.map(([k, n], i) => ({ k, n, v: p[i]! })).filter((s) => s.v > 0);
@@ -160,10 +150,8 @@ function spectrumRow(label: string, p: [number, number, number], aria: string): 
     .join("");
   return `<div class="balrow"><span class="rl">${label}</span><div class="barwrap"><div class="sbar" role="img" aria-label="${aria}">${bar}</div><div class="bkeys" aria-hidden="true">${keys}</div></div></div>`;
 }
-// One series, so one ink: neither a bias colour nor a status one. The bar is scaled to the largest row.
 const shareRow = (label: string, count: number, sharePct: number, barPct: number): string =>
   `<div class="share"><span class="sn">${escapeHtml(label)}</span><span class="bar" data-tip="${count.toLocaleString("en-CA")} picks · ${fixed(sharePct, 0)}%"><span class="fill" style="width:${fixed(barPct, 0)}%"></span></span><span class="pc">${fixed(sharePct, 0)}%</span></div>`;
-// Oldest first; a run with no recorded cost breaks the line rather than reading as $0.
 function sparkline(recent: Stats["recentRuns"]): string {
   const runs = recent.toReversed();
   const costs = runs.flatMap((r) => (r.apiCostUsd === null ? [] : [r.apiCostUsd]));
@@ -256,7 +244,6 @@ function concentration(m: Metrics, never: string[], days: number): string {
 }
 function health(s: Stats, names: Map<string, string>): string {
   const n = { ok: 0, warn: 0, bad: 0 };
-  // Worst first: problems at the top.
   const rows = s.health
     .toSorted((a, b) => a.ratePct - b.ratePct)
     .map((h) => {
@@ -274,7 +261,6 @@ function cost(s: Stats): string {
   const c = s.cost;
   const perRun = c.runs > 0 ? c.costTotal / c.runs : 0;
   const perSub = c.recipientsLatest > 0 ? perRun / c.recipientsLatest : 0;
-  // Two questions, two tiles: what a reader's story costs (~16 a run) and what curation reads (~550).
   const perStory = c.shippedTotal > 0 ? c.costTotal / c.shippedTotal : 0;
   const perArticle = c.keptTotal > 0 ? c.costTotal / c.keptTotal : 0;
   const spark = sparkline(s.recentRuns);
@@ -341,7 +327,6 @@ export function statsPage(ctx: PageCtx, days: number, s: Stats, m: Metrics, name
   );
 }
 
-// ── feedback ──
 const HELPS = [
   "A story that felt one-sided, or a source you'd trust more.",
   "Something important the digest missed entirely.",

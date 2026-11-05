@@ -5,10 +5,6 @@ import { BlockList, isIP, type LookupFunction } from "node:net";
 import { pipeline } from "node:stream/promises";
 import zlib from "node:zlib";
 
-// A GET for URLs a third party controls (feed URLs and wherever they redirect). The worker shares a
-// network with services that trust it, so every address a hop connects to is checked, inside the
-// connection's own DNS lookup so no second resolution can differ from the checked one.
-
 const blocked = new BlockList();
 for (const [net, prefix] of [
   ["0.0.0.0", 8],
@@ -27,14 +23,12 @@ for (const [net, prefix] of [
   ["240.0.0.0", 4],
 ] as const)
   blocked.addSubnet(net, prefix, "ipv4");
-// Outside 2000::/3 (global unicast) covers ::, ::1, fc00::/7, fe80::/10, ff00::/8, 64:ff9b::/96 and 100::/64.
 blocked.addSubnet("2001:db8::", 32, "ipv6");
 const globalUnicast = new BlockList();
 globalUnicast.addSubnet("2000::", 3, "ipv6");
 
-// ::ffff:a.b.c.d (mapped) and ::a.b.c.d (compatible), in either spelling, as the IPv4 they carry.
 const embeddedIpv4 = (ip: string): string | undefined => {
-  const canonical = new URL(`http://[${ip}]/`).hostname.slice(1, -1); // dotted tails become hex groups
+  const canonical = new URL(`http://[${ip}]/`).hostname.slice(1, -1);
   const m = /^::(?:ffff:)?([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(canonical);
   if (!m) return undefined;
   const [hi, lo] = [parseInt(m[1]!, 16), parseInt(m[2]!, 16)];
@@ -51,8 +45,8 @@ export function isPublicAddress(ip: string): boolean {
 }
 
 export interface BoundedOptions {
-  timeoutMs: number; // one deadline for every hop and the body
-  maxBytes: number; // after decompression
+  timeoutMs: number;
+  maxBytes: number;
   maxRedirects?: number;
   headers?: Record<string, string>;
   isAllowed?: (ip: string) => boolean;
@@ -75,7 +69,6 @@ function send(
   if (url.protocol !== "http:" && url.protocol !== "https:")
     return Promise.reject(new Error(`refused scheme ${url.protocol} (${url.href})`));
   const host = url.hostname.replace(/^\[(.*)\]$/, "$1");
-  // A literal address never reaches `lookup`.
   if (isIP(host) && !o.isAllowed(host))
     return Promise.reject(refused(`refused ${url.host}: ${host} is not a public address`));
   const lookup: LookupFunction = (hostname, options, cb) => {
@@ -93,7 +86,6 @@ function send(
     );
   };
   return new Promise((resolve, reject) => {
-    // No agent: a pooled socket would skip the lookup, and so the check.
     const req = (url.protocol === "https:" ? https : http).request(
       url,
       {
@@ -109,7 +101,6 @@ function send(
   });
 }
 
-// Lenient as fetch's decoders are: a body missing its trailer still decodes what arrived.
 const sync = { finishFlush: zlib.constants.Z_SYNC_FLUSH };
 const DECODERS = new Map<string, () => zlib.Gunzip | zlib.Inflate | zlib.BrotliDecompress>([
   ["gzip", () => zlib.createGunzip(sync)],
@@ -120,7 +111,7 @@ const DECODERS = new Map<string, () => zlib.Gunzip | zlib.Inflate | zlib.BrotliD
 
 async function readBody(res: http.IncomingMessage, maxBytes: number, signal: AbortSignal): Promise<string> {
   const encoding = (res.headers["content-encoding"] ?? "identity").trim().toLowerCase();
-  const decoder = DECODERS.get(encoding); // anything else (identity, "utf-8", stacked codings) is read raw, as fetch does
+  const decoder = DECODERS.get(encoding);
   const chunks: Buffer[] = [];
   let total = 0;
   const collect = async (source: AsyncIterable<Buffer>) => {
@@ -132,7 +123,7 @@ async function readBody(res: http.IncomingMessage, maxBytes: number, signal: Abo
   };
   if (decoder) await pipeline(res, decoder(), collect, { signal });
   else await pipeline(res, collect, { signal });
-  return new TextDecoder().decode(Buffer.concat(chunks)); // as Response.text(): UTF-8, BOM dropped
+  return new TextDecoder().decode(Buffer.concat(chunks));
 }
 
 export async function fetchBounded(url: string, options: BoundedOptions): Promise<BoundedResponse> {

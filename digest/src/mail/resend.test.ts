@@ -11,7 +11,6 @@ const fake = (reply: Awaited<ReturnType<ResendEmails["send"]>>, calls: Call[]): 
 });
 const email = { from: "Alerts <a@example.com>", to: ["ops@example.com"], subject: "s", html: "<p>h</p>" };
 
-// A fetch that never answers until its signal aborts, as a hung connection does.
 const hang = () =>
   vi
     .spyOn(globalThis, "fetch")
@@ -22,7 +21,6 @@ const hang = () =>
         ),
     );
 
-// The dev stack's fake; any URL that is not Resend's own will do.
 const FAKE = { RESEND_BASE_URL: "http://resend-fake:8025" };
 
 describe("resendClient", () => {

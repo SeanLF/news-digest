@@ -1,4 +1,3 @@
-// usage: start [YYYY-MM-DD] [--force] [--resume N]   starts one DigestWorkflow and waits for its result
 import { connect, parseStartArgs, startDigest } from "../client.js";
 let args: ReturnType<typeof parseStartArgs>;
 try {

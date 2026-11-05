@@ -164,8 +164,6 @@ describe("the web issue", () => {
   });
 });
 
-// The seam the spec names (§6): two renderers, one data source. Every story the web issue shows,
-// the email shows, in the same order, with the same headline, body and source count.
 const text = (s: string) =>
   s
     .replaceAll(/<[^>]+>/g, " ")
@@ -199,8 +197,6 @@ describe("email and web show the same issue", () => {
     expect(sourceCounts(web).length).toBeGreaterThan(0);
     expect(sourceCounts(email)).toEqual(sourceCounts(web));
   });
-  // Inherited from the Python, kept for parity and reported: the web fills placeholders across the
-  // whole page, editorial text included, so a story quoting {{DATE}} reads differently in each.
   it("diverges where editorial text quotes a placeholder", () => {
     const sel = edge();
     expect(text(renderWeb(input(sel)))).toContain("it quotes Friday, September 18, 2026 literally");
@@ -209,8 +205,6 @@ describe("email and web show the same issue", () => {
 });
 
 describe("the web stylesheet", () => {
-  // lightningcss with no targets upgrades syntax: `(min-width:760px)` became `(width>=760px)`, which
-  // Safari before 16.4 reads as false, dropping both layouts. The Python ships the old syntax.
   const css = /<style>([\s\S]*?)<\/style>/.exec(renderWeb(input(edge())))?.[1] ?? "";
   it("keeps media queries in the syntax older Safari reads", () => {
     expect(css).toMatch(/\(min-width:\s*760px\)/);
@@ -221,7 +215,6 @@ describe("the web stylesheet", () => {
   });
 });
 
-// 0-1px sizes are MJML's spacer cells, not text.
 const textSizesUnder12 = (html: string) =>
   [...html.matchAll(/font-size\s*[:=]\s*"?(\d+(?:\.\d+)?)px/g)].map((m) => Number(m[1])).filter((n) => n > 1 && n < 12);
 
@@ -232,7 +225,6 @@ describe("small text", () => {
   it("sets nothing below 12px in the email", () => {
     expect(textSizesUnder12(renderEmail(input(edge())))).toEqual([]);
   });
-  // At 12px the email's dateline wraps on a phone; it may break only at a slash.
   it("keeps each part of the email dateline on one line", () => {
     const email = renderEmail(input(edge()));
     for (const part of ["Friday, September 18, 2026", "min read", "must-know"]) {

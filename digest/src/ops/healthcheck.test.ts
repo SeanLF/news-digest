@@ -14,7 +14,6 @@ function fakeFetch(outcome: "ok" | "throw" | "500" | "rate-limited" = "ok") {
       signal: init.signal instanceof AbortSignal,
     });
     if (outcome === "throw") return Promise.reject(new TypeError("fetch failed"));
-    // hc-ping.com answers a ping it drops with 200 and this body, so a status check alone reads it as recorded.
     if (outcome === "rate-limited") return Promise.resolve(new Response("OK (rate limited)", { status: 200 }));
     return Promise.resolve(new Response("OK", { status: outcome === "ok" ? 200 : 500 }));
   }) as unknown as typeof fetch;
@@ -86,8 +85,6 @@ describe("healthcheck", () => {
       "healthcheck success ping failed (non-fatal): Error: not recorded: OK (rate limited)",
     ]);
   });
-  // healthchecks.io records at most 5 pings a minute per check and drops the rest: run 316's success
-  // ping went 6 s after a burst of stage /log lines and was dropped, and the check paged as down.
   it("sends at most 3 /log lines a minute, so the start, success and fail pings always fit under the limit", async () => {
     let t = 0;
     const { seen, f } = fakeFetch();
@@ -98,7 +95,7 @@ describe("healthcheck", () => {
     }
     await hc.ping();
     expect(seen.map((s) => s.body ?? s.url)).toEqual(["line 1", "line 2", "line 3", "https://hc-ping.com/uuid-1"]);
-    t = 70_001; // lines 1-3 have left the window; the success ping has not
+    t = 70_001;
     await hc.log("line 7");
     expect(seen.at(-1)?.body).toBe("(3 earlier lines not sent) line 7");
   });

@@ -7,7 +7,7 @@ describe("recordOperatorNote", () => {
   it("persists each distinct note for a stage once, however often it arrives", async () => {
     const store = new ArtifactStore(await freshDb([300]));
     await recordOperatorNote(store, 300, "select", "prefer the Sudan story");
-    await recordOperatorNote(store, 300, "select", "prefer the Sudan story"); // a retry of the same attempt
+    await recordOperatorNote(store, 300, "select", "prefer the Sudan story");
     await recordOperatorNote(store, 300, "select", "drop the celebrity item");
     await recordOperatorNote(store, 300, "write", "shorter summaries");
     const names = await store.names(300);

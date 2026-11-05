@@ -9,12 +9,6 @@ import {
   tally,
 } from "./reports.js";
 
-// The issue as Markdown, for agents: the body the site serves under its title line (`.md`, Accept:
-// text/markdown). Written from the selections the web issue is rendered from, never from its HTML, and
-// held to the document the site's HTML converter made of that page (markdown.test.ts).
-
-// Text as Markdown reads it literally: \ * _ ` [ ] anywhere, a "<" that would open a tag, and a line
-// start that would open a block (heading, quote, list item, ordered item, setext rule).
 function text(s: string): string {
   let out = s.replaceAll(/[\\*_`[\]]/g, (c) => `\\${c}`).replaceAll(/<(?=[!?/A-Za-z])/g, "\\<");
   out = out.replace(/^(\s*)([#>=~]|[-+](?=\s)|\d+(?=[.)]\s))/, (_m, sp: string, lead: string) =>
@@ -22,11 +16,9 @@ function text(s: string): string {
   );
   return out.trim();
 }
-// Whitespace percent-encoded: a feed link with a line break must not end the line it sits on.
 const href = (url: string) => url.replaceAll(/[()]/g, (c) => `\\${c}`).replaceAll(/\s/g, (c) => encodeURIComponent(c));
 const link = (label: string, url: string) => `[${label}](${href(url)})`;
 
-// Feed text can carry line breaks the page collapses; in a list row one would end the item.
 const line = (s: string) => text(s.replaceAll(/\s+/g, " "));
 
 function sources(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string[] {
@@ -56,7 +48,6 @@ function story(a: Story, brief: boolean): string[] {
   const thread = a.thread ?? {};
   if ((thread.day ?? 0) >= 2)
     out.push(thread.url ? link(`Ongoing · day ${thread.day} ↗`, thread.url) : `Ongoing · day ${thread.day}`);
-  // A continuing thread's delta, today's verified facts, replaces the summary.
   const body = (thread.delta ?? "").trim() || (a.summary ?? "");
   if (body.trim()) out.push(text(body));
   if (!brief) {

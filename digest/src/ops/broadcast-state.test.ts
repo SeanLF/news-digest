@@ -3,7 +3,6 @@ import { openDb, type Db } from "../store/db.js";
 import { migratedDb } from "../store/test-db.js";
 import { broadcastState, clearClaim, clearClaimCommand } from "./broadcast-state.js";
 
-// Run 300 on 2026-09-08, published, with the day's send in `status` (none when null).
 async function day(status: string | null, id: string | null = null): Promise<Db> {
   const d = openDb(await migratedDb([{ id: 300, runAt: "2026-09-08 10:25:40" }]));
   await d.run("INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-08', 1, 300, '')");

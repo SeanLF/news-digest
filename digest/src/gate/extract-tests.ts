@@ -1,5 +1,3 @@
-// promptfoo test generator for the fulltext fork: one test per page the fetch saved. The corpus
-// directory is FULLTEXT_FORK_DIR (a fresh data/fulltext-fork-<stamp>/ from fulltext_fork_pages.py).
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { normalise, truncateAtSentence } from "../fulltext/extract.js";

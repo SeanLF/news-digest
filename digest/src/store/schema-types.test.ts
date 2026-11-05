@@ -4,9 +4,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// schema.gen.ts is generated from the migrations (scripts/schema-types.sh, on a fresh database in
-// ci-pg). Committed so the types are read without a database, and held here to what the migrations
-// make now: a migration without `make schema-types` fails CI.
 const ADMIN = process.env["DIGEST_TEST_DATABASE_URL"];
 const ROOT = new URL("../../", import.meta.url).pathname;
 const run = (...args: string[]) =>

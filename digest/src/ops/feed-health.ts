@@ -1,9 +1,6 @@
 import type { RowOf, Sql } from "../store/db.js";
 import type { AlertRequest } from "./alerts.js";
 
-// db.get_failing_sources and run.py's source-health alert: sources seen in the last seven days whose
-// most recent fetches (up to ten) failed at least `threshold` times in a row. Only the run's fetch set
-// counts: a parked source's failures are history we chose to stop making.
 export async function feedHealthAlert(
   db: Sql,
   runId: number,

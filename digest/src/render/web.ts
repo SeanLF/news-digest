@@ -21,8 +21,6 @@ import {
   tally,
 } from "./reports.js";
 
-// The web issue.
-
 function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string {
   if (!g.reports.length) return "";
   const counts = tally(g.reports);
@@ -30,8 +28,6 @@ function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] =
   const spread = `<span class="n">${countsLabel(g)}</span><span class="vh"> · ${counts.map(([b, n]) => `${n} ${REPORT_BUCKET_WORD[b]}`).join(" · ")}</span>`;
   const backsCol = claims.length > 0;
   const row = (r: ReturnType<typeof reportRows>[number]) => {
-    // Each article by its own headline, one or several alike, so the link says where it goes; a
-    // republisher running the origin's headline links by its name instead of repeating it.
     const arts =
       r.articles.length && !r.sameCopy
         ? `<ul class="arts">${r.articles.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a></li>`).join("")}</ul>`
@@ -39,7 +35,6 @@ function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] =
     const tag = r.carrier ? ` · ${esc(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
     const label = r.sameCopy ? `<a class="out" href="${esc(r.articles[0]!.url)}">${esc(r.name)}</a>` : esc(r.name);
     const name = `${r.republished ? '<span class="rp">Republished by </span>' : ""}${label}${tag ? `<span class="via">${tag}</span>` : ""}`;
-    // The hidden dash is for the Markdown converter and screen readers; the layout separates it by eye.
     const backs =
       backsCol && r.backs.length
         ? `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${esc(r.backs.join("; "))}</span>`
@@ -72,7 +67,6 @@ function article(a: Story, slug: string, { brief = false, first = false } = {}):
       ? `<p class="eyebrow"><a href="${esc(thread.url)}" aria-label="Ongoing · day ${thread.day} ↗ how this story developed">${label} ↗</a></p>`
       : `<p class="eyebrow">${label}</p>`;
   }
-  // A continuing thread's delta, today's verified facts, replaces the summary.
   const delta = (thread.delta ?? "").trim();
   const body = delta ? esc(delta) : esc(a.summary ?? "");
   const sources = sourcesBlock(groupReports(a.sources), a.claims ?? []);
@@ -101,11 +95,9 @@ function article(a: Story, slug: string, { brief = false, first = false } = {}):
   return parts.join("\n");
 }
 
-// Every placeholder replaced as a literal, never as a pattern: editorial text carries "$".
 const put = (s: string, placeholder: string, value: string) => s.replaceAll(placeholder, () => value);
 const strip = (s: string, re: RegExp, value = "") => s.replaceAll(re, value);
 const reEscape = (s: string) => s.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
-// An unconfigured footer-nav link goes with one adjacent " · ", whichever side it is on.
 function stripNavLink(content: string, placeholder: string, text: string): string {
   const link = `<a href="\\{\\{${placeholder}\\}\\}">${reEscape(text)}</a>`;
   let c = strip(content, new RegExp(`${link}\\s*·\\s*`, "g"));
@@ -113,9 +105,6 @@ function stripNavLink(content: string, placeholder: string, text: string): strin
   return strip(c, new RegExp(link, "g"));
 }
 
-// The oldest engines the Python's stylesheet already served. Without targets lightningcss assumes
-// every feature and rewrites `min-width` media queries into range syntax, which Safari before 16.4
-// reads as false.
 const v = (major: number) => major << 16;
 export const CSS_TARGETS = { safari: v(15), ios_saf: v(15), chrome: v(100), edge: v(100), firefox: v(91) };
 
@@ -179,8 +168,6 @@ export function renderWeb({ selections, now, issueNo, env, assets }: RenderInput
   if (authorUrl && isSafeUrl(authorUrl)) c = put(c, "{{PRIVACY_URL}}", esc(`${authorUrl.replace(/\/+$/, "")}/privacy`));
   else c = stripNavLink(c, "PRIVACY_URL", "Privacy");
 
-  // A placeholder left unfilled would ship blank to readers. The stylesheet's braces, Resend's
-  // per-recipient {{{…}}} merge tags and editorial text quoting {{ user.name }} are not placeholders.
   const scan = c.replace(/<style>[\s\S]*?<\/style>/g, "").replaceAll(/\{\{\{[^{}]+\}\}\}/g, "");
   const leftover = /\{\{[A-Z][A-Z0-9_]*\}\}/.exec(scan);
   if (leftover) throw new Error(`Unfilled placeholder in rendered digest: ${leftover[0]}`);

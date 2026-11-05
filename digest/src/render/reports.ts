@@ -16,7 +16,6 @@ import { repostKey } from "./resolve.js";
 
 export type ReportBucket = Bucket | "u";
 export const REPORT_BUCKET_ORDER: ReportBucket[] = [...BUCKET_ORDER, "u"];
-// titles runs beside urls: each openable article's headline as its feed gave it.
 export interface ReportMember {
   name: string;
   bias: string;
@@ -55,8 +54,6 @@ const agencyOf = (s: Source): string | null => {
 };
 const openable = (url: string) => isSafeUrl(url) && hasArticlePath(url);
 
-// A story's sources as reports. Wire copy is its agency's report, rated as the agency is; identical
-// headlines with no wire tag are one report whose origin is unknown; the rest is each outlet's own.
 export function groupReports(sources: Source[]): { reports: Report[]; outlets: number } {
   const named = sources.filter((s) => s.name);
   const parent = named.map((_, i) => i);
@@ -125,9 +122,7 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
         existing.members[0]!.urls.push(...own.urls);
         existing.members[0]!.titles.push(...own.titles);
         existing.members[0]!.ids.push(...own.ids);
-      }
-      // An empty rating is unknown, not centre: biasBucket's "" is the Python port's byte-matching.
-      else
+      } else
         reports.push({
           label: own.name,
           leaning: own.bias || "unrated",
@@ -147,7 +142,6 @@ export function groupReports(sources: Source[]): { reports: Report[]; outlets: n
   return { reports: ordered, outlets: new Set(ordered.flatMap((r) => r.members.map((m) => m.name))).size };
 }
 
-// A rating as a reader says it; an unknown one is shown as it was written.
 const LEANING: Record<string, string> = {
   "far-left": "Far left",
   left: "Left",
@@ -162,8 +156,6 @@ export const leaningLabel = (leaning: string): string => LEANING[leaning] ?? lea
 const LEANING_ORDER = Object.keys(LEANING);
 const leaningRank = (l: string) => (LEANING_ORDER.includes(l) ? LEANING_ORDER.indexOf(l) : LEANING_ORDER.length);
 type Row = ReturnType<typeof reportRows>[number];
-// Rows under one heading per leaning, far left to far right, unrated and unknown ratings last. A
-// carrier stays under the report it carried; its own leaning is the row's to show.
 export function leaningGroups(rows: Row[]): { leaning: string; bucket: ReportBucket; rows: Row[] }[] {
   const groups: { leaning: string; bucket: ReportBucket; rows: Row[] }[] = [];
   let current: (typeof groups)[number] | undefined;
@@ -185,13 +177,10 @@ export function tally(reports: Report[]): [ReportBucket, number][] {
     (b) => [b, reports.filter((r) => r.bucket === b).length] as [ReportBucket, number],
   ).filter(([, n]) => n);
 }
-// Rows as the sources table shows them: each report, then the outlets that carried it.
 export interface ReportArticle {
   url: string;
   title: string;
 }
-// A feed's headline names its outlet at the end ("Five men held - Reuters"); the row already does.
-// Some feeds send it HTML-escaped ("Yemen&#x27;s"); the renderers escape it again on output.
 function articleTitle(title: string, outlet: string, url: string): string {
   const t = decodeHTML(title)
     .replace(/\s+[-–—|]\s+([^-–—|]+)$/, (m, tail: string) =>
@@ -199,7 +188,6 @@ function articleTitle(title: string, outlet: string, url: string): string {
     )
     .trim();
   if (t) return t;
-  // isSafeUrl checks only the scheme, so a host can still fail to parse ("http://a b/x").
   try {
     return new URL(url).hostname.replace(/^www\./, "");
   } catch {
@@ -209,9 +197,6 @@ function articleTitle(title: string, outlet: string, url: string): string {
 const articles = (m: ReportMember, outlet: string): ReportArticle[] =>
   m.urls.map((url, i) => ({ url, title: articleTitle(m.titles[i] ?? "", outlet, url) }));
 const sameWords = (s: string) => s.toLowerCase().replaceAll(/[^\p{L}\p{N}]+/gu, "");
-// A carrier is a republisher when its report has a known origin, and only one outlet among several
-// that ran shared copy when not. sameCopy: its one article runs the origin's headline, so the row
-// can link the outlet instead of repeating the headline.
 export function reportRows(
   reports: Report[],
   claims: StoryClaim[] = [],

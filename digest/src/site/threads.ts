@@ -2,13 +2,9 @@ import { log } from "../log.js";
 import { cleanFact, cleanQuestions, whatsNew } from "../threads/text.js";
 import type { SiteData, ThreadIndexData, ThreadSummaryData } from "./data.js";
 
-// Thread pages and tools, over the pipeline's own reader-facing text rules
-// (threads/text.ts), so the site and the email scrub article ids the same way.
-
 export const OLDER_PAGE = 30;
 const MAX_OLDER_PAGE = 100;
 const MAX_MERGE_HOPS = 8;
-// The "still watching" ledger shows the recent frontier, not the backlog.
 const LEDGER_MAX = 6;
 
 export interface ThreadSummary {
@@ -17,7 +13,6 @@ export interface ThreadSummary {
   status: string;
   updatedAt: string;
   updateCount: number;
-  // The latest update's first clean "what's new" fact.
   summary: string;
 }
 export interface ThreadIndexPage {
@@ -35,21 +30,17 @@ export interface ThreadEntry {
 export interface ThreadDetail {
   label: string;
   status: string;
-  // The survivor's id when the requested thread was merged into it.
   mergedInto: number | null;
   entries: ThreadEntry[];
   openQuestions: string[];
 }
 
-// The top three clean facts of an update; a fact that fails cleaning yields its place to the next.
 export const factsFrom = (content: string | null): string[] =>
   whatsNew(content).map(cleanFact).filter(Boolean).slice(0, 3);
 
 const sourcesOf = (f: unknown): unknown[] =>
   f && typeof f === "object" && "sources" in f && Array.isArray(f.sources) ? (f.sources as unknown[]) : [];
 
-// The ids one update cited: its recorded cited_ids (written before the faithfulness audit, so they still
-// name the sources of dropped facts), else its surviving facts' own sources.
 export function citedIds(content: string | null): string[] {
   if (!content) return [];
   let doc: unknown;
@@ -95,7 +86,6 @@ export async function threadIndex(
   };
 }
 
-// Follows a merge chain to its survivor; undefined for no such thread, a self-merge or a chain too long.
 export async function threadDetail(data: SiteData, requested: number): Promise<ThreadDetail | undefined> {
   let id = requested;
   for (let hop = 0; ; hop++) {
@@ -124,7 +114,6 @@ export async function threadDetail(data: SiteData, requested: number): Promise<T
       headline: i.story,
       facts: factsFrom(i.content),
     })),
-    // Grounded on the ids the raising run cited: article ids are per-run labels.
     openQuestions: t.openQuestions
       .flatMap((q) => cleanQuestions([q.question], citedIds(q.raisedContent)))
       .slice(0, LEDGER_MAX),

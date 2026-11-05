@@ -11,8 +11,6 @@ const spec: StageSpec = {
   body: "Reply with JSON.",
 };
 
-// A fake with the SDK's own signature, so a renamed option or message field fails to compile
-// in the adapter; the casts are confined to these fakes.
 function fakeQuery(messages: SDKMessage[], seen?: { options?: Options }): SdkQuery {
   return (({ options }: { prompt: string; options?: Options }) => {
     if (seen && options) seen.options = options;

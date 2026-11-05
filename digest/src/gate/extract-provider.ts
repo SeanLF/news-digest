@@ -1,5 +1,3 @@
-// A promptfoo provider per fulltext arm (docs/2026-09-23-fulltext-extractor-fork.md). The trafilatura
-// arm returns the production extract recorded at fetch time; the others extract the same saved bytes.
 import { readFileSync } from "node:fs";
 import { extract, truncateAtSentence, type Arm } from "../fulltext/extract.js";
 
@@ -13,7 +11,6 @@ export default class ExtractProvider {
   id(): string {
     return `extract:${this.arm}`;
   }
-  // `reference` arrives already normalised and truncated (extract-tests.ts), under the corpus's own cap.
   async callApi(
     _prompt: string,
     context: { vars: { html: string; url: string; reference: string; maxChars: number } },

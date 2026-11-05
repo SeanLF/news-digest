@@ -7,8 +7,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { resendClient } from "../mail/resend.js";
 import { resendFake, type ResendFake } from "./fake.js";
 
-// The fake is held to the calls the real code makes, through the real SDK over a real socket: if the
-// SDK or our use of it drifts, these fail here rather than on the day dev mail silently stops.
 const listen = async (f: ResendFake): Promise<{ server: ServerType; base: string }> => {
   const server = serve({ fetch: f.app.fetch, port: 0, hostname: "127.0.0.1" });
   await new Promise((r) => server.once("listening", r));
@@ -92,7 +90,7 @@ describe("resend-fake", () => {
         subject: "News Digest – September 24, 2026",
       },
     ]);
-    expect((await mail.broadcasts.send(id)).error).toMatchObject({ statusCode: 422 }); // a sent broadcast is not sent again
+    expect((await mail.broadcasts.send(id)).error).toMatchObject({ statusCode: 422 });
   });
 
   it("answers an endpoint it does not fake with a Resend-shaped 404, never a silent success", async () => {
@@ -120,10 +118,7 @@ describe("resend-fake", () => {
   });
 });
 
-// The dev audience outlives the container: make dev-import and make dev-up restart it, and a restart
-// that emptied it sent the next dev broadcast to nobody (ZERO_RECIPIENTS, 2026-09-24).
 const stateFile = () => join(mkdtempSync(join(tmpdir(), "resend-fake-")), "state.json");
-// One start of the fake over a state file, stopped when body is done: a restart is the next call.
 const run = async <T>(
   file: string,
   body: (mail: ReturnType<typeof resendClient>, url: string, f: ResendFake) => Promise<T>,
@@ -166,7 +161,6 @@ describe("resend-fake with a state file", () => {
       expect(again.data?.id).toBe(before.emailId);
       expect((await mail.broadcasts.get(before.castId)).data?.status).toBe("sent");
       expect((await mail.broadcasts.send(before.castId)).error).toMatchObject({ statusCode: 422 });
-      // An upsert of a kept address is the kept contact, not a second one.
       await mail.contacts.create({ audienceId: "dev-audience", email: "a@example.com" });
       expect(f.contacts("dev-audience")).toHaveLength(2);
     });
@@ -188,7 +182,7 @@ describe("resend-fake with a state file", () => {
     await run(file, async (mail, url) => {
       await mail.contacts.create({ audienceId: "dev-audience", email: "a@example.com" });
       await mail.emails.send({ from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" });
-      expect((await fetch(`${url}/api/reset`, { method: "POST" })).status).toBe(400); // a cross-site form cannot
+      expect((await fetch(`${url}/api/reset`, { method: "POST" })).status).toBe(400);
       const r = await fetch(`${url}/api/reset`, { method: "POST", headers: { "x-resend-fake-reset": "yes" } });
       expect(r.status).toBe(200);
       expect(await r.json()).toEqual({ cleared: { messages: 1, contacts: 1 } });

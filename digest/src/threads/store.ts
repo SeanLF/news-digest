@@ -1,12 +1,6 @@
 import type { RowOf, Sql } from "../store/db.js";
 import { deltaFromFacts, whatsNew } from "./text.js";
 
-// threads.ThreadStore, over the thread tables. Every row belongs to the run that wrote it: a
-// thread's label, last run and status are derived from its updates, never written. No method
-// commits on its own: the activities build one over a transaction (Db.tx) for each unit of identity,
-// so a retried attempt finds all of it or none of it.
-
-// How many recent update labels (the story arc) the linker sees per active thread.
 export const RECENT_LABELS_K = 4;
 
 export interface ActiveThread {
@@ -23,8 +17,6 @@ export interface RenderContext {
 export class ThreadStore {
   constructor(readonly db: Sql) {}
 
-  // Unmerged threads seen within the last `dormantAfter` SENT runs before this one (failed-run
-  // id gaps do not age a thread), labelled by their latest update.
   async activeThreads(beforeRunId: number, dormantAfter: number): Promise<ActiveThread[]> {
     const rows = await this.db.all<{ id: number; label: string }>(
       `SELECT t.id, l.label
@@ -69,7 +61,6 @@ export class ThreadStore {
     ).map((r) => r.question);
   }
 
-  // The thread's memory: the last `limit` runs' deltas, oldest first.
   async recentDeltas(threadId: number, limit = 3): Promise<string[]> {
     const rows = await this.db.all<{ content: string }>(
       "SELECT content FROM thread_updates WHERE thread_id = $1 AND content IS NOT NULL ORDER BY run_id DESC LIMIT $2",
@@ -89,7 +80,6 @@ export class ThreadStore {
     return row ? row.content : undefined;
   }
 
-  // What the render needs: the id, the "day N" count, and this run's delta ("" on a quiet day).
   async renderContext(threadId: number, runId: number): Promise<RenderContext> {
     const r = await this.db.one<{ n: number }>("SELECT COUNT(*) AS n FROM thread_updates WHERE thread_id = $1", [
       threadId,
@@ -101,7 +91,6 @@ export class ThreadStore {
     };
   }
 
-  // The thread's label is its first update's story label, which the caller records next.
   async createThread(runId: number): Promise<number> {
     return (await this.db.one<Pick<RowOf<"threads">, "id">>(
       "INSERT INTO threads (created_run_id) VALUES ($1) RETURNING id",
@@ -109,7 +98,6 @@ export class ThreadStore {
     ))!.id;
   }
 
-  // is_continuation: the linker continued an existing thread (a binary decision), rather than starting one.
   async addUpdate(threadId: number, runId: number, label: string, isNew: boolean): Promise<void> {
     await this.db.run(
       "INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES ($1, $2, $3, $4)",
@@ -134,7 +122,6 @@ export class ThreadStore {
       ]);
   }
 
-  // Every open question of that wording on the thread, as the Python's UPDATE resolves them.
   async resolveQuestion(threadId: number, question: string, runId: number, answer: string): Promise<void> {
     await this.db.run(
       `INSERT INTO thread_question_resolutions (question_id, resolved_run_id, answer)

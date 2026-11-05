@@ -27,14 +27,12 @@ export interface Differs {
 export interface AttributedClaim extends Claim {
   differs: Differs[];
 }
-// stale: a claim an article reports differently after every article stating it was published.
 export interface Stale {
   field: Claim["field"];
   text: string;
   article_id: string;
   published: string;
 }
-// unverified: articles said to state or differ on a claim whose quote is not in the article; never removed.
 export interface StoryAttribution {
   complete: boolean;
   unverified: string[];

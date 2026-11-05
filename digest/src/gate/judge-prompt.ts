@@ -1,5 +1,3 @@
-// A promptfoo prompt function: the rubric and the day's digest, every href and URL removed, since
-// the judges see the digest and the article CSVs, never URLs (spec §7.1).
 import { readFileSync } from "node:fs";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
 

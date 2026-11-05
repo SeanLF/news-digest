@@ -75,7 +75,6 @@ describe("preSendFailures", () => {
     expect(preSendFailures(input({ selections: s, threadContext: ctx }))).toEqual([
       "INTERNAL_ID_LEAK: 1 leak(s): thread delta 'A2' in 'Ceasefire holds'",
     ]);
-    // Two stories on one cluster: the render attaches neither delta, so none reaches readers.
     s.must_know[1]!.cluster_id = "ceasefire";
     expect(preSendFailures(input({ selections: s, threadContext: ctx }))).toEqual([]);
   });

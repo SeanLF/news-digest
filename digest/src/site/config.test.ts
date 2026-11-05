@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ConfigError, siteConfig } from "./config.js";
 
-// The opt-in misconfiguration the Rust server warned about and then worked around by adding every
-// signup unconfirmed is a refusal to start (spec §3).
 const SUBS = {
   RESEND_API_KEY: "re_x",
   RESEND_AUDIENCE_ID: "aud",

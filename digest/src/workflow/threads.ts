@@ -5,12 +5,8 @@ import type { Pointer } from "../store/artifacts.js";
 import { mapBounded, MODEL_FANOUT_LIMIT } from "./bounded.js";
 import { MODEL_MAX_ATTEMPTS } from "./policy.js";
 
-// The longest the render waits on threads. Production's phase takes a few minutes; retries at the
-// garnish's interval stay well inside this.
 export const THREADS_PHASE_TIMEOUT = "30 minutes";
 
-// Model calls retry as any other, but on a short interval: the render waits on this phase, and
-// what a failure costs is the badge, not the digest.
 const garnish = proxyActivities<Activities>({
   startToCloseTimeout: "15 minutes",
   heartbeatTimeout: "2 minutes",
@@ -24,10 +20,6 @@ const bookkeeping = proxyActivities<Activities>({
 const reason = (e: unknown): string =>
   e instanceof Error ? (e.cause instanceof Error ? e.cause.message : e.message) : String(e);
 
-// THREADS, best-effort as in production: link, synthesize each continuing thread (four at a time),
-// then record the phase and hand back the render's thread context. Nothing here fails the digest
-// except a cancellation of the workflow itself; a failure, or the phase outrunning its bound, is
-// carried to threadsFinish, which writes it down, and the render goes without the context.
 export async function threadsPhase(
   runId: number,
   force = false,
@@ -47,7 +39,7 @@ export async function threadsPhase(
     });
   } catch (e) {
     if (!isCancellation(e)) report.linkError = reason(e);
-    else if (CancellationScope.current().consideredCancelled) throw e; // the workflow's own cancellation
+    else if (CancellationScope.current().consideredCancelled) throw e;
     else report.timedOut = true;
   }
   try {

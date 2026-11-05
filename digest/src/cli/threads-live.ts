@@ -1,8 +1,3 @@
-// usage: threads-live RUN [--link-only]
-// The threads phase for one run, live, outside Temporal: link, synthesize each continuing thread in
-// turn (unless --link-only), finish, against DIGEST_DATABASE_URL, with every model call's usage recorded in model_calls. Point
-// it at a scratch database (bin/threads-oracle's pre.db, imported, is the run's state just before it). Prints what the
-// linker decided beside what the archive recorded, and what the phase cost.
 import { THREAD_ASSIGNMENTS, THREAD_LINKS, threadsActivities, threadsConfigFrom } from "../activities/threads.js";
 import { DEFAULT_AGENTS_DIR } from "../activities/real.js";
 import { ArtifactStore } from "../store/artifacts.js";
@@ -54,4 +49,4 @@ console.log(
     2,
   ),
 );
-process.exit(0); // the pool would otherwise hold the process open
+process.exit(0);

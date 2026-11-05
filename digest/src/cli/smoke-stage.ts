@@ -1,5 +1,3 @@
-// One live model call (~$0.01) proving the runner's plumbing on the subscription login:
-// no tools, a schema, expect {"structured":{"ok":true}}. See README for the command.
 import { runStage } from "../runner/run-stage.js";
 const r = await runStage(
   {

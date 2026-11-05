@@ -15,6 +15,5 @@ const Result = z.object({
 export const CoherenceReportSchema = z.object({ results: z.array(Result) });
 export type CoherenceReport = z.infer<typeof CoherenceReportSchema>;
 export function coherenceReportJsonSchema(): Record<string, unknown> {
-  // The Agent SDK validates against JSON Schema draft-07; zod targets 2020-12 by default.
   return z.toJSONSchema(CoherenceReportSchema, { target: "draft-07" });
 }

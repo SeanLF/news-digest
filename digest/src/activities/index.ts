@@ -2,21 +2,16 @@ import type { AlertRequest } from "../ops/alerts.js";
 import type { Pointer } from "../store/artifacts.js";
 export type { AlertRequest };
 
-// failStage is a test hook the stub honours; real activities ignore it.
 export interface DigestInput {
-  // Not the issue's date: a run is dated the UTC day it starts (runs.started_at). Empty from the schedule.
   runDate: string;
   resumeRun?: number;
   force?: boolean;
   failStage?: "select";
 }
-// One extraction batch: which articles a model call tags. Sized by the data, so the fan-out is a
-// workflow decision over a small payload, not a hidden loop inside one activity.
 export interface ExtractBatch {
   index: number;
   ids: string[];
 }
-// One selected story to write: SELECT's order and tier, its citations, and the evidence it may see.
 export interface StoryPlan {
   index: number;
   tier: "must_know" | "should_know";
@@ -25,26 +20,19 @@ export interface StoryPlan {
   clusterIndex?: number;
 }
 export type FulltextTask = [articleId: string, url: string];
-// What the Python fulltext activity returns: fulltext._collect_isolated's outcome, or "unavailable"
-// when nothing answered on its queue.
 export interface FulltextFetch {
   tasks: number;
   results: Record<string, string>;
   outcome: string;
 }
-// `existing`: the run already has its full text. `skip`: there is nothing to fetch, and why.
 export interface FulltextPlan {
   tasks: FulltextTask[];
   existing?: Pointer;
   skip?: "disabled" | "no_candidates";
 }
-// The activity the Python worker serves on PYTHON_TASK_QUEUE.
 export interface FulltextFetcher {
   fetchFulltext(tasks: FulltextTask[]): Promise<FulltextFetch>;
 }
-// What the `decodeLinks` activity returns: the links it was given, those it decoded, the decodes that
-// reached the network, and how the pass ended ("completed", "rate_limited", "deadline", "cancelled",
-// "busy"), or "failed" when it broke. Runs before the TypeScript decode also stored "unavailable".
 export interface GnewsDecode {
   links: number;
   decoded: Record<string, string>;
@@ -56,12 +44,9 @@ export interface GnewsPlan {
   existing?: Pointer;
   skip?: "disabled" | "no_candidates";
 }
-// The decode (gnews-decode.ts), proxied apart for its own timeouts and single attempt.
 export interface LinkDecoder {
   decodeLinks(urls: string[]): Promise<GnewsDecode>;
 }
-// THREADS: a continuing thread to synthesize, with its story's articles; what one synthesis
-// reported; and what the workflow saw of the whole phase, which the finish records.
 export interface ThreadPlan {
   threadId: number;
   articleIds: string[];
@@ -90,14 +75,10 @@ export interface FetchSummary {
 export interface DigestOutput {
   runId: number;
   stories: number;
-  // "disabled": BROADCAST_ENABLED is off, so nothing was published, like "rejected".
-  // "held-out": the run reached the send too late for the send and its record to fit the budget.
   broadcast: "sent" | "disabled" | "rejected" | "skipped" | "held-out";
   recipients?: number;
 }
 
-// The activity interface plan A2 fills, one function per stage; every model call and every
-// network fetch is an activity, and each returns a pointer into the artifact store, never a blob.
 export interface Activities extends LinkDecoder {
   startRun(input: DigestInput): Promise<{ runId: number; sourceIds: string[]; lastRun: string | null }>;
   fetchFeed(runId: number, sourceId: string, lastRun: string | null): Promise<FetchSummary>;
@@ -140,15 +121,12 @@ export interface Activities extends LinkDecoder {
   ): Promise<{ html: Pointer; email: Pointer }>;
   archiveRun(runId: number, selections: Pointer, clusters: Pointer): Promise<void>;
   sendEnabled(): Promise<boolean>;
-  // The pre-send checks (ops/pre-send.ts): one "CODE: detail" line per failure; none sends at once.
   checkPreSend(runId: number): Promise<string[]>;
-  // The hold's email: what failed, when the hold ends, and how to approve or reject.
   notifyHold(runId: number, selections: Pointer, holdEndsAt: string, failures: string[]): Promise<{ sent: boolean }>;
   saveDigest(runId: number, html: Pointer, selections: Pointer): Promise<{ date: string }>;
   broadcast(runId: number, email: Pointer): Promise<{ broadcastId: string; status: string; recipients: number }>;
   recordShownHeadlines(runId: number, selections: Pointer): Promise<{ rows: number }>;
   finishRun(runId: number, output: Omit<DigestOutput, "runId">): Promise<void>;
-  // Operations (src/activities/ops.ts): best-effort, none can fail a run.
   weeklyRecap(runId: number, force?: boolean): Promise<Pointer | null>;
   healthcheck(event: "start" | "success" | "fail", note?: string): Promise<void>;
   healthcheckLog(message: string): Promise<void>;
@@ -158,8 +136,5 @@ export interface Activities extends LinkDecoder {
   abortRun(runId: number, error: string): Promise<void>;
 }
 export const STORY_COUNT_STUB = 3;
-// What threads and gnews hand render: each story's thread context by cluster label, and each
-// decoded Google-News link. Named apart from the Python's thread_links.json trace, which a resumed
-// run's archive already holds.
 export const THREAD_CONTEXT = "thread_context.json";
 export const DECODED_LINKS = "gnews_links.json";

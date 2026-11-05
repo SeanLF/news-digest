@@ -37,15 +37,11 @@ import { OLDER_PAGE, threadDetail, threadIndex } from "./threads.js";
 import { SEARCH_LIMIT, isValidDate, sanitizeQuery } from "./text.js";
 import { proxyTarget, validQueryLang, validTranslatePath } from "./translate.js";
 
-// The web tier (docs/2026-09-23-web-tier-typescript-fork.md): every route, from the product database,
-// behind the security headers.
-
 export interface SiteDeps {
   cfg: SiteConfig;
   assets: Assets;
   catalogue: CatalogueEntry[];
   data: SiteData;
-  // The Resend client, when subscriptions are configured.
   mail: Mail | undefined;
   now: () => Date;
 }
@@ -59,10 +55,8 @@ const notAcceptable = (c: Context) =>
     "content-type": "text/plain; charset=utf-8",
     vary: "accept",
   });
-// A redirect the Rust server sent: 303 after a form, 307 temporary, 308 permanent.
 const redirect = (c: Context, to: string, status: 303 | 307 | 308) => c.body(null, status, { location: to });
 
-// A query parameter parsed as the Rust server's typed Query did: absent, a number, or a 400.
 function intQuery(c: Context, name: string, unsigned: boolean): number | undefined | Response {
   const raw = c.req.query(name);
   if (raw === undefined) return undefined;
@@ -72,8 +66,6 @@ function intQuery(c: Context, name: string, unsigned: boolean): number | undefin
   return ok ? Number(raw) : text(c, `Failed to deserialize query string: ${name}: invalid digit found in string`, 400);
 }
 
-// The paths the site answers and their methods, for a 405 (with Allow) where a path exists and the
-// method does not, as axum answered.
 const METHODS: [RegExp, string][] = [
   [/^\/subscribe$/, "POST"],
   [
@@ -86,10 +78,8 @@ const METHODS: [RegExp, string][] = [
   [/^\/[^/]+(\/translate)?$/, "GET,HEAD"],
 ];
 
-// The largest request body any route reads: the subscribe form is one address, far below this.
 const MAX_REQUEST_BYTES = 128 * 1024;
 
-// A database failure is a 503 with a generic sentence, logged; never a page that hides the outage.
 function unavailable(c: Context, what: string, e: unknown): Response {
   log.error({ site: "db", path: c.req.path, error: String(e) });
   return text(c, what, 503);
@@ -98,15 +88,11 @@ function unavailable(c: Context, what: string, e: unknown): Response {
 const bytes = (c: Context, b: Buffer | string, type: string, cache: string) =>
   c.body(typeof b === "string" ? b : new Uint8Array(b), 200, { "content-type": type, "cache-control": cache });
 
-// The threads cursor is usable only as a pair; half of one, or an empty `before`, is refused rather
-// than quietly served as the newest page.
 function cursor(c: Context): { updatedAt: string; id: number } | undefined | Response {
   const before = c.req.query("before");
   const id = intQuery(c, "before_id", false);
   if (id instanceof Response) return id;
   if (before === undefined && id === undefined) return undefined;
-  // Only the cursor the site itself writes: whole seconds, "YYYY-MM-DD HH:MM:SS". Anything else would
-  // fail a timestamp cast, or with a fraction repeat that second's rows.
   if (before && id !== undefined && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(before))
     return { updatedAt: before, id };
   if (before && id !== undefined) return text(c, "before must be a timestamp of the form YYYY-MM-DD HH:MM:SS", 400);
@@ -118,7 +104,6 @@ export function siteApp(deps: SiteDeps): Hono {
   const base = baseUrl(cfg);
   const link = (p: string) => `${base.replace(/\/+$/, "")}${p}`;
   const bias = biasMap(catalogue);
-  // Five attempts an hour from one address: far above a person, low enough to stop signup bombing.
   const subscribeLimiter = new RateLimiter(5, 3_600_000);
   const names = new Map(catalogue.map((s) => [s.id, s.name]));
   const app = new Hono({ strict: false });
@@ -128,10 +113,6 @@ export function siteApp(deps: SiteDeps): Hono {
   const nowMs = () => deps.now().getTime();
 
   app.use(...securityHeaders());
-  // Every body is bounded before anything reads it, chunked or not: axum's extractors capped at 2 MB,
-  // and an unbounded read is a way to exhaust the container's memory with one request.
-  // Read here, once, so a client that hangs up mid-body is a 400 before any handler runs, not a 500
-  // out of a handler.
   app.use(async (c, next) => {
     if (!c.req.raw.body) return next();
     const reader = c.req.raw.body.getReader();
@@ -157,7 +138,6 @@ export function siteApp(deps: SiteDeps): Hono {
     return text(c, "Internal Server Error", 500);
   });
 
-  // ── the index and the archive ──
   const indexMd = async (c: Context) => {
     const [meta, page] = await Promise.all([data.indexMeta(), fetchArchive(data, bias, { limit: 100 })]);
     return md(c, indexMarkdown(cfg.digestName, meta, page.issues, base), htmlLinkHeader("/"));
@@ -218,7 +198,6 @@ export function siteApp(deps: SiteDeps): Hono {
     }
   });
 
-  // ── issues ──
   app.get("/issues/:date/translate", async (c) => {
     const date = c.req.param("date");
     if (!isValidDate(date)) return text(c, "Invalid date format", 400);
@@ -235,7 +214,6 @@ export function siteApp(deps: SiteDeps): Hono {
   });
   app.get("/issues/:date", async (c) => {
     const raw = c.req.param("date");
-    // An explicit .md URL forces Markdown and never 406s.
     const explicit = raw.endsWith(".md");
     const date = explicit ? raw.slice(0, -3) : raw;
     if (!isValidDate(date)) return page404(c);
@@ -254,7 +232,6 @@ export function siteApp(deps: SiteDeps): Hono {
         `There's no issue dated ${date} in the archive — it may not have been published, or the date is off by a day.`,
       );
     if (want === "markdown") {
-      // Vary: the same URL answers a browser with the page.
       if (stored.markdown === null)
         return c.body(`No Markdown version of the issue dated ${date}; the web page is /issues/${date}.\n`, 404, {
           "content-type": "text/plain; charset=utf-8",
@@ -294,7 +271,6 @@ export function siteApp(deps: SiteDeps): Hono {
     ),
   );
 
-  // ── the framable lead story (seanfloyd.dev's homepage) ──
   const leaning = leaningOf(catalogue);
   app.get("/embed/lead", async (c) => {
     c.set("frameAncestors", cfg.embedAncestors);
@@ -304,13 +280,11 @@ export function siteApp(deps: SiteDeps): Hono {
     } catch (e) {
       return unavailable(c, "Digest unavailable", e);
     }
-    // A few minutes, so the frame picks up the morning's issue soon after it publishes.
     const headers = { "cache-control": "public, max-age=300" };
     if (!found) return c.html(embedEmptyPage(ctx, assets.tokensCss), 404, headers);
     return c.html(embedLeadPage(ctx, found.row, found.issue, leaning), 200, headers);
   });
 
-  // ── the feed and the discovery files ──
   app.get("/feed.xml", async (c) => {
     try {
       return c.body(atomFeed(cfg.digestName, base, await data.feed(FEED_ENTRY_LIMIT)), 200, {
@@ -331,9 +305,7 @@ export function siteApp(deps: SiteDeps): Hono {
     body += "\nEvery dated issue at `/issues/YYYY-MM-DD` also serves Markdown at `/issues/YYYY-MM-DD.md`.\n";
     return c.body(body, 200, { "content-type": "text/markdown; charset=utf-8" });
   });
-  // Redirects to the index rather than concatenating every issue: that grows without bound and is mostly stale.
   app.get("/llms-full.txt", (c) => redirect(c, "/index.md", 307));
-  // Crawlable, and consenting to be read and cited but not trained on (Content-Signal).
   app.get("/robots.txt", (c) =>
     text(c, "User-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\nAllow: /\n", 200),
   );
@@ -354,17 +326,14 @@ export function siteApp(deps: SiteDeps): Hono {
     }
   });
 
-  // ── static assets ──
   app.get("/favicon.ico", (c) => bytes(c, FAVICON_SVG, "image/svg+xml", "public, max-age=86400"));
   app.get("/apple-touch-icon.png", (c) => bytes(c, assets.appleTouchIcon, "image/png", "public, max-age=86400"));
   app.get("/apple-touch-icon-precomposed.png", (c) =>
     bytes(c, assets.appleTouchIcon, "image/png", "public, max-age=86400"),
   );
   app.get("/og-image.png", (c) => bytes(c, assets.ogImage, "image/png", "public, max-age=31536000, immutable"));
-  // The path carries the font's hash, so it is cached for a year.
   app.get(assets.fontUrl, (c) => bytes(c, assets.font, "font/woff2", "public, max-age=31536000, immutable"));
 
-  // ── pages ──
   app.get("/sources", (c) => c.html(sourcesPage(ctx, sourceRows(catalogue))));
   app.get("/feedback", (c) => c.html(feedbackPage(ctx)));
   app.get("/search", async (c) => {
@@ -397,7 +366,6 @@ export function siteApp(deps: SiteDeps): Hono {
     }
   });
 
-  // ── threads ──
   const threadsRoute = (fragment: boolean) => async (c: Context) => {
     const cur = cursor(c);
     if (cur instanceof Response) return cur;
@@ -427,13 +395,10 @@ export function siteApp(deps: SiteDeps): Hono {
     return c.html(threadPage(ctx, id, d));
   });
 
-  // ── subscribe ──
-  // POST-only paths a GET would otherwise reach through the legacy /:date route.
   app.get("/subscribe", (c) => c.body(null, 405, { allow: "POST" }));
   app.post("/subscribe", async (c) => {
     const form: Record<string, unknown> = await c.req.parseBody().catch(() => ({}));
     const email = typeof form["email"] === "string" ? form["email"].trim().toLowerCase() : "";
-    // The address is never logged, and the IP only ever keys the limiter.
     if (!isValidEmail(email)) return redirect(c, "/?subscribe_invalid=1", 303);
     if (!subscribeLimiter.check(clientKey(c.req.header("x-forwarded-for")), nowMs()))
       return redirect(c, "/?subscribe_ratelimited=1", 303);
@@ -442,7 +407,6 @@ export function siteApp(deps: SiteDeps): Hono {
       return redirect(c, "/?subscribe_error=1", 303);
     }
     if (cfg.doubleOptIn) {
-      // siteConfig refused to start without the secret, the domain and a sender.
       const token = makeToken(cfg.subscribeTokenSecret!, email, Math.floor(nowMs() / 1000) + CONFIRM_TTL_S);
       const ok = await sendConfirmation(cfg, deps.mail, email, `${base}/confirm?token=${token}`);
       if (ok) log.info({ site: "subscribe", event: "confirmation sent" });
@@ -465,7 +429,6 @@ export function siteApp(deps: SiteDeps): Hono {
     return redirect(c, ok ? "/?subscribed=1" : "/?subscribe_error=1", 303);
   });
 
-  // ── legacy permalinks: registered last, so every named route above wins ──
   app.get("/:date/translate", (c) => {
     const date = c.req.param("date");
     if (!isValidDate(date)) return page404(c);
@@ -474,7 +437,6 @@ export function siteApp(deps: SiteDeps): Hono {
   });
   app.get("/:date", (c) => {
     const raw = c.req.param("date");
-    // The .md suffix is kept out of the date check and carried across, for old /2026-07-03.md links.
     const [bare, suffix] = raw.endsWith(".md") ? [raw.slice(0, -3), ".md"] : [raw, ""];
     if (!isValidDate(bare)) return page404(c);
     return redirect(c, `/issues/${bare}${suffix}`, 308);

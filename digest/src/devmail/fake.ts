@@ -3,21 +3,16 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { htmlEscape } from "escape-goat";
 import { Hono, type Context } from "hono";
 
-// A stand-in for the Resend API on the dev stack (resend-fake in docker-compose.yml): the slice the
-// worker and the site call, recorded and shown at /. Nothing leaves the container. Adopted
-// nothing because nothing maintained fakes broadcasts or segments (resend-box fakes POST /emails only).
-
 export interface Message {
   id: string;
   kind: "email" | "broadcast";
   createdAt: string;
   from: string;
-  to: string[]; // a broadcast's: the segment's subscribed contacts when it was sent
+  to: string[];
   subject: string;
   html: string;
   text?: string;
   replyTo?: string[];
-  // broadcasts only
   name?: string;
   segmentId?: string;
   status?: "draft" | "sent";
@@ -39,7 +34,6 @@ export interface ResendFake {
 type Body = Record<string, unknown>;
 const list = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : typeof v === "string" && v ? [v] : []);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined);
-// Resend's error body; the SDK hands it back as `{ error }`.
 const fail = (statusCode: 401 | 404 | 422, name: string, message: string): Response =>
   Response.json({ statusCode, name, message }, { status: statusCode });
 const body = async (c: Context): Promise<Body> => ((await c.req.json().catch(() => ({}))) as Body | null) ?? {};
@@ -52,7 +46,6 @@ interface State {
   segments: Record<string, Contact[]>;
   idempotent: Record<string, string>;
 }
-// A file that is there but unreadable stops the fake: starting empty would write over the audience.
 function load(file: string): State | undefined {
   if (!existsSync(file)) return undefined;
   try {
@@ -74,8 +67,6 @@ function load(file: string): State | undefined {
   }
 }
 
-// With stateFile, every change is written through (whole file, then renamed over), so a restart keeps
-// the dev audience and what was caught. Without it, memory only (the tests').
 export function resendFake(opts: { now?: () => Date; stateFile?: string } = {}): ResendFake {
   const now = () => (opts.now ?? (() => new Date()))().toISOString();
   const kept = opts.stateFile ? load(opts.stateFile) : undefined;
@@ -92,12 +83,11 @@ export function resendFake(opts: { now?: () => Date; stateFile?: string } = {}):
     writeFileSync(`${opts.stateFile}.tmp`, JSON.stringify(state));
     renameSync(`${opts.stateFile}.tmp`, opts.stateFile);
   };
-  if (!kept) save(); // a state file that cannot be written fails the start, not the first subscribe
+  if (!kept) save();
   const app = new Hono({ strict: false });
   const segment = (id: string): Contact[] => segments.get(id) ?? segments.set(id, []).get(id)!;
   const byId = (id: string) => messages.find((m) => m.id === id);
 
-  // The API: every call carries a key, as Resend requires; any key will do.
   const api = new Hono();
   api.use("*", async (c, next) => {
     if (!/^Bearer \S+/.test(c.req.header("authorization") ?? ""))
@@ -128,7 +118,6 @@ export function resendFake(opts: { now?: () => Date; stateFile?: string } = {}):
     save();
     return c.json({ id: m.id });
   });
-  // The deprecated audience door the site uses; Resend upserts on the address.
   api.post("/audiences/:segment/contacts", async (c) => {
     const email = str((await body(c))["email"]);
     if (!email) return fail(422, "validation_error", "email is required");
@@ -206,12 +195,10 @@ export function resendFake(opts: { now?: () => Date; stateFile?: string } = {}):
       sent_at: m.sentAt,
     });
   });
-  // Anything else Resend has and this does not is a loud failure, never a quiet success.
   api.all("*", (c) =>
     fail(404, "not_found", `resend-fake does not implement ${c.req.method} ${new URL(c.req.url).pathname}`),
   );
 
-  // The viewer. Message bodies render only inside a sandboxed frame, as a mail client would.
   app.get("/", (c) => {
     const rows = messages
       .toReversed()
@@ -255,8 +242,6 @@ export function resendFake(opts: { now?: () => Date; stateFile?: string } = {}):
     });
   });
   app.get("/api/messages", (c) => c.json(messages));
-  // make dev-mail-clear: messages, contacts and idempotency keys, all of it. The header forces a CORS
-  // preflight, so a page open in a local browser cannot wipe the dev audience with a plain form POST.
   app.post("/api/reset", (c) => {
     if (c.req.header("x-resend-fake-reset") !== "yes") return c.json({ error: "send x-resend-fake-reset: yes" }, 400);
     const cleared = { messages: messages.length, contacts: [...segments.values()].reduce((n, xs) => n + xs.length, 0) };

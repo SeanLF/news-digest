@@ -14,7 +14,6 @@ afterAll(async () => {
   await env?.teardown();
 });
 
-// A synthesis that does not answer within the bound: it ends when cancelled, or after 10 s.
 const slow = () =>
   new Promise<never>((_resolve, reject) => {
     const t = setTimeout(() => reject(new Error("too slow")), 10_000);
@@ -45,6 +44,6 @@ it("a phase that outruns its bound is cut off and recorded, and the render gets 
   await worker.runUntil(
     env.client.workflow.execute(ThreadsPhaseProbe, { taskQueue, workflowId: "threads-bound", args: [1, "2 seconds"] }),
   );
-  expect(Date.now() - started).toBeLessThan(9_000); // the bound, not the slow synthesis, ended the phase
+  expect(Date.now() - started).toBeLessThan(9_000);
   expect(reports).toEqual([{ outcomes: [], failures: [], timedOut: true }]);
 }, 120_000);

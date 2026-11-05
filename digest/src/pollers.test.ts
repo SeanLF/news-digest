@@ -14,7 +14,6 @@ const client = (pollers: Record<string, unknown[]>, seen: unknown[] = []) =>
     },
   }) as unknown as Client;
 
-// Against a real server in deployment.temporal.test.ts ("missingPollers on a dev server").
 describe("missingPollers", () => {
   it("names each queue with no poller, and asks for the activity queue in the client's namespace", async () => {
     const seen: unknown[] = [];

@@ -52,7 +52,7 @@ describe("run lifecycle", () => {
     await db.exec("INSERT INTO runs (started_at, status, outcome) VALUES ('2026-09-18 10:25:40', 'completed', 'sent')");
     await db.exec(
       "INSERT INTO runs (started_at, status, outcome) VALUES ('2026-09-18 12:00:00', 'completed', 'rejected')",
-    ); // not sent, so not the last run
+    );
     const { runId, sourceIds, lastRun } = await acts.startRun({ runDate: "2026-09-19" });
     expect(sourceIds).toEqual(["f"]);
     expect(lastRun).toBe("2026-09-18 10:25:40");
@@ -60,7 +60,7 @@ describe("run lifecycle", () => {
       "id,name,bias,factuality,perspective\nf,F,center,high,global\n",
     );
     expect(await acts.fetchFeed(runId, "f", lastRun)).toEqual({ sourceId: "f", ok: true, fetched: 2, kept: 1 });
-    expect(await acts.fetchFeed(runId, "f", lastRun)).toEqual({ sourceId: "f", ok: true, fetched: 2, kept: 1 }); // resume: no refetch
+    expect(await acts.fetchFeed(runId, "f", lastRun)).toEqual({ sourceId: "f", ok: true, fetched: 2, kept: 1 });
     expect(calls()).toBe(1);
     expect(await db.all("SELECT title FROM articles WHERE run_id=$1", [runId])).toEqual([{ title: "New" }]);
     await acts.finishRun(runId, { stories: 0, broadcast: "rejected" });
@@ -68,7 +68,6 @@ describe("run lifecycle", () => {
       status: "completed",
       outcome: "rejected",
     });
-    // A rejected run may be resumed, and then sent.
     await db.run("UPDATE runs SET status='running', outcome=NULL WHERE id=$1", [runId]);
     await acts.finishRun(runId, { stories: 17, broadcast: "sent", recipients: 12 });
     expect(await db.one("SELECT status, outcome FROM runs WHERE id=$1", [runId])).toEqual({
@@ -122,7 +121,7 @@ describe("run lifecycle", () => {
       workflowExecution: { workflowId: "digest-2026-09-18", runId: "exec-2" },
     });
     await env.run(() => acts.startRun({ runDate: "2026-09-18", resumeRun: 7 }));
-    await env.run(() => acts.startRun({ runDate: "2026-09-18", resumeRun: 7 })); // a retry: no second attempt
+    await env.run(() => acts.startRun({ runDate: "2026-09-18", resumeRun: 7 }));
     await new MockActivityEnvironment({ workflowExecution: { workflowId: "digest-2026-09-19", runId: "exec-3" } }).run(
       () => acts.startRun({ runDate: "2026-09-19", resumeRun: 8 }),
     );
@@ -150,8 +149,6 @@ describe("run lifecycle", () => {
       await db.one("SELECT status, ended_at IS NOT NULL AS ended FROM run_attempts WHERE workflow_run_id='exec-9'"),
     ).toEqual({ status: "completed", ended: true });
   });
-  // The 2026-06-16 pattern: the issue went up, the send failed, the run failed. It was never sent, so
-  // it resumes and sends, and a forced start of its day ages its articles from the last SENT run.
   it("a run whose issue is on the web but whose send failed resumes and sends, and is not the last run", async () => {
     const { db, store, acts } = await setup();
     await db.exec(
@@ -185,7 +182,6 @@ describe("run lifecycle", () => {
       await db.exec(`INSERT INTO runs (started_at, status, outcome) VALUES ('${today} 10:25:40', 'completed', 'sent')`);
       await expect(acts.startRun({ runDate: today })).rejects.toMatchObject({ type: "AlreadyRan", nonRetryable: true });
     });
-    // The run is dated the day it starts whatever runDate says, so the guard asks about that day.
     it("guards the day the run will be dated, not the day runDate names", async () => {
       const { db, acts } = await setup();
       await db.exec(`INSERT INTO runs (started_at, status, outcome) VALUES ('${today} 10:25:40', 'completed', 'sent')`);
@@ -195,7 +191,6 @@ describe("run lifecycle", () => {
     });
     it("refuses while another run of the day started within the last 4 h and is still running", async () => {
       const { db, acts } = await setup();
-      // Clamped to today (UTC): between 00:00 and 00:30Z, 30 minutes ago is yesterday and the guard rightly ignores it.
       await db.exec(
         "INSERT INTO runs (started_at, status) VALUES (GREATEST(now() - interval '30 minutes', date_trunc('day', now(), 'UTC') + interval '1 second'), 'running')",
       );
@@ -221,7 +216,6 @@ describe("run lifecycle", () => {
       );
       const real = new ArtifactStore(url);
       let failNext = true;
-      // Fails once, after startRun's INSERT has committed: the retry is what this test is about.
       const store = new Proxy(real, {
         get(target, prop, receiver) {
           if (prop === "put" && failNext)
@@ -247,7 +241,6 @@ describe("run lifecycle", () => {
         { run_id: retried.runId, workflow_run_id: "exec-1" },
       ]);
       expect(retried.sourceIds).toEqual(["f"]);
-      // A different execution the same day is still refused while that run is running.
       const other = new MockActivityEnvironment({
         workflowExecution: { workflowId: "digest-manual", runId: "exec-2" },
       });

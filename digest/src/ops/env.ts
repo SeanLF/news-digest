@@ -1,8 +1,6 @@
 import { resendBaseUrl } from "../resend/destination.js";
 import { holdAlwaysInvalid } from "./cutover-hold.js";
 
-// One line naming what the worker's environment leaves silent, logged at startup: an alert, a ping or a
-// send that cannot happen is otherwise found out only on the day it was needed. Null when all is set.
 export function operationsEnvWarning(env: Record<string, string | undefined>): string | null {
   const unset = (names: string[]) => names.filter((n) => !env[n]);
   const parts: string[] = [];

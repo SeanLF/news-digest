@@ -90,7 +90,6 @@ describe("repair", () => {
       )[0]?.status,
     ).toBe("recheck_failed");
     expect(resolve(applied, { results: [] }, scoped)[0]?.status).toBe("recheck_failed");
-    // a failure matched only by headline still fails the recheck
     expect(
       resolve(
         applied,
@@ -133,7 +132,6 @@ const ok = (structured: unknown) =>
     session_id: "s",
   }) as unknown as SDKMessage;
 
-// One fake answers both calls: the repairer (whose system prompt is repair.md) and the recheck.
 function model(opts: { patch?: unknown; recheckPass?: boolean; fail?: Error }): { q: SdkQuery; calls: string[] } {
   const calls: string[] = [];
   const q = (({ options }: { prompt: string; options?: Options }) => {
@@ -226,7 +224,7 @@ describe("repair activity", () => {
   });
   it("a fault on the last attempt is recorded as the answer, never as a repair", async () => {
     const { run, doc } = await activitySetup(model({ fail: new Error("529 overloaded") }));
-    await run(); // outside an activity every attempt is the last
+    await run();
     expect((await doc()).fault).toMatch(/529/);
     expect((await doc()).results.every((r) => r.status !== "repaired")).toBe(true);
   });

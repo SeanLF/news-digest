@@ -1,8 +1,6 @@
 import type { Sql } from "../store/db.js";
 import { COHERENCE_FIELDS, FAILURE_KINDS } from "../contracts/coherence.js";
 
-// The post-run health rules, over the run tables. The keys stay snake_case and the messages
-// byte-identical to the Python pipeline's, so archived runs and new ones read alike.
 export interface RunHealth {
   run_id: number;
   shipped: number;
@@ -32,10 +30,8 @@ export interface RunHealth {
   stale_figures?: number | null;
 }
 
-// Python's str() of a value interpolated into a message.
 const py = (v: string | number | boolean | null): string =>
   v === null ? "None" : v === true ? "True" : v === false ? "False" : String(v);
-// Python's `:.0f`: round half to even.
 function fixed0(x: number): string {
   const floor = Math.floor(x);
   const r = x - floor === 0.5 ? (floor % 2 === 0 ? floor : floor + 1) : Math.round(x);
@@ -128,7 +124,6 @@ export const REQUIRED_KEYS: ReadonlySet<string> = new Set([
   "must_know_shipped",
 ]);
 
-// One readable line per violated invariant; empty means healthy.
 export function violations(health: RunHealth): string[] {
   const missing = [...REQUIRED_KEYS].filter((k) => !(k in health)).toSorted();
   if (missing.length)
@@ -148,8 +143,6 @@ export interface KindCounts {
 const isKind = (k: unknown): k is keyof KindCounts => (FAILURE_KINDS as readonly unknown[]).includes(k);
 const isField = (f: string): boolean => (COHERENCE_FIELDS as readonly string[]).includes(f);
 
-// Per-field counts of the checker's failure kinds over the fields it named; a failed story naming
-// none counts once as unlabelled. Null when there is no readable report. Not a rule.
 export function coherenceKindCounts(reportText: string | null | undefined): KindCounts | null {
   if (!reportText) return null;
   let doc: unknown;
@@ -183,9 +176,6 @@ export function coherenceKindCounts(reportText: string | null | undefined): Kind
   return counts;
 }
 
-// db.get_run_health, over the product schema. The artifact fields are read as SQLite's json_extract
-// read them in the Python's query, so a malformed artifact blanks only the field it feeds: a number
-// or string as itself, a boolean as 1 or 0, null or absent as null, an object or array as its text.
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 const parsed = (text: string | undefined): Json | undefined => {
   if (text === undefined) return undefined;
@@ -205,10 +195,8 @@ function extract(doc: Json | undefined, key: string): number | string | null {
   if (typeof v === "number" || typeof v === "string") return v;
   return JSON.stringify(v);
 }
-// Passed through as json_extract gives it: the rules read a wrong-typed value as the Python does.
 const num = (v: number | string | null): number | null => v as number | null;
 const str = (v: number | string | null): string | null => v as string | null;
-// SQLite's `value ->> '$.k'` on one element: text of a scalar, NULL off an object.
 const textOf = (v: Json | undefined, key: string): string | null => {
   if (!isObj(v)) return null;
   const x = v[key];
@@ -217,10 +205,6 @@ const textOf = (v: Json | undefined, key: string): string | null => {
   return typeof x === "string" ? x : typeof x === "number" ? String(x) : JSON.stringify(x);
 };
 
-// `broadcasting`, `threadsEnabled` and `dormantAfter` are the run's own configuration, not DB state;
-// `usageRowsDropped` is process state (rows that never reached the table cannot be counted from it).
-// threads_available is what the run's linker could have been offered: published threads last seen
-// within `dormantAfter` sent runs before this one, as ThreadStore.activeThreads counts them.
 export async function getRunHealth(
   db: Sql,
   runId: number,
@@ -307,7 +291,6 @@ export async function getRunHealth(
         : stories.some((s) => !isObj(s))
           ? null
           : stories.filter((s) => isObj(s) && s["refused"] === "already_claimed").length,
-    // Only 1 and 0 are answers; anything else in that slot is a malformed trace, never "healthy".
     linker_ok: linkerOk === 1 ? true : linkerOk === 0 ? false : null,
     repair_outcome: str(extract(repair, "outcome")),
     repair_detail: str(extract(repair, "detail")),
@@ -322,6 +305,5 @@ export async function getRunHealth(
   };
 }
 
-// The config flag the Python reads (config.THREADS_ENABLED), parsed the same way.
 export const threadsEnabled = (env: NodeJS.ProcessEnv = process.env): boolean =>
   ["1", "true", "yes"].includes((env["THREADS_ENABLED"] ?? "false").toLowerCase());

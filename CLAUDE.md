@@ -86,3 +86,6 @@ Check `.claude/tasks/todo.md` for tasks that persist across sessions (not tracke
 - Don't skip deduplication
 - Don't hardcode paths or emails
 - Don't fabricate details not in the RSS summary or fetched article text
+- Don't write comments in `digest/src`, `digest/templates` or `design/` (`npm run lint` fails on them): a rule
+  goes in a test, type or schema, a test's reason in its name, and history in git. Directives and
+  generated banners are the exception. Prompts (`digest/agents/*.md`) are not code.

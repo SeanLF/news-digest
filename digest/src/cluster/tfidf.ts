@@ -1,6 +1,3 @@
-// sklearn TfidfVectorizer() defaults, reproduced: lowercase, token pattern `\b\w\w+\b`, raw term
-// counts, idf = ln((1 + n) / (1 + df)) + 1 (smooth_idf), l2-normalised rows. Cosine similarity of two
-// rows is then their dot product. The join's fidelity test holds this equal to the archived output.
 const TOKENS = /[\p{L}\p{N}_]{2,}/gu;
 
 export type SparseVec = Map<string, number>;

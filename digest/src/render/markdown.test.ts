@@ -10,8 +10,6 @@ const edge = () =>
   JSON.parse(readFileSync(new URL("./fixtures/edge_selections.json", import.meta.url), "utf8")) as Selections;
 const kitchenSink = () =>
   JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections;
-// The web page fills a {{DATE}} that editorial text quotes (the Python's order of fills, kept for
-// parity); the Markdown keeps it literal. That one difference aside, they are the same document.
 const edgeNoPlaceholder = (): Selections =>
   JSON.parse(JSON.stringify(edge()).replaceAll("{{DATE}}", "a date")) as Selections;
 const env = {
@@ -30,7 +28,6 @@ const input = (selections: Selections, over: Partial<RenderInput["env"]> = {}): 
 });
 
 describe("the issue as Markdown, from the selections", () => {
-  // The contract: the document agents got when the site converted the rendered page at request time.
   it.each([
     ["edge", input(edgeNoPlaceholder())],
     ["kitchen sink", input(kitchenSink())],
@@ -40,7 +37,6 @@ describe("the issue as Markdown, from the selections", () => {
     const fromHtml = issueMarkdownBody(renderWeb(i), "2026-09-18");
     const ours = renderMarkdown(i);
     expect(fromHtml).toBeDefined();
-    // Story by story, so a failure names the one that differs.
     if (!sameDocument(fromHtml!, ours)) expect(rendered(ours).split("<h3>")).toEqual(rendered(fromHtml!).split("<h3>"));
     expect(sameDocument(fromHtml!, ours)).toBe(true);
   });

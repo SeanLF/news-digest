@@ -36,31 +36,25 @@ export const DEFAULT_AGENTS_DIR = "/app/digest/agents";
 const sourcesFile = (): string => process.env["SOURCES_FILE"] ?? "/app/sources.json";
 const notFetched = (): Set<string> => notFetchedSources(JSON.parse(readFileSync(sourcesFile(), "utf8")));
 const agentsDir = (): string => process.env["AGENTS_DIR"] ?? DEFAULT_AGENTS_DIR;
-// The issue's template and stylesheet and the shared design tokens, copied into the image.
 const renderAssets = () =>
   loadAssets({
     templates: process.env["TEMPLATES_DIR"] ?? "/app/digest/templates",
     design: process.env["DESIGN_DIR"] ?? "/app/design",
   });
 
-// The worker's activity set: real activities as they are ported (plan A2), stubs for the rest.
 const safeHeartbeat = () => {
   try {
     heartbeat();
-  } catch {
-    /* outside an activity context (tests, CLIs) there is nothing to beat */
-  }
+  } catch {}
 };
 const safeSignal = (): AbortSignal | undefined => {
   try {
     return Context.current().cancellationSignal;
   } catch {
-    return undefined; // outside an activity there is nothing to cancel
+    return undefined;
   }
 };
 
-// Built on first use: the client refuses to construct without RESEND_API_KEY, which a worker with
-// the send disabled need not have.
 let resend: Mail | undefined;
 const mailClient = (): Mail => (resend ??= resendClient(process.env["RESEND_API_KEY"] ?? "", { signal: safeSignal }));
 
@@ -68,7 +62,6 @@ export function workerActivities(): Activities {
   const store = new ArtifactStore(dbUrl());
   const usageDb = openDb(dbUrl());
   const hc = healthcheck(process.env);
-  // Each finished model call is also a progress line off-box, so a hung run is visible while it hangs.
   const log = async (row: UsageRow) => {
     await recordUsage(usageDb, row);
     void hc.log(stageDoneLine(row));

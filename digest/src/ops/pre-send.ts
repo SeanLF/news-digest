@@ -3,17 +3,6 @@ import { SelectionsSchema, type Selections } from "../contracts/selections.js";
 import type { RowOf, Sql } from "../store/db.js";
 import { getRunHealth, violations } from "./run-health.js";
 
-// The checks a run must pass to send without a hold (spec §2.3, 2026-09-24). Each is an existing
-// grader or invariant, evaluated on the assembled issue before anything reaches readers:
-//   INTERNAL_ID_LEAK        eval_graders no_internal_article_ids (the regression gate's), and the
-//                           thread deltas it documents it cannot see
-//   EMPTY_FIELD             eval_graders no_empty_strings, headline and summary
-//   STORY_COUNT             eval_graders story_counts_in_range, its GraderLimits ranges
-//   STORIES_DROPPED_AT_COHERENCE  assemble's drops: flagged by COHERENCE, not repaired
-//   THREAD_AUDIT_FAILED     thread_health.json audit_failures: unchecked facts shipped
-//   and the run-health rules in PRE_SEND_RULES.
-// The preheader cap and non-empty sources are not here: assemble truncates the one and the contract
-// refuses the other, so no run that reaches the send can fail them.
 export const PRE_SEND_RULES: readonly string[] = [
   "BLANKED_WHY_IT_MATTERS",
   "STORIES_DROPPED_AT_WRITE",
@@ -33,7 +22,6 @@ export interface PreSendInput {
 const TIERS = ["must_know", "should_know"] as const;
 const quote = (s: string) => `'${s.slice(0, 50).replaceAll("'", "\\'")}'`;
 
-// One line per failed check, "CODE: detail"; empty means the run sends without a hold.
 export function preSendFailures(i: PreSendInput): string[] {
   const { selections: sel } = i;
   const stories = TIERS.flatMap((tier) => sel[tier].map((s) => ({ tier, s })));
@@ -52,7 +40,6 @@ export function preSendFailures(i: PreSendInput): string[] {
     for (const e of s.reporting_varies ?? [])
       for (const k of ["source", "angle", "bias"] as const) fields.push([`reporting_varies.${k}`, e[k]]);
     for (const c of s.claims ?? []) fields.push(["claims.text", c.text]);
-    // The render attaches a delta only to a story whose cluster no other story shares.
     const shared = stories.filter((o) => o.s.cluster_id === s.cluster_id).length > 1;
     const delta = s.cluster_id !== undefined && !shared ? i.threadContext?.[s.cluster_id]?.delta : undefined;
     for (const [f, text] of fields)
@@ -75,8 +62,6 @@ export function preSendFailures(i: PreSendInput): string[] {
   if (counts.length) out.push(`STORY_COUNT: ${counts.join("; ")}`);
 
   if (i.draft) {
-    // Assemble keeps each tier's order and only removes citations (unbacked ones), so walk the drafts
-    // in step with the shipped stories: a draft survives when the next shipped story cites a subset of it.
     const dropped = TIERS.flatMap((tier) => {
       const shipped = sel[tier].map((s) => new Set(s.sources.map((x) => x.article_id)));
       let next = 0;
@@ -114,8 +99,6 @@ const artifact = async (db: Sql, runId: number, name: string): Promise<unknown> 
   return row ? (JSON.parse(row.content) as unknown) : null;
 };
 
-// The run's inputs to the checks, from its current artifacts. A run with no readable selections
-// cannot be judged: that throws, and the workflow holds it as a failed check.
 export async function readPreSend(
   db: Sql,
   runId: number,

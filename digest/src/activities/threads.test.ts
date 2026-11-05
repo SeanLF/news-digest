@@ -41,7 +41,6 @@ interface Call {
   prompt: string;
   options: Options;
 }
-// Answers by stage, in order; an Error answer is thrown by the call.
 function fakeQuery(answers: Partial<Record<Stage, unknown[]>>, calls: Call[]): SdkQuery {
   return (({ prompt, options }: { prompt: string; options: Options }) => {
     const stage = stageOf(typeof options.systemPrompt === "string" ? options.systemPrompt : "");
@@ -130,17 +129,14 @@ async function setup(
   return { url, db, store, calls, usage, acts, rows };
 }
 
-// Every thread as the pipeline sees it, published or not: label and last run from its installments.
 const THREADS = `(SELECT t.id, t.created_run_id AS first_run_id,
     (SELECT label FROM thread_updates i WHERE i.thread_id = t.id ORDER BY run_id DESC, id DESC LIMIT 1) AS label,
     (SELECT max(run_id) FROM thread_updates i WHERE i.thread_id = t.id) AS last_run_id
   FROM threads t) AS threads`;
-// Every question with its resolution, if any run resolved it.
 const QUESTIONS = `(SELECT q.id, q.question, q.raised_run_id, r.resolved_run_id,
     CASE WHEN r.question_id IS NULL THEN 'open' ELSE 'resolved' END AS status
   FROM thread_questions q LEFT JOIN thread_question_resolutions r ON r.question_id = q.id) AS thread_questions`;
 
-// A thread the run can continue: seen in run 299 with a synthesized installment and an open question.
 async function seedThread(db: Db): Promise<number> {
   const id = (await db.one<{ id: number }>("INSERT INTO threads (created_run_id) VALUES (298) RETURNING id"))!.id;
   await db.run(
@@ -157,7 +153,6 @@ async function seedThread(db: Db): Promise<number> {
   );
   return id;
 }
-// Fixtures that rewrite a run's history in a way the lifecycle trigger forbids (a completed run failed).
 async function rewrite(db: Db, sql: string, params: unknown[] = []): Promise<void> {
   await db.tx(async (t) => {
     await t.exec("ALTER TABLE runs DISABLE TRIGGER runs_transition");
@@ -167,7 +162,6 @@ async function rewrite(db: Db, sql: string, params: unknown[] = []): Promise<voi
 }
 const sent = (db: Db, id: number) =>
   rewrite(db, "UPDATE runs SET status = 'completed', outcome = 'sent' WHERE id = $1", [id]);
-// The day's issue, and its send in `status` (with an id when a draft exists).
 async function publish(
   db: Db,
   runId: number,
@@ -238,7 +232,7 @@ describe("threadsLink", () => {
       "ACTIVE THREADS:\n  [1] Iran nuclear talks open -> Iran nuclear talks\n\nTODAY'S STORIES:\n  (0) Iran talks in Geneva\n  (1) EU AI act\n\nMap each today-story to a thread id or NEW.",
     );
     expect(s.calls[0]!.options.model).toBe("claude-haiku-5-5");
-    expect(s.calls[0]!.options.outputFormat).toBeUndefined(); // free text: the schema cost a continuation a day
+    expect(s.calls[0]!.options.outputFormat).toBeUndefined();
     expect(await s.rows(`SELECT id, label, last_run_id FROM ${THREADS} ORDER BY id`)).toEqual([
       { id: 1, label: "Iran talks in Geneva", last_run_id: RUN },
       { id: 2, label: "EU AI act", last_run_id: RUN },
@@ -287,7 +281,7 @@ describe("threadsLink", () => {
 
   it("an attempt that fails mid-commit leaves no identity behind", async () => {
     const s = await setup();
-    await s.store.put(RUN, THREAD_LINKS, "{}"); // the commit's own record already taken: its insert fails last
+    await s.store.put(RUN, THREAD_LINKS, "{}");
     await expect(s.acts.threadsLink(RUN)).rejects.toThrow(/duplicate key/);
     expect(await s.rows("SELECT COUNT(*) AS n FROM threads")).toEqual([{ n: 0 }]);
     expect(await s.rows("SELECT COUNT(*) AS n FROM thread_updates")).toEqual([{ n: 0 }]);
@@ -351,7 +345,7 @@ describe("threadsLink", () => {
       "INSERT INTO threads (id, created_run_id) VALUES (50, 297); INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (50, 297, 'Old', false)",
     );
     await s.acts.threadsLink(RUN);
-    expect(s.calls).toHaveLength(0); // not a candidate, so nothing to ask
+    expect(s.calls).toHaveLength(0);
   });
 
   it("does nothing when disabled", async () => {
@@ -604,7 +598,7 @@ describe("a forced re-run", () => {
     expect(await s.acts.threadsLink(RUN, true)).toEqual({ plans: [] });
     expect(s.calls.filter((c) => c.stage === "link").at(-1)!.prompt).toContain(
       "[1] Iran nuclear talks open -> Iran nuclear talks\n",
-    ); // the arc as it stood before the run
+    );
     expect(await s.rows(`SELECT thread_id, label FROM thread_updates WHERE run_id = ${RUN}`)).toEqual([
       { thread_id: 3, label: "EU AI act" },
     ]);
@@ -798,7 +792,7 @@ describe("threadsConfigFrom", () => {
       latebind: { threshold: 0.35, maxExtra: 12 },
       digestDomain: "",
     });
-    expect(threadsConfigFrom({ THREADS_ENABLED: "on" }).enabled).toBe(false); // config.py reads only 1, true, yes
+    expect(threadsConfigFrom({ THREADS_ENABLED: "on" }).enabled).toBe(false);
   });
   it.each([
     ["THREAD_DORMANT_AFTER", "three"],
@@ -881,7 +875,7 @@ describe("an issue that is not sent", () => {
     expect(await s.rows(`SELECT id, label, last_run_id FROM ${THREADS} ORDER BY id`)).toEqual([
       { id: 1, label: "Iran nuclear talks", last_run_id: 299 },
     ]);
-    expect(await s.acts.threadsRetract(RUN)).toEqual({ retracted: true }); // idempotent
+    expect(await s.acts.threadsRetract(RUN)).toEqual({ retracted: true });
   });
   it.each(["sent", "queued", "claimed"])(
     "declines for a run whose day already has a %s broadcast: a resumed, delivered issue keeps its threads",
@@ -921,7 +915,6 @@ async function fail(db: Db, id: number, runAt?: string): Promise<void> {
   await rewrite(db, "UPDATE runs SET status = 'failed', outcome = NULL WHERE id = $1", [id]);
   if (runAt) await db.run("UPDATE runs SET started_at = $1 WHERE id = $2", [runAt, id]);
 }
-// Runs fn with the error-level log lines captured and info-level silenced.
 async function quietly<T>(fn: () => Promise<T>): Promise<{ result: T; logged: Record<string, unknown>[] }> {
   const logged: Record<string, unknown>[] = [];
   const err = vi.spyOn(log, "error").mockImplementation((m: unknown) => void logged.push(m as Record<string, unknown>));
@@ -934,8 +927,6 @@ async function quietly<T>(fn: () => Promise<T>): Promise<{ result: T; logged: Re
   }
 }
 
-// abortRun keeps a failed run's thread writes, because a resume needs them. The next run's threads
-// phase takes them back once no resume can come, before its linker reads the threads.
 describe("a failed run nobody resumed", () => {
   const link2 = {
     links: [
@@ -960,7 +951,6 @@ describe("a failed run nobody resumed", () => {
     expect(await s.rows(`SELECT COUNT(*) AS n FROM thread_questions WHERE raised_run_id = ${EARLIER}`)).toEqual([
       { n: 0 },
     ]);
-    // The linker was shown the thread as run 298 left it, not as the failed run relabelled it.
     expect(s.calls[0]!.prompt).toContain("ACTIVE THREADS:\n  [1] Iran nuclear talks open\n\n");
   });
 
@@ -973,8 +963,6 @@ describe("a failed run nobody resumed", () => {
     expect(await s.rows("SELECT COUNT(*) AS n FROM thread_updates WHERE run_id IN (298, 299)")).toEqual([{ n: 0 }]);
   });
 
-  // saveDigest puts the issue on the web before the send; a send that then fails marks the run failed.
-  // Readers can open that issue, so its thread updates are public: published by web is published.
   it("keeps a failed run whose digest was saved to the web but never sent", async () => {
     const s = await setup({ answers: { link: [link2] } });
     await seedThread(s.db);
@@ -997,8 +985,6 @@ describe("a failed run nobody resumed", () => {
     expect(await earlierRows(s)).toEqual([]);
   });
 
-  // The reviewer's case: 299 fails, a forced 300 runs the same day, inside the horizon, and sends.
-  // 300 supersedes 299, so 300 takes 299's writes back before it links and links on the state 299 began in.
   it("a later run of the same day takes the failed run's writes back before it links, inside the horizon", async () => {
     const s = await setup({ answers: { link: [link2] } });
     await seedThread(s.db);
@@ -1041,9 +1027,6 @@ describe("a failed run nobody resumed", () => {
     expect(before).toHaveLength(1);
   });
 
-  // Negative controls: each is a retracting case above with one condition flipped.
-  // The reviewer's case: 299 sends, then fails after the send; a forced 300 the same day saves over
-  // the row (run_id 300), skips the send as already accepted, and completes. Readers got 299's issue.
   it("keeps a failed run that sent its issue, though a later completed run saved over the day's row", async () => {
     const s = await setup();
     await seedThread(s.db);
@@ -1090,7 +1073,7 @@ describe("a failed run nobody resumed", () => {
   it.each([
     ["sent", "b1"],
     ["claimed", null],
-    ["draft", "b1"], // its send may have been accepted
+    ["draft", "b1"],
   ])("keeps a failed run whose day's broadcast is %s", async (status, id) => {
     const s = await setup({ answers: { link: [link2] } });
     await seedThread(s.db);

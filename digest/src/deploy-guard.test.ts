@@ -8,7 +8,7 @@ describe("inRunWindow", () => {
     ["2026-07-15T10:00:00Z", true],
     ["2026-07-15T11:44:00Z", true],
     ["2026-07-15T11:45:00Z", false],
-    ["2026-01-15T10:00:00Z", true], // the same hours in winter
+    ["2026-01-15T10:00:00Z", true],
     ["2026-01-15T11:50:00Z", false],
   ])("%s -> %s: 10:00 to 11:45 UTC, all year", (iso, want) => {
     expect(inRunWindow(new Date(iso))).toBe(want);

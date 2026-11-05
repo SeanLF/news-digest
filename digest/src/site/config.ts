@@ -1,29 +1,19 @@
 import { MailDestinationError, resendBaseUrl } from "../resend/destination.js";
 
-// The site's configuration from its environment. Empty means unset: compose and terraform forward
-// optional variables as "".
-
 export interface SiteConfig {
   digestName: string;
   digestDomain: string | undefined;
   homepageUrl: string | undefined;
   sourceUrl: string | undefined;
-  // Subscriptions are on when both are set; the index then shows the subscribe band.
   resendApiKey: string | undefined;
   resendAudienceId: string | undefined;
-  // Where Resend requests go (mail/resend.ts resendBaseUrl); set whenever subscriptions are on.
   resendBaseUrl: string | undefined;
-  // The From on confirmation mail; may be a send-only address, so never the reply target.
   fromEmail: string | undefined;
-  // Where readers' replies and the web mailto go: CONTACT_EMAIL, else RESEND_FROM.
   contactEmail: string | undefined;
-  // Signs double opt-in confirmation links. Required whenever subscriptions and double opt-in are on.
   subscribeTokenSecret: string | undefined;
-  // SUBSCRIBE_DOUBLE_OPT_IN, default on; "false", "0" or "no" is the rollback lever to direct add.
   doubleOptIn: boolean;
   sourcesFile: string;
   designDir: string;
-  // The origins that may frame /embed/lead: EMBED_ANCESTORS (space-separated), else HOMEPAGE_URL's.
   embedAncestors: string[];
 }
 
@@ -59,8 +49,6 @@ export function siteConfig(env: NodeJS.ProcessEnv): SiteConfig {
       throw e;
     }
   }
-  // The Rust server warned once and then added every signup to the audience unconfirmed. A
-  // subscription path that silently skips its consent step is worse than none, so it refuses to start.
   if (subscriptionsEnabled(cfg) && cfg.doubleOptIn) {
     const missing = [
       ...(cfg.subscribeTokenSecret ? [] : ["SUBSCRIBE_TOKEN_SECRET (signs the confirmation link)"]),
@@ -76,8 +64,6 @@ export function siteConfig(env: NodeJS.ProcessEnv): SiteConfig {
   return cfg;
 }
 
-// A browser drops a frame-ancestors source it cannot parse without a word, so a malformed origin
-// refuses to start rather than ship an embed nobody can frame.
 const ORIGIN = /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i;
 function embedAncestors(explicit: string | undefined, homepage: string | undefined): string[] {
   if (explicit) {
@@ -98,7 +84,6 @@ function embedAncestors(explicit: string | undefined, homepage: string | undefin
 export const subscriptionsEnabled = (c: SiteConfig): boolean =>
   c.resendApiKey !== undefined && c.resendAudienceId !== undefined;
 
-// "https://<domain>", or "" when no domain is configured (links then stay root-relative).
 export const baseUrl = (c: SiteConfig): string => (c.digestDomain ? `https://${c.digestDomain}` : "");
 
 export const privacyUrl = (c: SiteConfig): string =>
@@ -106,5 +91,4 @@ export const privacyUrl = (c: SiteConfig): string =>
 
 export const ogImageUrl = (c: SiteConfig): string => (c.digestDomain ? `https://${c.digestDomain}/og-image.png` : "");
 
-// A root-relative path made absolute when a domain is configured.
 export const link = (c: SiteConfig, path: string): string => `${baseUrl(c)}${path}`;

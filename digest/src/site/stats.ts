@@ -1,11 +1,6 @@
 import type { StatsData } from "./data.js";
 import { type Bucket, type CatalogueEntry, bucket, parkedIds } from "./sources.js";
 
-// The transparency statistics: the data as /stats.json and get_stats serve it,
-// and the derived balance, concentration and coverage figures /stats renders.
-
-// Ten years is the whole archive several times over; the Rust server clamped here because SQLite's
-// date arithmetic turns NULL past its range, and one bound serves both.
 export const clampDays = (days: number | undefined): number => Math.min(Math.max(days ?? 30, 1), 3650);
 
 export interface SourceHealth {
@@ -24,11 +19,8 @@ export interface Stats {
   cost: StatsData["cost"];
 }
 
-// Half-away-from-zero, as Rust's f64::round.
 const round = (x: number): number => Math.sign(x) * Math.round(Math.abs(x));
 
-// A parked source's failures are a decision already taken, so the present-tense health surfaces
-// drop it here, once, so the page and its JSON twin agree.
 export function statsFrom(data: StatsData, days: number, cat: CatalogueEntry[]): Stats {
   const parked = parkedIds(cat);
   return {
@@ -49,7 +41,6 @@ export function statsFrom(data: StatsData, days: number, cat: CatalogueEntry[]):
   };
 }
 
-// The JSON /stats.json and get_stats return, keys as the Rust server wrote them.
 export function statsValue(s: Stats): unknown {
   return {
     period_days: s.periodDays,
@@ -79,7 +70,6 @@ export function statsValue(s: Stats): unknown {
   };
 }
 
-// The fields the Rust server held as f64: serde_json writes a whole one as 1.0, where JavaScript writes 1.
 const FLOAT_FIELDS = new Set([
   "success_rate_pct",
   "avg_similarity",
@@ -87,11 +77,8 @@ const FLOAT_FIELDS = new Set([
   "max_similarity",
   "api_cost_usd",
 ]);
-// A string no source id or number can be, swapped for the bare literal after stringifying.
 const FLOAT_MARK = "@@f64@@";
 
-// The stats JSON as the Rust server serialised it: keys sorted (serde_json's map), floats as floats.
-// get_stats hands this text to a model verbatim, so its bytes are part of the tool's answer.
 export function statsJson(v: unknown, indent?: number): string {
   const walk = (x: unknown, key?: string): unknown => {
     if (Array.isArray(x)) return x.map((e) => walk(e));
@@ -120,7 +107,6 @@ export interface Metrics {
   jsd: number;
   factualityHighPct: number;
   bucketsSourced: number;
-  // One row per source per story: the denominator for source shares, not a story count.
   totalShipped: number;
   hhi: number;
   effectiveN: number;
@@ -145,7 +131,6 @@ export function jsd3(p: number[], q: number[]): number {
   const m = pn.map((x, i) => (x + qn[i]!) / 2);
   return Math.min(Math.max((kl3(pn, m) + kl3(qn, m)) / 2, 0), 1);
 }
-// Integer percentages that sum to 100, the rounding drift absorbed by the largest bucket.
 export function pct3(v: number[]): [number, number, number] {
   const p = normalize3(v);
   const out = p.map((x) => round(x * 100)) as [number, number, number];
@@ -158,8 +143,6 @@ export function pct3(v: number[]): [number, number, number] {
   return out;
 }
 
-// The shipped figures describe history, so a parked source counts; the catalogue figures describe the
-// shelf read today, so it does not (else coverage could read 38 / 37).
 export function computeMetrics(s: Stats, cat: CatalogueEntry[]): Metrics {
   const meta = new Map(cat.map((c) => [c.id, c]));
   const perSource = new Map<string, number>();

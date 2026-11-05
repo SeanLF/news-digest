@@ -24,7 +24,6 @@ async function selectInputs(run: number, withClusters = true): Promise<ArtifactS
   return store;
 }
 
-// A model call that never answers until its abort signal fires, as a hung CLI would.
 const hangs: SdkQuery = (({ options }: { options?: Options }) =>
   (async function* () {
     await new Promise((_, reject) =>

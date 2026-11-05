@@ -22,10 +22,6 @@ import { ConflictError, type ArtifactStore, type Pointer } from "../store/artifa
 import { openDb } from "../store/db.js";
 import type { FetchSummary } from "./index.js";
 
-// PREPARE between fetch and curation (spec §2.1): a pure function of the run's archived raw fetch
-// (articles) and its source list, so every downstream stage replays from the archive without
-// a refetch. Deterministic, so a re-run writes identical rows; a differing row means the logic or a
-// threshold changed, which only force may overwrite.
 export function prepareActivity(deps: { store: ArtifactStore; dbUrl: string }) {
   return async (
     runId: number,
@@ -75,8 +71,6 @@ export function prepareActivity(deps: { store: ArtifactStore; dbUrl: string }) {
       };
       const articles: Pointer[] = [];
       for (const f of prepared.files) articles.push(await write(f.name, toCsv(ARTICLE_HEADER, f.rows)));
-      // One dedup_matches row per title dropped as a repeat, as the Python writes; only once per run, so
-      // a re-run of a deterministic prepare does not duplicate them.
       await db.tx(async (t) => {
         if ((await t.one("SELECT 1 FROM dedup_matches WHERE run_id=$1 LIMIT 1", [runId])) !== undefined) return;
         for (const d of prepared.filtered)

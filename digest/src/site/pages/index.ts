@@ -5,8 +5,6 @@ import { escapeHtml, formatDayMonthYear, thousands } from "../text.js";
 import { indexCss, indexJs } from "./blobs.js";
 import { type PageCtx, brand, indexChrome, wholeParts, pageBody, pageHead, script } from "./chrome.js";
 
-// The home page: the archive as an issue-numbered running order.
-
 export const NOTICES: Record<string, string> = {
   subscribed:
     '<p class="notice ok" role="status"><span class="ni" aria-hidden="true">✓</span> Subscribed. The next issue will land in your inbox.</p>',
@@ -50,7 +48,6 @@ export function indexPage(
     segment = "year";
   } else if (scope.kind === "before") {
     list = ul(rowsHtml(page.issues, null));
-    // The no-JS older page offers a way back to the newest issues.
     more = `${loadmore(page.hasMore, page.nextBefore ?? "")}<p style="text-align:center;margin-top:16px"><a href="/">↑ Back to the newest issues</a></p>`;
   } else {
     list = ul(rowsHtml(page.issues, meta.newestDate));

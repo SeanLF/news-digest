@@ -214,7 +214,7 @@ describe("finishRun", () => {
     await db.exec(
       "INSERT INTO model_calls (run_id, stage, request_model, api_cost_usd) VALUES (300, 'select', 'm', 0.5), (300, 'write', 'm', 0.25)",
     );
-    await db.exec("INSERT INTO run_attempts (run_id, pipeline) VALUES (300, 'temporal')"); // startRun's, still running
+    await db.exec("INSERT INTO run_attempts (run_id, pipeline) VALUES (300, 'temporal')");
     const events: [string, Record<string, unknown>][] = [];
     const run = runActivities({
       store,

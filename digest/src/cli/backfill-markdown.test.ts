@@ -6,8 +6,6 @@ import { openDb } from "../store/db.js";
 import { migratedDb } from "../store/test-db.js";
 import { backfillMarkdown } from "./backfill-markdown.js";
 
-// Two stored issues from the dev database, one from before the template had a <main> and one after,
-// each with the Markdown the site served for it on 2026-09-24, when it still converted at request time.
 const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/backfill-markdown/${name}`, import.meta.url), "utf8");
 const DATES = ["2025-12-05", "2026-09-14"];

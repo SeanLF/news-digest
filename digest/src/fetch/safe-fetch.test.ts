@@ -4,15 +4,13 @@ import { gzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { fetchBounded, isPublicAddress } from "./safe-fetch.js";
 
-// 127.0.0.1 stands in for a public host and ::1 for an internal one: `isAllowed` admits only the
-// former, and the fake resolver names each, so a refusal is observable as the ::1 listener's hits.
 const isAllowed = (ip: string) => ip === "127.0.0.1";
 const NAMES: Record<string, string> = { "feed.test": "127.0.0.1", "internal.test": "::1", "private.test": "10.0.0.5" };
 const lookup = (host: string) =>
   Promise.resolve(NAMES[host] ? [{ address: NAMES[host], family: NAMES[host].includes(":") ? 6 : 4 }] : []);
 
 const RSS = "<rss><channel><title>T</title></channel></rss>";
-const BOMB = gzipSync(Buffer.alloc(64 * 2 ** 20)); // 64 MiB of zeros, ~64 KiB on the wire
+const BOMB = gzipSync(Buffer.alloc(64 * 2 ** 20));
 
 let pub: http.Server;
 let internal: http.Server;
@@ -79,7 +77,6 @@ describe("fetchBounded", () => {
   it("returns a non-2xx status for the caller to judge", async () => {
     expect((await fetchBounded(`${feed}/nope`, opts)).status).toBe(404);
   });
-  // The control: with every address allowed the internal listener is reachable, so a zero below is a refusal.
   it("control: the internal listener is reachable when the check admits it", async () => {
     const before = internalHits;
     expect((await fetchBounded(`${feed}/to-internal`, { ...opts, isAllowed: () => true })).body).toBe("secret");
@@ -118,7 +115,7 @@ describe("fetchBounded", () => {
     const t = performance.now();
     const rss = process.memoryUsage().rss;
     await expect(fetchBounded(`${feed}/bomb`, opts)).rejects.toThrow(/exceeds 1048576 bytes/);
-    expect(process.memoryUsage().rss - rss).toBeLessThan(32 * 2 ** 20); // the whole bomb is 64 MiB
+    expect(process.memoryUsage().rss - rss).toBeLessThan(32 * 2 ** 20);
     expect(performance.now() - t).toBeLessThan(2_000);
   });
   it("cuts a slow-drip body at the overall deadline", async () => {
