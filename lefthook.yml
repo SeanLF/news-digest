@@ -6,3 +6,9 @@ pre-commit:
     ci:
       run: bin/ci --staged
       stage_fixed: true
+
+# The full run, Temporal-server tests included: what reaches origin is what GitHub CI and a deploy see.
+pre-push:
+  commands:
+    ci:
+      run: bin/ci

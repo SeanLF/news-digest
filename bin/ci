@@ -77,13 +77,14 @@ ROOT = Path(__file__).resolve().parent.parent
 QUIET = os.environ.get("CLAUDECODE") == "1"
 
 
-def suite_commands(fix_mode: bool) -> dict[str, list[str]]:
-    """The docker compose command each suite runs as, keyed by suite."""
+def suite_commands(fix_mode: bool, staged: bool = False) -> dict[str, list[str]]:
+    """The docker compose command each suite runs as, keyed by suite. A staged run (the pre-commit
+    hook) leaves out the Temporal-server tests; a full run (pre-push, GitHub CI) has them."""
     return {
         # ci-ts COPYs digest/ in; under --fix, src is mounted so the formatter writes back.
         TS: ["docker", "compose", "run", "--rm", "--build"]
         + (["-v", f"{ROOT}/digest/src:/app/digest/src"] if fix_mode else [])
-        + ["ci-ts", "sh", "-c", ts_cmd(fix_mode)],
+        + ["ci-ts", "sh", "-c", ts_cmd(fix_mode, staged)],
         WORKER: [
             "docker", "compose", "run", "--rm", "--build", "ci-python",
             "python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "/app/tests",
@@ -103,14 +104,16 @@ def scripts_cmd(fix_mode: bool) -> str:
     return f"{lint}; pytest -q -n auto -p no:cacheprovider bin/tests; t=$?; [ $r -eq 0 ] && [ $f -eq 0 ] && [ $t -eq 0 ]"
 
 
-def ts_cmd(fix_mode: bool) -> str:
+def ts_cmd(fix_mode: bool, staged: bool = False) -> str:
     """Format, typecheck and lint (about 1 s together), then vitest; every step runs, so one failure
     hides no other. A tsgolint killed for memory shows only "Error running tsgolint"."""
     fmt = "npm run format; f=$?" if fix_mode else "npm run format:check; f=$?"
+    test = "npm test -- --project unit" if staged else "npm test"
     return (
-        f"{fmt}; npm run typecheck; t=$?; npm run lint; l=$?; npm test; v=$?; "
+        f"{fmt}; npm run typecheck; t=$?; npm run lint; l=$?; {test}; v=$?; "
         "[ $f -eq 0 ] && [ $t -eq 0 ] && [ $l -eq 0 ] && [ $v -eq 0 ]"
     )
+
 
 SUITE_NAMES = {
     TS: "TypeScript CI",
@@ -139,7 +142,7 @@ def run_in_docker() -> int:
 
     # In quiet mode, capture output and only show on failure
     capture = {"stdout": subprocess.PIPE, "stderr": subprocess.STDOUT} if QUIET else {}
-    commands = suite_commands(fix_mode)
+    commands = suite_commands(fix_mode, staged="--staged" in args)
     start = time.monotonic()
     procs = {s: subprocess.Popen(commands[s], cwd=ROOT, **capture) for s in sorted(suites)}
 

@@ -13,7 +13,7 @@ import { approveSignal, retrySignal } from "./signals.js";
 // What a worker restart does to a run in flight: the old worker stops mid-run (SIGTERM is
 // Worker.shutdown: polling stops, running activities are cancelled) and a new one picks the run up.
 // Unversioned workers: in production a new build's worker never picks up a run pinned to the old
-// build (deployment.test.ts), so this is a restart within one build, or a run moved onto a new build
+// build (deployment.temporal.test.ts), so this is a restart within one build, or a run moved onto a new build
 // by hand. On the time-skipping server by default. That server does not skip an activity's retry
 // backoff, so there a retried model call is checked as far as its next attempt being scheduled. With
 // DEPLOY_SAFETY_ADDRESS naming a dev server (`temporal server start-dev`), the activity tests wait out

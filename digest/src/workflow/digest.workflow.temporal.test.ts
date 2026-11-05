@@ -1,7 +1,7 @@
 import { WorkflowFailedError } from "@temporalio/client";
 import { ApplicationFailure, WorkflowIdConflictPolicy } from "@temporalio/common";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
-import { Worker } from "@temporalio/worker";
+import { bundleWorkflowCode, Worker, type WorkflowBundle } from "@temporalio/worker";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type {
   Activities,
@@ -27,8 +27,13 @@ import { PYTHON_TASK_QUEUE } from "./policy.js";
 import { approveSignal, retrySignal } from "./signals.js";
 
 let env: TestWorkflowEnvironment;
+// One bundle for the file: workflowsPath would re-bundle the workflow code for every worker.
+let workflowBundle: WorkflowBundle;
 beforeAll(async () => {
-  env = await TestWorkflowEnvironment.createTimeSkipping();
+  [env, workflowBundle] = await Promise.all([
+    TestWorkflowEnvironment.createTimeSkipping(),
+    bundleWorkflowCode({ workflowsPath: new URL("./digest.workflow.ts", import.meta.url).pathname }),
+  ]);
 }, 180_000);
 afterAll(async () => {
   await env?.teardown();
@@ -50,7 +55,7 @@ async function withWorker<T>(
   const worker = await Worker.create({
     connection: env.nativeConnection,
     taskQueue,
-    workflowsPath: new URL("./digest.workflow.ts", import.meta.url).pathname,
+    workflowBundle,
     activities: { ...stubActivities(), decodeLinks: decoder, ...overrides },
   });
   const python = await Worker.create({

@@ -97,6 +97,15 @@ def test_every_suite_has_a_command():
     assert set(ci.suite_commands(False)) == ALL
 
 
+def test_the_commit_hook_runs_the_unit_tests_and_a_full_run_runs_every_project():
+    """The Temporal-server tests take most of a minute; the pre-commit hook (--staged) skips them,
+    and a full run (pre-push, GitHub CI) runs them."""
+    staged = " ".join(ci.suite_commands(False, staged=True)[TS])
+    full = " ".join(ci.suite_commands(False)[TS])
+    assert "npm test -- --project unit" in staged
+    assert "npm test;" in full and "--project" not in full
+
+
 def _files_under(rel: str) -> list[str]:
     """Every file a COPY or mount source names, as repo-relative paths."""
     path = ROOT / rel
