@@ -2,7 +2,7 @@ import type { IssueRowData, SiteData } from "./data.js";
 import { type Bucket, type CatalogueEntry, knownBucket } from "./sources.js";
 import { escapeHtml, formatDayMonth, formatMonthYear } from "./text.js";
 
-// The archive's running order (circulation's archive.rs): one page of issues with their bias split,
+// The archive's running order: one page of issues with their bias split,
 // rendered as the <li> rows the index and the /archive load-more fragment share.
 
 export const DEFAULT_LIMIT = 30;
@@ -22,7 +22,7 @@ export interface ArchivePage {
 }
 
 // A parked source is kept: an issue really was built from it, and dropping its id would restate that
-// issue's bias bar (circulation measured 150 issues moved, median 2 points).
+// issue's bias bar (measured on 150 issues: they moved a median 2 points).
 export function biasMap(cat: CatalogueEntry[]): Map<string, Bucket> {
   const m = new Map<string, Bucket>();
   for (const s of cat) {

@@ -1,4 +1,4 @@
-// Formatting shared by the pages and the feed (circulation's util.rs).
+// Formatting shared by the pages and the feed.
 
 // The /search page's result cap, and its query: trimmed, NUL-free, at most 200 characters.
 export const SEARCH_LIMIT = 50;

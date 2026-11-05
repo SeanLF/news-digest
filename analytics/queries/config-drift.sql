@@ -25,7 +25,7 @@
 --   a measurement; the pre-migration configuration has to be read from the git history of
 --   orchestrate.py and the agent frontmatter instead. A stage that changes model AND config in one
 --   deploy shows as one row per combination, which is the point: the pairing is what you want to
---   see, since 5856f35 changed COHERENCE's model and prompt together and left them unseparable.
+--   see, since b533bc2 changed COHERENCE's model and prompt together and left them unseparable.
 
 SELECT
   u.stage,

@@ -282,7 +282,7 @@ Plan A is the only one the output gate governs. B, C and D are independently shi
    ingest and dedup; the gate for everything downstream of CLUSTER. Sonnet for mechanical work, Opus for the
    spine and every adversarial review; every agent definition pins a model.
 6. Cut-over on three passed days.
-7. Public-history rewrite (two files in fdd958d carry pilot names and pricing), manifest first, after the rewrite.
+7. Public-history rewrite (pilot names and pricing in the history): done 2026-11-05 with git filter-repo.
 
 **Forks are pre-registered gates, not deferrals.** Where the plan reaches a choice this document does not
 settle (fulltext extractor in TypeScript vs the Python activity; fix-it turn vs fresh attempt once something

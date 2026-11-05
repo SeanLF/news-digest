@@ -4,7 +4,7 @@ import { type SiteConfig, baseUrl, ogImageUrl, privacyUrl, subscriptionsEnabled 
 import { brandHtml } from "../text.js";
 import { chromeCss, toggleJs } from "./blobs.js";
 
-// The frame every page but the issue shares (circulation's templates/chrome.rs): the head, the top
+// The frame every page but the issue shares: the head, the top
 // bar, the footer and the theme toggle.
 
 // What every page render needs: the configuration and the assets.

@@ -35,5 +35,5 @@ not a flush barrier for files the process wrote through a buffered handle.
 ## Related
 
 - Session JSONL lives in the `news-digest-claude` volume at `/home/appuser/.claude/`.
-- `usage.py` holds no pricing table; since `3690210` the SDK's `total_cost_usd`
+- `usage.py` holds no pricing table; since `db2cac1` the SDK's `total_cost_usd`
   from `orchestrate.py` is the source of truth.

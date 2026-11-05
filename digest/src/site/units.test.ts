@@ -12,7 +12,7 @@ import { pickTargetLang, proxyHost, validQueryLang, validTranslatePath } from ".
 import { SOURCES_FILE, fakeData } from "./testing.js";
 
 describe("text", () => {
-  it("formats and validates dates as circulation did", () => {
+  it("formats and validates dates", () => {
     expect([formatDate("2026-01-24"), formatDate("2026-13-01"), formatDayMonthYear("2026-02-06")]).toEqual([
       "Saturday, January 24",
       "2026-13-01",
@@ -193,7 +193,7 @@ describe("threads", () => {
 });
 
 describe("the feed", () => {
-  it("keeps circulation's entry ids and escapes what the database holds", () => {
+  it("keeps the feed's existing entry ids and escapes what the database holds", () => {
     const xml = atomFeed("News & Digest", "https://digest.example", [
       { date: "2026-06-12", preheader: "A <b>day</b>" },
     ]);

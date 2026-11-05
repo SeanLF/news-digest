@@ -8,7 +8,7 @@ being replaced and settles the forks before code; it is not a plan.
 ## 1. Inventory: every route in `circulation/src`
 
 "Reads" are legacy SQLite tables; the new column is where the same data lives in the product schema
-(`digest/db/migrations/`, after the vocabulary rename of 44a8dfe). "Parity" is the gate's contract: **P** = byte parity with the Rust
+(`digest/db/migrations/`, after the vocabulary rename of 0f10eec). "Parity" is the gate's contract: **P** = byte parity with the Rust
 response on the same data (after the normalisations in §5), **S** = status, `content-type`, `location`,
 `cache-control`, `link` and `vary` only, the body judged on requirement plus a11y and Lighthouse.
 
@@ -180,7 +180,7 @@ answers `/stats/` with 404, so the app is built non-strict and answers wrong met
 
 ## 7. Results (2026-09-23, on the prod clone runs 1-305)
 
-- **Parity** (`make site-parity`, goldens `data/site-parity/20260923T230128Z`, Rust commit d17a32c): 138 of
+- **Parity** (`make site-parity`, goldens `data/site-parity/20260923T230128Z`, Rust commit 73c2110): 138 of
   144 requests equal (3 of them as Markdown documents), the 6 others the known divergences of §5 (3 thread
   listings: `updated_at`; 3 MCP transport refusals), 0 unexplained. Every issue's Markdown, 282 of 282,
   renders the same as htmd's; 80 are byte-equal. Search: "Iran nuclear" returns the same 37 headlines.

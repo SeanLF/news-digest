@@ -1,7 +1,7 @@
 import type { StatsData } from "./data.js";
 import { type Bucket, type CatalogueEntry, bucket, parkedIds } from "./sources.js";
 
-// The transparency statistics (circulation's stats.rs): the data as /stats.json and get_stats serve it,
+// The transparency statistics: the data as /stats.json and get_stats serve it,
 // and the derived balance, concentration and coverage figures /stats renders.
 
 // Ten years is the whole archive several times over; the Rust server clamped here because SQLite's

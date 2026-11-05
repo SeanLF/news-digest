@@ -1,19 +1,17 @@
 /* Digest web-archive component styles.
  *
- * These styles drive ONLY the web archive (served by the Rust circulation
- * server). The digest email is rendered separately as MJML via
- * newsroom/src/render_email.py, so this file no longer carries email-safety
- * hacks (presentation-table section rules, &nbsp; glue, !important, MSO
- * wrappers, .email-only/.web-only flips).
+ * These styles drive ONLY the web archive. The email is rendered separately as
+ * MJML (digest/src/render/email.ts), so this file carries no email-safety hacks
+ * (presentation-table section rules, &nbsp; glue, !important, MSO wrappers,
+ * .email-only/.web-only flips).
  *
  * Design tokens (:root --bg/--ink/--hair/--accent/… + the Source Serif 4
  * @font-face) live in design/tokens.css and are PREPENDED to this file at
- * render time (render.replace_placeholders). Do NOT redefine :root here.
+ * render time (digest/src/render/web.ts). Do NOT redefine :root here.
  *
- * Circulation injects the web-nav chrome (topbar, translate pill, theme
- * toggle, skip link) at serve time, so that is NOT defined here.
- *
- * Ported from scratch/chrome-mockups/digest_v1.html.
+ * The site injects the web-nav chrome (topbar, translate pill, theme toggle,
+ * skip link) at serve time (digest/src/site/pages/issue.ts), so that is NOT
+ * defined here.
  */
 
 *{box-sizing:border-box;}

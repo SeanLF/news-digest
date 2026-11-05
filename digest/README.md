@@ -65,7 +65,7 @@ scrubbing at prepare is owed on the Python side.
 
 RECAP, CLUSTER, SELECT, WRITE, PREHEADER, COHERENCE, REPAIR and ASSEMBLE ran as activities through the
 workflow on a scratch copy of the database (`--resume 300`), and the Python pipeline's `replay.py` (deleted
-since; its tree is at `ae5f03d`) rendered the result with the scratch DB mounted read-only over
+since; its tree is at `e925e9d`) rendered the result with the scratch DB mounted read-only over
 `/app/data/digest.db`:
 
 ```

@@ -12,7 +12,6 @@ import {
 
 const arts = (o: Record<string, Art>) => new Map(Object.entries(o));
 
-// Cases carried from newsroom/tests/test_thread_synthesis.py.
 describe("expandNeighbourhood", () => {
   it("pulls entity neighbours, not unrelated stories", () => {
     const out = expandNeighbourhood(

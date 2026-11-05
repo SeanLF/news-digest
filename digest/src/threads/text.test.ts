@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cleanQuestions, deltaFromFacts, whatsNew } from "./text.js";
 
-// Cases carried from newsroom/tests/test_threads.py.
 describe("deltaFromFacts", () => {
   it("skips a fact with a bare self-citation and promotes the next", () => {
     const facts = [

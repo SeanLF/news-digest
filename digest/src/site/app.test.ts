@@ -306,7 +306,7 @@ describe("the issue page", () => {
   });
 });
 
-describe("routing as circulation answered", () => {
+describe("routing", () => {
   it("serves a path with a trailing slash as the path", async () => {
     expect((await get(testApp(withIssue()), "/sources/")).status).toBe(200);
   });

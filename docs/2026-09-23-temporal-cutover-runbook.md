@@ -379,7 +379,7 @@ so nothing fails when it breaks: take yoyo out of `bin/deploy` in the change tha
 nothing about Temporal days. The Naming section of `docs/2026-09-23-data-model-design.md` has the
 renames; `completed_at IS NOT NULL` became the `sent_runs` view.
 
-Ported to Postgres (rewrite/a1-spine 9cddfb3, f9bb18e); what the cut-over still owes them:
+Ported to Postgres (rewrite/a1-spine 74d8d8e, 2614e23); what the cut-over still owes them:
 - [x] `bin/usage`, `bin/trace`, `bin/analytics` and its 16 queries read a local Postgres clone
   through `bin/psql`, read-only. `bin/analytics-parity` holds the queries to their SQLite originals.
   Runs mailed before Resend broadcasts have no send (their counts live in Resend), so

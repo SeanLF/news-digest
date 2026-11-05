@@ -47,7 +47,7 @@ failure mode the 2026-06-16 post-mortem's addendum warned about.
   success ping since the failure. Correct behaviour.
 - **~11:00–13:14** — root cause found; three fixes written test-first, reviewed
   (silent-failure-hunter ×2, code-reviewer, simplifier), full CI green (703 tests).
-- **13:14:12** — fixed image deployed (`deploy/2026-07-11-131412Z`, commit `74c140d`).
+- **13:14:12** — fixed image deployed (`deploy/2026-07-11-131412Z`, commit `bf52db5`).
 - **13:16:49 → 13:21:54** — manual `--resume`: skips all five cached stages (~$0),
   re-runs assembly (now with the fix) → archival + threads → render → send.
 - **13:21:54** — broadcast delivered to 11 contacts; run 230 completes; success

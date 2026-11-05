@@ -1,8 +1,8 @@
 import { stripArticleIds } from "../contracts/leaks.js";
 
-// threads.py's reader-facing text rules, ported. Every string here is model-authored JSON, so the
+// The reader-facing text rules for threads. Every string here is model-authored JSON, so the
 // container types are checked as strictly as the element types: a scalar `sources` ("A3" rather
-// than ["A3"]) must not iterate as ["A", "3"], and circulation's Rust mirror renders the same rows.
+// than ["A3"]) must not iterate as ["A", "3"].
 
 export interface Fact {
   fact?: unknown;

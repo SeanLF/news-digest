@@ -21,7 +21,7 @@ import {
   tally,
 } from "./reports.js";
 
-// The web issue, ported from newsroom/src/render.py (render_digest, then replace_placeholders).
+// The web issue.
 
 function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] = []): string {
   if (!g.reports.length) return "";

@@ -40,7 +40,7 @@ The join PoC two days later noticed the "stray" had never been in the story's cl
 
 Two more consumers had already been written against the raw index before it was noticed:
 the cohesion gate's grouping and its verdict keying. Both were fixed the same day
-(99f6ed5, ee1f0fa): the citations decide, ties to the earliest cited, the index only when
+(c090485, e5b3b37): the citations decide, ties to the earliest cited, the index only when
 no citation lands anywhere, and a verdict is keyed by the story's position, not its cluster.
 
 ## The shape

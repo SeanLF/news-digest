@@ -2,7 +2,7 @@ import { log } from "../log.js";
 import { cleanFact, cleanQuestions, whatsNew } from "../threads/text.js";
 import type { SiteData, ThreadIndexData, ThreadSummaryData } from "./data.js";
 
-// Thread pages and tools (circulation's thread.rs), over the pipeline's own reader-facing text rules
+// Thread pages and tools, over the pipeline's own reader-facing text rules
 // (threads/text.ts), so the site and the email scrub article ids the same way.
 
 export const OLDER_PAGE = 30;

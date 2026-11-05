@@ -5,7 +5,7 @@ import { escapeHtml, formatDayMonthYear } from "../text.js";
 import { feedbackCss, notFoundCss, searchCss, sourcesCss, statsCss } from "./blobs.js";
 import { type PageCtx, brand, pageBody, pageHead, subChrome, subMasthead } from "./chrome.js";
 
-// The sub-pages (circulation's templates/*.rs): sources, search, stats, feedback and the
+// The sub-pages: sources, search, stats, feedback and the
 // friendly 404, each in the shared frame.
 
 const name = (ctx: PageCtx) => escapeHtml(ctx.cfg.digestName);

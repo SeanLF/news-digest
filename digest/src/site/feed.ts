@@ -1,7 +1,7 @@
 import { escapeHtml, formatDate } from "./text.js";
 
-// The Atom 1.0 feed of the newest issues (circulation's feed.rs), byte for byte: feed readers already
-// hold its entry ids.
+// The Atom 1.0 feed of the newest issues, byte for byte what the Rust server served: feed readers
+// already hold its entry ids.
 
 export const FEED_ENTRY_LIMIT = 30;
 

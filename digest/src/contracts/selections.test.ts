@@ -3,7 +3,7 @@ import { PREHEADER_MAX_CHARS, SelectionsSchema } from "./selections.js";
 
 const story = { headline: "H", summary: "S", why_it_matters: "W", sources: [{ article_id: "A1" }] };
 
-describe("selections contract, mirrored from newsroom/src/schema.py", () => {
+describe("selections contract", () => {
   it("accepts the shipped shape", () => {
     expect(SelectionsSchema.safeParse({ must_know: [story], should_know: [], preheader: "p" }).success).toBe(true);
   });

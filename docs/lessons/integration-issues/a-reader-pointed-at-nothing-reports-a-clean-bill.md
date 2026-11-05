@@ -44,6 +44,6 @@ timeout on 26 Sept and an aborted model call during run 310.
 
 ## Related
 
-- `8493ebd` (the fix), `docs/operations.md` ("Reading production").
+- `2a239b2` (the fix), `docs/operations.md` ("Reading production").
 - [a-detector-nobody-reads-is-not-a-detector.md](../best-practices/a-detector-nobody-reads-is-not-a-detector.md):
   the same shape from the other side, a signal emitted where nobody looks.

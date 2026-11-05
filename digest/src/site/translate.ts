@@ -1,4 +1,4 @@
-// Reader translation (circulation's translate.rs): a redirect to Google's translate.goog proxy in the
+// Reader translation: a redirect to Google's translate.goog proxy in the
 // reader's language. Stateless: no cookie, no storage, no IP read.
 
 // Never "en": Google's proxy answers tl=en with a picker-less error page.

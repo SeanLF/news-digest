@@ -2,9 +2,8 @@ import { log } from "../log.js";
 import { readFileSync } from "node:fs";
 import type { Sql } from "../store/db.js";
 
-// The shape newsroom/src/render.py and render_email.py consume: selections after article ids are
-// resolved and thread context is attached. Fields are optional because the Python reads them with
-// .get and archived selections predate some of them.
+// The shape the web and email renders consume: selections after article ids are resolved and thread
+// context is attached. Fields are optional because archived selections predate some of them.
 export interface Source {
   article_id?: string;
   name?: string;

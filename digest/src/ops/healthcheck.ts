@@ -1,4 +1,4 @@
-// healthchecks.io, the off-box dead-man's switch (newsroom/src/healthcheck.py): it alerts when the
+// healthchecks.io, the off-box dead-man's switch: it alerts when the
 // daily success ping does not arrive, which covers what no in-process check can see (the box, the
 // worker or Temporal down). Unset HEALTHCHECK_PING_URL makes every call a no-op; no call ever throws.
 import { log } from "../log.js";

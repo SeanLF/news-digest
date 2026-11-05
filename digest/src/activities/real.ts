@@ -36,7 +36,7 @@ export const DEFAULT_AGENTS_DIR = "/app/digest/agents";
 const sourcesFile = (): string => process.env["SOURCES_FILE"] ?? "/app/sources.json";
 const notFetched = (): Set<string> => notFetchedSources(JSON.parse(readFileSync(sourcesFile(), "utf8")));
 const agentsDir = (): string => process.env["AGENTS_DIR"] ?? DEFAULT_AGENTS_DIR;
-// The newsroom's template and stylesheet and the shared design tokens, copied into the image.
+// The issue's template and stylesheet and the shared design tokens, copied into the image.
 const renderAssets = () =>
   loadAssets({
     templates: process.env["TEMPLATES_DIR"] ?? "/app/digest/templates",

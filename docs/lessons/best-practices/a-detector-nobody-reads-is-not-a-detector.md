@@ -51,7 +51,7 @@ model-counted position, plus wiring the *existing* signal somewhere visible.
 ## Update (2026-09-01)
 
 `select_article_ids_in_cluster` (the `sel_ids - cluster_ids` computation this lesson is about)
-was deleted, not fixed: `b114c6a` (2026-07-28, the same day as this lesson) retired
+was deleted, not fixed: `50e3dfb` (2026-07-28, the same day as this lesson) retired
 `cluster_index` as load-bearing pipeline-wide, so by 2026-09-01 the check was failing 52% of
 healthy runs for a reason unrelated to id integrity — 88.5% of its failures were the model
 miscounting a position in a several-hundred-element array, not a stray id. See

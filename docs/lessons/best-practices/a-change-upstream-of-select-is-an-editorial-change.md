@@ -30,7 +30,7 @@ a Sonnet replay kept 86%), so a partition metric would have called the swap neut
 editorial outcome was the label wording and a few members, which no partition metric sees.
 
 The band (full workflow, 2 reps per arm) showed the Trump story led / demoted / dropped and the switch
-commit (205e3ac) called that "SELECT's own" swing. It was not: the band changed the clusters and SELECT
+commit (5310c09) called that "SELECT's own" swing. It was not: the band changed the clusters and SELECT
 together, so it could not separate them.
 
 ## The shape

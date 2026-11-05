@@ -1,7 +1,7 @@
 import type { IndexMeta } from "./data.js";
 import type { IssueRow } from "./archive.js";
 
-// The Markdown representations (circulation's markdown.rs): Accept negotiation, an issue's stored
+// The Markdown representations: Accept negotiation, an issue's stored
 // Markdown under the site's title line, and the archive index as Markdown.
 
 export type Negotiated = "html" | "markdown" | "not-acceptable";

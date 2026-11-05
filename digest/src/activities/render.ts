@@ -37,7 +37,7 @@ export interface RenderDeps {
   now?: () => Date;
 }
 
-// RENDER (newsroom/src/replay.py's tail, less the invariants): resolve article ids against the run's
+// RENDER: resolve article ids against the run's
 // index, upgrade decoded Google-News links, attach thread context, then render the web issue and the
 // email. threads and gnews are optional inputs: a pointer whose artifact the store does not hold
 // means that stage has not run, and the render is the Python's without it.

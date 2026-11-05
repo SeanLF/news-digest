@@ -33,7 +33,7 @@ You can reproduce the gap with two reads. One, the check's pings
 history (`temporal workflow show --workflow-id digest-scheduled-<date>T10:25:00Z`) shows the
 `healthcheck` activity COMPLETED.
 
-The fix is commit 822194a. `/log` is capped at 3 per rolling minute, per instance. The worker's stage
+The fix is commit 968e00e. `/log` is capped at 3 per rolling minute, per instance. The worker's stage
 lines and the ops activities share one instance, and the next line that goes out carries the count of
 dropped lines. A body other than `OK` is now a warning.
 

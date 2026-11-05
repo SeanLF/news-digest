@@ -4,7 +4,7 @@ import type { Resend } from "resend";
 import { log } from "../log.js";
 import type { SiteConfig } from "./config.js";
 
-// Subscribe and double opt-in confirm (circulation's handlers.rs). The subscriber list lives in Resend;
+// Subscribe and double opt-in confirm. The subscriber list lives in Resend;
 // nothing about a subscriber is stored here, and no address is ever written to the log.
 
 export const CONFIRM_TTL_S = 48 * 60 * 60;

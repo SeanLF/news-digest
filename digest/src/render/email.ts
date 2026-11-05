@@ -13,7 +13,7 @@ import {
 } from "./common.js";
 import { countsLabel, groupReports } from "./reports.js";
 
-// The email, ported from newsroom/src/render_email.py: MJML compiled by mrml, the Rust engine
+// The email: MJML compiled by mrml, the Rust engine
 // mjml-python wraps, here as its WebAssembly build. Colours are the light design tokens; fonts are
 // web-safe stacks, since custom web fonts are unreliable in mail clients.
 const SERIF = "Georgia, 'Times New Roman', serif";

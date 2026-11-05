@@ -1,6 +1,6 @@
 import { STOPWORDS } from "./stopwords.js";
 
-// newsroom/src/dedup.py, ported: TF-IDF over recently shown RSS titles, idf = ln(n / (1 + df)),
+// TF-IDF over recently shown RSS titles, idf = ln(n / (1 + df)),
 // tf normalised by the document's max count. Not sklearn's variant: this is the matcher whose 0.80
 // threshold is deployed, so it is reproduced as it is.
 export function tokenize(text: string): string[] {

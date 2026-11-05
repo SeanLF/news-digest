@@ -26,7 +26,7 @@ the incident.
 
 ## What happened
 
-The per-story WRITE fan-out (1c6ff2b, 8ffdb88) rebuilt WRITE's input: one branch directory
+The per-story WRITE fan-out (4ca7ff9, 5ad8364) rebuilt WRITE's input: one branch directory
 per story, each holding `selected.json` with one story and a single `articles_1.csv`
 filtered to that story's cluster. `write.md` was left as it was, apart from the path
 redirect, and it still said:
@@ -53,7 +53,7 @@ checks the redirect with a body it writes itself (`"read .../selected.json then
 `branch_body` changes nothing but the path. Both pass. Both were designed to. Neither
 reads the prompt as the model would: as instructions about a directory that no longer
 looks the way the instructions assume. The fan-out was deployed behind a flag on
-2026-09-01, the flag stayed off for run 284, its removal (8ffdb88) deployed on 2026-09-02, and run
+2026-09-01, the flag stayed off for run 284, its removal (5ad8364) deployed on 2026-09-02, and run
 285 was the first time a model ever saw the branch layout.
 
 ## The shape

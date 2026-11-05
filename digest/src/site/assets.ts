@@ -14,8 +14,8 @@ export interface Assets {
   appleTouchIcon: Buffer;
 }
 
-// The FNV-1a 64-bit hash of the bytes, folded to 32 bits as 8 hex: circulation's fingerprint, so the
-// font keeps the URL browsers already cache it under.
+// The FNV-1a 64-bit hash of the bytes, folded to 32 bits as 8 hex: the fingerprint the Rust server used, so
+// the font keeps the URL browsers already cache it under.
 export function fontHash(bytes: Uint8Array): string {
   let h = 0xcbf29ce484222325n;
   for (const b of bytes) h = ((h ^ BigInt(b)) * 0x100000001b3n) & 0xffffffffffffffffn;

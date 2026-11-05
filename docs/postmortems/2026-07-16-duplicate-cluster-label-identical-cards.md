@@ -1,6 +1,6 @@
 # Post-mortem: 2026-07-16 duplicate-cluster-label identical cards
 
-**Status:** resolved. Fixed test-first, reviewed (adversarial ×2, silent-failure-hunter, simplifier, code-reviewer), deployed (`deploy/2026-07-17-002636Z`, commits `4153197` + `701e7f9`). Today's email is unrecoverable (see Impact); the 2026-07-16 archive was left as-is (forward-only).
+**Status:** resolved. Fixed test-first, reviewed (adversarial ×2, silent-failure-hunter, simplifier, code-reviewer), deployed (`deploy/2026-07-17-002636Z`, commits `8c39908` + `728b9b0`). Today's email is unrecoverable (see Impact); the 2026-07-16 archive was left as-is (forward-only).
 **Severity:** medium. One delivered digest led with two near-identical top cards; no missed send, no data loss.
 
 ## Summary

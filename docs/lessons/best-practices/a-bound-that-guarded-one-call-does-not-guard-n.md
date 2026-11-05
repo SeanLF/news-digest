@@ -14,7 +14,7 @@ tags: [fan-out, concurrency, budget, timeout, run_usage, spend-cap, orchestrate,
 
 # A bound that guarded one call does not guard N of them
 
-*2026-09-01, building the per-story WRITE fan-out (1c6ff2b). The first working tree reused
+*2026-09-01, building the per-story WRITE fan-out (4ca7ff9). The first working tree reused
 `run_stage` verbatim per branch — which was the point, and which was also the defect. Review
 caught it before the commit landed; what shipped re-derives every bound below. This records
 the state the review saw, not the code on main.*

@@ -37,8 +37,8 @@ import { OLDER_PAGE, threadDetail, threadIndex } from "./threads.js";
 import { SEARCH_LIMIT, isValidDate, sanitizeQuery } from "./text.js";
 import { proxyTarget, validQueryLang, validTranslatePath } from "./translate.js";
 
-// The web tier (docs/2026-09-23-web-tier-typescript-fork.md): every route circulation served, from the
-// product database, behind the security headers.
+// The web tier (docs/2026-09-23-web-tier-typescript-fork.md): every route, from the product database,
+// behind the security headers.
 
 export interface SiteDeps {
   cfg: SiteConfig;

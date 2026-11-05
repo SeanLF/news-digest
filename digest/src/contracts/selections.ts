@@ -1,5 +1,5 @@
-// Mirrors newsroom/src/schema.py: SOURCE_SCHEMA, REPORTING_VARIES_SCHEMA, ARTICLE_SCHEMA,
-// SHOULD_KNOW_ARTICLE_SCHEMA, SELECTIONS_SCHEMA. `.strict()` is additionalProperties: false.
+// The selections contract: sources, reporting-varies, articles, should-know articles and the whole
+// selections document. `.strict()` is additionalProperties: false.
 import { z } from "zod";
 import { Claim } from "./coherence.js";
 export const PREHEADER_MAX_CHARS = 157;

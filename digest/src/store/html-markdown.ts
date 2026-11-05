@@ -1,7 +1,7 @@
 import TurndownService from "turndown";
 import { log } from "../log.js";
 
-// Stored issue HTML to Markdown (circulation's markdown.rs, on htmd): what the site served at request
+// Stored issue HTML to Markdown: what the site served at request
 // time until the pipeline wrote Markdown itself. It now runs once, in cli/backfill-markdown, to fill
 // issues.markdown for the issues published before that.
 

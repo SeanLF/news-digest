@@ -2,16 +2,12 @@
  * Canonical design tokens — single source of truth for the news-digest visual system.
  *
  * This file is the CODE source of truth; docs/design-system.md is the human one.
- * It replaces the six duplicated :root blocks in circulation/src/templates/*.rs and
- * the hand-copied hexes in newsroom/templates/digest.css.
  *
- * PORT WIRING (Path B — not yet done):
- *   - circulation (Rust): include_str!("../../design/tokens.css"), composed into each
- *     page's inline <style> at render time (DRY source, per-page inlined output = best
- *     Lighthouse: no render-blocking external CSS, no unused-CSS flag).
- *   - newsroom (Python): read at render; resolve_css_variables() inlines to literal hex
- *     for email from this one source.
- *   - A parity canary test asserts both consumers resolve identical hex (self-expiring).
+ * Its readers:
+ *   - the site (digest/src/site/assets.ts) inlines it into each page's <style>: no
+ *     render-blocking external CSS;
+ *   - the web render (digest/src/render/web.ts) prepends it to digest.css;
+ *   - the email render (digest/src/render/email.ts) resolves the light tokens to literal hex.
  *
  * Two token families share one core, on purpose (the documented "editorial content vs
  * app chrome" divergence): the DIGEST keeps solid hairlines + flat severity; the CHROME

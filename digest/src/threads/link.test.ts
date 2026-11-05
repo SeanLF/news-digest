@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { asIndex, parseLinks, selectedLabels, validateLinks } from "./link.js";
 
-// Cases carried from newsroom/tests/test_threads.py.
 const clusters = (...groups: [string, string[]][]) => ({
   clusters: groups.map(([story, article_ids]) => ({ story, article_ids })),
 });
