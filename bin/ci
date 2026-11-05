@@ -143,9 +143,10 @@ def already_passed(root: Path = ROOT) -> bool:
     return stamp is not None and stamp.exists()
 
 
-def record_pass(root: Path = ROOT) -> None:
+def record_pass(root: Path = ROOT, started: Path | None = None) -> None:
+    """Record HEAD's tree as passed, unless it moved since `started`, the tree the suites built."""
     stamp = tree_stamp(root)
-    if stamp is not None:
+    if stamp is not None and (started is None or stamp == started):
         stamp.parent.mkdir(exist_ok=True)
         stamp.touch()
 
@@ -185,6 +186,8 @@ def run_in_docker() -> int:
     # In quiet mode, capture output and only show on failure
     capture = {"stdout": subprocess.PIPE, "stderr": subprocess.STDOUT} if QUIET else {}
     commands = suite_commands(fix_mode, staged="--staged" in args)
+    full_run = suites == ALL_SUITES and not fix_mode and "--staged" not in args
+    started = tree_stamp() if full_run else None
     start = time.monotonic()
     procs = {s: subprocess.Popen(commands[s], cwd=ROOT, **capture) for s in sorted(suites)}
 
@@ -206,8 +209,8 @@ def run_in_docker() -> int:
     failed = [p.returncode for p in procs.values() if p.returncode != 0]
     if not failed and QUIET:
         print(f"{GREEN}CI passed{RESET}")
-    if not failed and suites == ALL_SUITES and not fix_mode and "--staged" not in args:
-        record_pass()
+    if not failed and started is not None:
+        record_pass(started=started)
     return failed[0] if failed else 0
 
 

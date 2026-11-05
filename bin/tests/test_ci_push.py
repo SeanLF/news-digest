@@ -75,3 +75,13 @@ def test_suite_selects_one_suite_and_refuses_an_unknown_one():
     assert ci.selected_suites([]) == ci.ALL_SUITES
     with pytest.raises(SystemExit):
         ci.selected_suites(["--suite", "nope"])
+
+
+def test_a_pass_is_recorded_only_for_the_tree_the_run_started_on(repo):
+    started = ci.tree_stamp(repo)
+    (repo / "a.txt").write_text("committed during the run\n")
+    git(repo, "commit", "-q", "-am", "mid-run")
+    ci.record_pass(repo, started)
+    assert not ci.already_passed(repo)
+    git(repo, "checkout", "-q", "HEAD~1")
+    assert not ci.already_passed(repo)

@@ -4,7 +4,7 @@
 
 Automated news digest: RSS feeds → Claude curation → HTML email via Resend, and a web archive.
 TypeScript on Temporal since the cut-over of 2026-09-25; the Python pipeline (`newsroom/`) and the Rust
-web server (`circulation/`) are deleted (last in `e925e9d`).
+web server (`circulation/`) are deleted (the last tree with both is `ce74307b`).
 
 Where things were decided: `docs/2026-09-24-web-tier-and-ops-decisions.md` (the decision record, which
 wins over the spec it supersedes), `docs/2026-09-21-four-systems-rewrite-design.md` (the
