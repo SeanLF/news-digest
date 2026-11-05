@@ -1,24 +1,39 @@
-# The tests and the dependency scan on every push to main, and on Dependabot's PRs, which never pass
-# through the Mac's pre-commit hook. Not a deploy gate: make deploy runs osv-scanner itself.
+# The tests and the dependency scan on every push to main and on Dependabot's PRs, which never pass
+# through the Mac's hooks. Not a deploy gate: make deploy runs osv-scanner itself, and the pre-push
+# hook runs the same bin/ci. Each suite is its own job, in parallel; `check` is the one name to require.
 name: ci
 
 on:
   push:
     branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
   pull_request:
   workflow_dispatch:
 
 permissions: {}
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # The repo's own CI (bin/ci): the TypeScript, Python worker and bin/ scripts suites, each in its container.
-  test:
+  suite:
+    name: ${{ matrix.suite }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [ts, worker, scripts]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: bin/ci
+        with:
+          persist-credentials: false
+      - run: bin/ci --suite "$SUITE"
+        env:
+          SUITE: ${{ matrix.suite }}
 
   scan:
     permissions:
@@ -32,3 +47,15 @@ jobs:
       scan-args: |-
         --lockfile=digest/package-lock.json
         --lockfile=digest/python/uv.lock
+
+  check:
+    if: always()
+    needs: [suite, scan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: every suite and the scan passed (skipped or cancelled is not passed)
+        if: ${{ needs.suite.result != 'success' || needs.scan.result != 'success' }}
+        run: exit 1
+      - run: echo ok

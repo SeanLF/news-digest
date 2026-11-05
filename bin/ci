@@ -6,6 +6,8 @@ Usage:
     bin/ci           Run every suite
     bin/ci --staged  Run only the suites the staged paths reach (the pre-commit hook)
     bin/ci --fix     Let the linters fix what they can (oxfmt in the TypeScript suite, ruff over bin/tests and digest/python)
+    bin/ci --push    The pre-push hook: a full run, skipped when this committed tree already passed one
+    bin/ci --suite S Run one suite (ts, worker or scripts), as GitHub CI's jobs do
 """
 
 import os
@@ -84,7 +86,7 @@ def suite_commands(fix_mode: bool, staged: bool = False) -> dict[str, list[str]]
         # ci-ts COPYs digest/ in; under --fix, src is mounted so the formatter writes back.
         TS: ["docker", "compose", "run", "--rm", "--build"]
         + (["-v", f"{ROOT}/digest/src:/app/digest/src"] if fix_mode else [])
-        + ["ci-ts", "sh", "-c", ts_cmd(fix_mode, staged)],
+        + ["-e", "GITHUB_ACTIONS", "ci-ts", "sh", "-c", ts_cmd(fix_mode, staged)],
         WORKER: [
             "docker", "compose", "run", "--rm", "--build", "ci-python",
             "python", "-m", "pytest", "-q", "-n", "auto", "-p", "no:cacheprovider", "/app/tests",
@@ -122,12 +124,52 @@ SUITE_NAMES = {
 }
 
 
+def tree_stamp(root: Path = ROOT) -> Path | None:
+    """Where a passing full run of HEAD's tree is recorded; None while the worktree differs from HEAD,
+    since the suites build from the worktree."""
+    def git(*a: str) -> str:
+        return subprocess.run(["git", "-C", str(root), *a], check=True, capture_output=True, text=True).stdout.strip()
+
+    if git("status", "--porcelain"):
+        return None
+    common = Path(git("rev-parse", "--git-common-dir"))
+    if not common.is_absolute():
+        common = root / common
+    return common / "ci-passed" / git("rev-parse", "HEAD^{tree}")
+
+
+def already_passed(root: Path = ROOT) -> bool:
+    stamp = tree_stamp(root)
+    return stamp is not None and stamp.exists()
+
+
+def record_pass(root: Path = ROOT) -> None:
+    stamp = tree_stamp(root)
+    if stamp is not None:
+        stamp.parent.mkdir(exist_ok=True)
+        stamp.touch()
+
+
+def selected_suites(args: list[str]) -> frozenset[str]:
+    if "--suite" not in args:
+        return ALL_SUITES
+    i = args.index("--suite")
+    name = args[i + 1] if i + 1 < len(args) else ""
+    if name not in ALL_SUITES:
+        sys.exit(f"bin/ci --suite: one of {', '.join(sorted(ALL_SUITES))}, not {name!r}")
+    return frozenset({name})
+
+
 def run_in_docker() -> int:
     """Run CI via docker compose, one container per suite, all in parallel."""
     args = sys.argv[1:]
     fix_mode = "--fix" in args
 
-    suites = ALL_SUITES
+    if "--push" in args and already_passed():
+        print(f"{GREEN}CI: this tree already passed; skipping{RESET}")
+        return 0
+
+    suites = selected_suites(args)
     if "--staged" in args:
         paths = staged_paths()
         suites = ALL_SUITES if paths is None else suites_for(paths)
@@ -164,6 +206,8 @@ def run_in_docker() -> int:
     failed = [p.returncode for p in procs.values() if p.returncode != 0]
     if not failed and QUIET:
         print(f"{GREEN}CI passed{RESET}")
+    if not failed and suites == ALL_SUITES and not fix_mode and "--staged" not in args:
+        record_pass()
     return failed[0] if failed else 0
 
 

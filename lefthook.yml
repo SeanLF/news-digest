@@ -1,14 +1,15 @@
-# Git hooks via lefthook
-# Install: brew install lefthook && lefthook install
+# Git hooks via lefthook. The global hooks (core.hooksPath) hand off to this only in a clone that
+# trusts it: git config --local hooks.lefthook true
 
+# The suites the staged paths reach, the TypeScript one without its Temporal-server tests.
 pre-commit:
   commands:
     ci:
       run: bin/ci --staged
       stage_fixed: true
 
-# The full run, Temporal-server tests included: what reaches origin is what GitHub CI and a deploy see.
+# The full run, Temporal-server tests included, skipped when this committed tree already passed one.
 pre-push:
   commands:
     ci:
-      run: bin/ci
+      run: bin/ci --push
