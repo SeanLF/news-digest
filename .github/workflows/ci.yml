@@ -1,8 +1,6 @@
 # The tests and the dependency scan on every push to main and on Dependabot's PRs, which never pass
 # through the Mac's hooks. Not a deploy gate: make deploy runs osv-scanner itself, and the pre-push
-# hook runs the same bin/ci. Each suite is its own job, in parallel, the TypeScript one split into its
-# unit project (with format, typecheck and lint) and its Temporal-server project; image layers come
-# from the Actions cache. `check` is the one name to require.
+# hook runs the same bin/ci. Each suite is its own job, in parallel; `check` is the one name to require.
 name: ci
 
 on:
@@ -20,7 +18,7 @@ concurrency:
 
 jobs:
   suite:
-    name: ${{ matrix.suite }}${{ matrix.project && format(' ({0})', matrix.project) || '' }}
+    name: ${{ matrix.suite }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -28,24 +26,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { suite: ts, project: unit }
-          - { suite: ts, project: temporal }
-          - { suite: worker }
-          - { suite: scripts }
-    env:
-      COMPOSE_FILE: docker-compose.yml:.github/compose.cache.yml
+        suite: [ts, worker, scripts]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      # Exposes the Actions cache's URL and token to buildx's gha cache backend.
-      - uses: crazy-max/ghaction-github-runtime@04d248b84655b509d8c44dc1d6f990c879747487 # v4.0.0
-      - run: bin/ci --suite "$SUITE" ${PROJECT:+--project "$PROJECT"}
+      - run: bin/ci --suite "$SUITE"
         env:
           SUITE: ${{ matrix.suite }}
-          PROJECT: ${{ matrix.project }}
 
   scan:
     permissions:

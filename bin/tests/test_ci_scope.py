@@ -228,16 +228,6 @@ def test_a_staged_file_outside_src_runs_every_unit_test(other):
     assert "npm test -- --project unit" in cmd and "related" not in cmd
 
 
-def test_a_ts_project_splits_the_suite_for_parallel_ci_jobs():
-    unit = ci.ts_cmd(False, project="unit")
-    assert "format:check" in unit and "lint" in unit and "npm test -- --project unit" in unit
-    assert ci.ts_cmd(False, project="temporal") == "npm test -- --project temporal"
-    assert ci.selected_project(["--suite", "ts", "--project", "temporal"]) == "temporal"
-    assert ci.selected_project([]) is None
-    with pytest.raises(SystemExit):
-        ci.selected_project(["--project", "e2e"])
-
-
 def test_a_staged_workflow_source_runs_every_unit_test_so_the_histories_replay():
     cmd = ci.ts_cmd(False, staged=True, paths=["digest/src/workflow/digest.workflow.ts"])
     assert "npm test -- --project unit" in cmd and "related" not in cmd

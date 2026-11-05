@@ -8,7 +8,6 @@ Usage:
     bin/ci --fix     Let the linters fix what they can (oxfmt in the TypeScript suite, ruff over bin/tests and digest/python)
     bin/ci --push    The pre-push hook: a full run, skipped when this committed tree already passed one
     bin/ci --suite S Run one suite (ts, worker or scripts), as GitHub CI's jobs do
-    bin/ci --suite ts --project P   The TypeScript suite's unit (with the checks) or temporal tests only
 """
 
 import os
@@ -81,16 +80,14 @@ ROOT = Path(__file__).resolve().parent.parent
 QUIET = os.environ.get("CLAUDECODE") == "1"
 
 
-def suite_commands(
-    fix_mode: bool, staged: bool = False, paths: list[str] | None = None, project: str | None = None
-) -> dict[str, list[str]]:
+def suite_commands(fix_mode: bool, staged: bool = False, paths: list[str] | None = None) -> dict[str, list[str]]:
     """The docker compose command each suite runs as, keyed by suite. A staged run (the pre-commit
     hook) leaves out the Temporal-server tests; a full run (pre-push, GitHub CI) has them."""
     return {
         # ci-ts COPYs digest/ in; under --fix, src is mounted so the formatter writes back.
         TS: ["docker", "compose", "run", "--rm", "--build"]
         + (["-v", f"{ROOT}/digest/src:/app/digest/src"] if fix_mode else [])
-        + ["-e", "GITHUB_ACTIONS", "ci-ts", "sh", "-c", ts_cmd(fix_mode, staged, paths, project)],
+        + ["-e", "GITHUB_ACTIONS", "ci-ts", "sh", "-c", ts_cmd(fix_mode, staged, paths)],
         WORKER: [
             "docker", "compose", "run", "--rm", "--build", "ci-python",
             "python", "-m", "pytest", "-q", "-n", "auto", "-p", "no:cacheprovider", "/app/tests",
@@ -122,14 +119,11 @@ def unit_tests(paths: list[str] | None) -> str:
     return f"npx vitest related --run --project unit --passWithNoTests {rel}"
 
 
-def ts_cmd(fix_mode: bool, staged: bool = False, paths: list[str] | None = None, project: str | None = None) -> str:
+def ts_cmd(fix_mode: bool, staged: bool = False, paths: list[str] | None = None) -> str:
     """Format, typecheck and lint (about 1 s together), then vitest; every step runs, so one failure
-    hides no other. A tsgolint killed for memory shows only "Error running tsgolint". The temporal
-    project alone is its tests: GitHub CI runs it beside the unit project, which does the checks."""
-    if project == "temporal":
-        return "npm test -- --project temporal"
+    hides no other. A tsgolint killed for memory shows only "Error running tsgolint"."""
     fmt = "npm run format; f=$?" if fix_mode else "npm run format:check; f=$?"
-    test = "npm test -- --project unit" if project == "unit" else unit_tests(paths) if staged else "npm test"
+    test = unit_tests(paths) if staged else "npm test"
     return (
         f"{fmt}; npm run typecheck; t=$?; npm run lint; l=$?; {test}; v=$?; "
         "[ $f -eq 0 ] && [ $t -eq 0 ] && [ $l -eq 0 ] && [ $v -eq 0 ]"
@@ -180,19 +174,6 @@ def selected_suites(args: list[str]) -> frozenset[str]:
     return frozenset({name})
 
 
-TS_PROJECTS = ("unit", "temporal")
-
-
-def selected_project(args: list[str]) -> str | None:
-    if "--project" not in args:
-        return None
-    i = args.index("--project")
-    name = args[i + 1] if i + 1 < len(args) else ""
-    if name not in TS_PROJECTS:
-        sys.exit(f"bin/ci --project: one of {', '.join(TS_PROJECTS)}, not {name!r}")
-    return name
-
-
 def run_in_docker() -> int:
     """Run CI via docker compose, one container per suite, all in parallel."""
     args = sys.argv[1:]
@@ -219,8 +200,8 @@ def run_in_docker() -> int:
     # In quiet mode, capture output and only show on failure
     capture = {"stdout": subprocess.PIPE, "stderr": subprocess.STDOUT} if QUIET else {}
     present = [p for p in paths if (ROOT / p).exists()] if paths else None
-    commands = suite_commands(fix_mode, staged="--staged" in args, paths=present, project=selected_project(args))
-    full_run = suites == ALL_SUITES and not fix_mode and "--staged" not in args and "--project" not in args
+    commands = suite_commands(fix_mode, staged="--staged" in args, paths=present)
+    full_run = suites == ALL_SUITES and not fix_mode and "--staged" not in args
     started = tree_stamp() if full_run else None
     start = time.monotonic()
     procs = {s: subprocess.Popen(commands[s], cwd=ROOT, **capture) for s in sorted(suites)}
