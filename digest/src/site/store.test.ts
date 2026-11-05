@@ -9,7 +9,11 @@ let db: Db;
 const store = () => siteStore(db);
 
 async function seed(): Promise<void> {
-  db = openDb(await migratedDb([1, 2, 3, 4, 5].map((id) => ({ id, runAt: new Date(Date.UTC(2026, 7, 27 + id, 10, 25)).toISOString() }))));
+  db = openDb(
+    await migratedDb(
+      [1, 2, 3, 4, 5].map((id) => ({ id, runAt: new Date(Date.UTC(2026, 7, 27 + id, 10, 25)).toISOString() })),
+    ),
+  );
   await db.exec(`
     UPDATE runs SET status = 'completed', outcome = 'sent', articles_kept = 500 + id WHERE id <= 4;
     UPDATE runs SET status = 'completed', outcome = 'held-out' WHERE id = 5;
@@ -46,8 +50,17 @@ describe("the site's reads", () => {
   beforeEach(seed);
 
   it("counts issues by date and serves each date's highest revision", async () => {
-    expect(await store().indexMeta()).toEqual({ total: 4, firstDate: "2026-08-28", newestDate: "2026-09-01", totalStories: 4 });
-    expect(await store().issue("2026-08-31")).toEqual({ html: "<main>three, revised</main>", preheader: "Pre three revised", markdown: null });
+    expect(await store().indexMeta()).toEqual({
+      total: 4,
+      firstDate: "2026-08-28",
+      newestDate: "2026-09-01",
+      totalStories: 4,
+    });
+    expect(await store().issue("2026-08-31")).toEqual({
+      html: "<main>three, revised</main>",
+      preheader: "Pre three revised",
+      markdown: null,
+    });
     await db.exec("UPDATE issues SET markdown = 'three, as Markdown' WHERE issue_date = '2026-08-31' AND revision = 2");
     expect((await store().issue("2026-08-31"))?.markdown).toBe("three, as Markdown");
     expect(await store().issue("2026-8-31")).toBeUndefined();
@@ -140,7 +153,9 @@ describe("the site's reads, at the edges of their inputs", () => {
     await db.exec("UPDATE runs SET status = 'running', outcome = NULL WHERE id = 5");
     await db.exec("UPDATE runs SET status = 'completed', outcome = 'sent' WHERE id = 5");
     await db.exec("INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-02', 1, 5, 'x')");
-    await db.exec("INSERT INTO sends (issue_date, run_id, revision, status, recipients) VALUES ('2026-09-02', 5, 1, 'sent', NULL)");
+    await db.exec(
+      "INSERT INTO sends (issue_date, run_id, revision, status, recipients) VALUES ('2026-09-02', 5, 1, 'sent', NULL)",
+    );
     expect((await store().stats(30, new Date("2026-09-03T00:00:00Z"))).cost.recipientsLatest).toBe(12);
   });
 });

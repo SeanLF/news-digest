@@ -15,7 +15,9 @@ describe("startOptions", () => {
     expect(o.args).toEqual([{ runDate: "2026-09-21" }]);
   });
   it("a resume without force may also reuse a completed day's id", () => {
-    expect(startOptions("2026-09-21", { resumeRun: 303 }).workflowIdReusePolicy).toBe(WorkflowIdReusePolicy.ALLOW_DUPLICATE);
+    expect(startOptions("2026-09-21", { resumeRun: 303 }).workflowIdReusePolicy).toBe(
+      WorkflowIdReusePolicy.ALLOW_DUPLICATE,
+    );
   });
   it("a forced re-run may reuse the id of a completed run, never a running one", () => {
     const o = startOptions("2026-09-21", { force: true, resumeRun: 303 });
@@ -41,7 +43,10 @@ describe("make digest-start's arguments", () => {
     expect(() => parseStartArgs(["2026-09-23", "--force"], today)).toThrow(/not 2026-09-23/);
   });
   it("a resume may name the day of the run it resumes", () => {
-    expect(parseStartArgs(["2026-09-18", "--resume", "300"], today)).toEqual({ date: "2026-09-18", opts: { force: false, resumeRun: 300 } });
+    expect(parseStartArgs(["2026-09-18", "--resume", "300"], today)).toEqual({
+      date: "2026-09-18",
+      opts: { force: false, resumeRun: 300 },
+    });
   });
   it("refuses what is not a date or not a run number", () => {
     expect(() => parseStartArgs(["24-09-2026"], today)).toThrow(/YYYY-MM-DD/);
@@ -81,7 +86,10 @@ describe("the daily schedule", () => {
         getHandle: (id: string) => ({
           update: (fn: (prev: unknown) => unknown) => {
             calls.push(`update:${id}`);
-            const next = fn({ state: { paused: false, note: "live pipeline: temporal" } }) as { spec: unknown; state: unknown };
+            const next = fn({ state: { paused: false, note: "live pipeline: temporal" } }) as {
+              spec: unknown;
+              state: unknown;
+            };
             expect(next.spec).toEqual(scheduleOptions().spec);
             expect(next.state).toEqual({ paused: false, note: "live pipeline: temporal" }); // an update never re-pauses a live schedule
             return Promise.resolve();

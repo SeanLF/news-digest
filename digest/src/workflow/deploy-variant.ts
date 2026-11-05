@@ -10,7 +10,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const ANCHOR = "    const budget = sendBudget();\n";
 export function changedWorkflowPath(): string {
   const src = readFileSync(join(here, "digest.workflow.ts"), "utf8");
-  if (!src.includes(ANCHOR)) throw new Error("the budget check's anchor line is gone from digest.workflow.ts; update deploy-variant.ts");
+  if (!src.includes(ANCHOR))
+    throw new Error("the budget check's anchor line is gone from digest.workflow.ts; update deploy-variant.ts");
   const changed = src
     .replace(ANCHOR, `    await ops.healthcheckLog("added by a later deploy");\n${ANCHOR}`)
     .replaceAll('from "./', `from "${here}/`)

@@ -45,7 +45,12 @@ describe("ArtifactStore on the product schema", () => {
     const db = openDb(url);
     await db.run("INSERT INTO run_attempts (id, run_id, pipeline) VALUES (7, 300, 'temporal'), (8, 300, 'temporal')");
     await new ArtifactStore(url).put(300, "draft_s03.json", "{}");
-    expect(await db.one("SELECT stage, kind, branch, attempt_id FROM artifacts")).toEqual({ stage: "write", kind: "output", branch: "s03", attempt_id: 8 });
+    expect(await db.one("SELECT stage, kind, branch, attempt_id FROM artifacts")).toEqual({
+      stage: "write",
+      kind: "output",
+      branch: "s03",
+      attempt_id: 8,
+    });
     expect(artifactKind("articles_2.csv")).toEqual({ stage: "prepare", kind: "input", branch: "c2" });
     expect(artifactKind("something_new.txt")).toEqual({ stage: null, kind: null, branch: null });
   });
@@ -76,8 +81,27 @@ describe("ArtifactStore on the product schema", () => {
 describe("model_calls", () => {
   it("records a call and sums a run's cost since a moment", async () => {
     const db = openDb(await freshDb([300]));
-    await recordUsage(db, { stage: "write", runId: 300, model: "claude-sonnet-5", thinking: "adaptive", effort: "(sdk default)", costUsd: 0.25, durationMs: 9, tokens: { input_tokens: 10, output_tokens: 3, cache_read_input_tokens: 7 }, story: 2 });
-    await recordUsage(db, { stage: "coherence", runId: 300, model: "claude-sonnet-5", thinking: "adaptive", effort: "high", costUsd: 0.5, durationMs: 9, tokens: {} });
+    await recordUsage(db, {
+      stage: "write",
+      runId: 300,
+      model: "claude-sonnet-5",
+      thinking: "adaptive",
+      effort: "(sdk default)",
+      costUsd: 0.25,
+      durationMs: 9,
+      tokens: { input_tokens: 10, output_tokens: 3, cache_read_input_tokens: 7 },
+      story: 2,
+    });
+    await recordUsage(db, {
+      stage: "coherence",
+      runId: 300,
+      model: "claude-sonnet-5",
+      thinking: "adaptive",
+      effort: "high",
+      costUsd: 0.5,
+      durationMs: 9,
+      tokens: {},
+    });
     expect(await runCost(db, 300, "2000-01-01 00:00:00")).toEqual({ costUsd: 0.75, calls: 2 });
     expect(await runCost(db, 300, "2999-01-01 00:00:00")).toEqual({ costUsd: 0, calls: 0 });
     expect(await db.one("SELECT cache_read_input_tokens AS c FROM model_calls WHERE stage='write'")).toEqual({ c: 7 });
@@ -90,7 +114,17 @@ describe("model_calls", () => {
   it("versions the prompt by content hash, once per distinct prompt", async () => {
     const db = openDb(await freshDb([300]));
     const prompt = { name: "recap", body: "Summarise. {{CURRENT_DATE}}", tools: [], thinking: "disabled" as const };
-    const row = { stage: "recap", runId: 300, model: "m", thinking: "disabled", effort: "(sdk default)", costUsd: 0, durationMs: 1, tokens: {}, prompt };
+    const row = {
+      stage: "recap",
+      runId: 300,
+      model: "m",
+      thinking: "disabled",
+      effort: "(sdk default)",
+      costUsd: 0,
+      durationMs: 1,
+      tokens: {},
+      prompt,
+    };
     await recordUsage(db, row);
     await recordUsage(db, row);
     await recordUsage(db, { ...row, prompt: { ...prompt, tools: ["Read" as const] } });

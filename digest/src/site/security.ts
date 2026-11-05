@@ -10,11 +10,19 @@ import { indexJs, proxyTranslateHideScript, railJs, threadsJs, toggleJs } from "
 
 // The only inline scripts the site writes. A script is hashed only when it is one of these: a stored
 // issue is the pipeline's HTML, and a <script> that ever reached it must stay refused.
-const SITE_SCRIPTS: ReadonlySet<string> = new Set([NO_FLASH_JS, toggleJs, proxyTranslateHideScript, indexJs, threadsJs, railJs]);
+const SITE_SCRIPTS: ReadonlySet<string> = new Set([
+  NO_FLASH_JS,
+  toggleJs,
+  proxyTranslateHideScript,
+  indexJs,
+  threadsJs,
+  railJs,
+]);
 
 const INLINE = /<(script|style)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi;
 // A browser hashes the element's text after its input stream turned CR and CRLF into LF.
-const sha256 = (body: string) => `'sha256-${createHash("sha256").update(body.replaceAll(/\r\n?/g, "\n"), "utf8").digest("base64")}'`;
+const sha256 = (body: string) =>
+  `'sha256-${createHash("sha256").update(body.replaceAll(/\r\n?/g, "\n"), "utf8").digest("base64")}'`;
 
 // A route another site may frame sets this to the origins allowed to; every other response may be
 // framed only by the site itself.
@@ -52,7 +60,8 @@ export const CORP = "cross-origin";
 // Reads an HTML body once the handler has built it, and sets the policy from what it holds.
 const csp = (): MiddlewareHandler => async (c, next) => {
   await next();
-  const html = c.res.headers.get("content-type")?.startsWith("text/html") && c.res.body ? await c.res.clone().text() : "";
+  const html =
+    c.res.headers.get("content-type")?.startsWith("text/html") && c.res.body ? await c.res.clone().text() : "";
   const framed = c.get("frameAncestors");
   const ancestors = framed ?? [];
   c.res.headers.set("content-security-policy", contentSecurityPolicy(html, ancestors));
@@ -73,7 +82,16 @@ const headers = (): MiddlewareHandler =>
     xFrameOptions: "SAMEORIGIN",
     referrerPolicy: "strict-origin-when-cross-origin",
     xContentTypeOptions: "nosniff",
-    permissionsPolicy: { accelerometer: [], camera: [], geolocation: [], gyroscope: [], magnetometer: [], microphone: [], payment: [], usb: [] },
+    permissionsPolicy: {
+      accelerometer: [],
+      camera: [],
+      geolocation: [],
+      gyroscope: [],
+      magnetometer: [],
+      microphone: [],
+      payment: [],
+      usb: [],
+    },
     // Social previews and other sites embed the og:image, so resources stay embeddable cross-origin.
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,

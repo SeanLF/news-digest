@@ -2,12 +2,19 @@ import { decodeHTML } from "entities";
 
 // render.strip_html: drop tags, decode entities (HTML5, as Python's html.unescape), collapse whitespace.
 export function stripHtml(text: string): string {
-  return decodeHTML(text.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
+  return decodeHTML(text.replace(/<[^>]+>/g, ""))
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 // Python's html.escape(quote=True).
 export function escapeHtml(text: string): string {
-  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;");
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#x27;");
 }
 
 // A code-point prefix, as Python's s[:n].

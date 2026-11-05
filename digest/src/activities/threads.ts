@@ -10,11 +10,38 @@ import { runStage, type SdkQuery } from "../runner/run-stage.js";
 import { artifactIn, putIn, quarantineIn, setIn, type ArtifactStore, type Pointer } from "../store/artifacts.js";
 import { openDb, type Db, type Sql } from "../store/db.js";
 import type { UsageRow } from "../store/usage.js";
-import { assignThreads, linkPrompt, parseLinks, selectedLabels, validateLinks, type Assignment, type LinkHealth, type LinkTrace } from "../threads/link.js";
+import {
+  assignThreads,
+  linkPrompt,
+  parseLinks,
+  selectedLabels,
+  validateLinks,
+  type Assignment,
+  type LinkHealth,
+  type LinkTrace,
+} from "../threads/link.js";
 import { ThreadStore, type ActiveThread, type RenderContext } from "../threads/store.js";
-import { applyInstallment, auditPrompt, auditReask, expandNeighbourhood, offThread, parseInstallment, readAudit, synthesisPrompt, whatsNewOf, type Art, type Installment } from "../threads/synthesis.js";
+import {
+  applyInstallment,
+  auditPrompt,
+  auditReask,
+  expandNeighbourhood,
+  offThread,
+  parseInstallment,
+  readAudit,
+  synthesisPrompt,
+  whatsNewOf,
+  type Art,
+  type Installment,
+} from "../threads/synthesis.js";
 import { loadArticles } from "./cluster.js";
-import { THREAD_CONTEXT, type ThreadOutcome, type ThreadPlan, type ThreadsLinked, type ThreadsReport } from "./index.js";
+import {
+  THREAD_CONTEXT,
+  type ThreadOutcome,
+  type ThreadPlan,
+  type ThreadsLinked,
+  type ThreadsReport,
+} from "./index.js";
 import { ACCEPTED_BROADCAST_STATES, sendRow } from "../ops/broadcast-state.js";
 import { RUN_TIMEOUT_HOURS } from "../workflow/policy.js";
 
@@ -53,7 +80,8 @@ function numberFrom(env: NodeJS.ProcessEnv, name: string, dflt: number, integer:
   const raw = env[name];
   if (raw === undefined) return dflt;
   const v = Number(raw);
-  if (raw.trim() === "" || !Number.isFinite(v) || v < 0 || (integer && !Number.isInteger(v))) throw new Error(`${name}=${JSON.stringify(raw)} is not a non-negative ${integer ? "integer" : "number"}`);
+  if (raw.trim() === "" || !Number.isFinite(v) || v < 0 || (integer && !Number.isInteger(v)))
+    throw new Error(`${name}=${JSON.stringify(raw)} is not a non-negative ${integer ? "integer" : "number"}`);
   return v;
 }
 // config.py's THREAD_* names and defaults: off unless the deployment turns them on.
@@ -61,7 +89,12 @@ export function threadsConfigFrom(env: NodeJS.ProcessEnv): ThreadsConfig {
   return {
     enabled: flag(env["THREADS_ENABLED"]),
     dormantAfter: numberFrom(env, "THREAD_DORMANT_AFTER", 3, true),
-    latebind: flag(env["THREAD_LATEBIND"]) ? { threshold: numberFrom(env, "THREAD_LATEBIND_THRESHOLD", 0.35, false), maxExtra: numberFrom(env, "THREAD_LATEBIND_MAX_EXTRA", 12, true) } : null,
+    latebind: flag(env["THREAD_LATEBIND"])
+      ? {
+          threshold: numberFrom(env, "THREAD_LATEBIND_THRESHOLD", 0.35, false),
+          maxExtra: numberFrom(env, "THREAD_LATEBIND_MAX_EXTRA", 12, true),
+        }
+      : null,
     digestDomain: env["DIGEST_DOMAIN"] ?? "",
   };
 }
@@ -98,13 +131,19 @@ function currentAttempt(): number {
 }
 
 // digest.thread_url: absolute when the domain is known, else site-relative.
-export const threadUrl = (domain: string, id: number): string => (domain ? `https://${domain}/thread/${id}` : `/thread/${id}`);
+export const threadUrl = (domain: string, id: number): string =>
+  domain ? `https://${domain}/thread/${id}` : `/thread/${id}`;
 
 // Artifacts are read and written through the store's connection-level helpers, inside the caller's
 // transaction. Health, context and the installments list are derived from the run's thread rows, so
 // a finish replaces them (setIn) rather than keeping a first answer a later resume has made wrong.
 async function threadArtifacts(db: Sql, runId: number): Promise<string[]> {
-  return (await db.all<{ n: string }>("SELECT name AS n FROM artifacts WHERE run_id = $1 AND status = 'current' AND name LIKE 'thread%'", [runId])).map((r) => r.n);
+  return (
+    await db.all<{ n: string }>(
+      "SELECT name AS n FROM artifacts WHERE run_id = $1 AND status = 'current' AND name LIKE 'thread%'",
+      [runId],
+    )
+  ).map((r) => r.n);
 }
 
 // One writer at a time for a run's thread identity: the link, each installment, the finish.
@@ -138,8 +177,13 @@ const UNDO_MARKER = "force_undo_threads.json";
 export async function undoRun(db: Sql, runId: number): Promise<void> {
   const later = await dependentRuns(db, runId);
   if (later.length)
-    throw ApplicationFailure.nonRetryable(`refusing to force run ${runId}'s threads: later run(s) ${later.join(", ")} build on run ${runId}'s threads; they stay as they are, relink by hand`, "ThreadsHaveDependents");
-  const touched = (await db.all<{ t: number }>("SELECT DISTINCT thread_id AS t FROM thread_updates WHERE run_id = $1", [runId])).map((r) => r.t);
+    throw ApplicationFailure.nonRetryable(
+      `refusing to force run ${runId}'s threads: later run(s) ${later.join(", ")} build on run ${runId}'s threads; they stay as they are, relink by hand`,
+      "ThreadsHaveDependents",
+    );
+  const touched = (
+    await db.all<{ t: number }>("SELECT DISTINCT thread_id AS t FROM thread_updates WHERE run_id = $1", [runId])
+  ).map((r) => r.t);
   await db.run("DELETE FROM thread_question_resolutions WHERE resolved_run_id = $1", [runId]);
   await db.run("DELETE FROM thread_questions WHERE raised_run_id = $1", [runId]);
   await db.run("DELETE FROM thread_updates WHERE run_id = $1", [runId]);
@@ -154,7 +198,10 @@ export async function undoRun(db: Sql, runId: number): Promise<void> {
   for (const name of await threadArtifacts(db, runId)) await quarantineIn(db, runId, name);
 }
 
-export interface Retraction { retracted: boolean; reason?: string }
+export interface Retraction {
+  retracted: boolean;
+  reason?: string;
+}
 
 async function retract(db: Db, runId: number): Promise<Retraction> {
   const decline = (reason: string) => {
@@ -166,13 +213,20 @@ async function retract(db: Db, runId: number): Promise<Retraction> {
   if (await db.one("SELECT 1 FROM published_runs WHERE run_id = $1", [runId])) return decline("its issue is published");
   // The run's own send first, whatever day it is dated: a run started for tomorrow sends under tomorrow.
   const own = await db.one<{ date: string }>("SELECT issue_date::text AS date FROM sends WHERE run_id = $1", [runId]);
-  const run = own ?? (await db.one<{ date: string }>("SELECT (started_at AT TIME ZONE 'UTC')::date AS date FROM runs WHERE id = $1", [runId]));
+  const run =
+    own ??
+    (await db.one<{ date: string }>("SELECT (started_at AT TIME ZONE 'UTC')::date AS date FROM runs WHERE id = $1", [
+      runId,
+    ]));
   const day = run ? await sendRow(db, run.date) : undefined;
-  const mayHaveGone = day !== undefined && (day.id !== null || day.status === "claimed" || ACCEPTED_BROADCAST_STATES.has(day.status));
+  const mayHaveGone =
+    day !== undefined && (day.id !== null || day.status === "claimed" || ACCEPTED_BROADCAST_STATES.has(day.status));
   // Delivery is judged by sender: the day's broadcast is another run's only when its claiming run is
   // a different, completed one.
   if (day && mayHaveGone) {
-    const other = day.runId !== runId && (await db.one("SELECT 1 FROM runs WHERE id = $1 AND status = 'completed'", [day.runId])) !== undefined;
+    const other =
+      day.runId !== runId &&
+      (await db.one("SELECT 1 FROM runs WHERE id = $1 AND status = 'completed'", [day.runId])) !== undefined;
     if (!other) return decline(`the day's broadcast is ${day.status}${day.id ? ` (${day.id})` : ""}`);
   }
   const later = await dependentRuns(db, runId);
@@ -217,7 +271,11 @@ async function articles(store: ArtifactStore, runId: number): Promise<Map<string
 // thread_assignments.json keeps the Python's shape; the article ids ride in thread_links.json's
 // story trace, index-aligned, which a resumed Python run also carries. A trace entry whose label is
 // not its assignment's story is not that story's evidence.
-interface StoredAssignment { thread_id: number; is_new: boolean; story: string }
+interface StoredAssignment {
+  thread_id: number;
+  is_new: boolean;
+  story: string;
+}
 export function plansFrom(assignments: StoredAssignment[], trace: LinkTrace | undefined): ThreadPlan[] {
   return assignments.flatMap((a, i) => {
     const st = trace?.stories[i];
@@ -237,35 +295,70 @@ export function threadsActivities(deps: ThreadsDeps) {
   const spec = (name: string) => parseAgentSpec(readFileSync(join(deps.agentsDir, `${name}.md`), "utf8"));
   // Every thread call is free text, as production's are (no output format): the answer is parsed as
   // the Python parses it.
-  const run = async (name: string, runId: number, stage: string, prompt: string, ms: number, detail: Record<string, unknown> = {}): Promise<string> => {
+  const run = async (
+    name: string,
+    runId: number,
+    stage: string,
+    prompt: string,
+    ms: number,
+    detail: Record<string, unknown> = {},
+  ): Promise<string> => {
     const s = spec(name);
     const clean = scrubUrls(prompt);
     assertNoUrls(clean); // the invariant, checked where text leaves code (spec §1)
     deps.heartbeat?.();
-    const r = await runStage(s, { userMessage: clean, inputDir: tmpdir() }, {
-      today: await store.runDate(runId),
-      runId,
-      signal: signal(ms),
-      ...(deps.query ? { query: deps.query } : {}),
-      ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
-    });
+    const r = await runStage(
+      s,
+      { userMessage: clean, inputDir: tmpdir() },
+      {
+        today: await store.runDate(runId),
+        runId,
+        signal: signal(ms),
+        ...(deps.query ? { query: deps.query } : {}),
+        ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+      },
+    );
     deps.heartbeat?.();
-    await deps.onUsage?.({ model: s.model, thinking: s.thinking, prompt: s, effort: r.effort, tokens: r.usage, stage, runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns, ...detail });
+    await deps.onUsage?.({
+      model: s.model,
+      thinking: s.thinking,
+      prompt: s,
+      effort: r.effort,
+      tokens: r.usage,
+      stage,
+      runId,
+      costUsd: r.costUsd,
+      durationMs: r.durationMs,
+      numTurns: r.numTurns,
+      ...detail,
+    });
     return r.text;
   };
 
   // The linker's answer. A failure throws for a fresh sample while attempts remain; on the last one
   // it is production's fallback, every story a new thread, recorded as linker_ok false.
-  async function link(runId: number, active: ActiveThread[], labels: string[]): Promise<{ mapping: (number | null)[]; health: LinkHealth }> {
-    if (!active.length || !labels.length) return { mapping: labels.map(() => null), health: { ok: true, proposed: 0, validated: 0 } };
+  async function link(
+    runId: number,
+    active: ActiveThread[],
+    labels: string[],
+  ): Promise<{ mapping: (number | null)[]; health: LinkHealth }> {
+    if (!active.length || !labels.length)
+      return { mapping: labels.map(() => null), health: { ok: true, proposed: 0, validated: 0 } };
     try {
-      const links = parseLinks(await run("thread-link", runId, "thread_link", linkPrompt(active, labels), LINK_TIMEOUT_MS));
+      const links = parseLinks(
+        await run("thread-link", runId, "thread_link", linkPrompt(active, labels), LINK_TIMEOUT_MS),
+      );
       if (!links.links.length) throw new Error("the linker returned no links");
       return validateLinks(links, active, labels.length);
     } catch (e) {
       if (deps.signal?.()?.aborted) throw e;
       if (attempt() < deps.maxAttempts) throw e;
-      log.error({ stage: "threads", runId, error: "linker failed on its last attempt; every story starts a new thread", detail: String(e) });
+      log.error({
+        stage: "threads",
+        runId,
+        error: "linker failed on its last attempt; every story starts a new thread",
+        detail: String(e),
+      });
       return { mapping: labels.map(() => null), health: { ok: false, proposed: 0, validated: 0 } };
     }
   }
@@ -277,21 +370,27 @@ export function threadsActivities(deps: ThreadsDeps) {
       if (force)
         await db.tx(async (t) => {
           const exec = execution();
-          if (exec !== undefined && (await artifactIn(t, runId, UNDO_MARKER)) === JSON.stringify({ execution: exec })) return;
+          if (exec !== undefined && (await artifactIn(t, runId, UNDO_MARKER)) === JSON.stringify({ execution: exec }))
+            return;
           await undoRun(t, runId);
           if (exec !== undefined) await setIn(t, runId, UNDO_MARKER, JSON.stringify({ execution: exec }));
         }, lockOf(runId));
       const read = async (q: Sql) => {
         const a = await artifactIn(q, runId, THREAD_ASSIGNMENTS);
         const t = await artifactIn(q, runId, THREAD_LINKS);
-        return a === undefined ? undefined : plansFrom(JSON.parse(a) as StoredAssignment[], t === undefined ? undefined : (JSON.parse(t) as LinkTrace));
+        return a === undefined
+          ? undefined
+          : plansFrom(JSON.parse(a) as StoredAssignment[], t === undefined ? undefined : (JSON.parse(t) as LinkTrace));
       };
       const done = await read(db);
       if (done) return { plans: done };
       const retracted = await retractAbandoned(db, runId);
       if (retracted.length) log.info({ stage: "threads", runId, retractedAbandonedRuns: retracted });
       if ((await new ThreadStore(db).countRunUpdates(runId)) > 0)
-        throw ApplicationFailure.nonRetryable(`run ${runId} has thread installments but no ${THREAD_ASSIGNMENTS}; refusing to link again and duplicate them (a forced re-run undoes them)`, "ThreadIdentityUnrecorded");
+        throw ApplicationFailure.nonRetryable(
+          `run ${runId} has thread installments but no ${THREAD_ASSIGNMENTS}; refusing to link again and duplicate them (a forced re-run undoes them)`,
+          "ThreadIdentityUnrecorded",
+        );
       const need = async (name: string) => {
         const p = await store.find(runId, name);
         if (!p) throw ApplicationFailure.nonRetryable(`run ${runId} has no ${name}`, "MissingInput");
@@ -299,16 +398,39 @@ export function threadsActivities(deps: ThreadsDeps) {
       };
       const stories = selectedLabels(await need("clusters.json"), await need("selected.json"));
       const active = await new ThreadStore(db).activeThreads(runId, config.dormantAfter);
-      const { mapping, health } = await link(runId, active, stories.map((s) => s.story));
+      const { mapping, health } = await link(
+        runId,
+        active,
+        stories.map((s) => s.story),
+      );
       const committed = await db.tx(async (t) => {
         const again = await read(t);
         if (again) return again; // another attempt committed while this one waited on the model
         const { assignments, trace } = await assignThreads(new ThreadStore(t), stories, runId, active, mapping, health);
         await putIn(t, runId, THREAD_LINKS, JSON.stringify(trace, null, 2));
-        await putIn(t, runId, THREAD_ASSIGNMENTS, JSON.stringify(assignments.map((a: Assignment) => ({ thread_id: a.thread_id, is_new: a.is_new, story: a.story })), null, 2));
+        await putIn(
+          t,
+          runId,
+          THREAD_ASSIGNMENTS,
+          JSON.stringify(
+            assignments.map((a: Assignment) => ({ thread_id: a.thread_id, is_new: a.is_new, story: a.story })),
+            null,
+            2,
+          ),
+        );
         return plansFrom(assignments, trace);
       }, lockOf(runId));
-      log.info({ stage: "threads-link", runId, forced: force, stories: stories.length, candidates: active.length, linkerOk: health.ok, proposed: health.proposed, validated: health.validated, toSynthesize: committed.length });
+      log.info({
+        stage: "threads-link",
+        runId,
+        forced: force,
+        stories: stories.length,
+        candidates: active.length,
+        linkerOk: health.ok,
+        proposed: health.proposed,
+        validated: health.validated,
+        toSynthesize: committed.length,
+      });
       return { plans: committed };
     },
 
@@ -318,12 +440,15 @@ export function threadsActivities(deps: ThreadsDeps) {
       const tid = plan.threadId;
       const recorded = async (q: Sql) => {
         const a = await artifactIn(q, runId, auditName(tid));
-        return a === undefined ? undefined : { threadId: tid, auditFailed: (JSON.parse(a) as { audit_failed: boolean }).audit_failed };
+        return a === undefined
+          ? undefined
+          : { threadId: tid, auditFailed: (JSON.parse(a) as { audit_failed: boolean }).audit_failed };
       };
       const done = await recorded(db);
       if (done) return done;
       const content = await ts.updateContent(tid, runId);
-      if (content === undefined) throw ApplicationFailure.nonRetryable(`thread ${tid} has no installment in run ${runId}`, "NoInstallment");
+      if (content === undefined)
+        throw ApplicationFailure.nonRetryable(`thread ${tid} has no installment in run ${runId}`, "NoInstallment");
       // Content without the audit record was applied by the Python (a resumed run): done. Applying
       // again would duplicate its questions.
       if (content !== null) return { threadId: tid, auditFailed: false };
@@ -336,8 +461,19 @@ export function threadsActivities(deps: ThreadsDeps) {
       const kept = await store.find(runId, synthName(tid));
       if (kept) installment = JSON.parse(await store.get(kept)) as Installment;
       else {
-        const ids = config.latebind ? expandNeighbourhood(plan.articleIds, arts, config.latebind.threshold, config.latebind.maxExtra) : plan.articleIds;
-        installment = parseInstallment(await run("thread-synthesis", runId, "thread_synthesis", synthesisPrompt(await ts.recentDeltas(tid), openNow, ids, arts), SONNET_TIMEOUT_MS, { thread: tid }));
+        const ids = config.latebind
+          ? expandNeighbourhood(plan.articleIds, arts, config.latebind.threshold, config.latebind.maxExtra)
+          : plan.articleIds;
+        installment = parseInstallment(
+          await run(
+            "thread-synthesis",
+            runId,
+            "thread_synthesis",
+            synthesisPrompt(await ts.recentDeltas(tid), openNow, ids, arts),
+            SONNET_TIMEOUT_MS,
+            { thread: tid },
+          ),
+        );
         await store.put(runId, synthName(tid), JSON.stringify(installment));
       }
 
@@ -352,19 +488,48 @@ export function threadsActivities(deps: ThreadsDeps) {
           const base = auditPrompt(facts, arts);
           let problem = "";
           for (const round of [1, 2]) {
-            const answer = readAudit(await run("thread-audit", runId, "thread_audit", round === 1 ? base : base + auditReask(problem, n), SONNET_TIMEOUT_MS, { thread: tid, round }), n);
+            const answer = readAudit(
+              await run(
+                "thread-audit",
+                runId,
+                "thread_audit",
+                round === 1 ? base : base + auditReask(problem, n),
+                SONNET_TIMEOUT_MS,
+                { thread: tid, round },
+              ),
+              n,
+            );
             if ("supported" in answer) {
-              if (answer.unreadable) log.warn({ stage: "threads", runId, thread: tid, warning: "audit verdicts with an unreadable `supported`, read as unsupported", count: answer.unreadable });
+              if (answer.unreadable)
+                log.warn({
+                  stage: "threads",
+                  runId,
+                  thread: tid,
+                  warning: "audit verdicts with an unreadable `supported`, read as unsupported",
+                  count: answer.unreadable,
+                });
               supported = answer.supported;
               break;
             }
             problem = answer.problem;
-            log.warn({ stage: "threads", runId, thread: tid, warning: `audit reply unusable on attempt ${round}/2`, problem });
+            log.warn({
+              stage: "threads",
+              runId,
+              thread: tid,
+              warning: `audit reply unusable on attempt ${round}/2`,
+              problem,
+            });
           }
           if (supported.length !== n) throw new Error(`audit ${problem}`);
         } catch (e) {
           if (deps.signal?.()?.aborted) throw e;
-          log.error({ stage: "threads", runId, thread: tid, error: "whats_new audit failed; keeping facts (fail-open)", detail: String(e) });
+          log.error({
+            stage: "threads",
+            runId,
+            thread: tid,
+            error: "whats_new audit failed; keeping facts (fail-open)",
+            detail: String(e),
+          });
           auditFailed = true;
           supported = facts.map(() => true);
         }
@@ -373,20 +538,40 @@ export function threadsActivities(deps: ThreadsDeps) {
       try {
         trace = JSON.parse((await artifactIn(db, runId, THREAD_LINKS)) ?? "{}") as Partial<LinkTrace>;
       } catch {
-        log.warn({ stage: "threads", runId, thread: tid, warning: "thread_links.json unreadable; facts not checked for another story" });
+        log.warn({
+          stage: "threads",
+          runId,
+          thread: tid,
+          warning: "thread_links.json unreadable; facts not checked for another story",
+        });
       }
-      const others = new Set((trace.stories ?? []).filter((st) => st.proposed_thread !== tid || st.refused !== null).flatMap((st) => st.article_ids));
+      const others = new Set(
+        (trace.stories ?? [])
+          .filter((st) => st.proposed_thread !== tid || st.refused !== null)
+          .flatMap((st) => st.article_ids),
+      );
       const off = offThread(facts, new Set(plan.articleIds), others);
       const offCount = off.filter(Boolean).length;
       if (offCount) {
         supported = supported.map((v, i) => v && !off[i]);
-        log.info({ stage: "threads", runId, thread: tid, off_thread: offCount, reason: "cites only another story's articles" });
+        log.info({
+          stage: "threads",
+          runId,
+          thread: tid,
+          off_thread: offCount,
+          reason: "cites only another story's articles",
+        });
       }
       return db.tx(async (t) => {
         const again = await recorded(t);
         if (again) return again;
         await applyInstallment(new ThreadStore(t), tid, openNow, installment, supported, runId);
-        await putIn(t, runId, auditName(tid), JSON.stringify({ supported, audit_failed: auditFailed, ...(offCount ? { off_thread: offCount } : {}) }));
+        await putIn(
+          t,
+          runId,
+          auditName(tid),
+          JSON.stringify({ supported, audit_failed: auditFailed, ...(offCount ? { off_thread: offCount } : {}) }),
+        );
         return { threadId: tid, auditFailed };
       }, lockOf(runId));
     },
@@ -404,8 +589,17 @@ export function threadsActivities(deps: ThreadsDeps) {
       const db = openDb(deps.dbUrl);
       const assignmentsText = await artifactIn(db, runId, THREAD_ASSIGNMENTS);
       if (assignmentsText === undefined) {
-        const health = { link: "failed", error: report.linkError ?? `no ${THREAD_ASSIGNMENTS}`, ...(report.timedOut ? { timed_out: true } : {}) };
-        log.error({ stage: "threads", runId, error: "thread linking failed; the digest renders without thread context", detail: health.error });
+        const health = {
+          link: "failed",
+          error: report.linkError ?? `no ${THREAD_ASSIGNMENTS}`,
+          ...(report.timedOut ? { timed_out: true } : {}),
+        };
+        log.error({
+          stage: "threads",
+          runId,
+          error: "thread linking failed; the digest renders without thread context",
+          detail: health.error,
+        });
         await db.tx(async (t) => {
           await setIn(t, runId, THREAD_HEALTH, JSON.stringify(health, null, 2));
           await quarantineIn(t, runId, THREAD_CONTEXT);
@@ -435,7 +629,14 @@ export function threadsActivities(deps: ThreadsDeps) {
           synthesized: installments.length,
           audit_failures: auditFailures,
           // What is still missing, not what once failed: a thread a resume landed is no failure.
-          failures: synthesizable.filter((id) => !landed.has(id)).map((id) => ({ threadId: id, error: report.failures.find((f) => f.threadId === id)?.error ?? (report.timedOut ? "timed out" : "not synthesized") })),
+          failures: synthesizable
+            .filter((id) => !landed.has(id))
+            .map((id) => ({
+              threadId: id,
+              error:
+                report.failures.find((f) => f.threadId === id)?.error ??
+                (report.timedOut ? "timed out" : "not synthesized"),
+            })),
           ...(report.timedOut ? { timed_out: true } : {}),
         };
         await setIn(t, runId, THREAD_INSTALLMENTS, JSON.stringify(installments, null, 2));
@@ -445,15 +646,47 @@ export function threadsActivities(deps: ThreadsDeps) {
           return;
         }
         const contexts: Record<string, RenderContext & { url: string }> = {};
-        for (const a of assignments) if (!a.is_new) contexts[a.story] = { ...(await ts.renderContext(a.thread_id, runId)), url: threadUrl(config.digestDomain, a.thread_id) };
+        for (const a of assignments)
+          if (!a.is_new)
+            contexts[a.story] = {
+              ...(await ts.renderContext(a.thread_id, runId)),
+              url: threadUrl(config.digestDomain, a.thread_id),
+            };
         await setIn(t, runId, THREAD_CONTEXT, JSON.stringify(contexts, null, 2));
       }, lockOf(runId));
       const continued = assignments.filter((a) => !a.is_new).length;
-      log.info({ stage: "threads", runId, stories: assignments.length, continued, new: assignments.length - continued, synthesized: report.outcomes.length, failures: report.failures.length, auditFailures, timedOut: report.timedOut ?? false });
-      if (auditFailures) log.error({ stage: "threads", runId, alert: "thread_audit_failures", auditFailures, detail: "the faithfulness audit failed open; unchecked facts shipped" });
-      if (report.failures.length) log.error({ stage: "threads", runId, error: "thread syntheses failed and were skipped", failures: report.failures });
+      log.info({
+        stage: "threads",
+        runId,
+        stories: assignments.length,
+        continued,
+        new: assignments.length - continued,
+        synthesized: report.outcomes.length,
+        failures: report.failures.length,
+        auditFailures,
+        timedOut: report.timedOut ?? false,
+      });
+      if (auditFailures)
+        log.error({
+          stage: "threads",
+          runId,
+          alert: "thread_audit_failures",
+          auditFailures,
+          detail: "the faithfulness audit failed open; unchecked facts shipped",
+        });
+      if (report.failures.length)
+        log.error({
+          stage: "threads",
+          runId,
+          error: "thread syntheses failed and were skipped",
+          failures: report.failures,
+        });
       if (report.timedOut) {
-        log.error({ stage: "threads", runId, error: "the threads phase ran past its bound; the digest renders without thread context" });
+        log.error({
+          stage: "threads",
+          runId,
+          error: "the threads phase ran past its bound; the digest renders without thread context",
+        });
         return placeholder;
       }
       return (await store.find(runId, THREAD_CONTEXT))!;

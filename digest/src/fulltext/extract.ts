@@ -27,7 +27,8 @@ export function truncateAtSentence(text: string, maxChars: number): string {
 }
 
 // Markdown link targets and images go; link text stays.
-const stripMarkdownLinks = (md: string) => md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+const stripMarkdownLinks = (md: string) =>
+  md.replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
 
 export async function extract(arm: Arm, html: string, url: string): Promise<string> {
   let text: string;

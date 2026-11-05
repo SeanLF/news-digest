@@ -5,7 +5,8 @@ const ID_RUN = String.raw`A\d+(?:\s*(?:,|;|&|and)\s*A\d+)*`;
 export const ARTICLE_ID_GROUP = new RegExp(String.raw`\s*(?:\[\s*${ID_RUN}\s*\]|\(\s*${ID_RUN}\s*\))`, "g");
 const CLUSTER_REF = /\bclusters?\s+\d/i;
 
-export const leaksInternalId = (text: string): boolean => CLUSTER_REF.test(text) || new RegExp(ARTICLE_ID_GROUP.source).test(text);
+export const leaksInternalId = (text: string): boolean =>
+  CLUSTER_REF.test(text) || new RegExp(ARTICLE_ID_GROUP.source).test(text);
 
 // eval_graders._leaked_ids, plus the cluster references above: every internal id visible in one
 // reader-facing string, quoted. A bare id counts only when the story itself cites it, which is what
@@ -18,7 +19,8 @@ export function leakedIds(text: string, cited: readonly string[]): string[] {
     found.push(m[0].trim());
   }
   for (const id of new Set(cited.filter((c) => /^A\d+$/.test(c))))
-    for (const m of text.matchAll(new RegExp(String.raw`\b${id}\b`, "g"))) if (!spans.some(([a, b]) => a <= m.index && m.index < b)) found.push(id);
+    for (const m of text.matchAll(new RegExp(String.raw`\b${id}\b`, "g")))
+      if (!spans.some(([a, b]) => a <= m.index && m.index < b)) found.push(id);
   for (const m of text.matchAll(new RegExp(CLUSTER_REF.source, "gi"))) found.push(m[0]);
   return found;
 }

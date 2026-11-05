@@ -21,8 +21,14 @@ describe("dedup matcher", () => {
     expect(tokenize("The vote, in Berlin: der Kanzler!")).toEqual(["vote", "berlin", "kanzler"]);
   });
   it("finds a near-duplicate title and scores an unrelated one low", () => {
-    const m = new TfidfMatcher(["Sweden centre-left wins election", "Japan raises rates", "Nigeria floods kill dozens"]);
-    expect(m.findMostSimilar("Sweden centre-left wins election, SVT says").headline).toBe("Sweden centre-left wins election");
+    const m = new TfidfMatcher([
+      "Sweden centre-left wins election",
+      "Japan raises rates",
+      "Nigeria floods kill dozens",
+    ]);
+    expect(m.findMostSimilar("Sweden centre-left wins election, SVT says").headline).toBe(
+      "Sweden centre-left wins election",
+    );
     expect(m.findMostSimilar("Mars rover finds ice").score).toBe(0);
   });
 });
@@ -32,22 +38,62 @@ const f = (title: string, url: string) => ({ title, url, published: "2026-09-18"
 
 describe("prepareArticles", () => {
   it("scrubs links out of titles and summaries by default", () => {
-    const out = prepareArticles([src("hn")], new Map([["hn", [{ title: "Jemalloc 5.4", url: "https://hn.test/1", published: "", summary: "Article URL: https://github.com/jemalloc" }]]]), []);
+    const out = prepareArticles(
+      [src("hn")],
+      new Map([
+        [
+          "hn",
+          [
+            {
+              title: "Jemalloc 5.4",
+              url: "https://hn.test/1",
+              published: "",
+              summary: "Article URL: https://github.com/jemalloc",
+            },
+          ],
+        ],
+      ]),
+      [],
+    );
     expect(out.files[0]!.rows[0]![4]).toBe("Article URL: [link]");
   });
   it("scrubs before the cap, so a link straddling the 200-character cap leaves no partial URL", () => {
     const summary = `${"x".repeat(190)} https://github.com/jemalloc/jemalloc/releases`;
-    const out = prepareArticles([src("hn")], new Map([["hn", [{ title: "T", url: "https://hn.test/1", published: "", summary }]]]), []);
+    const out = prepareArticles(
+      [src("hn")],
+      new Map([["hn", [{ title: "T", url: "https://hn.test/1", published: "", summary }]]]),
+      [],
+    );
     const kept = out.files[0]!.rows[0]![4]!;
     expect(kept.length).toBeLessThanOrEqual(200);
     expect(kept).not.toMatch(/http|github/);
   });
   it("numbers survivors in source order, drops unsafe and repeated URLs and recent titles", () => {
-    const out = prepareArticles([src("a"), src("b")], new Map([["b", [f("B one", "https://b.test/1")]], ["a", [f("A one", "https://a.test/1"), f("A dup", "https://A.test/1/"), f("A ftp", "ftp://a.test/2"), f("Japan raises rates", "https://a.test/3")]]]), ["Japan raises rates"]);
-    expect(out.files[0]!.rows.map((r) => [r[0], r[2]])).toEqual([["A1", "A one"], ["A2", "B one"]]);
+    const out = prepareArticles(
+      [src("a"), src("b")],
+      new Map([
+        ["b", [f("B one", "https://b.test/1")]],
+        [
+          "a",
+          [
+            f("A one", "https://a.test/1"),
+            f("A dup", "https://A.test/1/"),
+            f("A ftp", "ftp://a.test/2"),
+            f("Japan raises rates", "https://a.test/3"),
+          ],
+        ],
+      ]),
+      ["Japan raises rates"],
+    );
+    expect(out.files[0]!.rows.map((r) => [r[0], r[2]])).toEqual([
+      ["A1", "A one"],
+      ["A2", "B one"],
+    ]);
     expect(out.urlDuplicates).toBe(1);
     expect(out.filtered.map((x) => x.title)).toEqual(["Japan raises rates"]);
-    expect(toCsv(ARTICLE_HEADER, out.files[0]!.rows)).toBe("article_id,source_id,title,published,summary\nA1,a,A one,2026-09-18,s\nA2,b,B one,2026-09-18,s\n");
+    expect(toCsv(ARTICLE_HEADER, out.files[0]!.rows)).toBe(
+      "article_id,source_id,title,published,summary\nA1,a,A one,2026-09-18,s\nA2,b,B one,2026-09-18,s\n",
+    );
   });
 });
 
@@ -63,11 +109,27 @@ describe("wire detection", () => {
     expect(wireFromDateline("Officials told AP the talks stalled")).toBeNull();
   });
   it("reads a dateline after the headline an extracted article opens with", () => {
-    expect(wireFromFullText("US Senate rejects resolution curbing Trump's Iran war powers WASHINGTON, Sept 24 (Reuters) - The US Senate on")).toBe("reuters");
-    expect(wireFromFullText("Iran's army voices readiness for potential renewed US attack DUBAI, Sept 27 (Reuters) - Iran's armed forces")).toBe("reuters");
-    expect(wireFromFullText("Talks stall By Samia Nakhoul and Parisa Hafezi DUBAI/LONDON, Sept 24 (Reuters) - Talks")).toBe("reuters");
-    expect(wireFromFullText("Men arrested at UK air base By Toby Shepheard FAIRFORD, England, Sept 27 (Reuters) - Police")).toBe("reuters");
-    expect(wireFromFullText("Netanyahu visited Abu Dhabi on Sunday, Israeli official says Sept 27 (Reuters) - Israeli Prime")).toBe("reuters");
+    expect(
+      wireFromFullText(
+        "US Senate rejects resolution curbing Trump's Iran war powers WASHINGTON, Sept 24 (Reuters) - The US Senate on",
+      ),
+    ).toBe("reuters");
+    expect(
+      wireFromFullText(
+        "Iran's army voices readiness for potential renewed US attack DUBAI, Sept 27 (Reuters) - Iran's armed forces",
+      ),
+    ).toBe("reuters");
+    expect(
+      wireFromFullText("Talks stall By Samia Nakhoul and Parisa Hafezi DUBAI/LONDON, Sept 24 (Reuters) - Talks"),
+    ).toBe("reuters");
+    expect(
+      wireFromFullText("Men arrested at UK air base By Toby Shepheard FAIRFORD, England, Sept 27 (Reuters) - Police"),
+    ).toBe("reuters");
+    expect(
+      wireFromFullText(
+        "Netanyahu visited Abu Dhabi on Sunday, Israeli official says Sept 27 (Reuters) - Israeli Prime",
+      ),
+    ).toBe("reuters");
     expect(wireFromFullText("Strike kills 12 BEIRUT, Sept 24 (Reuters) - 12 people were killed")).toBe("reuters");
     expect(wireFromFullText("Macron speaks PARIS, Sept 24 (AFP) - Élysée Palace said")).toBe("afp");
   });

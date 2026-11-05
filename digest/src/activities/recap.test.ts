@@ -13,7 +13,17 @@ function fakeQuery(text: string, calls: { n: number; prompt?: string; options?: 
     calls.prompt = prompt;
     if (options) calls.options = options;
     return (function* () {
-      yield { type: "result", subtype: "success", result: text, total_cost_usd: 0.01, usage: {}, duration_ms: 5, is_error: false, num_turns: 1, session_id: "s" } as unknown as SDKMessage;
+      yield {
+        type: "result",
+        subtype: "success",
+        result: text,
+        total_cost_usd: 0.01,
+        usage: {},
+        duration_ms: 5,
+        is_error: false,
+        num_turns: 1,
+        session_id: "s",
+      } as unknown as SDKMessage;
     })();
   }) as unknown as SdkQuery;
 }
@@ -23,7 +33,12 @@ async function setup(recapText = "A quiet week of steady themes.") {
   await store.put(300, RECAP_INPUT, "title,date\nTalks resume,2026-09-17\n");
   const calls: { n: number; prompt?: string; options?: Options } = { n: 0 };
   const beats: number[] = [];
-  const recap = recapActivity({ store, agentsDir: AGENTS, query: fakeQuery(recapText, calls), heartbeat: () => beats.push(1) });
+  const recap = recapActivity({
+    store,
+    agentsDir: AGENTS,
+    query: fakeQuery(recapText, calls),
+    heartbeat: () => beats.push(1),
+  });
   return { store, calls, beats, recap };
 }
 

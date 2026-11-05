@@ -36,15 +36,23 @@ const activityInfo = (): { attempt: number; key?: string } => {
 // that delivered; all but checkPreSend are best-effort.
 export function opsActivities(deps: OpsDeps) {
   const hc = deps.healthcheck ?? healthcheck(deps.env, deps.fetch);
-  const send: SendEmail = deps.send ?? ((email, opts) => emailSender(resendClient(deps.env["RESEND_API_KEY"] ?? "", {}, deps.env).emails)(email, opts));
+  const send: SendEmail =
+    deps.send ??
+    ((email, opts) => emailSender(resendClient(deps.env["RESEND_API_KEY"] ?? "", {}, deps.env).emails)(email, opts));
   return {
-    healthcheck: (event: "start" | "success" | "fail", note?: string): Promise<void> => hc.ping(event === "success" ? undefined : event, note),
+    healthcheck: (event: "start" | "success" | "fail", note?: string): Promise<void> =>
+      hc.ping(event === "success" ? undefined : event, note),
     healthcheckLog: (message: string): Promise<void> => hc.log(message),
 
     // Feeds that keep failing, as run.py alerts on source_fetches after the fetch.
     checkFeeds: async (runId: number, sourceIds: string[]): Promise<AlertRequest | null> => {
       try {
-        return await feedHealthAlert(openDb(deps.dbUrl), runId, sourceIds, Number(deps.env["HEALTH_ALERT_THRESHOLD"] ?? 3));
+        return await feedHealthAlert(
+          openDb(deps.dbUrl),
+          runId,
+          sourceIds,
+          Number(deps.env["HEALTH_ALERT_THRESHOLD"] ?? 3),
+        );
       } catch (e) {
         log.error(`feed-health check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
         return null;
@@ -56,11 +64,22 @@ export function opsActivities(deps: OpsDeps) {
     checkRunHealth: async (runId: number, broadcasting: boolean): Promise<AlertRequest | null> => {
       try {
         const db = openDb(deps.dbUrl);
-        const report = await db.one<Pick<RowOf<"artifacts">, "content">>("SELECT content FROM artifacts WHERE run_id=$1 AND name='coherence_report.json' AND status='current'", [runId]);
+        const report = await db.one<Pick<RowOf<"artifacts">, "content">>(
+          "SELECT content FROM artifacts WHERE run_id=$1 AND name='coherence_report.json' AND status='current'",
+          [runId],
+        );
         const kinds = coherenceKindCounts(report?.content);
         if (kinds) log.info({ stage: "coherence", runId, failureKinds: kinds });
-        const health = await getRunHealth(db, runId, { broadcasting, threadsEnabled: threadsEnabled(deps.env), usageRowsDropped: 0, dormantAfter: threadsConfigFrom(deps.env).dormantAfter });
-        if (health.dropped_continuations) log.warn(`Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`);
+        const health = await getRunHealth(db, runId, {
+          broadcasting,
+          threadsEnabled: threadsEnabled(deps.env),
+          usageRowsDropped: 0,
+          dormantAfter: threadsConfigFrom(deps.env).dormantAfter,
+        });
+        if (health.dropped_continuations)
+          log.warn(
+            `Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`,
+          );
         const found = violations(health);
         if (!found.length) return null;
         // Logged before any send: if the send fails or alerting is off, this line is the only copy.
@@ -77,7 +96,10 @@ export function opsActivities(deps: OpsDeps) {
     // one more line, so the workflow holds it with no command of its own.
     checkPreSend: async (runId: number): Promise<string[]> => {
       const db = openDb(deps.dbUrl);
-      const input = await readPreSend(db, runId, { threadsEnabled: threadsEnabled(deps.env), dormantAfter: threadsConfigFrom(deps.env).dormantAfter });
+      const input = await readPreSend(db, runId, {
+        threadsEnabled: threadsEnabled(deps.env),
+        dormantAfter: threadsConfigFrom(deps.env).dormantAfter,
+      });
       const cutover = cutoverHold(deps.env, await runDateIn(db, runId));
       const failures = [...(cutover ? [cutover] : []), ...preSendFailures(input)];
       log.info({ stage: "pre-send", runId, failures });
@@ -90,13 +112,23 @@ export function opsActivities(deps: OpsDeps) {
       if (req.kind === "run-failed" && req.runId !== null) {
         const runId = req.runId;
         try {
-          const day = await broadcastState(openDb(deps.dbUrl), runId, /^digest-(\d{4}-\d{2}-\d{2})$/.exec(req.workflowId)?.[1]);
+          const day = await broadcastState(
+            openDb(deps.dbUrl),
+            runId,
+            /^digest-(\d{4}-\d{2}-\d{2})$/.exec(req.workflowId)?.[1],
+          );
           if (day) req = { ...req, broadcastStatus: day.status, date: day.date };
         } catch (e) {
           log.error(`could not read the day's broadcast state for run ${runId}: ${String(e)}`); // the alert goes anyway
         }
       }
-      await sendAlert(req, { env: deps.env, send, attempt, maxAttempts: deps.maxAttempts, ...(key ? { idempotencyKey: key } : {}) });
+      await sendAlert(req, {
+        env: deps.env,
+        send,
+        attempt,
+        maxAttempts: deps.maxAttempts,
+        ...(key ? { idempotencyKey: key } : {}),
+      });
     },
   };
 }

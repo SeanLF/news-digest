@@ -22,5 +22,7 @@ export function cutoverHold(env: Record<string, string | undefined>, runDate: st
   if (!through) return null;
   const invalid = holdAlwaysInvalid(env);
   if (invalid) return `${CUTOVER_HOLD}: ${invalid}, so every run holds until it is fixed or removed`;
-  return runDate <= through ? `${CUTOVER_HOLD}: every run through ${through} holds for the cut-over (${HOLD_ALWAYS_ENV}); no check failed` : null;
+  return runDate <= through
+    ? `${CUTOVER_HOLD}: every run through ${through} holds for the cut-over (${HOLD_ALWAYS_ENV}); no check failed`
+    : null;
 }

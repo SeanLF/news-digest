@@ -20,7 +20,11 @@ export interface Healthcheck {
   log(message: string): Promise<void>;
 }
 
-export function healthcheck(env: Record<string, string | undefined> = process.env, fetchImpl: typeof fetch = fetch, now: () => number = Date.now): Healthcheck {
+export function healthcheck(
+  env: Record<string, string | undefined> = process.env,
+  fetchImpl: typeof fetch = fetch,
+  now: () => number = Date.now,
+): Healthcheck {
   const logged: number[] = []; // when each /log line in the current window went out
   let unsent = 0; // /log lines dropped since the last one sent
   async function post(event: PingEvent | "log" | undefined, body?: string): Promise<void> {

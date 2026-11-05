@@ -1,5 +1,17 @@
 import { log } from "../log.js";
-import { applyDecodedLinks, attachThreads, issueNumber, renderEmail, renderMarkdown, renderWeb, resolveArticleIds, type RenderAssets, type RenderEnv, type Selections, type ThreadContext } from "../render/render.js";
+import {
+  applyDecodedLinks,
+  attachThreads,
+  issueNumber,
+  renderEmail,
+  renderMarkdown,
+  renderWeb,
+  resolveArticleIds,
+  type RenderAssets,
+  type RenderEnv,
+  type Selections,
+  type ThreadContext,
+} from "../render/render.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import { openDb } from "../store/db.js";
 import { FULLTEXT_OUTPUT } from "./fulltext.js";
@@ -12,9 +24,18 @@ export const EMAIL_OUTPUT = "email.html";
 export const MARKDOWN_OUTPUT = "digest.md";
 // The render's clock and edition number, fixed by the first attempt so a retry renders the same bytes.
 export const RENDER_CONTEXT = "render_context.json";
-interface RenderContext { renderedAt: string; issueNo: number }
+interface RenderContext {
+  renderedAt: string;
+  issueNo: number;
+}
 
-export interface RenderDeps { store: ArtifactStore; dbUrl: string; assets: RenderAssets; env: RenderEnv; now?: () => Date }
+export interface RenderDeps {
+  store: ArtifactStore;
+  dbUrl: string;
+  assets: RenderAssets;
+  env: RenderEnv;
+  now?: () => Date;
+}
 
 // RENDER (newsroom/src/replay.py's tail, less the invariants): resolve article ids against the run's
 // index, upgrade decoded Google-News links, attach thread context, then render the web issue and the
@@ -31,12 +52,22 @@ export function renderActivity(deps: RenderDeps) {
     if (existing && (await store.get(existing)) !== text) await store.quarantine(runId, name);
     return store.put(runId, name, text);
   };
-  return async (runId: number, selectionsPtr: Pointer, threads: Pointer, gnews: Pointer): Promise<{ html: Pointer; email: Pointer }> => {
+  return async (
+    runId: number,
+    selectionsPtr: Pointer,
+    threads: Pointer,
+    gnews: Pointer,
+  ): Promise<{ html: Pointer; email: Pointer }> => {
     let selections = JSON.parse(await store.get(selectionsPtr)) as Selections;
     const index = await store.find(runId, "article_index.json");
     const fulltextPtr = await store.find(runId, FULLTEXT_OUTPUT);
     const fulltext = fulltextPtr ? (JSON.parse(await store.get(fulltextPtr)) as Record<string, { text?: string }>) : {};
-    if (index) selections = resolveArticleIds(selections, JSON.parse(await store.get(index)) as Record<string, unknown>, fulltext);
+    if (index)
+      selections = resolveArticleIds(
+        selections,
+        JSON.parse(await store.get(index)) as Record<string, unknown>,
+        fulltext,
+      );
     const links = (await optional(gnews, DECODED_LINKS)) as Record<string, string> | undefined;
     if (links) selections = applyDecodedLinks(selections, links);
     const contexts = (await optional(threads, THREAD_CONTEXT)) as Record<string, ThreadContext> | undefined;
@@ -47,14 +78,30 @@ export function renderActivity(deps: RenderDeps) {
     if (ctxPtr) ctx = JSON.parse(await store.get(ctxPtr)) as RenderContext;
     else {
       const now = (deps.now ?? (() => new Date()))();
-      ctx = { renderedAt: now.toISOString(), issueNo: await issueNumber(openDb(deps.dbUrl), now.toISOString().slice(0, 10)) };
+      ctx = {
+        renderedAt: now.toISOString(),
+        issueNo: await issueNumber(openDb(deps.dbUrl), now.toISOString().slice(0, 10)),
+      };
       await store.put(runId, RENDER_CONTEXT, JSON.stringify(ctx));
     }
-    const input = { selections, now: new Date(ctx.renderedAt), issueNo: ctx.issueNo, env: deps.env, assets: deps.assets };
+    const input = {
+      selections,
+      now: new Date(ctx.renderedAt),
+      issueNo: ctx.issueNo,
+      env: deps.env,
+      assets: deps.assets,
+    };
     const html = await write(runId, WEB_OUTPUT, renderWeb(input));
     const email = await write(runId, EMAIL_OUTPUT, renderEmail(input));
     await write(runId, MARKDOWN_OUTPUT, renderMarkdown(input));
-    log.info({ stage: "render", runId, mustKnow: selections.must_know.length, shouldKnow: selections.should_know.length, threads: contexts !== undefined, decodedLinks: links !== undefined });
+    log.info({
+      stage: "render",
+      runId,
+      mustKnow: selections.must_know.length,
+      shouldKnow: selections.should_know.length,
+      threads: contexts !== undefined,
+      decodedLinks: links !== undefined,
+    });
     return { html, email };
   };
 }

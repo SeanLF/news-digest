@@ -6,7 +6,14 @@ import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
-import { buildInlineGrepBody, buildReadLoopBody, coherenceActivity, COHERENCE_OUTPUT, DRAFT_OUTPUT, unbackedFails } from "./coherence.js";
+import {
+  buildInlineGrepBody,
+  buildReadLoopBody,
+  coherenceActivity,
+  COHERENCE_OUTPUT,
+  DRAFT_OUTPUT,
+  unbackedFails,
+} from "./coherence.js";
 
 const AGENTS = new URL("../../agents/", import.meta.url).pathname;
 // digest/agents/coherence.md carries the production body verbatim; a host-only test holds the two equal.
@@ -33,26 +40,76 @@ describe("buildInlineGrepBody", () => {
     expect(out).toContain(probes);
   });
   it("refuses a drifted prompt", async () => {
-    expect(() => buildInlineGrepBody(body.replace("2. For each story in draft_selections.json", "2. For every story"), "/in")).toThrow(/drifted/);
+    expect(() =>
+      buildInlineGrepBody(body.replace("2. For each story in draft_selections.json", "2. For every story"), "/in"),
+    ).toThrow(/drifted/);
   });
 });
 
-const story = (h: string, ids: string[]) => ({ headline: h, summary: "S", why_it_matters: "W", sources: ids.map((article_id) => ({ article_id })) });
+const story = (h: string, ids: string[]) => ({
+  headline: h,
+  summary: "S",
+  why_it_matters: "W",
+  sources: ids.map((article_id) => ({ article_id })),
+});
 
 async function setup(report: unknown, toolCalls: { name: string; target: string }[] = []) {
   const store = new ArtifactStore(await freshDb([300]));
-  await store.put(300, "articles_1.csv", "article_id,source_id,title,published,summary\nA1,hn,T,2026-09-18,https://x.com/y\nA2,bbc,T2,2026-09-18,s\n");
-  const d0 = await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: story("Talks resume", ["A1"]) }));
-  const d1 = await store.put(300, "draft_s01.json", JSON.stringify({ plan: { index: 1, tier: "should_know", storyIds: ["A2"], contextIds: ["A2"] }, story: story("Yen jumps", ["A2"]) }));
+  await store.put(
+    300,
+    "articles_1.csv",
+    "article_id,source_id,title,published,summary\nA1,hn,T,2026-09-18,https://x.com/y\nA2,bbc,T2,2026-09-18,s\n",
+  );
+  const d0 = await store.put(
+    300,
+    "draft_s00.json",
+    JSON.stringify({
+      plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] },
+      story: story("Talks resume", ["A1"]),
+    }),
+  );
+  const d1 = await store.put(
+    300,
+    "draft_s01.json",
+    JSON.stringify({
+      plan: { index: 1, tier: "should_know", storyIds: ["A2"], contextIds: ["A2"] },
+      story: story("Yen jumps", ["A2"]),
+    }),
+  );
   const seen: { n: number; prompt?: string; options?: Options; files?: Record<string, string> } = { n: 0 };
   const q = (({ prompt, options }: { prompt: string; options?: Options }) => {
     seen.n++;
     seen.prompt = prompt;
     if (options) seen.options = options;
-    if (options?.cwd) seen.files = Object.fromEntries(readdirSync(options.cwd).map((f) => [f, readFileSync(join(options.cwd!, f), "utf8")]));
+    if (options?.cwd)
+      seen.files = Object.fromEntries(
+        readdirSync(options.cwd).map((f) => [f, readFileSync(join(options.cwd!, f), "utf8")]),
+      );
     return (function* () {
-      yield { type: "assistant", message: { content: toolCalls.map((t, i) => ({ type: "tool_use", id: String(i), name: t.name, input: { pattern: t.target } })) }, session_id: "s" } as unknown as SDKMessage;
-      yield { type: "result", subtype: "success", result: "", structured_output: report, total_cost_usd: 0.9, usage: {}, duration_ms: 5, is_error: false, num_turns: 4, session_id: "s" } as unknown as SDKMessage;
+      yield {
+        type: "assistant",
+        message: {
+          content: toolCalls.map((t, i) => ({
+            type: "tool_use",
+            id: String(i),
+            name: t.name,
+            input: { pattern: t.target },
+          })),
+        },
+        session_id: "s",
+      } as unknown as SDKMessage;
+      yield {
+        type: "result",
+        subtype: "success",
+        result: "",
+        structured_output: report,
+        total_cost_usd: 0.9,
+        usage: {},
+        duration_ms: 5,
+        is_error: false,
+        num_turns: 4,
+        session_id: "s",
+      } as unknown as SDKMessage;
     })();
   }) as unknown as SdkQuery;
   const rows: UsageRow[] = [];
@@ -63,11 +120,26 @@ const ft = { runId: 300, name: "article_fulltext.json", sha256: "0".repeat(64) }
 
 describe("coherence activity", () => {
   it("hands the Read loop the draft and corpus with links scrubbed, stores the assembled draft and the covered report", async () => {
-    const report = { results: [{ headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" }, { headline: "x", article_ids: ["A2"], pass: false, reason: "summary: 58% absent", failed_fields: ["summary"], failure_kinds: { summary: "unsupported" } }] };
+    const report = {
+      results: [
+        { headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" },
+        {
+          headline: "x",
+          article_ids: ["A2"],
+          pass: false,
+          reason: "summary: 58% absent",
+          failed_fields: ["summary"],
+          failure_kinds: { summary: "unsupported" },
+        },
+      ],
+    };
     const { store, seen, act, drafts, rows } = await setup(report, [{ name: "Read", target: "articles_1.csv" }]);
     const p = await act(300, drafts, ft);
     expect(JSON.parse(await store.get(p))).toEqual(report);
-    const draft = JSON.parse(await store.content(300, DRAFT_OUTPUT)) as { must_know: { headline: string }[]; should_know: { headline: string; why_it_matters?: string }[] };
+    const draft = JSON.parse(await store.content(300, DRAFT_OUTPUT)) as {
+      must_know: { headline: string }[];
+      should_know: { headline: string; why_it_matters?: string }[];
+    };
     expect(draft.must_know.map((s) => s.headline)).toEqual(["Talks resume"]);
     expect(draft.should_know.map((s) => s.headline)).toEqual(["Yen jumps"]);
     expect(Object.keys(seen.files ?? {}).toSorted()).toEqual(["articles_1.csv", "draft_selections.json"]);
@@ -79,7 +151,12 @@ describe("coherence activity", () => {
     expect(seen.n).toBe(1);
   });
   it("a matching stored draft survives a missing report and is not quarantined", async () => {
-    const report = { results: [{ headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" }, { headline: "Yen jumps", article_ids: ["A2"], pass: true, reason: "ok" }] };
+    const report = {
+      results: [
+        { headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" },
+        { headline: "Yen jumps", article_ids: ["A2"], pass: true, reason: "ok" },
+      ],
+    };
     const { store, act, drafts } = await setup(report);
     await act(300, drafts, ft);
     await store.quarantine(300, COHERENCE_OUTPUT);
@@ -88,12 +165,24 @@ describe("coherence activity", () => {
     expect(await store.find(300, COHERENCE_OUTPUT)).toBeDefined();
   });
   it("a report that leaves a story unchecked is a failure and stores nothing", async () => {
-    const { store, act, drafts } = await setup({ results: [{ headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" }] });
+    const { store, act, drafts } = await setup({
+      results: [{ headline: "Talks resume", article_ids: ["A1"], pass: true, reason: "ok" }],
+    });
     await expect(act(300, drafts, ft)).rejects.toThrow(/no result matches 1 draft story\(ies\): Yen jumps/);
     expect(await store.find(300, COHERENCE_OUTPUT)).toBeUndefined();
   });
   it("unbackedFails counts fails whose reason quotes no Grep pattern of four or more characters", async () => {
-    const r = { results: [{ headline: "a", article_ids: [], pass: false, reason: "tenure absent" }, { headline: "b", article_ids: [], pass: false, reason: "58% absent" }] };
-    expect(unbackedFails(r, [{ name: "Grep", target: "tenure" }, { name: "Grep", target: "58%" }])).toBe(1);
+    const r = {
+      results: [
+        { headline: "a", article_ids: [], pass: false, reason: "tenure absent" },
+        { headline: "b", article_ids: [], pass: false, reason: "58% absent" },
+      ],
+    };
+    expect(
+      unbackedFails(r, [
+        { name: "Grep", target: "tenure" },
+        { name: "Grep", target: "58%" },
+      ]),
+    ).toBe(1);
   });
 });

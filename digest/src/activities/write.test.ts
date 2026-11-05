@@ -9,7 +9,12 @@ import type { StoryPlan } from "./index.js";
 import { checkBranch, draftName, planStories, resolveClusterIndex, writeActivities } from "./write.js";
 
 const AGENTS = new URL("../../agents/", import.meta.url).pathname;
-const clusters = { clusters: [{ story: "a", article_ids: ["A1", "A2"] }, { story: "b", article_ids: ["A3", "A4", "A5"] }] };
+const clusters = {
+  clusters: [
+    { story: "a", article_ids: ["A1", "A2"] },
+    { story: "b", article_ids: ["A3", "A4", "A5"] },
+  ],
+};
 
 describe("planning", () => {
   it("resolves the cluster by the most distinct citations, earliest on a tie", async () => {
@@ -18,8 +23,18 @@ describe("planning", () => {
     expect(resolveClusterIndex(clusters.clusters, ["A99"])).toBeUndefined();
   });
   it("plans stories in SELECT's order with their cluster as evidence, and drops a story with none", async () => {
-    const selected = { must_know: [{ cluster_index: 0, article_ids: ["A4"] }], should_know: [{ cluster_index: 7, article_ids: ["A99"] }, { cluster_index: 0, article_ids: ["A2"] }] };
-    const { plans, dropped } = planStories(JSON.stringify(selected), JSON.stringify(clusters), new Set(["A1", "A2", "A3", "A4", "A5"]));
+    const selected = {
+      must_know: [{ cluster_index: 0, article_ids: ["A4"] }],
+      should_know: [
+        { cluster_index: 7, article_ids: ["A99"] },
+        { cluster_index: 0, article_ids: ["A2"] },
+      ],
+    };
+    const { plans, dropped } = planStories(
+      JSON.stringify(selected),
+      JSON.stringify(clusters),
+      new Set(["A1", "A2", "A3", "A4", "A5"]),
+    );
     expect(plans).toEqual([
       { index: 0, tier: "must_know", storyIds: ["A4"], contextIds: ["A3", "A4", "A5"], clusterIndex: 1 },
       { index: 2, tier: "should_know", storyIds: ["A2"], contextIds: ["A1", "A2"], clusterIndex: 0 },
@@ -28,8 +43,14 @@ describe("planning", () => {
   });
   it("falls back to SELECT's stated cluster when no citation has one", async () => {
     const selected = { must_know: [{ cluster_index: 1, article_ids: ["A7"] }], should_know: [] };
-    const { plans } = planStories(JSON.stringify(selected), JSON.stringify(clusters), new Set(["A3", "A4", "A5", "A7"]));
-    expect(plans).toEqual([{ index: 0, tier: "must_know", storyIds: ["A7"], contextIds: ["A3", "A4", "A5", "A7"], clusterIndex: 1 }]);
+    const { plans } = planStories(
+      JSON.stringify(selected),
+      JSON.stringify(clusters),
+      new Set(["A3", "A4", "A5", "A7"]),
+    );
+    expect(plans).toEqual([
+      { index: 0, tier: "must_know", storyIds: ["A7"], contextIds: ["A3", "A4", "A5", "A7"], clusterIndex: 1 },
+    ]);
   });
 });
 
@@ -41,29 +62,57 @@ describe("checkBranch", () => {
     expect(checkBranch({ must_know: [story] }, plan)).toEqual({ story, problems: [] });
   });
   it("a brief loses why_it_matters; a must_know without one fails", async () => {
-    expect(checkBranch({ should_know: [story] }, { ...plan, tier: "should_know" }).story).not.toHaveProperty("why_it_matters");
-    expect(checkBranch({ must_know: [{ ...story, why_it_matters: " " }] }, plan).problems).toEqual(["missing why_it_matters"]);
+    expect(checkBranch({ should_know: [story] }, { ...plan, tier: "should_know" }).story).not.toHaveProperty(
+      "why_it_matters",
+    );
+    expect(checkBranch({ must_know: [{ ...story, why_it_matters: " " }] }, plan).problems).toEqual([
+      "missing why_it_matters",
+    ]);
   });
   it("keeps the story built on SELECT's articles when the writer splits the cluster, and says it did", async () => {
     const other = { ...story, headline: "Other event", sources: [{ article_id: "A2" }] };
     expect(checkBranch({ must_know: [other, story] }, plan)).toEqual({ story, problems: [], set_aside: 1 });
-    expect(checkBranch({ must_know: [other, { ...other, headline: "Third" }] }, plan).story?.headline).toBe("Other event");
+    expect(checkBranch({ must_know: [other, { ...other, headline: "Third" }] }, plan).story?.headline).toBe(
+      "Other event",
+    );
   });
   it("fails on no story, no sources, or a citation outside the evidence", async () => {
     expect(checkBranch({ must_know: [] }, plan).problems).toEqual(["expected a story, found none"]);
     expect(checkBranch({ must_know: [{ ...story, sources: [] }] }, plan).problems).toEqual(["no sources"]);
-    expect(checkBranch({ must_know: [{ ...story, sources: [{ article_id: "A9" }] }] }, plan).problems).toEqual(["cites ids outside its evidence: A9"]);
+    expect(checkBranch({ must_know: [{ ...story, sources: [{ article_id: "A9" }] }] }, plan).problems).toEqual([
+      "cites ids outside its evidence: A9",
+    ]);
   });
 });
 
 async function setup(structured: unknown) {
   const store = new ArtifactStore(await freshDb([300]));
-  await store.put(300, "articles_1.csv", 'article_id,source_id,title,published,summary\nA1,hn,T1,2026-09-18,"Article URL: https://x.com/a"\nA2,bbc,T2,2026-09-18,S2\nA3,bbc,T3,2026-09-18,S3\n');
+  await store.put(
+    300,
+    "articles_1.csv",
+    'article_id,source_id,title,published,summary\nA1,hn,T1,2026-09-18,"Article URL: https://x.com/a"\nA2,bbc,T2,2026-09-18,S2\nA3,bbc,T3,2026-09-18,S3\n',
+  );
   await store.put(300, "clusters.json", JSON.stringify(clusters));
   await store.put(300, "article_fulltext.json", JSON.stringify({ A1: "full one", A3: "full three" }));
   await store.put(300, "recap.txt", "recap");
-  const sel = await store.put(300, "selected.json", JSON.stringify({ must_know: [{ cluster_index: 0, article_ids: ["A1"] }], should_know: [], not_covered_blurb: "Held back X." }));
-  const seen: { n: number; options?: Options; files?: string[]; csv?: string; ft?: string; selected?: string; budget?: string } = { n: 0 };
+  const sel = await store.put(
+    300,
+    "selected.json",
+    JSON.stringify({
+      must_know: [{ cluster_index: 0, article_ids: ["A1"] }],
+      should_know: [],
+      not_covered_blurb: "Held back X.",
+    }),
+  );
+  const seen: {
+    n: number;
+    options?: Options;
+    files?: string[];
+    csv?: string;
+    ft?: string;
+    selected?: string;
+    budget?: string;
+  } = { n: 0 };
   const q = (({ options }: { prompt: string; options?: Options }) => {
     seen.n++;
     if (options) seen.options = options;
@@ -74,7 +123,18 @@ async function setup(structured: unknown) {
     seen.selected = readFileSync(join(d, "selected.json"), "utf8");
     if (existsSync(join(d, "issue_budget.txt"))) seen.budget = readFileSync(join(d, "issue_budget.txt"), "utf8");
     return (function* () {
-      yield { type: "result", subtype: "success", result: "", structured_output: structured, total_cost_usd: 0.3, usage: {}, duration_ms: 5, is_error: false, num_turns: 6, session_id: "s" } as unknown as SDKMessage;
+      yield {
+        type: "result",
+        subtype: "success",
+        result: "",
+        structured_output: structured,
+        total_cost_usd: 0.3,
+        usage: {},
+        duration_ms: 5,
+        is_error: false,
+        num_turns: 6,
+        session_id: "s",
+      } as unknown as SDKMessage;
     })();
   }) as unknown as SdkQuery;
   return { store, sel, seen, acts: writeActivities({ store, agentsDir: AGENTS, query: q }) };
@@ -87,14 +147,30 @@ describe("planStories activity", () => {
     const clustersPtr = (await store.find(300, "clusters.json"))!;
     await acts.planStories(300, sel, clustersPtr);
     expect(JSON.parse(await store.content(300, "write_branches.json"))).toEqual({ dropped: [] });
-    const two = await store.replace(300, "selected.json", JSON.stringify({ must_know: [{ cluster_index: 0, article_ids: ["A1"] }], should_know: [{ cluster_index: 9, article_ids: ["A99"] }] }));
+    const two = await store.replace(
+      300,
+      "selected.json",
+      JSON.stringify({
+        must_know: [{ cluster_index: 0, article_ids: ["A1"] }],
+        should_know: [{ cluster_index: 9, article_ids: ["A99"] }],
+      }),
+    );
     await acts.planStories(300, two, clustersPtr);
-    expect(JSON.parse(await store.content(300, "write_branches.json"))).toEqual({ dropped: [{ index: 1, tier: "should_know", reason: "no article in this run's CSVs" }] });
+    expect(JSON.parse(await store.content(300, "write_branches.json"))).toEqual({
+      dropped: [{ index: 1, tier: "should_know", reason: "no article in this run's CSVs" }],
+    });
     expect(lines).toEqual(["write s01 DROPPED (should_know): no article in this run's CSVs"]);
   });
   it("records the issue's budget, each planned story's tier and cluster label, for the writers", async () => {
     const { store, acts } = await setup({ must_know: [story] });
-    const two = await store.replace(300, "selected.json", JSON.stringify({ must_know: [{ cluster_index: 0, article_ids: ["A1"] }], should_know: [{ cluster_index: 1, article_ids: ["A3"] }] }));
+    const two = await store.replace(
+      300,
+      "selected.json",
+      JSON.stringify({
+        must_know: [{ cluster_index: 0, article_ids: ["A1"] }],
+        should_know: [{ cluster_index: 1, article_ids: ["A3"] }],
+      }),
+    );
     await acts.planStories(300, two, (await store.find(300, "clusters.json"))!);
     expect(JSON.parse(await store.content(300, "issue_budget.json"))).toEqual([
       { index: 0, tier: "must_know", cluster: 0, story: "a" },
@@ -114,7 +190,11 @@ describe("writeStory activity", () => {
     expect(seen.csv).not.toContain("A3");
     expect(seen.csv).toContain("[link]");
     expect(JSON.parse(seen.ft ?? "{}")).toEqual({ A1: "full one" });
-    expect(JSON.parse(seen.selected ?? "{}")).toEqual({ must_know: [{ article_ids: ["A1"], cluster_index: 0 }], should_know: [], not_covered_blurb: "Held back X." });
+    expect(JSON.parse(seen.selected ?? "{}")).toEqual({
+      must_know: [{ article_ids: ["A1"], cluster_index: 0 }],
+      should_know: [],
+      not_covered_blurb: "Held back X.",
+    });
     expect(seen.options?.maxBudgetUsd).toBe(1);
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
     expect(await acts.writeStory(300, plan, sel)).toEqual(p); // idempotent for the same plan
@@ -122,32 +202,44 @@ describe("writeStory activity", () => {
   });
   it("shows the writer the other stories in the issue, never its own (run 301 led two stories with one bill)", async () => {
     const { store, sel, seen, acts } = await setup({ must_know: [story] });
-    await store.put(300, "issue_budget.json", JSON.stringify([
-      { index: 0, tier: "must_know", cluster: 0, story: "a" },
-      { index: 1, tier: "should_know", cluster: 1, story: "Trump signs Russia sanctions bill" },
-    ]));
+    await store.put(
+      300,
+      "issue_budget.json",
+      JSON.stringify([
+        { index: 0, tier: "must_know", cluster: 0, story: "a" },
+        { index: 1, tier: "should_know", cluster: 1, story: "Trump signs Russia sanctions bill" },
+      ]),
+    );
     await acts.writeStory(300, plan, sel);
     expect(seen.budget).toBe("should_know | Trump signs Russia sanctions bill\n");
     expect(seen.files).toContain("issue_budget.txt");
   });
   it("leaves out a story on the writer's own cluster, whose label is the writer's own event, and a label with no event", async () => {
     const { store, sel, seen, acts } = await setup({ must_know: [story] });
-    await store.put(300, "issue_budget.json", JSON.stringify([
-      { index: 0, tier: "must_know", cluster: 0, story: "a" },
-      { index: 1, tier: "should_know", cluster: 0, story: "a" },
-      { index: 2, tier: "should_know", cluster: 7, story: "cluster 8" },
-      { index: 3, tier: "should_know", cluster: 1, story: "b" },
-    ]));
+    await store.put(
+      300,
+      "issue_budget.json",
+      JSON.stringify([
+        { index: 0, tier: "must_know", cluster: 0, story: "a" },
+        { index: 1, tier: "should_know", cluster: 0, story: "a" },
+        { index: 2, tier: "should_know", cluster: 7, story: "cluster 8" },
+        { index: 3, tier: "should_know", cluster: 1, story: "b" },
+      ]),
+    );
     await acts.writeStory(300, plan, sel);
     expect(seen.budget).toBe("should_know | b\n");
   });
   it("keeps a line from a budget that predates the cluster field, and a real label that starts with 'cluster'", async () => {
     const { store, sel, seen, acts } = await setup({ must_know: [story] });
-    await store.put(300, "issue_budget.json", JSON.stringify([
-      { index: 0, tier: "must_know", story: "a" },
-      { index: 1, tier: "should_know", story: "b" },
-      { index: 2, tier: "should_know", cluster: 4, story: "cluster 8 talks collapse" },
-    ]));
+    await store.put(
+      300,
+      "issue_budget.json",
+      JSON.stringify([
+        { index: 0, tier: "must_know", story: "a" },
+        { index: 1, tier: "should_know", story: "b" },
+        { index: 2, tier: "should_know", cluster: 4, story: "cluster 8 talks collapse" },
+      ]),
+    );
     await acts.writeStory(300, plan, sel);
     expect(seen.budget).toBe("should_know | b\nshould_know | cluster 8 talks collapse\n");
   });

@@ -21,11 +21,19 @@ export interface Mail {
 export { ACCEPTED_BROADCAST_STATES };
 export const CONTACT_THRESHOLD = 900; // Resend's free tier stops at 1,000 contacts (spec §3)
 
-interface Execution { namespace: string; workflowId: string; runId: string }
+interface Execution {
+  namespace: string;
+  workflowId: string;
+  runId: string;
+}
 const currentExecution = (): Execution => {
   const { info } = Context.current();
   const ex = info.workflowExecution;
-  if (!ex) throw ApplicationFailure.nonRetryable("the hold notification links a workflow run, and this activity has none", "NoWorkflow");
+  if (!ex)
+    throw ApplicationFailure.nonRetryable(
+      "the hold notification links a workflow run, and this activity has none",
+      "NoWorkflow",
+    );
   return { namespace: info.namespace, workflowId: ex.workflowId, runId: ex.runId };
 };
 export interface BroadcastDeps {
@@ -40,7 +48,11 @@ export interface BroadcastDeps {
   signal?: () => AbortSignal | undefined;
   heartbeat?: () => void;
 }
-export interface BroadcastResult { broadcastId: string; status: string; recipients: number }
+export interface BroadcastResult {
+  broadcastId: string;
+  status: string;
+  recipients: number;
+}
 
 class RateLimited extends Error {}
 class ResendFailure extends Error {
@@ -56,7 +68,8 @@ const longDate = (day: string): string => {
   return `${d.toLocaleString("en-US", { month: "long", timeZone: "UTC" })} ${String(d.getUTCDate()).padStart(2, "0")}, ${d.getUTCFullYear()}`;
 };
 
-const headlineList = (tier: Selections["must_know"]) => tier.map((s) => `<li>${htmlEscape(s.headline ?? "")}</li>`).join("");
+const headlineList = (tier: Selections["must_know"]) =>
+  tier.map((s) => `<li>${htmlEscape(s.headline ?? "")}</li>`).join("");
 
 // broadcast.py and run._deliver: Resend audience broadcasts, idempotent per digest date through the
 // date's sends row (the 2026-06-16 incident).
@@ -71,7 +84,12 @@ export function broadcastActivities(deps: BroadcastDeps) {
         if (r.error?.name === "rate_limit_exceeded") throw new RateLimited(r.error.message);
         return r;
       },
-      { retries: 2, minTimeout: deps.retryDelayMs ?? 1000, factor: 2, shouldRetry: ({ error }) => error instanceof RateLimited },
+      {
+        retries: 2,
+        minTimeout: deps.retryDelayMs ?? 1000,
+        factor: 2,
+        shouldRetry: ({ error }) => error instanceof RateLimited,
+      },
     );
   const must = async <T>(fn: () => Promise<Reply<T>>): Promise<T> => {
     const r = await call(fn);
@@ -88,12 +106,28 @@ export function broadcastActivities(deps: BroadcastDeps) {
   // Every write after the claim is conditional on it: `holder` is this attempt's claim string, and
   // once a draft exists, its id. A write that matches no row means the date is no longer this
   // attempt's, and nothing more may be sent from it.
-  const record = async (date: string, holder: { claim: string } | { id: string }, id: string, status: string, recipients?: number) => {
+  const record = async (
+    date: string,
+    holder: { claim: string } | { id: string },
+    id: string,
+    status: string,
+    recipients?: number,
+  ) => {
     const changes =
       "claim" in holder
-        ? await db().run("UPDATE sends SET resend_id=$1, status=$2, recipients=COALESCE($3, recipients) WHERE issue_date=$4 AND resend_id IS NULL AND status='claimed' AND claim_token=$5", [id, status, recipients ?? null, date, holder.claim])
-        : await db().run("UPDATE sends SET resend_id=$1, status=$2, recipients=COALESCE($3, recipients) WHERE issue_date=$4 AND resend_id=$5", [id, status, recipients ?? null, date, holder.id]);
-    if (changes !== 1) throw ApplicationFailure.nonRetryable(`this attempt lost its claim on the send for ${date}; broadcast ${id} (${status}) was not recorded and nothing more is sent`, "ClaimLost");
+        ? await db().run(
+            "UPDATE sends SET resend_id=$1, status=$2, recipients=COALESCE($3, recipients) WHERE issue_date=$4 AND resend_id IS NULL AND status='claimed' AND claim_token=$5",
+            [id, status, recipients ?? null, date, holder.claim],
+          )
+        : await db().run(
+            "UPDATE sends SET resend_id=$1, status=$2, recipients=COALESCE($3, recipients) WHERE issue_date=$4 AND resend_id=$5",
+            [id, status, recipients ?? null, date, holder.id],
+          );
+    if (changes !== 1)
+      throw ApplicationFailure.nonRetryable(
+        `this attempt lost its claim on the send for ${date}; broadcast ${id} (${status}) was not recorded and nothing more is sent`,
+        "ClaimLost",
+      );
   };
 
   // The date's claim is its sends row, inserted under a lock on the date: the one attempt that
@@ -104,24 +138,42 @@ export function broadcastActivities(deps: BroadcastDeps) {
     db().tx(async (t) => {
       const row = await sendRow(t, date);
       if (row) {
-        const why = row.status === "claimed" ? `claimed by another attempt (${claimText(row)}); if Resend shows nothing sent for ${date}, clear it with: ${clearClaimCommand(date)}` : `claimed by another attempt (${row.id ?? row.status})`;
+        const why =
+          row.status === "claimed"
+            ? `claimed by another attempt (${claimText(row)}); if Resend shows nothing sent for ${date}, clear it with: ${clearClaimCommand(date)}`
+            : `claimed by another attempt (${row.id ?? row.status})`;
         throw ApplicationFailure.nonRetryable(`the send for ${date} is ${why}; not sending`, "SendClaimed");
       }
       // A day mailed before broadcasts has no send (imported: its counts are in Resend), only a run
       // whose outcome says it went out. A forced re-run publishes a new revision and never re-sends.
       // 'sent' only, not all of sent_runs: an 'unrecorded' Python run has no evidence it emailed
       // anyone, and refusing it would leave a day nobody can deliver.
-      const mailed = await t.one<{ id: number }>("SELECT id FROM runs WHERE outcome = 'sent' AND (started_at AT TIME ZONE 'UTC')::date = $1::date ORDER BY id LIMIT 1", [date]);
-      if (mailed) throw ApplicationFailure.nonRetryable(`run ${mailed.id} already emailed ${date}; a re-run of the day is published, never sent again`, "AlreadySent");
+      const mailed = await t.one<{ id: number }>(
+        "SELECT id FROM runs WHERE outcome = 'sent' AND (started_at AT TIME ZONE 'UTC')::date = $1::date ORDER BY id LIMIT 1",
+        [date],
+      );
+      if (mailed)
+        throw ApplicationFailure.nonRetryable(
+          `run ${mailed.id} already emailed ${date}; a re-run of the day is published, never sent again`,
+          "AlreadySent",
+        );
       const mine = randomUUID();
       const changes = await t.run(
         "INSERT INTO sends (issue_date, run_id, claim_token, claimed_at, revision, status) SELECT $1::date, $2::bigint, $3::uuid, now(), max(revision), 'claimed' FROM issues WHERE issue_date = $1::date HAVING count(*) > 0",
         [date, runId, mine],
       );
-      if (changes !== 1) throw ApplicationFailure.nonRetryable(`no issue for ${date} to send: the digest is published before its send`, "MissingDigest");
+      if (changes !== 1)
+        throw ApplicationFailure.nonRetryable(
+          `no issue for ${date} to send: the digest is published before its send`,
+          "MissingDigest",
+        );
       return mine;
     }, `broadcast ${date}`);
-  const release = (date: string, mine: string) => db().run("DELETE FROM sends WHERE issue_date=$1 AND resend_id IS NULL AND status='claimed' AND claim_token=$2", [date, mine]);
+  const release = (date: string, mine: string) =>
+    db().run("DELETE FROM sends WHERE issue_date=$1 AND resend_id IS NULL AND status='claimed' AND claim_token=$2", [
+      date,
+      mine,
+    ]);
   const stopIfCancelled = () => {
     deps.heartbeat?.();
     deps.signal?.()?.throwIfAborted();
@@ -150,7 +202,13 @@ export function broadcastActivities(deps: BroadcastDeps) {
     } catch (e) {
       const status = await probe(id);
       if (status === null || !ACCEPTED_BROADCAST_STATES.has(status)) throw e;
-      log.warn({ stage: "broadcast", warning: "the send failed but the broadcast was accepted; treating it as delivered", id, status, error: String(e) });
+      log.warn({
+        stage: "broadcast",
+        warning: "the send failed but the broadcast was accepted; treating it as delivered",
+        id,
+        status,
+        error: String(e),
+      });
       return status;
     }
   };
@@ -183,12 +241,18 @@ export function broadcastActivities(deps: BroadcastDeps) {
       const date = await store.runDate(runId);
       // The workflow asks sendEnabled first; this refuses anyway, so no path mails the audience
       // from a worker that was not told to.
-      if (!enabled()) throw ApplicationFailure.nonRetryable("BROADCAST_ENABLED is not true; nothing sent", "SendDisabled");
+      if (!enabled())
+        throw ApplicationFailure.nonRetryable("BROADCAST_ENABLED is not true; nothing sent", "SendDisabled");
       const html = await store.get(email);
       const { published, send } = await readRow(date);
-      if (!published) throw ApplicationFailure.nonRetryable(`no issue for ${date}: the digest is published before its send`, "MissingDigest");
+      if (!published)
+        throw ApplicationFailure.nonRetryable(
+          `no issue for ${date}: the digest is published before its send`,
+          "MissingDigest",
+        );
       const row = { id: send?.id ?? null, status: send?.status ?? null, recipients: send?.recipients ?? null };
-      const logEvent = (event: string, extra: Record<string, unknown>) => log.info({ stage: "broadcast", runId, date, event, ...extra });
+      const logEvent = (event: string, extra: Record<string, unknown>) =>
+        log.info({ stage: "broadcast", runId, date, event, ...extra });
       if (row.id && row.status && ACCEPTED_BROADCAST_STATES.has(row.status)) {
         logEvent("skipped: already accepted", { id: row.id, status: row.status });
         return { broadcastId: row.id, status: row.status, recipients: row.recipients ?? 0 };
@@ -214,14 +278,26 @@ export function broadcastActivities(deps: BroadcastDeps) {
       // Counted before the claim: the claim is held only across the create, as briefly as it can be.
       stopIfCancelled();
       const recipients = await contactCount(segmentId);
-      if (recipients >= CONTACT_THRESHOLD) log.warn({ stage: "broadcast", warning: `audience at ${recipients} contacts, near the free tier's 1,000`, recipients });
+      if (recipients >= CONTACT_THRESHOLD)
+        log.warn({
+          stage: "broadcast",
+          warning: `audience at ${recipients} contacts, near the free tier's 1,000`,
+          recipients,
+        });
       stopIfCancelled();
       const mine = await claim(date, runId);
       let id: string;
       try {
         const day = longDate(date);
         ({ id } = await must(() =>
-          deps.mail().broadcasts.create({ from: `${name} <${from}>`, segmentId, subject: `${name} – ${day}`, html, name: `Digest ${day}`, ...(env["CONTACT_EMAIL"] ? { replyTo: env["CONTACT_EMAIL"] } : {}) }),
+          deps.mail().broadcasts.create({
+            from: `${name} <${from}>`,
+            segmentId,
+            subject: `${name} – ${day}`,
+            html,
+            name: `Digest ${day}`,
+            ...(env["CONTACT_EMAIL"] ? { replyTo: env["CONTACT_EMAIL"] } : {}),
+          }),
         ));
         stopIfCancelled(); // a cancelled attempt stops here: a draft is not a send
       } catch (e) {
@@ -238,7 +314,12 @@ export function broadcastActivities(deps: BroadcastDeps) {
     // The pre-send hold's notification (spec §2.3): the checks that failed, when the hold ends, how
     // to approve or reject, the run's Temporal UI link and its headlines, to the operator's alert
     // address. Best-effort: the hold proceeds without it.
-    notifyHold: async (runId: number, selections: Pointer, holdEndsAt: string, failures: string[]): Promise<{ sent: boolean }> => {
+    notifyHold: async (
+      runId: number,
+      selections: Pointer,
+      holdEndsAt: string,
+      failures: string[],
+    ): Promise<{ sent: boolean }> => {
       const date = await store.runDate(runId);
       const sel = JSON.parse(await store.get(selections)) as Selections;
       const to = env["HEALTH_ALERT_EMAIL"];
@@ -247,26 +328,38 @@ export function broadcastActivities(deps: BroadcastDeps) {
       // The cut-over hold (ops/pre-send.ts) arrives as a line but is not a failed check.
       const checks = failures.filter((f) => !isCutoverHold(f));
       const cutover = failures.filter(isCutoverHold).map((f) => f.slice(CUTOVER_HOLD.length + 1).trim());
-      const what = checks.length ? `failed ${checks.length} pre-send check(s) and is held` : "is held for the cut-over; no pre-send check failed";
+      const what = checks.length
+        ? `failed ${checks.length} pre-send check(s) and is held`
+        : "is held for the cut-over; no pre-send check failed";
       const dropped = `digest ${date} (run ${runId}) ${what} until ${holdEndsAt}, then sends: ${failures.join("; ")}`;
       if (!to || !from || !env["RESEND_API_KEY"]) {
-        log.error({ stage: "hold", error: "ALERTING MISCONFIGURED (HEALTH_ALERT_EMAIL, RESEND_FROM or RESEND_API_KEY unset): hold notification dropped", dropped });
+        log.error({
+          stage: "hold",
+          error:
+            "ALERTING MISCONFIGURED (HEALTH_ALERT_EMAIL, RESEND_FROM or RESEND_API_KEY unset): hold notification dropped",
+          dropped,
+        });
         return { sent: false };
       }
       const ex = (deps.execution ?? currentExecution)();
       const ui = (env["TEMPORAL_UI_URL"] || "http://127.0.0.1:8233").replace(/\/+$/, "");
       const link = `${ui}/namespaces/${encodeURIComponent(ex.namespace)}/workflows/${encodeURIComponent(ex.workflowId)}/${encodeURIComponent(ex.runId)}/history`;
-      const signal = (decision: string) => `temporal workflow signal --workflow-id ${ex.workflowId} --name approve --input '{"decision":"${decision}"}'`;
+      const signal = (decision: string) =>
+        `temporal workflow signal --workflow-id ${ex.workflowId} --name approve --input '{"decision":"${decision}"}'`;
       const html = `<h2>Digest ${date} ${what}</h2>
 <p>Run ${runId} is held until <strong>${until} UTC</strong>, then it <strong>sends anyway</strong>. <a href="${htmlEscape(link)}">Open the run in the Temporal UI</a>.</p>
 ${cutover.map((c) => `<p>Cut-over hold: ${htmlEscape(c)}.</p>`).join("")}${checks.length ? `<h3>What failed</h3><ul>${checks.map((f) => `<li>${htmlEscape(f)}</li>`).join("")}</ul>` : ""}
 <p>To stop it: <code>${htmlEscape(signal("reject"))}</code><br>To send now: <code>${htmlEscape(signal("approve"))}</code></p>
 <h3>Must know (${sel.must_know.length})</h3><ol>${headlineList(sel.must_know)}</ol>
 <h3>Should know (${sel.should_know.length})</h3><ol>${headlineList(sel.should_know)}</ol>`;
-      const codes = checks.length ? [...new Set(checks.map((f) => f.split(":")[0]))].join(", ") : "cut-over hold, no check failed";
+      const codes = checks.length
+        ? [...new Set(checks.map((f) => f.split(":")[0]))].join(", ")
+        : "cut-over hold, no check failed";
       const subject = `[Hold] Digest ${date}: ${codes}; sends at ${until} UTC unless rejected`;
       try {
-        const r = await call(() => deps.mail().emails.send({ from: `News Digest Alerts <${from}>`, to: [to], subject, html }));
+        const r = await call(() =>
+          deps.mail().emails.send({ from: `News Digest Alerts <${from}>`, to: [to], subject, html }),
+        );
         if (r.error) throw new ResendFailure(r.error);
       } catch (e) {
         log.error({ stage: "hold", error: `hold notification send FAILED (${String(e)}); dropped`, dropped });

@@ -10,10 +10,30 @@ export const MAX_TOKENS_PER_FILE = 10_000;
 export const DEDUP_SIMILARITY_THRESHOLD = 0.8;
 export const ARTICLE_HEADER = ["article_id", "source_id", "title", "published", "summary"] as const;
 
-export interface Source { id: string; name: string; bias: string; factuality: string; perspective: string }
+export interface Source {
+  id: string;
+  name: string;
+  bias: string;
+  factuality: string;
+  perspective: string;
+}
 // author is optional: the live fetch has it, the archive (articles) never stored it.
-export interface Fetched { title: string; url: string; published: string | null; summary: string | null; author?: string | null }
-export interface IndexEntry { url: string; source_id: string; bias: string; original_title: string; name: string; wire: boolean; wire_agency: string | null }
+export interface Fetched {
+  title: string;
+  url: string;
+  published: string | null;
+  summary: string | null;
+  author?: string | null;
+}
+export interface IndexEntry {
+  url: string;
+  source_id: string;
+  bias: string;
+  original_title: string;
+  name: string;
+  wire: boolean;
+  wire_agency: string | null;
+}
 export interface Prepared {
   files: { name: string; rows: string[][] }[];
   index: Record<string, IndexEntry>;
@@ -27,8 +47,13 @@ export interface Prepared {
 // scrubLinks (the default) replaces links inside titles and summaries with a token: the Python let Hacker
 // News summaries carry "Article URL: https://..." to every model stage. Parity with the archive is
 // checked with it off.
-export function prepareArticles(sources: Source[], fetched: Map<string, Fetched[]>, recentTitles: string[], opts: { scrubLinks?: boolean } = {}): Prepared {
-  const scrub = opts.scrubLinks ?? true ? scrubUrls : (t: string) => t;
+export function prepareArticles(
+  sources: Source[],
+  fetched: Map<string, Fetched[]>,
+  recentTitles: string[],
+  opts: { scrubLinks?: boolean } = {},
+): Prepared {
+  const scrub = (opts.scrubLinks ?? true) ? scrubUrls : (t: string) => t;
   const matcher = recentTitles.length ? new TfidfMatcher(recentTitles) : undefined;
   const seen = new Set<string>();
   const rows: string[][] = [];
@@ -57,7 +82,15 @@ export function prepareArticles(sources: Source[], fetched: Map<string, Fetched[
       }
       const id = `A${rows.length + 1}`;
       const wire = source.perspective === "wire_service";
-      index[id] = { url, source_id: source.id, bias: source.bias, original_title: title, name: source.name, wire, wire_agency: wireAgency(a.author) ?? wireFromDateline(summary) ?? (wire ? wireAgency(source.name) : null) };
+      index[id] = {
+        url,
+        source_id: source.id,
+        bias: source.bias,
+        original_title: title,
+        name: source.name,
+        wire,
+        wire_agency: wireAgency(a.author) ?? wireFromDateline(summary) ?? (wire ? wireAgency(source.name) : null),
+      };
       rows.push([id, source.id, title, a.published ?? "", summary]);
     }
   const files: Prepared["files"] = [];
@@ -78,4 +111,5 @@ export function prepareArticles(sources: Source[], fetched: Map<string, Fetched[
 }
 
 // Python's csv.writer, minimal quoting, with the LF line ends the archive holds.
-export const toCsv = (header: readonly string[], rows: string[][]): string => stringify([[...header], ...rows], { record_delimiter: "\n" });
+export const toCsv = (header: readonly string[], rows: string[][]): string =>
+  stringify([[...header], ...rows], { record_delimiter: "\n" });

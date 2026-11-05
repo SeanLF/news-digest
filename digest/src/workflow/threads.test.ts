@@ -35,9 +35,16 @@ it("a phase that outruns its bound is cut off and recorded, and the render gets 
     },
   };
   const taskQueue = "threads-phase-test";
-  const worker = await Worker.create({ connection: env.nativeConnection, taskQueue, workflowsPath: new URL("./threads.test-workflow.ts", import.meta.url).pathname, activities });
+  const worker = await Worker.create({
+    connection: env.nativeConnection,
+    taskQueue,
+    workflowsPath: new URL("./threads.test-workflow.ts", import.meta.url).pathname,
+    activities,
+  });
   const started = Date.now();
-  await worker.runUntil(env.client.workflow.execute(ThreadsPhaseProbe, { taskQueue, workflowId: "threads-bound", args: [1, "2 seconds"] }));
+  await worker.runUntil(
+    env.client.workflow.execute(ThreadsPhaseProbe, { taskQueue, workflowId: "threads-bound", args: [1, "2 seconds"] }),
+  );
   expect(Date.now() - started).toBeLessThan(9_000); // the bound, not the slow synthesis, ended the phase
   expect(reports).toEqual([{ outcomes: [], failures: [], timedOut: true }]);
 }, 120_000);

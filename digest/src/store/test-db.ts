@@ -20,4 +20,5 @@ export async function migratedDb(runs: { id: number; runAt: string }[] = []): Pr
 }
 
 // The given runs, all on 2026-09-18.
-export const freshDb = (runIds: number[] = [300]): Promise<string> => migratedDb(runIds.map((id) => ({ id, runAt: "2026-09-18 10:25:40" })));
+export const freshDb = (runIds: number[] = [300]): Promise<string> =>
+  migratedDb(runIds.map((id) => ({ id, runAt: "2026-09-18 10:25:40" })));

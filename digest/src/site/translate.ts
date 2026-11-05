@@ -28,14 +28,22 @@ export function pickTargetLang(acceptLanguage: string | undefined): string {
 // A same-origin absolute path safe to put in a Location: one leading slash (never //), bounded, and
 // only characters every translatable page path uses.
 export const validTranslatePath = (p: string | undefined): string | undefined =>
-  p !== undefined && p.startsWith("/") && !p.startsWith("//") && p.length <= MAX_PATH && /^[A-Za-z0-9/_-]+$/.test(p) ? p : undefined;
+  p !== undefined && p.startsWith("/") && !p.startsWith("//") && p.length <= MAX_PATH && /^[A-Za-z0-9/_-]+$/.test(p)
+    ? p
+    : undefined;
 
 // "news-digest.example.org" -> "news--digest-example-org.translate.goog": hyphens doubled first.
-export const proxyHost = (domain: string): string => `${domain.replaceAll("-", "--").replaceAll(".", "-")}.translate.goog`;
+export const proxyHost = (domain: string): string =>
+  `${domain.replaceAll("-", "--").replaceAll(".", "-")}.translate.goog`;
 
 // Where to send the reader: the proxy, or the plain page when no domain is configured (local runs have
 // no proxy host).
-export function proxyTarget(domain: string | undefined, path: string, queryLang: string | undefined, acceptLanguage: string | undefined): string {
+export function proxyTarget(
+  domain: string | undefined,
+  path: string,
+  queryLang: string | undefined,
+  acceptLanguage: string | undefined,
+): string {
   if (!domain) return path;
   const lang = validQueryLang(queryLang) ?? pickTargetLang(acceptLanguage);
   return `https://${proxyHost(domain)}${path}?_x_tr_sl=en&_x_tr_tl=${lang}&_x_tr_hl=${lang}`;

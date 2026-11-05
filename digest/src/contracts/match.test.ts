@@ -3,7 +3,7 @@ import { itemIds, normHeadline, resultMatches } from "./match.js";
 
 describe("coherence matching", () => {
   it("normalises quotes, dashes, spacing, trailing punctuation and case", () => {
-    expect(normHeadline("  Iran’s “deal” — agreed.  ")).toBe(normHeadline("iran's \"deal\" - AGREED"));
+    expect(normHeadline("  Iran’s “deal” — agreed.  ")).toBe(normHeadline('iran\'s "deal" - AGREED'));
   });
   it("matches by the cited id set first, then by headline", () => {
     const ids = itemIds([{ article_id: "A1" }, { article_id: "A2" }]);

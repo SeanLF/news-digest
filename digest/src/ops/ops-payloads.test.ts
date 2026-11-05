@@ -12,7 +12,19 @@ const ADMIN = process.env["DIGEST_TEST_DATABASE_URL"];
 const OPS_DIR = new URL("../../db/ops/", import.meta.url).pathname;
 const SUBCOMMANDS = ["run", "usage", "health", "artifacts", "artifact"] as const;
 const READ_ONLY = "-c default_transaction_read_only=on";
-const META_ALLOWED = ["\\set", "\\pset", "\\getenv", "\\bind", "\\g", "\\gset", "\\if", "\\else", "\\endif", "\\warn", "\\echo"];
+const META_ALLOWED = [
+  "\\set",
+  "\\pset",
+  "\\getenv",
+  "\\bind",
+  "\\g",
+  "\\gset",
+  "\\if",
+  "\\else",
+  "\\endif",
+  "\\warn",
+  "\\echo",
+];
 const payload = (sub: string): string => readFileSync(`${OPS_DIR}${sub}.sql`, "utf8");
 
 type Env = { PGOPTIONS?: string; OPS_RUN?: string; OPS_NAME?: string };
@@ -38,23 +50,30 @@ async function freshDatabase(): Promise<string> {
   const url = withDb(ADMIN!, name);
   // The box's order: the role (a superuser's, seanfloyd-infra pg-roles), then the schema, whose
   // migration gives the role its reads. A password so this test can log in over TCP.
-  const role = psql(url, `\\set ON_ERROR_STOP on\n${readFileSync(`${OPS_DIR}digest_ro.sql`, "utf8")}\nALTER ROLE digest_ro PASSWORD 'ro';\n`);
+  const role = psql(
+    url,
+    `\\set ON_ERROR_STOP on\n${readFileSync(`${OPS_DIR}digest_ro.sql`, "utf8")}\nALTER ROLE digest_ro PASSWORD 'ro';\n`,
+  );
   expect(role.status, role.stderr).toBe(0);
   migrate(url);
-  const seeded = psql(url, `\\set ON_ERROR_STOP on
+  const seeded = psql(
+    url,
+    `\\set ON_ERROR_STOP on
 INSERT INTO runs (id, started_at, status) VALUES (284, '2026-09-22 10:25Z', 'running'), (285, '2026-09-23 10:25Z', 'running');
 INSERT INTO run_attempts (id, run_id, pipeline) VALUES (285, 285, 'temporal');
 INSERT INTO artifacts (run_id, attempt_id, name, content, sha256) VALUES (285, 285, 'clusters.json', 'PAYLOAD-OK', 'x');
 INSERT INTO model_calls (run_id, stage, request_model, api_cost_usd) VALUES (285, 'write', 'm', 0.5);
 INSERT INTO source_fetches (run_id, source_id, is_success) VALUES (285, 'bbc', false);
-`);
+`,
+  );
   expect(seeded.status, seeded.stderr).toBe(0);
   return url;
 }
 
 const count = (url: string, table: string) => psql(url, `SELECT count(*) FROM ${table}`).stdout.match(/\d+/)![0];
 // A write placed before the payload's first query, so it is the first thing the session runs.
-const withWrite = (script: string, write: string) => script.replace("\\getenv rid OPS_RUN", `${write}\n\\getenv rid OPS_RUN`);
+const withWrite = (script: string, write: string) =>
+  script.replace("\\getenv rid OPS_RUN", `${write}\n\\getenv rid OPS_RUN`);
 
 describe("the ops payloads", () => {
   it.each(SUBCOMMANDS)("%s carries no statement that writes or changes the session", (sub) => {
@@ -70,7 +89,29 @@ describe("the ops payloads", () => {
       .filter((l) => !l.trimStart().startsWith("\\"))
       .join("\n")
       .toLowerCase();
-    for (const verb of ["insert", "update", "delete", "merge", "drop", "alter", "create", "truncate", "grant", "revoke", "copy", "set", "reset", "begin", "start", "commit", "do", "call", "lock", "vacuum", "attach"])
+    for (const verb of [
+      "insert",
+      "update",
+      "delete",
+      "merge",
+      "drop",
+      "alter",
+      "create",
+      "truncate",
+      "grant",
+      "revoke",
+      "copy",
+      "set",
+      "reset",
+      "begin",
+      "start",
+      "commit",
+      "do",
+      "call",
+      "lock",
+      "vacuum",
+      "attach",
+    ])
       expect(sql, `${sub}: ${verb}`).not.toMatch(new RegExp(`\\b${verb}\\b`));
   });
 });
@@ -87,14 +128,20 @@ describe.skipIf(!ADMIN)("the ops payloads on real Postgres", { timeout: 30_000 }
       expect(out.run_id).toBe(285);
       expect(out.rows).toHaveLength(1);
     }
-    const run = JSON.parse(psql(ro, payload("run"), { PGOPTIONS: READ_ONLY, OPS_RUN: "284" }).stdout) as { run_id: number };
+    const run = JSON.parse(psql(ro, payload("run"), { PGOPTIONS: READ_ONLY, OPS_RUN: "284" }).stdout) as {
+      run_id: number;
+    };
     expect(run.run_id).toBe(284);
   });
 
   it("an artifact name is a bound value: a hostile one finds nothing and changes nothing", async () => {
     const url = await freshDatabase();
     const ro = asRole(url, "digest_ro", "ro");
-    const hostile = psql(ro, payload("artifact"), { PGOPTIONS: READ_ONLY, OPS_RUN: "285", OPS_NAME: "clusters.json' OR true; DROP TABLE runs; --" });
+    const hostile = psql(ro, payload("artifact"), {
+      PGOPTIONS: READ_ONLY,
+      OPS_RUN: "285",
+      OPS_NAME: "clusters.json' OR true; DROP TABLE runs; --",
+    });
     expect(hostile.status).not.toBe(0);
     expect(hostile.stderr).toContain("no such artifact for run 285");
     expect(count(url, "runs")).toBe("2");
@@ -118,7 +165,12 @@ describe.skipIf(!ADMIN)("the ops payloads on real Postgres", { timeout: 30_000 }
   it("digest_ro refuses a write even from a session that turns read-only off", async () => {
     const url = await freshDatabase();
     const ro = asRole(url, "digest_ro", "ro");
-    for (const write of ["DELETE FROM artifacts;", "INSERT INTO runs DEFAULT VALUES;", "UPDATE runs SET git_sha = 'x';", "CREATE TABLE planted (x int);"]) {
+    for (const write of [
+      "DELETE FROM artifacts;",
+      "INSERT INTO runs DEFAULT VALUES;",
+      "UPDATE runs SET git_sha = 'x';",
+      "CREATE TABLE planted (x int);",
+    ]) {
       const r = psql(ro, withWrite(payload("run"), `SET default_transaction_read_only = off;\n${write}`));
       expect(r.status, write).not.toBe(0);
       expect(r.stderr, write).toMatch(/permission denied/);
@@ -139,7 +191,12 @@ describe.skipIf(!ADMIN)("the ops payloads on real Postgres", { timeout: 30_000 }
     const ro = asRole(url, "digest_ro", "ro");
     expect(psql(url, "REVOKE SELECT ON ALL TABLES IN SCHEMA public FROM digest_ro;").status).toBe(0);
     expect(psql(ro, "SELECT count(*) FROM runs;").stderr).toMatch(/permission denied/); // control
-    expect(psql(url, `\\set ON_ERROR_STOP on\n${readFileSync(`${OPS_DIR}digest_ro.sql`, "utf8")}\nALTER ROLE digest_ro PASSWORD 'ro';\n`).status).toBe(0);
+    expect(
+      psql(
+        url,
+        `\\set ON_ERROR_STOP on\n${readFileSync(`${OPS_DIR}digest_ro.sql`, "utf8")}\nALTER ROLE digest_ro PASSWORD 'ro';\n`,
+      ).status,
+    ).toBe(0);
     expect(psql(ro, "SELECT count(*) FROM runs;").stdout).toMatch(/\b2\b/);
   });
 });

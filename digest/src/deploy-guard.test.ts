@@ -21,7 +21,11 @@ const listing = (runs: { workflowId: string; stuck?: boolean }[], seen: string[]
       list: ({ query }: { query: string }) => {
         seen.push(query);
         return (async function* () {
-          for (const r of runs) yield { workflowId: r.workflowId, raw: { searchAttributes: { indexedFields: r.stuck ? { TemporalReportedProblems: {} } : {} } } };
+          for (const r of runs)
+            yield {
+              workflowId: r.workflowId,
+              raw: { searchAttributes: { indexedFields: r.stuck ? { TemporalReportedProblems: {} } : {} } },
+            };
         })();
       },
     },
@@ -30,10 +34,11 @@ const listing = (runs: { workflowId: string; stuck?: boolean }[], seen: string[]
 describe("runningDigests", () => {
   it("asks for running DigestWorkflows and names a run whose workflow task keeps failing", async () => {
     const seen: string[] = [];
-    expect(await runningDigests(listing([{ workflowId: "digest-2026-09-25" }, { workflowId: "digest-2026-09-24", stuck: true }], seen))).toEqual([
-      "digest-2026-09-25",
-      "digest-2026-09-24 (stuck: its workflow task keeps failing)",
-    ]);
+    expect(
+      await runningDigests(
+        listing([{ workflowId: "digest-2026-09-25" }, { workflowId: "digest-2026-09-24", stuck: true }], seen),
+      ),
+    ).toEqual(["digest-2026-09-25", "digest-2026-09-24 (stuck: its workflow task keeps failing)"]);
     expect(seen).toEqual(['WorkflowType="DigestWorkflow" AND ExecutionStatus="Running"']);
   });
 });
@@ -50,7 +55,13 @@ describe("guard", () => {
     ]);
   });
   it("refuses when the running digests cannot be listed, rather than guessing", async () => {
-    const broken = { workflow: { list: () => { throw new Error("14 UNAVAILABLE"); } } } as unknown as Client;
+    const broken = {
+      workflow: {
+        list: () => {
+          throw new Error("14 UNAVAILABLE");
+        },
+      },
+    } as unknown as Client;
     expect(await guard(broken, quiet)).toEqual(["could not list the running digest workflows: Error: 14 UNAVAILABLE"]);
   });
 });

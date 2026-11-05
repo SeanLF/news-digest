@@ -18,7 +18,8 @@ describe("runWorker", () => {
 
 describe("touchWhileRunning", () => {
   it("touches the file both images' HEALTHCHECK reads, the path the Python worker touches too", () => {
-    for (const dockerfile of ["Dockerfile", "python/Dockerfile"]) expect(readFileSync(dockerfile, "utf8")).toContain(`find ${ALIVE_FILE} -mmin -1`);
+    for (const dockerfile of ["Dockerfile", "python/Dockerfile"])
+      expect(readFileSync(dockerfile, "utf8")).toContain(`find ${ALIVE_FILE} -mmin -1`);
     expect(readFileSync("python/worker.py", "utf8")).toContain(`Path("${ALIVE_FILE}")`);
   });
 

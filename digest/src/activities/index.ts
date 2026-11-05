@@ -27,25 +27,66 @@ export interface StoryPlan {
 export type FulltextTask = [articleId: string, url: string];
 // What the Python fulltext activity returns: fulltext._collect_isolated's outcome, or "unavailable"
 // when nothing answered on its queue.
-export interface FulltextFetch { tasks: number; results: Record<string, string>; outcome: string }
+export interface FulltextFetch {
+  tasks: number;
+  results: Record<string, string>;
+  outcome: string;
+}
 // `existing`: the run already has its full text. `skip`: there is nothing to fetch, and why.
-export interface FulltextPlan { tasks: FulltextTask[]; existing?: Pointer; skip?: "disabled" | "no_candidates" }
+export interface FulltextPlan {
+  tasks: FulltextTask[];
+  existing?: Pointer;
+  skip?: "disabled" | "no_candidates";
+}
 // The activity the Python worker serves on PYTHON_TASK_QUEUE.
-export interface FulltextFetcher { fetchFulltext(tasks: FulltextTask[]): Promise<FulltextFetch> }
+export interface FulltextFetcher {
+  fetchFulltext(tasks: FulltextTask[]): Promise<FulltextFetch>;
+}
 // What the `decodeLinks` activity returns: the links it was given, those it decoded, the decodes that
 // reached the network, and how the pass ended ("completed", "rate_limited", "deadline", "cancelled",
 // "busy"), or "failed" when it broke. Runs before the TypeScript decode also stored "unavailable".
-export interface GnewsDecode { links: number; decoded: Record<string, string>; attempted: number; outcome: string }
-export interface GnewsPlan { urls: string[]; existing?: Pointer; skip?: "disabled" | "no_candidates" }
+export interface GnewsDecode {
+  links: number;
+  decoded: Record<string, string>;
+  attempted: number;
+  outcome: string;
+}
+export interface GnewsPlan {
+  urls: string[];
+  existing?: Pointer;
+  skip?: "disabled" | "no_candidates";
+}
 // The decode (gnews-decode.ts), proxied apart for its own timeouts and single attempt.
-export interface LinkDecoder { decodeLinks(urls: string[]): Promise<GnewsDecode> }
+export interface LinkDecoder {
+  decodeLinks(urls: string[]): Promise<GnewsDecode>;
+}
 // THREADS: a continuing thread to synthesize, with its story's articles; what one synthesis
 // reported; and what the workflow saw of the whole phase, which the finish records.
-export interface ThreadPlan { threadId: number; articleIds: string[] }
-export interface ThreadsLinked { plans: ThreadPlan[]; skip?: "disabled" }
-export interface ThreadOutcome { threadId: number; auditFailed: boolean }
-export interface ThreadsReport { linkError?: string; timedOut?: boolean; outcomes: ThreadOutcome[]; failures: { threadId: number; error: string }[] }
-export interface FetchSummary { sourceId: string; ok: boolean; fetched: number; kept: number; error?: string }
+export interface ThreadPlan {
+  threadId: number;
+  articleIds: string[];
+}
+export interface ThreadsLinked {
+  plans: ThreadPlan[];
+  skip?: "disabled";
+}
+export interface ThreadOutcome {
+  threadId: number;
+  auditFailed: boolean;
+}
+export interface ThreadsReport {
+  linkError?: string;
+  timedOut?: boolean;
+  outcomes: ThreadOutcome[];
+  failures: { threadId: number; error: string }[];
+}
+export interface FetchSummary {
+  sourceId: string;
+  ok: boolean;
+  fetched: number;
+  kept: number;
+  error?: string;
+}
 export interface DigestOutput {
   runId: number;
   stories: number;
@@ -76,14 +117,27 @@ export interface Activities extends LinkDecoder {
   coherence(runId: number, drafts: Pointer[], fulltext: Pointer, note?: string, force?: boolean): Promise<Pointer>;
   repair(runId: number, drafts: Pointer[], report: Pointer, force?: boolean): Promise<Pointer>;
   attribute(runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, force?: boolean): Promise<Pointer>;
-  assemble(runId: number, drafts: Pointer[], report: Pointer, repair: Pointer, preheader: Pointer | null, attribution: Pointer | null, force?: boolean): Promise<Pointer>;
+  assemble(
+    runId: number,
+    drafts: Pointer[],
+    report: Pointer,
+    repair: Pointer,
+    preheader: Pointer | null,
+    attribution: Pointer | null,
+    force?: boolean,
+  ): Promise<Pointer>;
   planGnews(runId: number, selections: Pointer, force?: boolean): Promise<GnewsPlan>;
   storeGnews(runId: number, decoded: GnewsDecode, force?: boolean): Promise<Pointer>;
   threadsLink(runId: number, force?: boolean): Promise<ThreadsLinked>;
   threadSynthesis(runId: number, plan: ThreadPlan): Promise<ThreadOutcome>;
   threadsFinish(runId: number, report: ThreadsReport): Promise<Pointer>;
   threadsRetract(runId: number): Promise<{ retracted: boolean; reason?: string }>;
-  render(runId: number, selections: Pointer, threads: Pointer, gnews: Pointer): Promise<{ html: Pointer; email: Pointer }>;
+  render(
+    runId: number,
+    selections: Pointer,
+    threads: Pointer,
+    gnews: Pointer,
+  ): Promise<{ html: Pointer; email: Pointer }>;
   archiveRun(runId: number, selections: Pointer, clusters: Pointer): Promise<void>;
   sendEnabled(): Promise<boolean>;
   // The pre-send checks (ops/pre-send.ts): one "CODE: detail" line per failure; none sends at once.

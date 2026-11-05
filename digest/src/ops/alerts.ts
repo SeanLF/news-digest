@@ -8,16 +8,32 @@ import { ACCEPTED_BROADCAST_STATES, CLAIMED, clearClaimCommand } from "./broadca
 export type AlertRequest =
   | { kind: "run-health"; runId: number; violations: string[] }
   | { kind: "archival"; runId: number | null; failed: string[] }
-  | { kind: "source-health"; failing: [sourceId: string, consecutive: number][]; failedThisRun: number; totalSources: number; threshold: number }
+  | {
+      kind: "source-health";
+      failing: [sourceId: string, consecutive: number][];
+      failedThisRun: number;
+      totalSources: number;
+      threshold: number;
+    }
   // `sent`: the workflow saw the broadcast return. `broadcastStatus` and `date`: the day's broadcast
   // columns, which the alert activity reads, so a send the workflow never heard back from still counts.
-  | { kind: "run-failed"; workflowId: string; runId: number | null; reason: string; timedOut: boolean; sent: boolean; broadcastStatus?: string | null; date?: string }
+  | {
+      kind: "run-failed";
+      workflowId: string;
+      runId: number | null;
+      reason: string;
+      timedOut: boolean;
+      sent: boolean;
+      broadcastStatus?: string | null;
+      date?: string;
+    }
   // The run ended without a delivery for a reason no exception carries.
   | { kind: "not-sent"; workflowId: string; runId: number; reason: "disabled" | "held-out"; detail: string };
 
 const resumeHint = (runId: number | null) => `<code>make digest-start DATE=... ARGS="--resume ${runId ?? "N"}"</code>`;
 
-const FOOTER = '<p style="color: #777; font-size: 0.85em;">This is an automated alert from your News Digest system.</p>\n';
+const FOOTER =
+  '<p style="color: #777; font-size: 0.85em;">This is an automated alert from your News Digest system.</p>\n';
 
 // `dropped` is the alert in one line: what the log keeps when the email cannot be sent.
 export function alertEmail(req: AlertRequest): { subject: string; html: string; dropped: string } {
@@ -70,13 +86,29 @@ ${FOOTER}`,
       const claimed = !delivered && status?.startsWith(CLAIMED);
       // Never suggest a resume after an accepted broadcast; with a claim held, only once Resend is checked.
       const [headline, state, next] = delivered
-        ? [`${what} after the digest was sent`, `The digest was sent (broadcast ${htmlEscape(status ?? "accepted")}); the failure came after it.`, "Do not resume or re-send: readers have it. Only the run's record (story sources, outcome) may need repair."]
+        ? [
+            `${what} after the digest was sent`,
+            `The digest was sent (broadcast ${htmlEscape(status ?? "accepted")}); the failure came after it.`,
+            "Do not resume or re-send: readers have it. Only the run's record (story sources, outcome) may need repair.",
+          ]
         : claimed
-          ? [`${what} with a send claim held`, `A send attempt holds the day's claim (${htmlEscape(status ?? "")}), so whether the digest went out is unknown.`, `Check Resend for the day's broadcast before anything else. If nothing went out, clear the claim in the worker container with <code>${htmlEscape(clearClaimCommand(req.date ?? "DATE"))}</code>, then resume: ${resumeHint(req.runId)}.`]
+          ? [
+              `${what} with a send claim held`,
+              `A send attempt holds the day's claim (${htmlEscape(status ?? "")}), so whether the digest went out is unknown.`,
+              `Check Resend for the day's broadcast before anything else. If nothing went out, clear the claim in the worker container with <code>${htmlEscape(clearClaimCommand(req.date ?? "DATE"))}</code>, then resume: ${resumeHint(req.runId)}.`,
+            ]
           : status !== null
             ? // A draft exists (status "created"): its send may or may not have been accepted.
-              [`${what} with delivery unknown`, `A broadcast draft exists (status ${htmlEscape(status)}), and whether Resend accepted its send is unknown.`, `Check Resend for the day's broadcast before any resume. A resume probes that draft and sends it only if it never went out: ${resumeHint(req.runId)}.`]
-            : [what, "Today's digest was not sent.", `Its history is in the Temporal UI under that workflow id. A resume re-runs only what is missing: ${resumeHint(req.runId)}.`];
+              [
+                `${what} with delivery unknown`,
+                `A broadcast draft exists (status ${htmlEscape(status)}), and whether Resend accepted its send is unknown.`,
+                `Check Resend for the day's broadcast before any resume. A resume probes that draft and sends it only if it never went out: ${resumeHint(req.runId)}.`,
+              ]
+            : [
+                what,
+                "Today's digest was not sent.",
+                `Its history is in the Temporal UI under that workflow id. A resume re-runs only what is missing: ${resumeHint(req.runId)}.`,
+              ];
       return {
         subject: `[Alert] ${req.workflowId} ${headline} (${run})`,
         html: `<h2>News Digest Run ${req.timedOut ? "Timed Out" : "Failed"}</h2>
@@ -126,12 +158,19 @@ export async function sendAlert(req: AlertRequest, deps: AlertDeps): Promise<"se
   const apiKey = deps.env["RESEND_API_KEY"];
   const from = deps.env["RESEND_FROM"];
   if (!to || !apiKey || !from) {
-    const missing = Object.entries({ HEALTH_ALERT_EMAIL: to, RESEND_API_KEY: apiKey, RESEND_FROM: from }).filter(([, v]) => !v).map(([k]) => k);
-    log.error(`ALERTING MISCONFIGURED (${missing.join("/")} unset): ${req.kind} alert DROPPED, not delivered. It said: ${dropped}`);
+    const missing = Object.entries({ HEALTH_ALERT_EMAIL: to, RESEND_API_KEY: apiKey, RESEND_FROM: from })
+      .filter(([, v]) => !v)
+      .map(([k]) => k);
+    log.error(
+      `ALERTING MISCONFIGURED (${missing.join("/")} unset): ${req.kind} alert DROPPED, not delivered. It said: ${dropped}`,
+    );
     return "dropped";
   }
   try {
-    await deps.send({ from: `News Digest Alerts <${from}>`, to: [to], subject, html }, deps.idempotencyKey ? { idempotencyKey: deps.idempotencyKey } : undefined);
+    await deps.send(
+      { from: `News Digest Alerts <${from}>`, to: [to], subject, html },
+      deps.idempotencyKey ? { idempotencyKey: deps.idempotencyKey } : undefined,
+    );
   } catch (e) {
     if (deps.attempt < deps.maxAttempts) throw e;
     log.error(`${req.kind} alert send FAILED (${String(e)}); alert DROPPED. It said: ${dropped}`);

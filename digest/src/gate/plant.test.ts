@@ -4,8 +4,18 @@ import { plantDefects } from "./plant.js";
 // Every field carries a number, so every plant is a wrong-number plant and the shape check always runs.
 const draft = {
   must_know: [
-    { headline: "Talks resume after 12 days", summary: "Officials said 3,000 attended.", why_it_matters: "The 2 sides differ.", sources: [{ article_id: "A1" }] },
-    { headline: "Vote passes 58 to 40", summary: "Turnout was 58%.", why_it_matters: "A 9 point swing.", sources: [{ article_id: "A2" }] },
+    {
+      headline: "Talks resume after 12 days",
+      summary: "Officials said 3,000 attended.",
+      why_it_matters: "The 2 sides differ.",
+      sources: [{ article_id: "A1" }],
+    },
+    {
+      headline: "Vote passes 58 to 40",
+      summary: "Turnout was 58%.",
+      why_it_matters: "A 9 point swing.",
+      sources: [{ article_id: "A2" }],
+    },
   ],
   should_know: [],
   preheader: "p",
@@ -31,7 +41,17 @@ describe("plantDefects", () => {
     }
   });
   it("a field with no number gets an absent specific appended", () => {
-    const noNumbers = { ...draft, must_know: [{ ...draft.must_know[0]!, headline: "Talks resume", summary: "Officials attended.", why_it_matters: "Sides differ." }] };
+    const noNumbers = {
+      ...draft,
+      must_know: [
+        {
+          ...draft.must_know[0]!,
+          headline: "Talks resume",
+          summary: "Officials attended.",
+          why_it_matters: "Sides differ.",
+        },
+      ],
+    };
     const { plants } = plantDefects(noNumbers, 3, 1);
     expect(plants[0]!.kind).toBe("absent-specific");
     expect(plants[0]!.planted.startsWith(plants[0]!.original)).toBe(true);

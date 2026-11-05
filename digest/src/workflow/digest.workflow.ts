@@ -6,11 +6,38 @@
 // moved onto this build by hand (runbook, "Stranded runs") fails with a nondeterminism error.
 // Activity bodies are free, and so are an activity's options: replay matches an activity by type,
 // not by timeout or retry policy.
-import { ActivityFailure, ApplicationFailure, CancellationScope, CancelledFailure, condition, isCancellation, log, proxyActivities, setHandler, workflowInfo } from "@temporalio/workflow";
-import type { Activities, AlertRequest, DigestInput, DigestOutput, FulltextFetch, FulltextFetcher, GnewsDecode, LinkDecoder } from "../activities/index.js";
+import {
+  ActivityFailure,
+  ApplicationFailure,
+  CancellationScope,
+  CancelledFailure,
+  condition,
+  isCancellation,
+  log,
+  proxyActivities,
+  setHandler,
+  workflowInfo,
+} from "@temporalio/workflow";
+import type {
+  Activities,
+  AlertRequest,
+  DigestInput,
+  DigestOutput,
+  FulltextFetch,
+  FulltextFetcher,
+  GnewsDecode,
+  LinkDecoder,
+} from "../activities/index.js";
 import { isCutoverHold } from "../ops/cutover-hold.js";
 import { mapBounded, MODEL_FANOUT_LIMIT } from "./bounded.js";
-import { MODEL_MAX_ATTEMPTS, NETWORK_MAX_ATTEMPTS, OPS_MAX_ATTEMPTS, PYTHON_TASK_QUEUE, RUN_TIMEOUT_HOURS, WEEKLY_RECAP_MAX_ATTEMPTS } from "./policy.js";
+import {
+  MODEL_MAX_ATTEMPTS,
+  NETWORK_MAX_ATTEMPTS,
+  OPS_MAX_ATTEMPTS,
+  PYTHON_TASK_QUEUE,
+  RUN_TIMEOUT_HOURS,
+  WEEKLY_RECAP_MAX_ATTEMPTS,
+} from "./policy.js";
 import { approveSignal, operatorNoteSignal, retrySignal } from "./signals.js";
 import { threadsPhase } from "./threads.js";
 
@@ -30,7 +57,9 @@ export const TAIL_MARGIN_MS = 30 * 60 * 1000;
 // One budget: the deadline, and under the run timeout when a start sets one.
 function deadlineMs(): number {
   const { runTimeoutMs } = workflowInfo();
-  return runTimeoutMs ? Math.max(60_000, Math.min(RUN_DEADLINE_MS, runTimeoutMs - DEADLINE_MARGIN_MS)) : RUN_DEADLINE_MS;
+  return runTimeoutMs
+    ? Math.max(60_000, Math.min(RUN_DEADLINE_MS, runTimeoutMs - DEADLINE_MARGIN_MS))
+    : RUN_DEADLINE_MS;
 }
 // What the deadline leaves before the tail must start; at or under 0 the send cannot fit.
 function sendBudget(): number {
@@ -47,38 +76,74 @@ const model = proxyActivities<Activities>({
   heartbeatTimeout: "2 minutes",
   retry: { maximumAttempts: MODEL_MAX_ATTEMPTS, initialInterval: "5 minutes", backoffCoefficient: 2 },
 });
-const network = proxyActivities<Activities>({ startToCloseTimeout: "2 minutes", retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
+const network = proxyActivities<Activities>({
+  startToCloseTimeout: "2 minutes",
+  retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
+});
 const once = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", retry: { maximumAttempts: 1 } });
 // Render and assemble: the same inputs give the same output (render keeps its timestamp and issue
 // number), so an attempt a deploy interrupts is retried instead of failing the run: 3 attempts, the
 // retries about 10 s then 20 s after (the default backoff coefficient, 2).
-const rebuild = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
+const rebuild = proxyActivities<Activities>({
+  startToCloseTimeout: "10 minutes",
+  retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
+});
 // The send: one attempt, heartbeating, so a timed-out or cancelled attempt is told to stop.
-const send = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: 1 } });
+const send = proxyActivities<Activities>({
+  startToCloseTimeout: "10 minutes",
+  heartbeatTimeout: "2 minutes",
+  retry: { maximumAttempts: 1 },
+});
 // The run's record: idempotent database writes, so a retry is safe, retried like a fetch.
-const record = proxyActivities<Activities>({ startToCloseTimeout: "2 minutes", retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
+const record = proxyActivities<Activities>({
+  startToCloseTimeout: "2 minutes",
+  retry: { maximumAttempts: NETWORK_MAX_ATTEMPTS, initialInterval: "10 seconds" },
+});
 // A verdict is a result, never re-sampled until something passes (spec §2.2 tier 3): one attempt,
 // and a failure parks on the retry signal for an operator.
 // Attribution is optional: a few minutes at most, one attempt, never at the cost of the send.
-const attributing = proxyActivities<Activities>({ startToCloseTimeout: "10 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: 1 } });
-const verdict = proxyActivities<Activities>({ startToCloseTimeout: "45 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: 1 } });
+const attributing = proxyActivities<Activities>({
+  startToCloseTimeout: "10 minutes",
+  heartbeatTimeout: "2 minutes",
+  retry: { maximumAttempts: 1 },
+});
+const verdict = proxyActivities<Activities>({
+  startToCloseTimeout: "45 minutes",
+  heartbeatTimeout: "2 minutes",
+  retry: { maximumAttempts: 1 },
+});
 // The Python fetch bounds itself (a 120 s deadline plus 30 s grace, then SIGKILL); the start-to-close
 // covers that with room. A worker that never picks the task up is the schedule-to-start timeout.
-const python = proxyActivities<FulltextFetcher>({ taskQueue: PYTHON_TASK_QUEUE, scheduleToStartTimeout: "5 minutes", startToCloseTimeout: "4 minutes", retry: { maximumAttempts: 2 } });
+const python = proxyActivities<FulltextFetcher>({
+  taskQueue: PYTHON_TASK_QUEUE,
+  scheduleToStartTimeout: "5 minutes",
+  startToCloseTimeout: "4 minutes",
+  retry: { maximumAttempts: 2 },
+});
 // The decode (gnews-decode.ts) checks its 120 s deadline between links, so a pass can overrun it by
 // one link: the 2 s pace and one 15 s decode, which the library bounds as a whole. A pass queued
 // behind another waits up to 60 s first. It heartbeats before each link, so a timed-out pass stops at
 // the next one. One attempt: a retry would spend the per-IP daily budget again on links the first
 // attempt already tried.
-const decoder = proxyActivities<LinkDecoder>({ startToCloseTimeout: "6 minutes", heartbeatTimeout: "3 minutes", retry: { maximumAttempts: 1 } });
+const decoder = proxyActivities<LinkDecoder>({
+  startToCloseTimeout: "6 minutes",
+  heartbeatTimeout: "3 minutes",
+  retry: { maximumAttempts: 1 },
+});
 // Alerts and pings: quick retries, and the activity gives up (logging what it would have said) on the last.
-const ops = proxyActivities<Activities>({ startToCloseTimeout: "2 minutes", retry: { maximumAttempts: OPS_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
+const ops = proxyActivities<Activities>({
+  startToCloseTimeout: "2 minutes",
+  retry: { maximumAttempts: OPS_MAX_ATTEMPTS, initialInterval: "10 seconds" },
+});
 // The tail after the hold: quick, bounded retries, so its worst case is a known sum (below) that the
 // budget reserves before the send may start. Everything here is an idempotent write or a ping.
 const TAIL_ATTEMPT_MS = 60_000;
 const TAIL_ATTEMPTS = 2;
 const TAIL_RETRY_MS = 5_000;
-const tail = proxyActivities<Activities>({ startToCloseTimeout: TAIL_ATTEMPT_MS, retry: { maximumAttempts: TAIL_ATTEMPTS, initialInterval: TAIL_RETRY_MS, maximumInterval: TAIL_RETRY_MS } });
+const tail = proxyActivities<Activities>({
+  startToCloseTimeout: TAIL_ATTEMPT_MS,
+  retry: { maximumAttempts: TAIL_ATTEMPTS, initialInterval: TAIL_RETRY_MS, maximumInterval: TAIL_RETRY_MS },
+});
 // The hold notice: one short attempt (it reports its own failure), so a hold cut to under a minute
 // overruns into the tail's margin by at most this; a test holds it inside the margin's slack.
 export const NOTIFY_MS = 60_000;
@@ -86,8 +151,13 @@ const notify = proxyActivities<Activities>({ startToCloseTimeout: NOTIFY_MS, ret
 const SEND_MS = 10 * 60 * 1000; // the send proxy's start-to-close, one attempt
 const OPS_WORST_MS = 3 * 2 * 60 * 1000 + 30_000; // the ops policy: 3 attempts of 2 min, 10 s then 20 s apart
 // saveDigest, the send, recordShownHeadlines, finishRun, the success ping, the health check, its alert.
-export const TAIL_WORST_CASE_MS = SEND_MS + 5 * (TAIL_ATTEMPTS * TAIL_ATTEMPT_MS + (TAIL_ATTEMPTS - 1) * TAIL_RETRY_MS) + OPS_WORST_MS;
-const weekly = proxyActivities<Activities>({ startToCloseTimeout: "5 minutes", heartbeatTimeout: "2 minutes", retry: { maximumAttempts: WEEKLY_RECAP_MAX_ATTEMPTS, initialInterval: "10 seconds" } });
+export const TAIL_WORST_CASE_MS =
+  SEND_MS + 5 * (TAIL_ATTEMPTS * TAIL_ATTEMPT_MS + (TAIL_ATTEMPTS - 1) * TAIL_RETRY_MS) + OPS_WORST_MS;
+const weekly = proxyActivities<Activities>({
+  startToCloseTimeout: "5 minutes",
+  heartbeatTimeout: "2 minutes",
+  retry: { maximumAttempts: WEEKLY_RECAP_MAX_ATTEMPTS, initialInterval: "10 seconds" },
+});
 
 // Never fails the run it serves; only a cancellation passes through.
 async function bestEffort<T>(fn: () => Promise<T>): Promise<T | undefined> {
@@ -104,7 +174,10 @@ const causes = (e: unknown): string => {
   return parts.join(" <- ") || String(e);
 };
 
-interface RunState { runId: number | null; sent: boolean }
+interface RunState {
+  runId: number | null;
+  sent: boolean;
+}
 
 // The systemd OnFailure alert's successor. Everything the run does is inside a scope with a deadline; on
 // any failure but an operator's cancellation the workflow pings the dead-man's switch and emails, then
@@ -117,12 +190,26 @@ export async function DigestWorkflow(input: DigestInput): Promise<DigestOutput> 
   } catch (e) {
     if (CancellationScope.current().consideredCancelled) throw e; // the operator cancelled the workflow
     const timedOut = isCancellation(e);
-    const failure = timedOut ? ApplicationFailure.nonRetryable(`run deadline of ${deadlineMs() / 60_000} minutes exceeded`, "RunDeadline") : e;
+    const failure = timedOut
+      ? ApplicationFailure.nonRetryable(`run deadline of ${deadlineMs() / 60_000} minutes exceeded`, "RunDeadline")
+      : e;
     await CancellationScope.nonCancellable(async () => {
       // A digest that reached readers is the delivery the switch watches for, whatever failed after it.
-      if (state.sent) await bestEffort(() => ops.healthcheck("success", `sent, but the run failed after the send: ${causes(failure)}`));
+      if (state.sent)
+        await bestEffort(() =>
+          ops.healthcheck("success", `sent, but the run failed after the send: ${causes(failure)}`),
+        );
       else if (input.resumeRun === undefined) await bestEffort(() => ops.healthcheck("fail"));
-      await bestEffort(() => ops.alert({ kind: "run-failed", workflowId: workflowInfo().workflowId, runId: state.runId, reason: causes(failure), timedOut, sent: state.sent }));
+      await bestEffort(() =>
+        ops.alert({
+          kind: "run-failed",
+          workflowId: workflowInfo().workflowId,
+          runId: state.runId,
+          reason: causes(failure),
+          timedOut,
+          sent: state.sent,
+        }),
+      );
     });
     throw failure;
   }
@@ -152,7 +239,8 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     const req = await bestEffort(check);
     if (req) await bestEffort(() => ops.alert(req));
   }
-  const notSent = (reason: "disabled" | "held-out", detail: string) => alertOn(() => Promise.resolve({ kind: "not-sent", workflowId: workflowInfo().workflowId, runId, reason, detail }));
+  const notSent = (reason: "disabled" | "held-out", detail: string) =>
+    alertOn(() => Promise.resolve({ kind: "not-sent", workflowId: workflowInfo().workflowId, runId, reason, detail }));
   // Delivered: the success ping comes before the health check, since a violated invariant is a quality
   // signal about a run that did deliver. An operator's reject or abort is deliberate, so it closes the
   // day's /start with a note rather than leaving it to page. Disabled is no delivery: no ping.
@@ -160,7 +248,13 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     if (out.broadcast !== "sent") await bestEffort(() => tail.threadsRetract(runId));
     await tail.finishRun(runId, out);
     if (out.broadcast === "sent") await bestEffort(() => tail.healthcheck("success"));
-    else if (monitored && (out.broadcast === "rejected" || out.broadcast === "skipped")) await bestEffort(() => tail.healthcheck("success", `not sent: ${out.broadcast === "rejected" ? "rejected" : "aborted"} by the operator`));
+    else if (monitored && (out.broadcast === "rejected" || out.broadcast === "skipped"))
+      await bestEffort(() =>
+        tail.healthcheck(
+          "success",
+          `not sent: ${out.broadcast === "rejected" ? "rejected" : "aborted"} by the operator`,
+        ),
+      );
     else if (out.broadcast === "held-out") await bestEffort(() => tail.healthcheck("fail"));
     // Judged on delivered runs only: the shown headlines are recorded by the send, so every other
     // outcome would read as ZERO_STORIES, and each of those already told the operator itself.
@@ -185,7 +279,9 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
 
     // One activity per feed under the network policy; a feed that fails is recorded and the run goes on
     // thin (a thin day ships and logs, spec §2), so failures are settled rather than thrown.
-    const fetched = (await Promise.allSettled(sourceIds.map((s) => network.fetchFeed(runId, s, lastRun)))).flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
+    const fetched = (await Promise.allSettled(sourceIds.map((s) => network.fetchFeed(runId, s, lastRun)))).flatMap(
+      (r) => (r.status === "fulfilled" ? [r.value] : []),
+    );
     await alertOn(() => ops.checkFeeds(runId, sourceIds));
     const { articles } = await once.prepare(runId, fetched, input.force);
     await bestEffort(() => ops.healthcheckLog(`curation start: run ${runId}`));
@@ -217,7 +313,9 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     // phase rather than letting the digest ship one story short.
     const { plans } = await once.planStories(runId, selected, clusters);
     const storyCount = plans.length;
-    const written = await mapBounded(plans, MODEL_FANOUT_LIMIT, (p) => model.writeStory(runId, p, selected, notes["write"], input.force));
+    const written = await mapBounded(plans, MODEL_FANOUT_LIMIT, (p) =>
+      model.writeStory(runId, p, selected, notes["write"], input.force),
+    );
     const failed = written.find((w) => w.status === "rejected");
     if (failed) throw failed.reason;
     const drafts = written.flatMap((w) => (w.status === "fulfilled" ? [w.value] : []));
@@ -281,7 +379,10 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     // web copy, no story sources and no sent outcome, and the operator is told.
     if (!(await record.sendEnabled())) {
       log.warn("BROADCAST_ENABLED is not true: nothing published, sent or recorded as shown", { runId });
-      await notSent("disabled", `broadcasting disabled on this worker${failedChecks.length ? `; the pre-send checks failed: ${failedChecks.join("; ")}` : ""}`);
+      await notSent(
+        "disabled",
+        `broadcasting disabled on this worker${failedChecks.length ? `; the pre-send checks failed: ${failedChecks.join("; ")}` : ""}`,
+      );
       return await finish({ stories: storyCount, broadcast: "disabled" });
     }
     // An operator's reject stops the send whenever it lands before it, held or not.
@@ -291,7 +392,10 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     const budget = sendBudget();
     if (budget <= 0) {
       log.warn("no run budget left for the send; not sending", { runId, budgetMs: budget });
-      await notSent("held-out", `the run reached the send ${Math.ceil(-budget / 60_000)} minute(s) after the last moment its send and record fit before the deadline`);
+      await notSent(
+        "held-out",
+        `the run reached the send ${Math.ceil(-budget / 60_000)} minute(s) after the last moment its send and record fit before the deadline`,
+      );
       return await finish({ stories: storyCount, broadcast: "held-out" });
     }
     // The pre-send hold (spec §2.3 signal 1), only for a run that failed a check: the operator is
@@ -323,7 +427,14 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     });
   } catch (e) {
     // db.abort_run: marked failed, never deleted, whatever the cause, cancellation included.
-    await CancellationScope.nonCancellable(() => record.abortRun(runId, e instanceof Error ? `${e.name}: ${e.message}${e.cause instanceof Error ? ` (${e.cause.message})` : ""}` : String(e)));
+    await CancellationScope.nonCancellable(() =>
+      record.abortRun(
+        runId,
+        e instanceof Error
+          ? `${e.name}: ${e.message}${e.cause instanceof Error ? ` (${e.cause.message})` : ""}`
+          : String(e),
+      ),
+    );
     throw e;
   }
 }

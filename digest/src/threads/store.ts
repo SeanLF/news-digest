@@ -9,8 +9,16 @@ import { deltaFromFacts, whatsNew } from "./text.js";
 // How many recent update labels (the story arc) the linker sees per active thread.
 export const RECENT_LABELS_K = 4;
 
-export interface ActiveThread { thread_id: number; label: string; recent_labels: string[] }
-export interface RenderContext { thread_id: number; day: number; delta: string }
+export interface ActiveThread {
+  thread_id: number;
+  label: string;
+  recent_labels: string[];
+}
+export interface RenderContext {
+  thread_id: number;
+  day: number;
+  delta: string;
+}
 
 export class ThreadStore {
   constructor(readonly db: Sql) {}
@@ -30,7 +38,10 @@ export class ThreadStore {
       [beforeRunId, dormantAfter],
     );
     if (!rows.length) return [];
-    const history = await this.recentLabels(rows.map((r) => r.id), beforeRunId);
+    const history = await this.recentLabels(
+      rows.map((r) => r.id),
+      beforeRunId,
+    );
     return rows.map((r) => ({ thread_id: r.id, label: r.label, recent_labels: history.get(r.id) ?? [r.label] }));
   }
 
@@ -60,37 +71,67 @@ export class ThreadStore {
 
   // The thread's memory: the last `limit` runs' deltas, oldest first.
   async recentDeltas(threadId: number, limit = 3): Promise<string[]> {
-    const rows = await this.db.all<{ content: string }>("SELECT content FROM thread_updates WHERE thread_id = $1 AND content IS NOT NULL ORDER BY run_id DESC LIMIT $2", [threadId, limit]);
-    return rows.toReversed().map((r) => deltaFromFacts(whatsNew(r.content))).filter(Boolean);
+    const rows = await this.db.all<{ content: string }>(
+      "SELECT content FROM thread_updates WHERE thread_id = $1 AND content IS NOT NULL ORDER BY run_id DESC LIMIT $2",
+      [threadId, limit],
+    );
+    return rows
+      .toReversed()
+      .map((r) => deltaFromFacts(whatsNew(r.content)))
+      .filter(Boolean);
   }
 
   async updateContent(threadId: number, runId: number): Promise<string | null | undefined> {
-    const row = await this.db.one<Pick<RowOf<"thread_updates">, "content">>("SELECT content FROM thread_updates WHERE thread_id = $1 AND run_id = $2", [threadId, runId]);
+    const row = await this.db.one<Pick<RowOf<"thread_updates">, "content">>(
+      "SELECT content FROM thread_updates WHERE thread_id = $1 AND run_id = $2",
+      [threadId, runId],
+    );
     return row ? row.content : undefined;
   }
 
   // What the render needs: the id, the "day N" count, and this run's delta ("" on a quiet day).
   async renderContext(threadId: number, runId: number): Promise<RenderContext> {
-    const r = await this.db.one<{ n: number }>("SELECT COUNT(*) AS n FROM thread_updates WHERE thread_id = $1", [threadId]);
-    return { thread_id: threadId, day: r!.n, delta: deltaFromFacts(whatsNew(await this.updateContent(threadId, runId))) };
+    const r = await this.db.one<{ n: number }>("SELECT COUNT(*) AS n FROM thread_updates WHERE thread_id = $1", [
+      threadId,
+    ]);
+    return {
+      thread_id: threadId,
+      day: r!.n,
+      delta: deltaFromFacts(whatsNew(await this.updateContent(threadId, runId))),
+    };
   }
 
   // The thread's label is its first update's story label, which the caller records next.
   async createThread(runId: number): Promise<number> {
-    return (await this.db.one<Pick<RowOf<"threads">, "id">>("INSERT INTO threads (created_run_id) VALUES ($1) RETURNING id", [runId]))!.id;
+    return (await this.db.one<Pick<RowOf<"threads">, "id">>(
+      "INSERT INTO threads (created_run_id) VALUES ($1) RETURNING id",
+      [runId],
+    ))!.id;
   }
 
   // is_continuation: the linker continued an existing thread (a binary decision), rather than starting one.
   async addUpdate(threadId: number, runId: number, label: string, isNew: boolean): Promise<void> {
-    await this.db.run("INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES ($1, $2, $3, $4)", [threadId, runId, label, !isNew]);
+    await this.db.run(
+      "INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES ($1, $2, $3, $4)",
+      [threadId, runId, label, !isNew],
+    );
   }
 
   async setUpdateContent(threadId: number, runId: number, content: string): Promise<void> {
-    await this.db.run("UPDATE thread_updates SET content = $1 WHERE thread_id = $2 AND run_id = $3", [content, threadId, runId]);
+    await this.db.run("UPDATE thread_updates SET content = $1 WHERE thread_id = $2 AND run_id = $3", [
+      content,
+      threadId,
+      runId,
+    ]);
   }
 
   async addQuestions(threadId: number, questions: string[], runId: number): Promise<void> {
-    for (const q of questions) await this.db.run("INSERT INTO thread_questions (thread_id, question, raised_run_id) VALUES ($1, $2, $3)", [threadId, q, runId]);
+    for (const q of questions)
+      await this.db.run("INSERT INTO thread_questions (thread_id, question, raised_run_id) VALUES ($1, $2, $3)", [
+        threadId,
+        q,
+        runId,
+      ]);
   }
 
   // Every open question of that wording on the thread, as the Python's UPDATE resolves them.

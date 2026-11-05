@@ -9,9 +9,12 @@ export const MIGRATIONS_DIR = new URL("../../db/migrations/", import.meta.url).p
 // Applies every pending migration to the database at `url` with dbmate. The exit is checked here
 // rather than through dbmate's own CLI wrapper, which exits 0 when the binary is killed.
 export function migrate(url: string): void {
-  const r = spawnSync(resolveBinary(), ["--url", url, "--migrations-dir", MIGRATIONS_DIR, "--no-dump-schema", "up"], { encoding: "utf8" });
+  const r = spawnSync(resolveBinary(), ["--url", url, "--migrations-dir", MIGRATIONS_DIR, "--no-dump-schema", "up"], {
+    encoding: "utf8",
+  });
   if (r.error) throw r.error;
-  if (r.status !== 0) throw new Error(`dbmate up failed (${r.signal ?? `exit ${String(r.status)}`}): ${r.stderr.trim()}`);
+  if (r.status !== 0)
+    throw new Error(`dbmate up failed (${r.signal ?? `exit ${String(r.status)}`}): ${r.stderr.trim()}`);
 }
 
 // Every identity column restarted after its table's highest id: rows inserted with explicit ids (the

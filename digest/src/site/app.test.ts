@@ -6,7 +6,8 @@ import { makeToken } from "./subscribe.js";
 import { fakeData, testApp, testConfig } from "./testing.js";
 import type { SiteData } from "./data.js";
 
-const get = (app: ReturnType<typeof testApp>, path: string, headers: Record<string, string> = {}, method = "GET") => app.request(path, { method, headers });
+const get = (app: ReturnType<typeof testApp>, path: string, headers: Record<string, string> = {}, method = "GET") =>
+  app.request(path, { method, headers });
 
 // The pipeline's web template, whose markup the issue page's injections are anchored to.
 const TEMPLATE = readFileSync(new URL("../../templates/digest-template.html", import.meta.url), "utf8");
@@ -15,15 +16,25 @@ const ISSUE_HTML = TEMPLATE.replace("{{STYLES}}", "body{}").replaceAll(/\{\{[A-Z
 const STORED_MD = "## Must Know\n\n### A headline\n\nA summary.";
 const withIssue = (over: Partial<SiteData> = {}) =>
   fakeData({
-    issue: async (d) => (d === "2026-09-01" ? { html: ISSUE_HTML, preheader: "A day's news", markdown: STORED_MD } : undefined),
+    issue: async (d) =>
+      d === "2026-09-01" ? { html: ISSUE_HTML, preheader: "A day's news", markdown: STORED_MD } : undefined,
     latestIssueDate: async () => "2026-09-01",
     ...over,
   });
 
 // Tags and their bodies; a <style> element's CSS may name "<style>" in a comment (tokens.css does).
-const inlineBlocks = (html: string) => [...html.matchAll(/<(script|style)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi)].map((m) => ({ kind: m[1]!.toLowerCase(), attrs: m[2]!, body: m[3]! }));
+const inlineBlocks = (html: string) =>
+  [...html.matchAll(/<(script|style)\b([^>]*)>([\s\S]*?)<\/\1\s*>/gi)].map((m) => ({
+    kind: m[1]!.toLowerCase(),
+    attrs: m[2]!,
+    body: m[3]!,
+  }));
 const sha = (body: string) => `'sha256-${createHash("sha256").update(body, "utf8").digest("base64")}'`;
-const directive = (csp: string, name: string) => csp.split(";").map((d) => d.trim()).find((d) => d.startsWith(`${name} `)) ?? "";
+const directive = (csp: string, name: string) =>
+  csp
+    .split(";")
+    .map((d) => d.trim())
+    .find((d) => d.startsWith(`${name} `)) ?? "";
 
 describe("security headers", () => {
   const REQUIRED = {
@@ -33,18 +44,21 @@ describe("security headers", () => {
     "referrer-policy": "strict-origin-when-cross-origin",
   };
 
-  it.each(["/", "/sources", "/issues/2026-09-01", "/feed.xml", "/today", "/no/such/page", "/health"])("are on %s", async (path) => {
-    const res = await get(testApp(withIssue()), path);
-    for (const [k, v] of Object.entries(REQUIRED)) expect(res.headers.get(k), k).toBe(v);
-    expect(res.headers.get("permissions-policy")).toMatch(/camera=\(\).*geolocation=\(\).*microphone=\(\)/);
-    const csp = res.headers.get("content-security-policy") ?? "";
-    expect(csp).not.toContain("nonce-");
-    expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
-    expect(csp).not.toMatch(/style-src [^;]*unsafe-inline/);
-    expect(csp).toContain("frame-ancestors 'self'");
-    expect(csp).toContain("object-src 'none'");
-    expect(csp).toContain("base-uri 'none'");
-  });
+  it.each(["/", "/sources", "/issues/2026-09-01", "/feed.xml", "/today", "/no/such/page", "/health"])(
+    "are on %s",
+    async (path) => {
+      const res = await get(testApp(withIssue()), path);
+      for (const [k, v] of Object.entries(REQUIRED)) expect(res.headers.get(k), k).toBe(v);
+      expect(res.headers.get("permissions-policy")).toMatch(/camera=\(\).*geolocation=\(\).*microphone=\(\)/);
+      const csp = res.headers.get("content-security-policy") ?? "";
+      expect(csp).not.toContain("nonce-");
+      expect(csp).not.toMatch(/script-src[^;]*unsafe-inline/);
+      expect(csp).not.toMatch(/style-src [^;]*unsafe-inline/);
+      expect(csp).toContain("frame-ancestors 'self'");
+      expect(csp).toContain("object-src 'none'");
+      expect(csp).toContain("base-uri 'none'");
+    },
+  );
 
   it.each(["/", "/sources", "/stats", "/threads", "/search?q=x", "/feedback", "/issues/2026-09-01", "/no/such/page"])(
     "the CSP on %s allows every inline <script> and <style> by its hash, and is the same on every response",
@@ -64,19 +78,30 @@ describe("security headers", () => {
 
   it("hashes the stored issue's own <style> blocks", async () => {
     const html = ISSUE_HTML.replace("</head>", "<style>.from-the-email{color:red}</style></head>");
-    const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })), "/issues/2026-09-01");
-    expect(directive(res.headers.get("content-security-policy") ?? "", "style-src")).toContain(sha(".from-the-email{color:red}"));
+    const res = await get(
+      testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })),
+      "/issues/2026-09-01",
+    );
+    expect(directive(res.headers.get("content-security-policy") ?? "", "style-src")).toContain(
+      sha(".from-the-email{color:red}"),
+    );
   });
 
   it("hashes a CRLF stylesheet as the browser parses it, with LF", async () => {
     const html = ISSUE_HTML.replace("</head>", "<style>.a{}\r\n.b{}</style></head>");
-    const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })), "/issues/2026-09-01");
+    const res = await get(
+      testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })),
+      "/issues/2026-09-01",
+    );
     expect(directive(res.headers.get("content-security-policy") ?? "", "style-src")).toContain(sha(".a{}\n.b{}"));
   });
 
   it("never blesses a script inside a stored issue: its hash is not in the header", async () => {
     const html = ISSUE_HTML.replace("</body>", "<script>alert(1)</script></body>");
-    const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })), "/issues/2026-09-01");
+    const res = await get(
+      testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) })),
+      "/issues/2026-09-01",
+    );
     expect(await res.text()).toContain("<script>alert(1)</script>");
     const scriptSrc = directive(res.headers.get("content-security-policy") ?? "", "script-src");
     expect(scriptSrc).toMatch(/^script-src( 'sha256-[A-Za-z0-9+/=]+')+$/);
@@ -100,7 +125,12 @@ const LEGACY = `<!DOCTYPE html>
 </html>`;
 const legacyPage = async (html: string) => {
   const error = vi.spyOn(log, "error").mockImplementation(() => undefined);
-  const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), { cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }) }), "/issues/2026-09-01");
+  const res = await get(
+    testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), {
+      cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }),
+    }),
+    "/issues/2026-09-01",
+  );
   const errors = error.mock.calls.length;
   error.mockRestore();
   return { errors, page: await res.text() };
@@ -108,8 +138,14 @@ const legacyPage = async (html: string) => {
 
 // An issue with stories as web.ts writes them: must-know articles, then should-know briefs.
 const RAIL_HTML = TEMPLATE.replace("{{STYLES}}", "body{}")
-  .replace("{{MUST_KNOW}}", '<article class="first" id="one">\n<h3 class="head">Iran &amp; US talk<a class="anchor" href="#one" aria-label="Copy link: Iran"></a></h3>\n<p class="lede">x</p>\n</article>\n<article id="two">\n<h3 class="head">Troops sent</h3>\n</article>')
-  .replace("{{SHOULD_KNOW}}", '<article class="brief" id="three">\n<h3>Pope <em>visits</em> Metz<a class="anchor" href="#three"></a></h3>\n</article>')
+  .replace(
+    "{{MUST_KNOW}}",
+    '<article class="first" id="one">\n<h3 class="head">Iran &amp; US talk<a class="anchor" href="#one" aria-label="Copy link: Iran"></a></h3>\n<p class="lede">x</p>\n</article>\n<article id="two">\n<h3 class="head">Troops sent</h3>\n</article>',
+  )
+  .replace(
+    "{{SHOULD_KNOW}}",
+    '<article class="brief" id="three">\n<h3>Pope <em>visits</em> Metz<a class="anchor" href="#three"></a></h3>\n</article>',
+  )
   .replaceAll(/\{\{[A-Z_]+\}\}/g, "");
 
 describe("the story rail", () => {
@@ -119,10 +155,17 @@ describe("the story rail", () => {
     const html = await res.text();
     const rail = html.match(/<nav class="rail"[\s\S]*?<\/nav>/)?.[0] ?? "";
     expect(rail).toContain('aria-label="Stories in this issue"');
-    const links = [...rail.matchAll(/<li class="(mk|sk)"><a href="#([^"]+)"><span class="rail-tip">([^<]*)<\/span><\/a><\/li>/g)].map((m) => [m[1], m[2], m[3]]);
-    expect(links).toEqual([["mk", "one", "Iran &amp; US talk"], ["mk", "two", "Troops sent"], ["sk", "three", "Pope visits Metz"]]);
+    const links = [
+      ...rail.matchAll(/<li class="(mk|sk)"><a href="#([^"]+)"><span class="rail-tip">([^<]*)<\/span><\/a><\/li>/g),
+    ].map((m) => [m[1], m[2], m[3]]);
+    expect(links).toEqual([
+      ["mk", "one", "Iran &amp; US talk"],
+      ["mk", "two", "Troops sent"],
+      ["sk", "three", "Pope visits Metz"],
+    ]);
     const csp = res.headers.get("content-security-policy") ?? "";
-    for (const x of inlineBlocks(html)) expect(directive(csp, `${x.kind}-src`), x.body.slice(0, 60)).toContain(sha(x.body));
+    for (const x of inlineBlocks(html))
+      expect(directive(csp, `${x.kind}-src`), x.body.slice(0, 60)).toContain(sha(x.body));
   });
   it("is left off an issue with fewer than two stories, and off a pre-redesign issue", async () => {
     const one = await (await get(testApp(withIssue()), "/issues/2026-09-01")).text();
@@ -135,7 +178,9 @@ describe("the story rail", () => {
 describe("the issue page", () => {
   it("injects the site's chrome at every needle of the real template", async () => {
     const error = vi.spyOn(log, "error");
-    const html = await (await get(testApp(withIssue(), { cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }) }), "/issues/2026-09-01")).text();
+    const html = await (
+      await get(testApp(withIssue(), { cfg: testConfig({ CONTACT_EMAIL: "hi@digest.example" }) }), "/issues/2026-09-01")
+    ).text();
     expect(error).not.toHaveBeenCalled();
     error.mockRestore();
     expect(html).toContain('<a href="#main" class="skip-link">');
@@ -151,7 +196,10 @@ describe("the issue page", () => {
     const error = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const html = ISSUE_HTML.replace('<p class="footer-meta">', "<p>").replace("</footer>", "</div>");
     const cfg = testConfig({ CONTACT_EMAIL: "hi@digest.example" });
-    const res = await get(testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), { cfg }), "/issues/2026-09-01");
+    const res = await get(
+      testApp(withIssue({ issue: async () => ({ html, preheader: "", markdown: null }) }), { cfg }),
+      "/issues/2026-09-01",
+    );
     expect(res.status).toBe(200);
     const lines = error.mock.calls.map((c) => c[0] as Record<string, unknown>);
     error.mockRestore();
@@ -179,16 +227,20 @@ describe("the issue page", () => {
     expect(page).toMatch(/<div class="site-chrome">\s*<div class="topbar">/);
     const css = inlineBlocks(page).find((b) => b.kind === "style" && b.body.includes(".site-chrome"))?.body ?? "";
     const scoped = /\.site-chrome\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
-    for (const token of ["--sans", "--muted", "--hair", "--accent", "--accent-ink", "--bg"]) expect(scoped, token).toContain(`${token}:`);
+    for (const token of ["--sans", "--muted", "--hair", "--accent", "--accent-ink", "--bg"])
+      expect(scoped, token).toContain(`${token}:`);
     // Every rule the fallback adds (the end of the nav's stylesheet) is under .site-chrome: nothing restyles the frozen body.
     const legacyCss = css.slice(css.indexOf(".site-chrome"));
-    for (const [, selector] of legacyCss.matchAll(/(?:^|})\s*([^{}@]+)\{/g)) expect(selector!.trim(), selector).toMatch(/^\.site-chrome\b/);
+    for (const [, selector] of legacyCss.matchAll(/(?:^|})\s*([^{}@]+)\{/g))
+      expect(selector!.trim(), selector).toMatch(/^\.site-chrome\b/);
     // The toggle switches the site's theme; a frozen body cannot follow it, so it is not offered there.
     expect(page).not.toContain('id="themeBtn"');
   });
 
   it("prepends the nav, after the head, to an issue with no <body> tag at all", async () => {
-    const { errors, page } = await legacyPage(LEGACY.replace('<body style="font-family:Georgia">', "").replace("</body>", ""));
+    const { errors, page } = await legacyPage(
+      LEGACY.replace('<body style="font-family:Georgia">', "").replace("</body>", ""),
+    );
     expect(errors).toBe(0);
     const head = page.indexOf("</head>");
     expect(page.indexOf('class="skip-link"')).toBeGreaterThan(head);
@@ -204,7 +256,10 @@ describe("the issue page", () => {
 
   it("serves the issue's stored Markdown under the site's title, by suffix and by Accept, varying on Accept", async () => {
     const app = testApp(withIssue());
-    for (const res of [await get(app, "/issues/2026-09-01.md"), await get(app, "/issues/2026-09-01", { accept: "text/markdown" })]) {
+    for (const res of [
+      await get(app, "/issues/2026-09-01.md"),
+      await get(app, "/issues/2026-09-01", { accept: "text/markdown" }),
+    ]) {
       expect(res.status).toBe(200);
       expect(res.headers.get("vary")).toBe("accept");
       expect(await res.text()).toBe(`# News Digest — 2026-09-01\n\n${STORED_MD}\n`);
@@ -214,7 +269,10 @@ describe("the issue page", () => {
 
   it("404s the Markdown of an issue that has none, and still serves its page", async () => {
     const app = testApp(withIssue({ issue: async () => ({ html: ISSUE_HTML, preheader: "", markdown: null }) }));
-    for (const res of [await get(app, "/issues/2026-09-01.md"), await get(app, "/issues/2026-09-01", { accept: "text/markdown" })]) {
+    for (const res of [
+      await get(app, "/issues/2026-09-01.md"),
+      await get(app, "/issues/2026-09-01", { accept: "text/markdown" }),
+    ]) {
       expect(res.status).toBe(404);
       expect(res.headers.get("vary")).toBe("accept");
     }
@@ -240,7 +298,10 @@ describe("the issue page", () => {
   });
 
   it("answers a database failure with 503, never a 404 that hides the outage", async () => {
-    const res = await get(testApp(withIssue({ issue: () => Promise.reject(new Error("db down")) })), "/issues/2026-09-01");
+    const res = await get(
+      testApp(withIssue({ issue: () => Promise.reject(new Error("db down")) })),
+      "/issues/2026-09-01",
+    );
     expect(res.status).toBe(503);
   });
 });
@@ -291,12 +352,26 @@ describe("routing as circulation answered", () => {
   });
 });
 
-const mail = () => ({ contacts: { create: vi.fn(async () => ({ data: { id: "c", object: "contact" as const }, error: null, headers: null })) }, emails: { send: vi.fn(async () => ({ data: { id: "e" }, error: null, headers: null })) } });
+const mail = () => ({
+  contacts: {
+    create: vi.fn(async () => ({ data: { id: "c", object: "contact" as const }, error: null, headers: null })),
+  },
+  emails: { send: vi.fn(async () => ({ data: { id: "e" }, error: null, headers: null })) },
+});
 const post = (app: ReturnType<typeof testApp>, email: string, ip = "198.51.100.9") =>
-  app.request("/subscribe", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": ip }, body: `email=${encodeURIComponent(email)}` });
+  app.request("/subscribe", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": ip },
+    body: `email=${encodeURIComponent(email)}`,
+  });
 
 describe("subscribe", () => {
-  const SUBS = { RESEND_API_KEY: "re_test", RESEND_AUDIENCE_ID: "aud", RESEND_FROM: "digest@send.digest.example", SUBSCRIBE_TOKEN_SECRET: "a-secret-of-at-least-16" };
+  const SUBS = {
+    RESEND_API_KEY: "re_test",
+    RESEND_AUDIENCE_ID: "aud",
+    RESEND_FROM: "digest@send.digest.example",
+    SUBSCRIBE_TOKEN_SECRET: "a-secret-of-at-least-16",
+  };
 
   it("mails a signed confirmation link, and never logs the address", async () => {
     const m = mail();
@@ -318,7 +393,11 @@ describe("subscribe", () => {
   it("adds the contact only once the link is followed", async () => {
     const m = mail();
     const app = testApp(fakeData(), { cfg: testConfig(SUBS), mail: m });
-    const token = makeToken(SUBS.SUBSCRIBE_TOKEN_SECRET, "reader@gmail.com", Math.floor(Date.parse("2026-09-24T00:00:00Z") / 1000));
+    const token = makeToken(
+      SUBS.SUBSCRIBE_TOKEN_SECRET,
+      "reader@gmail.com",
+      Math.floor(Date.parse("2026-09-24T00:00:00Z") / 1000),
+    );
     const res = await get(app, `/confirm?token=${token}`);
     expect(res.headers.get("location")).toBe("/?subscribed=1");
     expect(m.contacts.create).toHaveBeenCalledWith({ audienceId: "aud", email: "reader@gmail.com" });
@@ -328,14 +407,16 @@ describe("subscribe", () => {
   it("refuses an invalid or disposable address before spending a request", async () => {
     const m = mail();
     const app = testApp(fakeData(), { cfg: testConfig(SUBS), mail: m });
-    for (const e of ["not-an-address", "someone@yopmail.com"]) expect((await post(app, e)).headers.get("location")).toBe("/?subscribe_invalid=1");
+    for (const e of ["not-an-address", "someone@yopmail.com"])
+      expect((await post(app, e)).headers.get("location")).toBe("/?subscribe_invalid=1");
     expect(m.emails.send).not.toHaveBeenCalled();
   });
 
   it("allows five attempts an hour from one address", async () => {
     const app = testApp(fakeData(), { cfg: testConfig(SUBS), mail: mail() });
     const locations = [];
-    for (let i = 0; i < 6; i++) locations.push((await post(app, "reader@gmail.com", "203.0.113.50")).headers.get("location"));
+    for (let i = 0; i < 6; i++)
+      locations.push((await post(app, "reader@gmail.com", "203.0.113.50")).headers.get("location"));
     expect(locations.slice(0, 5).every((l) => l === "/?pending=1")).toBe(true);
     expect(locations[5]).toBe("/?subscribe_ratelimited=1");
     expect((await post(app, "reader@gmail.com", "203.0.113.51")).headers.get("location")).toBe("/?pending=1");
@@ -350,14 +431,31 @@ describe("subscribe", () => {
   });
 
   it("shows the subscribe band only when subscriptions are configured", async () => {
-    const on = await (await get(testApp(fakeData({ indexMeta: async () => ({ total: 0, firstDate: null, newestDate: null, totalStories: 0 }) }), { cfg: testConfig(SUBS) }), "/")).text();
+    const on = await (
+      await get(
+        testApp(
+          fakeData({ indexMeta: async () => ({ total: 0, firstDate: null, newestDate: null, totalStories: 0 }) }),
+          { cfg: testConfig(SUBS) },
+        ),
+        "/",
+      )
+    ).text();
     expect(on).toContain('id="subscribe"');
     expect(await (await get(testApp(fakeData()), "/")).text()).not.toContain('id="subscribe"');
   });
 });
 
 describe("the retired /ask and MCP surface", () => {
-  it.each(["/ask", "/ask.json", "/connect", "/mcp", "/mcp/tools.json", "/mcp/tools/get_issue.json", "/.well-known/mcp.json", "/.well-known/mcp/server-card.json"])("%s is the ordinary 404 page", async (path) => {
+  it.each([
+    "/ask",
+    "/ask.json",
+    "/connect",
+    "/mcp",
+    "/mcp/tools.json",
+    "/mcp/tools/get_issue.json",
+    "/.well-known/mcp.json",
+    "/.well-known/mcp/server-card.json",
+  ])("%s is the ordinary 404 page", async (path) => {
     const app = testApp(withIssue());
     const res = await get(app, path);
     expect(res.status).toBe(404);
@@ -396,13 +494,21 @@ const stream = (chunks: Uint8Array[], fail = false) =>
 describe("hostile requests", () => {
   it("refuses a body over the limit, chunked or not, before reading it whole", async () => {
     const big = stream(Array.from({ length: 40 }, () => new Uint8Array(16 * 1024).fill(97)));
-    const res = await testApp(fakeData()).request("/subscribe", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: big, duplex: "half" } as RequestInit);
+    const res = await testApp(fakeData()).request("/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: big,
+      duplex: "half",
+    } as RequestInit);
     expect(res.status).toBe(413);
   });
 
-  it.each(["/threads?before=garbage&before_id=1", "/threads/more?before=2026-09-01%2000:00:00.5&before_id=1"])("refuses a cursor the site never wrote: %s", async (path) => {
-    expect((await testApp(fakeData()).request(path)).status).toBe(400);
-  });
+  it.each(["/threads?before=garbage&before_id=1", "/threads/more?before=2026-09-01%2000:00:00.5&before_id=1"])(
+    "refuses a cursor the site never wrote: %s",
+    async (path) => {
+      expect((await testApp(fakeData()).request(path)).status).toBe(400);
+    },
+  );
 });
 
 describe("the top bar", () => {
@@ -410,7 +516,9 @@ describe("the top bar", () => {
   // every landmark. The masthead is the page's banner, so a second <header> would fail another rule.
   it.each(["/", "/sources", "/issues/2026-09-01"])("keeps every control inside a named nav on %s", async (path) => {
     const html = await (await get(testApp(withIssue()), path)).text();
-    expect(html).toMatch(/<div class="topbar"><nav class="topnav" aria-label="Site navigation">.*?<\/nav><nav class="topright" aria-label="Reader tools">.*?<\/nav><\/div>/s);
+    expect(html).toMatch(
+      /<div class="topbar"><nav class="topnav" aria-label="Site navigation">.*?<\/nav><nav class="topright" aria-label="Reader tools">.*?<\/nav><\/div>/s,
+    );
   });
 });
 
@@ -430,19 +538,35 @@ describe("landmarks (axe's region rule)", () => {
 
 // The issue's own styles are held to this in render.test.ts; these are the site's other pages.
 const under12 = (html: string) =>
-  [...html.matchAll(/font-size\s*:\s*(\d*\.?\d+)(px|rem)/g)].map((m) => Number(m[1]) * (m[2] === "rem" ? 16 : 1)).filter((n) => n < 12);
-const oneThread = async () => ({ label: "Talks", status: "active", installments: [{ day: "2026-09-01", issueDate: "2026-09-01", story: "Talks open", content: "They met." }], openQuestions: [{ question: "Will they meet again?", raisedContent: "They met." }] });
+  [...html.matchAll(/font-size\s*:\s*(\d*\.?\d+)(px|rem)/g)]
+    .map((m) => Number(m[1]) * (m[2] === "rem" ? 16 : 1))
+    .filter((n) => n < 12);
+const oneThread = async () => ({
+  label: "Talks",
+  status: "active",
+  installments: [{ day: "2026-09-01", issueDate: "2026-09-01", story: "Talks open", content: "They met." }],
+  openQuestions: [{ question: "Will they meet again?", raisedContent: "They met." }],
+});
 
 describe("small text", () => {
-  it.each(["/", "/sources", "/threads", "/thread/1", "/stats", "/no-such-page"])("sets nothing below 12px on %s", async (path) => {
-    const res = await get(testApp(withIssue({ thread: oneThread, mergedInto: async () => null })), path);
-    expect(res.status).toBe(path === "/no-such-page" ? 404 : 200);
-    expect(under12(await res.text())).toEqual([]);
-  });
+  it.each(["/", "/sources", "/threads", "/thread/1", "/stats", "/no-such-page"])(
+    "sets nothing below 12px on %s",
+    async (path) => {
+      const res = await get(testApp(withIssue({ thread: oneThread, mergedInto: async () => null })), path);
+      expect(res.status).toBe(path === "/no-such-page" ? 404 : 200);
+      expect(under12(await res.text())).toEqual([]);
+    },
+  );
   it("keeps each part of a page's subtitle on one line", async () => {
     for (const path of ["/", "/sources"]) {
-      const kicker = /<span class="kicker">([\s\S]*?)<\/span><span class="stat">/.exec(await (await get(testApp(withIssue()), path)).text())?.[1] ?? "";
-      expect(kicker.split(" &middot; ").every((part) => /^<span class="kw">[^<]*<\/span>$/.test(part)), kicker).toBe(true);
+      const kicker =
+        /<span class="kicker">([\s\S]*?)<\/span><span class="stat">/.exec(
+          await (await get(testApp(withIssue()), path)).text(),
+        )?.[1] ?? "";
+      expect(
+        kicker.split(" &middot; ").every((part) => /^<span class="kw">[^<]*<\/span>$/.test(part)),
+        kicker,
+      ).toBe(true);
     }
   });
   // At 12px the counts under a title ("30 runs · 12 subscribers · ...") are wider than a 320px phone.
@@ -451,12 +575,17 @@ describe("small text", () => {
       const html = await (await get(testApp(withIssue()), path)).text();
       const stat = /<span class="stat">([\s\S]*?)<\/span><\/div>/.exec(html)?.[1] ?? "";
       expect(stat.split(" &middot; ").length, path).toBeGreaterThan(1);
-      expect(stat.split(" &middot; ").every((part) => part.startsWith('<span class="kw">')), stat).toBe(true);
+      expect(
+        stat.split(" &middot; ").every((part) => part.startsWith('<span class="kw">')),
+        stat,
+      ).toBe(true);
       expect(html).not.toMatch(/\.stat\{[^}]*white-space:nowrap/);
     }
   });
   // Seven equal columns: a long label must not widen its column off the bar above it.
   it("keeps the spectrum labels under their bars", async () => {
-    expect(await (await get(testApp(withIssue()), "/sources")).text()).toMatch(/\.spec-counts, \.spec-labels\{display:grid; grid-template-columns:repeat\(7,minmax\(0,1fr\)\);\}/);
+    expect(await (await get(testApp(withIssue()), "/sources")).text()).toMatch(
+      /\.spec-counts, \.spec-labels\{display:grid; grid-template-columns:repeat\(7,minmax\(0,1fr\)\);\}/,
+    );
   });
 });

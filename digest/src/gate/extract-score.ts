@@ -7,7 +7,8 @@ const BOILERPLATE = /\b(subscribe|newsletter|cookies?|sign[- ]in|advertisement|c
 const tokens = (s: string) => s.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
 
 export function tokenF1(a: string, b: string): number {
-  const ta = tokens(a), tb = tokens(b);
+  const ta = tokens(a),
+    tb = tokens(b);
   if (!ta.length || !tb.length) return 0;
   const counts = new Map<string, number>();
   for (const t of tb) counts.set(t, (counts.get(t) ?? 0) + 1);
@@ -20,7 +21,8 @@ export function tokenF1(a: string, b: string): number {
     }
   }
   if (!overlap) return 0;
-  const p = overlap / ta.length, r = overlap / tb.length;
+  const p = overlap / ta.length,
+    r = overlap / tb.length;
   return (2 * p * r) / (p + r);
 }
 

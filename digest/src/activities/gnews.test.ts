@@ -6,7 +6,13 @@ import { GNEWS_HEALTH, gnewsActivities, isGnewsUrl, survivingLinks } from "./gne
 import { DECODED_LINKS } from "./index.js";
 
 const GN = (token: string) => `https://news.google.com/rss/articles/${token}?oc=5`;
-const entry = (name: string, url: string, title: string) => ({ name, url, bias: "center", source_id: name.toLowerCase(), original_title: title });
+const entry = (name: string, url: string, title: string) => ({
+  name,
+  url,
+  bias: "center",
+  source_id: name.toLowerCase(),
+  original_title: title,
+});
 const index = {
   A1: entry("Reuters", GN("R1"), "Russia votes - Reuters"),
   A2: entry("BBC", "https://www.bbc.co.uk/news/1", "Russia votes"),
@@ -85,19 +91,38 @@ describe("gnews", () => {
   });
   it("with no Google-News links shown it plans nothing and says why", async () => {
     const { store, acts } = await setup();
-    const direct = await store.put(300, "selections_direct.json", JSON.stringify({ must_know: [{ headline: "h", sources: [{ article_id: "A2" }] }], should_know: [] }));
+    const direct = await store.put(
+      300,
+      "selections_direct.json",
+      JSON.stringify({ must_know: [{ headline: "h", sources: [{ article_id: "A2" }] }], should_know: [] }),
+    );
     expect(await acts.planGnews(300, direct)).toEqual({ urls: [], skip: "no_candidates" });
   });
   it("stores the decoded map render reads, and records health", async () => {
     const { store, acts } = await setup();
-    const p = await acts.storeGnews(300, { links: 3, decoded: { [GN("R1")]: "https://www.reuters.com/world/r1" }, attempted: 3, outcome: "completed" });
+    const p = await acts.storeGnews(300, {
+      links: 3,
+      decoded: { [GN("R1")]: "https://www.reuters.com/world/r1" },
+      attempted: 3,
+      outcome: "completed",
+    });
     expect(p.name).toBe(DECODED_LINKS);
     expect(JSON.parse(await store.get(p))).toEqual({ [GN("R1")]: "https://www.reuters.com/world/r1" });
-    expect(JSON.parse(await store.content(300, GNEWS_HEALTH))).toEqual({ links: 3, decoded: 1, attempted: 3, outcome: "completed" });
+    expect(JSON.parse(await store.content(300, GNEWS_HEALTH))).toEqual({
+      links: 3,
+      decoded: 1,
+      attempted: 3,
+      outcome: "completed",
+    });
   });
   it("never stores a decoded link a reader could not click", async () => {
     const { store, acts } = await setup();
-    const p = await acts.storeGnews(300, { links: 2, decoded: { [GN("R1")]: "javascript:alert(1)", [GN("R3")]: "https://www.reuters.com/r3" }, attempted: 2, outcome: "completed" });
+    const p = await acts.storeGnews(300, {
+      links: 2,
+      decoded: { [GN("R1")]: "javascript:alert(1)", [GN("R3")]: "https://www.reuters.com/r3" },
+      attempted: 2,
+      outcome: "completed",
+    });
     expect(JSON.parse(await store.get(p))).toEqual({ [GN("R3")]: "https://www.reuters.com/r3" });
   });
   describe("the canary (digest._resolve_gnews_links)", () => {
@@ -111,7 +136,11 @@ describe("gnews", () => {
       const { acts } = await setup();
       await acts.storeGnews(300, { links: 3, decoded: {}, attempted: 3, outcome: "rate_limited" });
       await acts.storeGnews(300, { links: 2, decoded: {}, attempted: 2, outcome: "completed" }, true);
-      await acts.storeGnews(300, { links: 3, decoded: { [GN("R1")]: "https://www.reuters.com/r1" }, attempted: 3, outcome: "completed" }, true);
+      await acts.storeGnews(
+        300,
+        { links: 3, decoded: { [GN("R1")]: "https://www.reuters.com/r1" }, attempted: 3, outcome: "completed" },
+        true,
+      );
       expect(calls()).toHaveLength(0);
     });
   });

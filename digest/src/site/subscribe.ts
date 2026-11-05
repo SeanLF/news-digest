@@ -46,7 +46,10 @@ export function verifyToken(secret: string, token: string, nowUnix: number): str
   return text.slice(0, nl);
 }
 
-export const confirmationHtml = (digestName: string, confirmUrl: string): string => `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a;">
+export const confirmationHtml = (
+  digestName: string,
+  confirmUrl: string,
+): string => `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#1a1a1a;">
   <h1 style="font-size:20px;margin:0 0 12px;">Confirm your subscription</h1>
   <p style="font-size:15px;line-height:1.5;margin:0 0 24px;color:#444;">Tap the button to confirm you want the ${digestName} morning briefing in your inbox.</p>
   <p style="margin:0 0 24px;"><a href="${confirmUrl}" style="display:inline-block;background:#c45a3b;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-size:15px;font-weight:600;">Confirm subscription</a></p>
@@ -61,7 +64,10 @@ export const confirmationText = (digestName: string, confirmUrl: string): string
 export type Mail = { contacts: Pick<Resend["contacts"], "create">; emails: Pick<Resend["emails"], "send"> };
 
 // Errors are logged by kind and status only: the SDK's message can echo the address.
-async function checked(what: string, call: Promise<{ error: { name: string; statusCode: number | null } | null }>): Promise<boolean> {
+async function checked(
+  what: string,
+  call: Promise<{ error: { name: string; statusCode: number | null } | null }>,
+): Promise<boolean> {
   try {
     const { error } = await call;
     if (error) {
@@ -70,7 +76,11 @@ async function checked(what: string, call: Promise<{ error: { name: string; stat
     }
     return true;
   } catch (e) {
-    log.error({ site: "subscribe", error: `Resend ${what} request failed`, kind: e instanceof Error ? e.name : "unknown" });
+    log.error({
+      site: "subscribe",
+      error: `Resend ${what} request failed`,
+      kind: e instanceof Error ? e.name : "unknown",
+    });
     return false;
   }
 }

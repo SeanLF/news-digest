@@ -10,7 +10,22 @@ import zlib from "node:zlib";
 // connection's own DNS lookup so no second resolution can differ from the checked one.
 
 const blocked = new BlockList();
-for (const [net, prefix] of [["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8], ["169.254.0.0", 16], ["172.16.0.0", 12], ["192.0.0.0", 24], ["192.0.2.0", 24], ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24], ["224.0.0.0", 4], ["240.0.0.0", 4]] as const)
+for (const [net, prefix] of [
+  ["0.0.0.0", 8],
+  ["10.0.0.0", 8],
+  ["100.64.0.0", 10],
+  ["127.0.0.0", 8],
+  ["169.254.0.0", 16],
+  ["172.16.0.0", 12],
+  ["192.0.0.0", 24],
+  ["192.0.2.0", 24],
+  ["192.168.0.0", 16],
+  ["198.18.0.0", 15],
+  ["198.51.100.0", 24],
+  ["203.0.113.0", 24],
+  ["224.0.0.0", 4],
+  ["240.0.0.0", 4],
+] as const)
   blocked.addSubnet(net, prefix, "ipv4");
 // Outside 2000::/3 (global unicast) covers ::, ::1, fc00::/7, fe80::/10, ff00::/8, 64:ff9b::/96 and 100::/64.
 blocked.addSubnet("2001:db8::", 32, "ipv6");
@@ -44,28 +59,51 @@ export interface BoundedOptions {
   lookup?: (hostname: string) => Promise<LookupAddress[]>;
 }
 
-export interface BoundedResponse { status: number; body: string; finalUrl: string }
+export interface BoundedResponse {
+  status: number;
+  body: string;
+  finalUrl: string;
+}
 
 const refused = (message: string) => Object.assign(new Error(message), { code: "EADDRNOTALLOWED" });
 
-function send(url: URL, o: Required<Omit<BoundedOptions, "timeoutMs" | "maxBytes" | "maxRedirects">>, signal: AbortSignal): Promise<http.IncomingMessage> {
-  if (url.protocol !== "http:" && url.protocol !== "https:") return Promise.reject(new Error(`refused scheme ${url.protocol} (${url.href})`));
+function send(
+  url: URL,
+  o: Required<Omit<BoundedOptions, "timeoutMs" | "maxBytes" | "maxRedirects">>,
+  signal: AbortSignal,
+): Promise<http.IncomingMessage> {
+  if (url.protocol !== "http:" && url.protocol !== "https:")
+    return Promise.reject(new Error(`refused scheme ${url.protocol} (${url.href})`));
   const host = url.hostname.replace(/^\[(.*)\]$/, "$1");
   // A literal address never reaches `lookup`.
-  if (isIP(host) && !o.isAllowed(host)) return Promise.reject(refused(`refused ${url.host}: ${host} is not a public address`));
+  if (isIP(host) && !o.isAllowed(host))
+    return Promise.reject(refused(`refused ${url.host}: ${host} is not a public address`));
   const lookup: LookupFunction = (hostname, options, cb) => {
-    o.lookup(hostname).then((all) => {
-      const bad = all.find((a) => !o.isAllowed(a.address));
-      if (bad) return cb(refused(`refused ${hostname}: resolves to ${bad.address}, not a public address`), "");
-      const fit = options.family ? all.filter((a) => a.family === options.family) : all;
-      if (fit.length === 0) return cb(Object.assign(new Error(`${hostname} did not resolve`), { code: "ENOTFOUND" }), "");
-      if (options.all) cb(null, fit);
-      else cb(null, fit[0]!.address, fit[0]!.family);
-    }, (e: NodeJS.ErrnoException) => cb(e, ""));
+    o.lookup(hostname).then(
+      (all) => {
+        const bad = all.find((a) => !o.isAllowed(a.address));
+        if (bad) return cb(refused(`refused ${hostname}: resolves to ${bad.address}, not a public address`), "");
+        const fit = options.family ? all.filter((a) => a.family === options.family) : all;
+        if (fit.length === 0)
+          return cb(Object.assign(new Error(`${hostname} did not resolve`), { code: "ENOTFOUND" }), "");
+        if (options.all) cb(null, fit);
+        else cb(null, fit[0]!.address, fit[0]!.family);
+      },
+      (e: NodeJS.ErrnoException) => cb(e, ""),
+    );
   };
   return new Promise((resolve, reject) => {
     // No agent: a pooled socket would skip the lookup, and so the check.
-    const req = (url.protocol === "https:" ? https : http).request(url, { headers: { Accept: "*/*", ...o.headers, "Accept-Encoding": "gzip, deflate, br" }, lookup, agent: false, signal }, resolve);
+    const req = (url.protocol === "https:" ? https : http).request(
+      url,
+      {
+        headers: { Accept: "*/*", ...o.headers, "Accept-Encoding": "gzip, deflate, br" },
+        lookup,
+        agent: false,
+        signal,
+      },
+      resolve,
+    );
     req.on("error", reject);
     req.end();
   });
@@ -73,7 +111,12 @@ function send(url: URL, o: Required<Omit<BoundedOptions, "timeoutMs" | "maxBytes
 
 // Lenient as fetch's decoders are: a body missing its trailer still decodes what arrived.
 const sync = { finishFlush: zlib.constants.Z_SYNC_FLUSH };
-const DECODERS = new Map<string, () => zlib.Gunzip | zlib.Inflate | zlib.BrotliDecompress>([["gzip", () => zlib.createGunzip(sync)], ["x-gzip", () => zlib.createGunzip(sync)], ["deflate", () => zlib.createInflate(sync)], ["br", () => zlib.createBrotliDecompress({ finishFlush: zlib.constants.BROTLI_OPERATION_FLUSH })]]);
+const DECODERS = new Map<string, () => zlib.Gunzip | zlib.Inflate | zlib.BrotliDecompress>([
+  ["gzip", () => zlib.createGunzip(sync)],
+  ["x-gzip", () => zlib.createGunzip(sync)],
+  ["deflate", () => zlib.createInflate(sync)],
+  ["br", () => zlib.createBrotliDecompress({ finishFlush: zlib.constants.BROTLI_OPERATION_FLUSH })],
+]);
 
 async function readBody(res: http.IncomingMessage, maxBytes: number, signal: AbortSignal): Promise<string> {
   const encoding = (res.headers["content-encoding"] ?? "identity").trim().toLowerCase();

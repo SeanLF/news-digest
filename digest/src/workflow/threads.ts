@@ -16,15 +16,23 @@ const garnish = proxyActivities<Activities>({
   heartbeatTimeout: "2 minutes",
   retry: { maximumAttempts: MODEL_MAX_ATTEMPTS, initialInterval: "30 seconds", backoffCoefficient: 2 },
 });
-const bookkeeping = proxyActivities<Activities>({ startToCloseTimeout: "2 minutes", retry: { maximumAttempts: 3, initialInterval: "5 seconds" } });
+const bookkeeping = proxyActivities<Activities>({
+  startToCloseTimeout: "2 minutes",
+  retry: { maximumAttempts: 3, initialInterval: "5 seconds" },
+});
 
-const reason = (e: unknown): string => (e instanceof Error ? (e.cause instanceof Error ? e.cause.message : e.message) : String(e));
+const reason = (e: unknown): string =>
+  e instanceof Error ? (e.cause instanceof Error ? e.cause.message : e.message) : String(e);
 
 // THREADS, best-effort as in production: link, synthesize each continuing thread (four at a time),
 // then record the phase and hand back the render's thread context. Nothing here fails the digest
 // except a cancellation of the workflow itself; a failure, or the phase outrunning its bound, is
 // carried to threadsFinish, which writes it down, and the render goes without the context.
-export async function threadsPhase(runId: number, force = false, bound: Duration = THREADS_PHASE_TIMEOUT): Promise<Pointer> {
+export async function threadsPhase(
+  runId: number,
+  force = false,
+  bound: Duration = THREADS_PHASE_TIMEOUT,
+): Promise<Pointer> {
   const report: ThreadsReport = { outcomes: [], failures: [] };
   try {
     await CancellationScope.withTimeout(bound, async () => {

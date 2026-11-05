@@ -50,7 +50,8 @@ export function readIssue(html: string): StoredIssue {
 
 function readLead(html: string): Lead | undefined {
   const m = LEAD.exec(html);
-  const slug = m?.[1], body = m?.[2];
+  const slug = m?.[1],
+    body = m?.[2];
   if (slug === undefined || body === undefined) return undefined;
   const headline = text((HEAD.exec(body)?.[1] ?? "").replace(/<a class="anchor"[\s\S]*?<\/a>/g, ""));
   if (!headline) return undefined;
@@ -63,7 +64,10 @@ function readLead(html: string): Lead | undefined {
     headline,
     thread: day ? { id: threadId ? Number(threadId) : null, day: Number(day) } : undefined,
     why: text(WHY.exec(body)?.[1] ?? ""),
-    varies: [...(VARIES.exec(body)?.[1] ?? "").matchAll(ANGLE)].map((a) => ({ outlet: text(a[1]!), angle: text(a[2]!) })),
+    varies: [...(VARIES.exec(body)?.[1] ?? "").matchAll(ANGLE)].map((a) => ({
+      outlet: text(a[1]!),
+      angle: text(a[2]!),
+    })),
     segments: [...spread.matchAll(SEG)].map((s) => ({ leaning: asLeaning(s[1]), n: Number(s[2]) })),
     counts: text(/<span class="n">([\s\S]*?)<\/span>/.exec(spread)?.[1] ?? ""),
     split: text(/<span class="vh">([\s\S]*?)<\/span>/.exec(spread)?.[1] ?? "").replace(/^·\s*/, ""),
@@ -84,7 +88,9 @@ export function leaningOf(catalogue: CatalogueEntry[]): (outlet: string) => Lean
 export const LOOKBACK = 7;
 
 // The newest issue with a lead story, with its archive row (number and story counts).
-export async function latestLead(data: SiteData): Promise<{ row: IssueRowData; issue: StoredIssue & { lead: Lead } } | undefined> {
+export async function latestLead(
+  data: SiteData,
+): Promise<{ row: IssueRowData; issue: StoredIssue & { lead: Lead } } | undefined> {
   for (const row of await data.archive({ limit: LOOKBACK })) {
     const stored = await data.issue(row.date);
     const issue = stored && readIssue(stored.html);

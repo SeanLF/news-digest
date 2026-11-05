@@ -9,7 +9,8 @@ import { describe, expect, it } from "vitest";
 // make now: a migration without `make schema-types` fails CI.
 const ADMIN = process.env["DIGEST_TEST_DATABASE_URL"];
 const ROOT = new URL("../../", import.meta.url).pathname;
-const run = (...args: string[]) => spawnSync("sh", ["scripts/schema-types.sh", ...args], { cwd: ROOT, encoding: "utf8" });
+const run = (...args: string[]) =>
+  spawnSync("sh", ["scripts/schema-types.sh", ...args], { cwd: ROOT, encoding: "utf8" });
 
 describe.skipIf(!ADMIN)("the generated row types", () => {
   it("are what the migrations make (regenerate with `make schema-types`)", () => {

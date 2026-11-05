@@ -8,7 +8,8 @@ import { fetchBounded, isPublicAddress } from "./safe-fetch.js";
 // former, and the fake resolver names each, so a refusal is observable as the ::1 listener's hits.
 const isAllowed = (ip: string) => ip === "127.0.0.1";
 const NAMES: Record<string, string> = { "feed.test": "127.0.0.1", "internal.test": "::1", "private.test": "10.0.0.5" };
-const lookup = (host: string) => Promise.resolve(NAMES[host] ? [{ address: NAMES[host], family: NAMES[host].includes(":") ? 6 : 4 }] : []);
+const lookup = (host: string) =>
+  Promise.resolve(NAMES[host] ? [{ address: NAMES[host], family: NAMES[host].includes(":") ? 6 : 4 }] : []);
 
 const RSS = "<rss><channel><title>T</title></channel></rss>";
 const BOMB = gzipSync(Buffer.alloc(64 * 2 ** 20)); // 64 MiB of zeros, ~64 KiB on the wire
@@ -19,7 +20,8 @@ let internalHits = 0;
 let feed = "";
 let internalUrl = "";
 
-const listen = (server: http.Server, host: string) => new Promise<number>((r) => server.listen(0, host, () => r((server.address() as AddressInfo).port)));
+const listen = (server: http.Server, host: string) =>
+  new Promise<number>((r) => server.listen(0, host, () => r((server.address() as AddressInfo).port)));
 
 beforeAll(async () => {
   internal = http.createServer((_q, r) => {
@@ -39,7 +41,8 @@ beforeAll(async () => {
     if (hop) return Number(hop[1]) > 0 ? r.writeHead(301, { Location: `/hop${Number(hop[1]) - 1}` }).end() : r.end(RSS);
     if (q.url === "/gzip") return r.writeHead(200, { "Content-Encoding": "gzip" }).end(gzipSync(RSS));
     if (q.url === "/mislabelled") return r.writeHead(200, { "Content-Encoding": "utf-8" }).end(RSS);
-    if (q.url === "/truncated") return r.writeHead(200, { "Content-Encoding": "gzip" }).end(gzipSync(RSS).subarray(0, -8));
+    if (q.url === "/truncated")
+      return r.writeHead(200, { "Content-Encoding": "gzip" }).end(gzipSync(RSS).subarray(0, -8));
     if (q.url === "/bomb") return r.writeHead(200, { "Content-Encoding": "gzip" }).end(BOMB);
     if (q.url === "/drip") {
       r.writeHead(200);
@@ -64,7 +67,9 @@ describe("fetchBounded", () => {
     expect(await fetchBounded(`${feed}/feed`, opts)).toEqual({ status: 200, body: RSS, finalUrl: `${feed}/feed` });
   });
   it("asks for compression and decodes it", async () => {
-    expect(JSON.parse((await fetchBounded(`${feed}/headers`, { ...opts, headers: { "User-Agent": "UA" } })).body)).toMatchObject({ "accept-encoding": "gzip, deflate, br", "user-agent": "UA" });
+    expect(
+      JSON.parse((await fetchBounded(`${feed}/headers`, { ...opts, headers: { "User-Agent": "UA" } })).body),
+    ).toMatchObject({ "accept-encoding": "gzip, deflate, br", "user-agent": "UA" });
     expect((await fetchBounded(`${feed}/gzip`, opts)).body).toBe(RSS);
   });
   it("reads a body as fetch would when its encoding is mislabelled or its gzip trailer is missing", async () => {
@@ -89,9 +94,15 @@ describe("fetchBounded", () => {
   });
   it("refuses a private address under the default check", async () => {
     const before = internalHits;
-    await expect(fetchBounded(`${feed.replace("feed.test", "127.0.0.1")}/feed`, { timeoutMs: 5_000, maxBytes: 2 ** 20 })).rejects.toThrow(/127\.0\.0\.1/);
-    await expect(fetchBounded(`${feed}/feed`, { timeoutMs: 5_000, maxBytes: 2 ** 20, lookup })).rejects.toThrow(/127\.0\.0\.1/);
-    await expect(fetchBounded(internalUrl.replace("internal.test", "[::1]"), { timeoutMs: 5_000, maxBytes: 2 ** 20 })).rejects.toThrow(/::1/);
+    await expect(
+      fetchBounded(`${feed.replace("feed.test", "127.0.0.1")}/feed`, { timeoutMs: 5_000, maxBytes: 2 ** 20 }),
+    ).rejects.toThrow(/127\.0\.0\.1/);
+    await expect(fetchBounded(`${feed}/feed`, { timeoutMs: 5_000, maxBytes: 2 ** 20, lookup })).rejects.toThrow(
+      /127\.0\.0\.1/,
+    );
+    await expect(
+      fetchBounded(internalUrl.replace("internal.test", "[::1]"), { timeoutMs: 5_000, maxBytes: 2 ** 20 }),
+    ).rejects.toThrow(/::1/);
     expect(internalHits).toBe(before);
   });
   it("refuses any scheme but http and https, first hop or redirect", async () => {
@@ -119,13 +130,62 @@ describe("fetchBounded", () => {
 
 describe("isPublicAddress", () => {
   const blocked = [
-    "0.0.0.0", "0.1.2.3", "10.1.2.3", "100.64.0.1", "100.127.255.255", "127.0.0.1", "127.9.9.9", "169.254.169.254", "172.16.0.1", "172.31.255.255",
-    "192.0.0.8", "192.0.2.1", "192.168.1.1", "198.18.0.1", "198.19.255.255", "198.51.100.7", "203.0.113.9", "224.0.0.1", "239.255.255.250", "240.0.0.1", "255.255.255.255",
-    "::", "::1", "fc00::1", "fd12:3456::1", "fe80::1", "febf::1", "ff02::1", "2001:db8::1", "64:ff9b::a00:1", "100::1",
-    "::ffff:127.0.0.1", "::ffff:7f00:1", "::ffff:10.0.0.5", "::ffff:a9fe:a9fe", "::127.0.0.1", "::ffff:0:0",
-    "not-an-ip", "", "feed.test",
+    "0.0.0.0",
+    "0.1.2.3",
+    "10.1.2.3",
+    "100.64.0.1",
+    "100.127.255.255",
+    "127.0.0.1",
+    "127.9.9.9",
+    "169.254.169.254",
+    "172.16.0.1",
+    "172.31.255.255",
+    "192.0.0.8",
+    "192.0.2.1",
+    "192.168.1.1",
+    "198.18.0.1",
+    "198.19.255.255",
+    "198.51.100.7",
+    "203.0.113.9",
+    "224.0.0.1",
+    "239.255.255.250",
+    "240.0.0.1",
+    "255.255.255.255",
+    "::",
+    "::1",
+    "fc00::1",
+    "fd12:3456::1",
+    "fe80::1",
+    "febf::1",
+    "ff02::1",
+    "2001:db8::1",
+    "64:ff9b::a00:1",
+    "100::1",
+    "::ffff:127.0.0.1",
+    "::ffff:7f00:1",
+    "::ffff:10.0.0.5",
+    "::ffff:a9fe:a9fe",
+    "::127.0.0.1",
+    "::ffff:0:0",
+    "not-an-ip",
+    "",
+    "feed.test",
   ];
-  const allowed = ["1.1.1.1", "8.8.8.8", "100.63.255.255", "100.128.0.1", "172.15.255.255", "172.32.0.1", "192.169.0.1", "198.20.0.1", "93.184.216.34", "2606:4700:4700::1111", "2a00:1450:4007::1", "::ffff:8.8.8.8", "::ffff:808:808"];
+  const allowed = [
+    "1.1.1.1",
+    "8.8.8.8",
+    "100.63.255.255",
+    "100.128.0.1",
+    "172.15.255.255",
+    "172.32.0.1",
+    "192.169.0.1",
+    "198.20.0.1",
+    "93.184.216.34",
+    "2606:4700:4700::1111",
+    "2a00:1450:4007::1",
+    "::ffff:8.8.8.8",
+    "::ffff:808:808",
+  ];
   it.each(blocked)("%s is not public", (ip) => expect(isPublicAddress(ip)).toBe(false));
   it.each(allowed)("%s is public", (ip) => expect(isPublicAddress(ip)).toBe(true));
 });

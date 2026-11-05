@@ -3,7 +3,13 @@ import { describe, expect, it } from "vitest";
 import type { StageSpec } from "./prompt.js";
 import { runStage, type SdkQuery } from "./run-stage.js";
 
-const spec: StageSpec = { name: "coherence", model: "claude-sonnet-5", thinking: "adaptive", tools: ["Read", "Grep"], body: "Reply with JSON." };
+const spec: StageSpec = {
+  name: "coherence",
+  model: "claude-sonnet-5",
+  thinking: "adaptive",
+  tools: ["Read", "Grep"],
+  body: "Reply with JSON.",
+};
 
 // A fake with the SDK's own signature, so a renamed option or message field fails to compile
 // in the adapter; the casts are confined to these fakes.
@@ -16,19 +22,48 @@ function fakeQuery(messages: SDKMessage[], seen?: { options?: Options }): SdkQue
   }) as unknown as SdkQuery;
 }
 const result = (over: Record<string, unknown>): SDKMessage =>
-  ({ type: "result", subtype: "success", result: "{}", total_cost_usd: 0, usage: {}, duration_ms: 1, is_error: false, num_turns: 1, session_id: "s", ...over }) as unknown as SDKMessage;
-const assistant = (content: unknown[]): SDKMessage => ({ type: "assistant", message: { content }, session_id: "s" }) as unknown as SDKMessage;
+  ({
+    type: "result",
+    subtype: "success",
+    result: "{}",
+    total_cost_usd: 0,
+    usage: {},
+    duration_ms: 1,
+    is_error: false,
+    num_turns: 1,
+    session_id: "s",
+    ...over,
+  }) as unknown as SDKMessage;
+const assistant = (content: unknown[]): SDKMessage =>
+  ({ type: "assistant", message: { content }, session_id: "s" }) as unknown as SDKMessage;
 const call = (q: SdkQuery, schema?: Record<string, unknown>) =>
-  runStage(spec, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: q, ...(schema ? { outputSchema: schema } : {}) });
+  runStage(
+    spec,
+    { userMessage: "Begin.", inputDir: "/in" },
+    { today: "2026-09-21", query: q, ...(schema ? { outputSchema: schema } : {}) },
+  );
 
 describe("runStage", () => {
   it("collects tool calls in order, the final text, the structured output and the numbers", async () => {
     const q = fakeQuery([
-      assistant([{ type: "tool_use", id: "1", name: "Read", input: { file_path: "/in/a.csv" } }, { type: "tool_use", id: "2", name: "Grep", input: { pattern: "58%", path: "/in" } }]),
-      result({ result: '{"results":[]}', structured_output: { results: [] }, total_cost_usd: 0.5, usage: { output_tokens: 10, server_tool_use: { x: 1 } }, duration_ms: 1200, num_turns: 3 }),
+      assistant([
+        { type: "tool_use", id: "1", name: "Read", input: { file_path: "/in/a.csv" } },
+        { type: "tool_use", id: "2", name: "Grep", input: { pattern: "58%", path: "/in" } },
+      ]),
+      result({
+        result: '{"results":[]}',
+        structured_output: { results: [] },
+        total_cost_usd: 0.5,
+        usage: { output_tokens: 10, server_tool_use: { x: 1 } },
+        duration_ms: 1200,
+        num_turns: 3,
+      }),
     ]);
     const r = await call(q, { type: "object" });
-    expect(r.toolCalls).toEqual([{ name: "Read", target: "/in/a.csv" }, { name: "Grep", target: "58%" }]);
+    expect(r.toolCalls).toEqual([
+      { name: "Read", target: "/in/a.csv" },
+      { name: "Grep", target: "58%" },
+    ]);
     expect(r.text).toBe('{"results":[]}');
     expect(r.structured).toEqual({ results: [] });
     expect(r).toMatchObject({ costUsd: 0.5, usage: { output_tokens: 10 }, durationMs: 1200, numTurns: 3 });
@@ -41,13 +76,21 @@ describe("runStage", () => {
   });
   it("sends and reports the spec's effort level when it names one", async () => {
     const seen: { options?: Options } = {};
-    const r = await runStage({ ...spec, effort: "high" }, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([result({})], seen) });
+    const r = await runStage(
+      { ...spec, effort: "high" },
+      { userMessage: "Begin.", inputDir: "/in" },
+      { today: "2026-09-21", query: fakeQuery([result({})], seen) },
+    );
     expect(seen.options?.effort).toBe("high");
     expect(r.effort).toBe("high");
   });
   it("a stage with no tools gets an empty base set: no built-in reaches the model", async () => {
     const seen: { options?: Options } = {};
-    await runStage({ ...spec, tools: [] }, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([result({})], seen) });
+    await runStage(
+      { ...spec, tools: [] },
+      { userMessage: "Begin.", inputDir: "/in" },
+      { today: "2026-09-21", query: fakeQuery([result({})], seen) },
+    );
     expect(seen.options?.tools).toEqual([]);
     expect(seen.options?.disallowedTools).toEqual(expect.arrayContaining(["Read", "Grep", "Bash"]));
   });
@@ -59,7 +102,9 @@ describe("runStage", () => {
     expect(seen.options?.thinking).toEqual({ type: "adaptive" });
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
     expect(seen.options?.allowedTools).toEqual(["Read", "Grep"]);
-    expect(seen.options?.disallowedTools).toEqual(expect.arrayContaining(["Write", "Edit", "Bash", "WebFetch", "WebSearch"]));
+    expect(seen.options?.disallowedTools).toEqual(
+      expect.arrayContaining(["Write", "Edit", "Bash", "WebFetch", "WebSearch"]),
+    );
     expect(seen.options?.disallowedTools).not.toContain("Read");
     expect(seen.options?.outputFormat).toEqual({ type: "json_schema", schema: { type: "object" } });
     expect(seen.options?.settings).toEqual({ permissions: { blockReadsOutsideWorkingDirectories: true } });
@@ -68,7 +113,11 @@ describe("runStage", () => {
   it("hands the SDK an abort controller that follows the activity's cancellation signal", async () => {
     const seen: { options?: Options } = {};
     const ac = new AbortController();
-    await runStage(spec, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([result({})], seen), signal: ac.signal });
+    await runStage(
+      spec,
+      { userMessage: "Begin.", inputDir: "/in" },
+      { today: "2026-09-21", query: fakeQuery([result({})], seen), signal: ac.signal },
+    );
     const inner = seen.options?.abortController;
     expect(inner?.signal.aborted).toBe(false);
     ac.abort("cancelled");
@@ -76,7 +125,11 @@ describe("runStage", () => {
   });
   it("heartbeats on every streamed message", async () => {
     let beats = 0;
-    await runStage(spec, { userMessage: "Begin.", inputDir: "/in" }, { today: "2026-09-21", query: fakeQuery([assistant([]), assistant([]), result({})]), heartbeat: () => beats++ });
+    await runStage(
+      spec,
+      { userMessage: "Begin.", inputDir: "/in" },
+      { today: "2026-09-21", query: fakeQuery([assistant([]), assistant([]), result({})]), heartbeat: () => beats++ },
+    );
     expect(beats).toBe(3);
   });
   it("omits outputFormat when no schema is requested and falls back to the assistant text", async () => {
@@ -90,7 +143,9 @@ describe("runStage", () => {
     await expect(call(fakeQuery([result({})]), { type: "object" })).rejects.toThrow(/structured/);
   });
   it("throws on a non-success result and on a stream with no result, never returning partial output", async () => {
-    await expect(call(fakeQuery([result({ subtype: "error_max_turns", is_error: true })]))).rejects.toThrow(/error_max_turns/);
+    await expect(call(fakeQuery([result({ subtype: "error_max_turns", is_error: true })]))).rejects.toThrow(
+      /error_max_turns/,
+    );
     await expect(call(fakeQuery([assistant([{ type: "text", text: "partial" }])]))).rejects.toThrow(/no result/);
   });
 });

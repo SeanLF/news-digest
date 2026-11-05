@@ -13,7 +13,11 @@ describe("recordOperatorNote", () => {
     const names = await store.names(300);
     expect(names.filter((n) => n.startsWith("operator_note.select."))).toHaveLength(2);
     expect(names.filter((n) => n.startsWith("operator_note.write."))).toHaveLength(1);
-    expect((await Promise.all(names.map((n) => store.content(300, n)))).toSorted()).toEqual(["drop the celebrity item", "prefer the Sudan story", "shorter summaries"]);
+    expect((await Promise.all(names.map((n) => store.content(300, n)))).toSorted()).toEqual([
+      "drop the celebrity item",
+      "prefer the Sudan story",
+      "shorter summaries",
+    ]);
   });
   it("records nothing without a note", async () => {
     const store = new ArtifactStore(await freshDb([300]));

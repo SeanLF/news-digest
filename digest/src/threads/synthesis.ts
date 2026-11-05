@@ -6,7 +6,10 @@ import { cited, cleanQuestions } from "./text.js";
 // thread_synthesis.py, ported: late binding, the synthesis and audit prompts, the audit's answer
 // check, and the persisted installment.
 
-export interface Art { title: string; summary: string }
+export interface Art {
+  title: string;
+  summary: string;
+}
 export type Arts = ReadonlyMap<string, Art>;
 
 // How much of each article summary the synthesis and audit prompts carry. Code points, as the
@@ -20,7 +23,26 @@ const head = (s: string, n = SUMMARY_CHARS): string => {
 // Late binding: widen a thread's seed articles to their entity-similar neighbourhood across the
 // run, with hub entities (Trump, US) dropped so they cannot fuse unrelated stories.
 const ENTITY = /[A-Z][A-Za-z'&.-]+(?:\s+[A-Z][A-Za-z'&.-]+)*/g;
-const LB_STOP = new Set(["the", "a", "an", "this", "that", "these", "those", "it", "its", "their", "his", "her", "our", "your", "new", "but", "and", "for"]);
+const LB_STOP = new Set([
+  "the",
+  "a",
+  "an",
+  "this",
+  "that",
+  "these",
+  "those",
+  "it",
+  "its",
+  "their",
+  "his",
+  "her",
+  "our",
+  "your",
+  "new",
+  "but",
+  "and",
+  "for",
+]);
 const stripEnds = (w: string): string => w.replace(/^[.'&]+|[.'&]+$/g, "");
 
 export function articleSignature(art: Art): Set<string> {
@@ -47,7 +69,13 @@ function hubEntities(sigs: Map<string, Set<string>>, maxDf: number): Set<string>
   return new Set([...counts].filter(([, c]) => c / sigs.size > maxDf).map(([t]) => t));
 }
 
-export function expandNeighbourhood(seedIds: string[], arts: Arts, threshold: number, maxExtra: number, hubMaxDf = 0.12): string[] {
+export function expandNeighbourhood(
+  seedIds: string[],
+  arts: Arts,
+  threshold: number,
+  maxExtra: number,
+  hubMaxDf = 0.12,
+): string[] {
   const sigs = new Map([...arts].map(([id, a]) => [id, articleSignature(a)]));
   // IDF hub-stripping only bites at run scale; on tiny sets every entity looks like a hub.
   const hubs = sigs.size >= 30 ? hubEntities(sigs, hubMaxDf) : new Set<string>();
@@ -63,19 +91,27 @@ export function expandNeighbourhood(seedIds: string[], arts: Arts, threshold: nu
     if (best >= threshold) scored.push([best, id]);
   }
   // Python sorts (score, id) tuples in reverse: ties go to the larger id string.
-  scored.sort((x, y) => (y[0] - x[0]) || (y[1] < x[1] ? -1 : y[1] > x[1] ? 1 : 0));
+  scored.sort((x, y) => y[0] - x[0] || (y[1] < x[1] ? -1 : y[1] > x[1] ? 1 : 0));
   return [...seedIds, ...scored.slice(0, maxExtra).map(([, id]) => id)];
 }
 
 export function bundle(articleIds: string[], arts: Arts): string {
-  return articleIds.flatMap((a) => {
-    const art = arts.get(a);
-    return art ? [`${a}: ${art.title}\n   ${head(art.summary)}`] : [];
-  }).join("\n\n");
+  return articleIds
+    .flatMap((a) => {
+      const art = arts.get(a);
+      return art ? [`${a}: ${art.title}\n   ${head(art.summary)}`] : [];
+    })
+    .join("\n\n");
 }
 
-export function synthesisPrompt(recentUpdates: string[], openQuestions: string[], articleIds: string[], arts: Arts): string {
-  const updates = recentUpdates.map((u) => `- ${u}`).join("\n") || "(nothing yet -- this is the thread's first tracked day)";
+export function synthesisPrompt(
+  recentUpdates: string[],
+  openQuestions: string[],
+  articleIds: string[],
+  arts: Arts,
+): string {
+  const updates =
+    recentUpdates.map((u) => `- ${u}`).join("\n") || "(nothing yet -- this is the thread's first tracked day)";
   const questions = openQuestions.map((q) => `- ${q}`).join("\n") || "(none yet)";
   return `RECENT UPDATES:\n${updates}\nOPEN QUESTIONS:\n${questions}\n\nTODAY'S SOURCE ARTICLES:\n${bundle(articleIds, arts)}`;
 }
@@ -103,8 +139,22 @@ export function pyRepr(s: string): string {
   }).join("");
   return `${q}${body}${q}`;
 }
-const pyList = (xs: unknown[]): string => `[${xs.map((x) => (typeof x === "string" ? pyRepr(x) : String(x))).join(", ")}]`;
-const pyType = (v: unknown): string => (v === null ? "NoneType" : Array.isArray(v) ? "list" : typeof v === "string" ? "str" : typeof v === "boolean" ? "bool" : typeof v === "number" ? (Number.isInteger(v) ? "int" : "float") : "dict");
+const pyList = (xs: unknown[]): string =>
+  `[${xs.map((x) => (typeof x === "string" ? pyRepr(x) : String(x))).join(", ")}]`;
+const pyType = (v: unknown): string =>
+  v === null
+    ? "NoneType"
+    : Array.isArray(v)
+      ? "list"
+      : typeof v === "string"
+        ? "str"
+        : typeof v === "boolean"
+          ? "bool"
+          : typeof v === "number"
+            ? Number.isInteger(v)
+              ? "int"
+              : "float"
+            : "dict";
 
 // audit_whats_new's prompt. A fact that is not an object, or sources that cannot be iterated, is the
 // AttributeError/TypeError that makes production's audit fail open; it throws here for the same end.
@@ -113,11 +163,14 @@ export function auditPrompt(whatsNew: unknown[], arts: Arts): string {
     .map((f, i) => {
       if (!isObject(f)) throw new Error(`fact ${i + 1} is not an object`);
       const sources = f["sources"] === undefined ? [] : f["sources"];
-      if (typeof sources !== "string" && !Array.isArray(sources)) throw new Error(`fact ${i + 1} has sources that are not a list`);
-      const srcs = (typeof sources === "string" ? Array.from(sources) : sources).flatMap((s) => {
-        const a = typeof s === "string" ? arts.get(s) : undefined;
-        return a ? [`  [${s as string}] ${a.title}. ${head(a.summary)}`] : [];
-      }).join("\n");
+      if (typeof sources !== "string" && !Array.isArray(sources))
+        throw new Error(`fact ${i + 1} has sources that are not a list`);
+      const srcs = (typeof sources === "string" ? Array.from(sources) : sources)
+        .flatMap((s) => {
+          const a = typeof s === "string" ? arts.get(s) : undefined;
+          return a ? [`  [${s as string}] ${a.title}. ${head(a.summary)}`] : [];
+        })
+        .join("\n");
       const fact = f["fact"] === undefined ? "" : typeof f["fact"] === "string" ? f["fact"] : JSON.stringify(f["fact"]);
       return `CLAIM ${i + 1}: ${fact}\nCITED SOURCE(S):\n${srcs || "  (none cited)"}`;
     })
@@ -159,12 +212,16 @@ function verdictPairs(raw: unknown[]): { pairs: [unknown, boolean][]; unreadable
 }
 
 // _answer_for: an object answers n claims only if `verdicts` holds exactly n verdicts with ids exactly 1..n.
-export function answerFor(obj: Record<string, unknown>, n: number): { supported: boolean[]; unreadable: number } | undefined {
+export function answerFor(
+  obj: Record<string, unknown>,
+  n: number,
+): { supported: boolean[]; unreadable: number } | undefined {
   const raw = obj["verdicts"] === undefined ? [] : obj["verdicts"];
   if (!Array.isArray(raw) || raw.length !== n) return undefined;
   const { pairs, unreadable } = verdictPairs(raw);
   const byId = new Map(pairs);
-  if (pairs.length !== n || byId.size !== n || !Array.from({ length: n }, (_, i) => i + 1).every((i) => byId.has(i))) return undefined;
+  if (pairs.length !== n || byId.size !== n || !Array.from({ length: n }, (_, i) => i + 1).every((i) => byId.has(i)))
+    return undefined;
   return { supported: Array.from({ length: n }, (_, i) => byId.get(i + 1)!), unreadable };
 }
 
@@ -183,7 +240,8 @@ export function describeMismatch(obj: Record<string, unknown>, n: number): strin
 // since a second object is the model's correction of the first.
 export function readAudit(text: string, n: number): { supported: boolean[]; unreadable: number } | { problem: string } {
   const objects = jsonObjects(text);
-  if (!objects.length) return { problem: `no JSON object in the reply, which began ${pyRepr(Array.from(text).slice(0, 60).join(""))}` };
+  if (!objects.length)
+    return { problem: `no JSON object in the reply, which began ${pyRepr(Array.from(text).slice(0, 60).join(""))}` };
   const usable = objects.flatMap((o) => answerFor(o, n) ?? []);
   return usable.length ? usable.at(-1)! : { problem: describeMismatch(objects.at(-1)!, n) };
 }
@@ -200,7 +258,14 @@ export function offThread(facts: unknown[], own: Set<string>, others: Set<string
 
 // apply_installment: drop the unsupported facts, resolve the carried questions today answers, raise
 // the new ones, and store the verified installment. The caller owns the transaction.
-export async function applyInstallment(store: ThreadStore, threadId: number, openNow: string[], installment: Installment, supported: boolean[], runId: number): Promise<Installment> {
+export async function applyInstallment(
+  store: ThreadStore,
+  threadId: number,
+  openNow: string[],
+  installment: Installment,
+  supported: boolean[],
+  runId: number,
+): Promise<Installment> {
   const whatsNew = whatsNewOf(installment);
   const kept = whatsNew.filter((_, i) => supported[i] === true);
   // PRE-audit citations: the grounding scope for this run's questions (a dropped fact's ids too).
@@ -210,12 +275,17 @@ export async function applyInstallment(store: ThreadStore, threadId: number, ope
   for (const r of list(installment["resolved"])) {
     if (!isObject(r)) throw new Error(`thread ${threadId}: a resolved entry is not an object`);
     const question = typeof r["question"] === "string" ? r["question"] : "";
-    if (open.has(question)) await store.resolveQuestion(threadId, question, runId, typeof r["how"] === "string" ? r["how"] : "");
+    if (open.has(question))
+      await store.resolveQuestion(threadId, question, runId, typeof r["how"] === "string" ? r["how"] : "");
   }
   const fresh = list(installment["new_questions"]).filter((q): q is string => typeof q === "string");
   // Stored unchanged and suppressed at render time: dropping one here would erase it for good.
   if (fresh.length && JSON.stringify(cleanQuestions(fresh, citedIds)) !== JSON.stringify(fresh))
-    log.warn({ stage: "threads", warning: "a new question cites an article id inline; the public ledger will suppress it", thread_id: threadId });
+    log.warn({
+      stage: "threads",
+      warning: "a new question cites an article id inline; the public ledger will suppress it",
+      thread_id: threadId,
+    });
   if (fresh.length) await store.addQuestions(threadId, fresh, runId);
   await store.setUpdateContent(threadId, runId, JSON.stringify(verified));
   return verified;

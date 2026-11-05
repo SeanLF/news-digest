@@ -32,11 +32,19 @@ const client = () => resendClient("re_dev_fake", {}, { RESEND_BASE_URL: base });
 describe("resend-fake", () => {
   it("captures an email, and one idempotency key is one email", async () => {
     const mail = client();
-    const a = await mail.emails.send({ from: "Alerts <a@dev.invalid>", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" }, { idempotencyKey: "k1" });
-    const b = await mail.emails.send({ from: "Alerts <a@dev.invalid>", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" }, { idempotencyKey: "k1" });
+    const a = await mail.emails.send(
+      { from: "Alerts <a@dev.invalid>", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" },
+      { idempotencyKey: "k1" },
+    );
+    const b = await mail.emails.send(
+      { from: "Alerts <a@dev.invalid>", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" },
+      { idempotencyKey: "k1" },
+    );
     expect(a.error).toBeNull();
     expect(b.data?.id).toBe(a.data?.id);
-    expect(fake.messages()).toMatchObject([{ kind: "email", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" }]);
+    expect(fake.messages()).toMatchObject([
+      { kind: "email", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" },
+    ]);
   });
 
   it("answers a malformed send as Resend does, so the caller's error path runs", async () => {
@@ -52,20 +60,38 @@ describe("resend-fake", () => {
 
   it("the broadcast path: count the segment, create a draft, send it, read its status", async () => {
     const mail = client();
-    for (const email of ["a@example.com", "b@example.com", "c@example.com"]) await mail.contacts.create({ audienceId: "aud-dev", email });
+    for (const email of ["a@example.com", "b@example.com", "c@example.com"])
+      await mail.contacts.create({ audienceId: "aud-dev", email });
     const page = await mail.contacts.list({ segmentId: "aud-dev", limit: 2 });
     expect(page.data?.has_more).toBe(true);
     const rest = await mail.contacts.list({ segmentId: "aud-dev", limit: 2, after: page.data!.data.at(-1)!.id });
-    expect([...page.data!.data, ...rest.data!.data].map((c) => c.email)).toEqual(["a@example.com", "b@example.com", "c@example.com"]);
+    expect([...page.data!.data, ...rest.data!.data].map((c) => c.email)).toEqual([
+      "a@example.com",
+      "b@example.com",
+      "c@example.com",
+    ]);
     expect(rest.data?.has_more).toBe(false);
 
-    const created = await mail.broadcasts.create({ from: "News Digest <news@dev.invalid>", segmentId: "aud-dev", subject: "News Digest – September 24, 2026", html: "<p>issue</p>", name: "Digest September 24, 2026" });
+    const created = await mail.broadcasts.create({
+      from: "News Digest <news@dev.invalid>",
+      segmentId: "aud-dev",
+      subject: "News Digest – September 24, 2026",
+      html: "<p>issue</p>",
+      name: "Digest September 24, 2026",
+    });
     const id = created.data!.id;
     expect((await mail.broadcasts.get(id)).data?.status).toBe("draft");
     expect(fake.messages()).toMatchObject([{ kind: "broadcast", status: "draft", to: [] }]);
     expect((await mail.broadcasts.send(id)).error).toBeNull();
     expect((await mail.broadcasts.get(id)).data).toMatchObject({ id, status: "sent", segment_id: "aud-dev" });
-    expect(fake.messages()).toMatchObject([{ kind: "broadcast", status: "sent", to: ["a@example.com", "b@example.com", "c@example.com"], subject: "News Digest – September 24, 2026" }]);
+    expect(fake.messages()).toMatchObject([
+      {
+        kind: "broadcast",
+        status: "sent",
+        to: ["a@example.com", "b@example.com", "c@example.com"],
+        subject: "News Digest – September 24, 2026",
+      },
+    ]);
     expect((await mail.broadcasts.send(id)).error).toMatchObject({ statusCode: 422 }); // a sent broadcast is not sent again
   });
 
@@ -75,7 +101,12 @@ describe("resend-fake", () => {
   });
 
   it("shows what it caught: a list, each message, and its body in a sandbox", async () => {
-    const sent = await client().emails.send({ from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "Hold <b>", html: "<p>body</p>" });
+    const sent = await client().emails.send({
+      from: "a@dev.invalid",
+      to: ["ops@dev.invalid"],
+      subject: "Hold <b>",
+      html: "<p>body</p>",
+    });
     const id = sent.data!.id;
     const index = await (await fetch(`${base}/`)).text();
     expect(index).toContain("Hold &lt;b&gt;");
@@ -93,7 +124,10 @@ describe("resend-fake", () => {
 // that emptied it sent the next dev broadcast to nobody (ZERO_RECIPIENTS, 2026-09-24).
 const stateFile = () => join(mkdtempSync(join(tmpdir(), "resend-fake-")), "state.json");
 // One start of the fake over a state file, stopped when body is done: a restart is the next call.
-const run = async <T>(file: string, body: (mail: ReturnType<typeof resendClient>, url: string, f: ResendFake) => Promise<T>): Promise<T> => {
+const run = async <T>(
+  file: string,
+  body: (mail: ReturnType<typeof resendClient>, url: string, f: ResendFake) => Promise<T>,
+): Promise<T> => {
   const f = resendFake({ stateFile: file });
   const up = await listen(f);
   try {
@@ -103,13 +137,21 @@ const run = async <T>(file: string, body: (mail: ReturnType<typeof resendClient>
   }
 };
 describe("resend-fake with a state file", () => {
-
   it("keeps contacts, caught messages and idempotency keys across a restart", async () => {
     const file = stateFile();
     const before = await run(file, async (mail, _, f) => {
-      for (const email of ["a@example.com", "b@example.com"]) await mail.contacts.create({ audienceId: "dev-audience", email });
-      const email = await mail.emails.send({ from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" }, { idempotencyKey: "k1" });
-      const cast = await mail.broadcasts.create({ from: "n@dev.invalid", segmentId: "dev-audience", subject: "issue", html: "<p>issue</p>" });
+      for (const email of ["a@example.com", "b@example.com"])
+        await mail.contacts.create({ audienceId: "dev-audience", email });
+      const email = await mail.emails.send(
+        { from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" },
+        { idempotencyKey: "k1" },
+      );
+      const cast = await mail.broadcasts.create({
+        from: "n@dev.invalid",
+        segmentId: "dev-audience",
+        subject: "issue",
+        html: "<p>issue</p>",
+      });
       await mail.broadcasts.send(cast.data!.id);
       return { emailId: email.data!.id, castId: cast.data!.id, messages: structuredClone(f.messages()) };
     });
@@ -117,7 +159,10 @@ describe("resend-fake with a state file", () => {
       const contacts = await mail.contacts.list({ segmentId: "dev-audience" });
       expect(contacts.data?.data.map((c) => c.email)).toEqual(["a@example.com", "b@example.com"]);
       expect(f.messages()).toEqual(before.messages);
-      const again = await mail.emails.send({ from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" }, { idempotencyKey: "k1" });
+      const again = await mail.emails.send(
+        { from: "a@dev.invalid", to: ["ops@dev.invalid"], subject: "held", html: "<p>x</p>" },
+        { idempotencyKey: "k1" },
+      );
       expect(again.data?.id).toBe(before.emailId);
       expect((await mail.broadcasts.get(before.castId)).data?.status).toBe("sent");
       expect((await mail.broadcasts.send(before.castId)).error).toMatchObject({ statusCode: 422 });
@@ -133,7 +178,9 @@ describe("resend-fake with a state file", () => {
       expect(f.messages()).toEqual([]);
       await mail.contacts.create({ audienceId: "dev-audience", email: "a@example.com" });
     });
-    expect(JSON.parse(readFileSync(file, "utf8"))).toMatchObject({ segments: { "dev-audience": [{ email: "a@example.com" }] } });
+    expect(JSON.parse(readFileSync(file, "utf8"))).toMatchObject({
+      segments: { "dev-audience": [{ email: "a@example.com" }] },
+    });
   });
 
   it("POST /api/reset empties it, and the empty state is what the next start loads", async () => {

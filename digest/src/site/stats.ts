@@ -35,7 +35,12 @@ export function statsFrom(data: StatsData, days: number, cat: CatalogueEntry[]):
     periodDays: days,
     health: data.sourceHealth
       .filter((h) => !parked.has(h.sourceId))
-      .map((h) => ({ sourceId: h.sourceId, total: h.total, successes: h.successes, ratePct: h.total > 0 ? round((h.successes / h.total) * 100) : 0 })),
+      .map((h) => ({
+        sourceId: h.sourceId,
+        total: h.total,
+        successes: h.successes,
+        ratePct: h.total > 0 ? round((h.successes / h.total) * 100) : 0,
+      })),
     usage: data.sourceUsage,
     recentRuns: data.recentRuns,
     dedup: data.dedup,
@@ -48,16 +53,40 @@ export function statsFrom(data: StatsData, days: number, cat: CatalogueEntry[]):
 export function statsValue(s: Stats): unknown {
   return {
     period_days: s.periodDays,
-    source_health: s.health.map((h) => ({ source_id: h.sourceId, total_fetches: h.total, successes: h.successes, success_rate_pct: h.ratePct })),
+    source_health: s.health.map((h) => ({
+      source_id: h.sourceId,
+      total_fetches: h.total,
+      successes: h.successes,
+      success_rate_pct: h.ratePct,
+    })),
     source_usage: s.usage.map((u) => ({ source_id: u.sourceId, tier: u.tier, count: u.count })),
-    recent_runs: s.recentRuns.map((r) => ({ run_at: r.runAt, articles_kept: r.articlesKept, articles_emailed: r.recipients, api_cost_usd: r.apiCostUsd })),
-    dedup_stats: s.dedup.count === 0 ? null : { filtered_count: s.dedup.count, avg_similarity: s.dedup.avg, min_similarity: s.dedup.min, max_similarity: s.dedup.max },
+    recent_runs: s.recentRuns.map((r) => ({
+      run_at: r.runAt,
+      articles_kept: r.articlesKept,
+      articles_emailed: r.recipients,
+      api_cost_usd: r.apiCostUsd,
+    })),
+    dedup_stats:
+      s.dedup.count === 0
+        ? null
+        : {
+            filtered_count: s.dedup.count,
+            avg_similarity: s.dedup.avg,
+            min_similarity: s.dedup.min,
+            max_similarity: s.dedup.max,
+          },
     never_selected: s.neverSelected,
   };
 }
 
 // The fields the Rust server held as f64: serde_json writes a whole one as 1.0, where JavaScript writes 1.
-const FLOAT_FIELDS = new Set(["success_rate_pct", "avg_similarity", "min_similarity", "max_similarity", "api_cost_usd"]);
+const FLOAT_FIELDS = new Set([
+  "success_rate_pct",
+  "avg_similarity",
+  "min_similarity",
+  "max_similarity",
+  "api_cost_usd",
+]);
 // A string no source id or number can be, swapped for the bare literal after stringifying.
 const FLOAT_MARK = "@@f64@@";
 
@@ -66,8 +95,14 @@ const FLOAT_MARK = "@@f64@@";
 export function statsJson(v: unknown, indent?: number): string {
   const walk = (x: unknown, key?: string): unknown => {
     if (Array.isArray(x)) return x.map((e) => walk(e));
-    if (x && typeof x === "object") return Object.fromEntries(Object.keys(x).toSorted().map((k) => [k, walk((x as Record<string, unknown>)[k], k)]));
-    if (typeof x === "number" && key !== undefined && FLOAT_FIELDS.has(key) && Number.isInteger(x)) return `${FLOAT_MARK}${x}.0`;
+    if (x && typeof x === "object")
+      return Object.fromEntries(
+        Object.keys(x)
+          .toSorted()
+          .map((k) => [k, walk((x as Record<string, unknown>)[k], k)]),
+      );
+    if (typeof x === "number" && key !== undefined && FLOAT_FIELDS.has(key) && Number.isInteger(x))
+      return `${FLOAT_MARK}${x}.0`;
     return x;
   };
   return JSON.stringify(walk(v), null, indent).replaceAll(new RegExp(`"${FLOAT_MARK}([^"]*)"`, "g"), "$1");
@@ -103,7 +138,8 @@ const normalize3 = (v: number[]): number[] => {
   const t = v.reduce((a, b) => a + b, 0);
   return t === 0 ? [0, 0, 0] : v.map((x) => x / t);
 };
-const kl3 = (a: number[], b: number[]): number => a.reduce((s, ai, i) => (ai > 0 && b[i]! > 0 ? s + ai * Math.log2(ai / b[i]!) : s), 0);
+const kl3 = (a: number[], b: number[]): number =>
+  a.reduce((s, ai, i) => (ai > 0 && b[i]! > 0 ? s + ai * Math.log2(ai / b[i]!) : s), 0);
 export function jsd3(p: number[], q: number[]): number {
   const [pn, qn] = [normalize3(p), normalize3(q)];
   const m = pn.map((x, i) => (x + qn[i]!) / 2);
@@ -144,7 +180,9 @@ export function computeMetrics(s: Stats, cat: CatalogueEntry[]): Metrics {
     regionCounts.set(region, (regionCounts.get(region) ?? 0) + count);
   }
   const geoTotal = [...regionCounts.values()].reduce((a, b) => a + b, 0);
-  const regions = [...regionCounts.entries()].toSorted((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+  const regions = [...regionCounts.entries()].toSorted(
+    (a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0),
+  );
   const geoHhi = geoTotal > 0 ? regions.reduce((acc, [, c]) => acc + (c / geoTotal) ** 2, 0) : 0;
 
   const active = cat.filter((c) => c.active);

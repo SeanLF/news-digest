@@ -10,23 +10,44 @@ const dir = new URL("./histories/", import.meta.url);
 const fixtures = readdirSync(dir)
   .filter((f) => f.endsWith(".json"))
   .toSorted()
-  .map((f) => ({ workflowId: f.replace(/\.json$/, ""), history: JSON.parse(readFileSync(new URL(f, dir), "utf8")) as unknown }));
-type RecordedEvent = { eventType?: string; activityTaskScheduledEventAttributes?: { activityType?: { name?: string } } };
+  .map((f) => ({
+    workflowId: f.replace(/\.json$/, ""),
+    history: JSON.parse(readFileSync(new URL(f, dir), "utf8")) as unknown,
+  }));
+type RecordedEvent = {
+  eventType?: string;
+  activityTaskScheduledEventAttributes?: { activityType?: { name?: string } };
+};
 const currentCode = new URL("./digest.workflow.ts", import.meta.url).pathname;
 
 async function replay(workflowsPath: string): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
-  for await (const r of Worker.runReplayHistories({ workflowsPath }, fixtures)) out[r.workflowId] = r.error ? r.error.name : "ok";
+  for await (const r of Worker.runReplayHistories({ workflowsPath }, fixtures))
+    out[r.workflowId] = r.error ? r.error.name : "ok";
   return out;
 }
 
 describe("workflow replay", () => {
   it("covers every representative path", () => {
-    expect(fixtures.map((f) => f.workflowId)).toEqual(["approved-in-hold", "disabled", "failed", "flagged-sent", "held-out", "in-hold", "parked-abort", "rejected-in-hold", "rejected", "resume", "sent"]);
+    expect(fixtures.map((f) => f.workflowId)).toEqual([
+      "approved-in-hold",
+      "disabled",
+      "failed",
+      "flagged-sent",
+      "held-out",
+      "in-hold",
+      "parked-abort",
+      "rejected-in-hold",
+      "rejected",
+      "resume",
+      "sent",
+    ]);
   });
 
   it("control: the rejected fixture never sent (its reject landed before the send)", () => {
-    const history = fixtures.find((f) => f.workflowId === "rejected")?.history as { events?: RecordedEvent[] } | undefined;
+    const history = fixtures.find((f) => f.workflowId === "rejected")?.history as
+      | { events?: RecordedEvent[] }
+      | undefined;
     const types = (history?.events ?? []).map((e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? "");
     expect(types).toContain("checkPreSend");
     expect(types).not.toContain("broadcast");
@@ -39,7 +60,9 @@ describe("workflow replay", () => {
     ["flagged-sent", true],
   ])("%s: held before the send: %s", (name, held) => {
     const history = fixtures.find((f) => f.workflowId === name)?.history as { events?: RecordedEvent[] } | undefined;
-    const types = (history?.events ?? []).map((e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? e.eventType ?? "");
+    const types = (history?.events ?? []).map(
+      (e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? e.eventType ?? "",
+    );
     const fromChecks = types.slice(types.indexOf("checkPreSend"));
     expect(fromChecks.includes("broadcast")).toBe(true);
     expect(fromChecks.includes("notifyHold")).toBe(held);
@@ -52,7 +75,9 @@ describe("workflow replay", () => {
     ["rejected-in-hold", undefined],
   ])("%s: the decision cancels the hold's timer after notifyHold", (name, sendAfter) => {
     const history = fixtures.find((f) => f.workflowId === name)?.history as { events?: RecordedEvent[] } | undefined;
-    const types = (history?.events ?? []).map((e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? e.eventType ?? "");
+    const types = (history?.events ?? []).map(
+      (e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? e.eventType ?? "",
+    );
     const notified = types.indexOf("notifyHold");
     const cancelled = types.indexOf("EVENT_TYPE_TIMER_CANCELED", notified);
     expect(notified).toBeGreaterThanOrEqual(0);

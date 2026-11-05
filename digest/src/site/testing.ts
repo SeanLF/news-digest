@@ -12,7 +12,15 @@ const firstOf = (...paths: string[]): string => paths.find((p) => existsSync(p))
 export const DESIGN_DIR = firstOf("/app/design", new URL("../../../design", import.meta.url).pathname);
 export const SOURCES_FILE = new URL("../../catalogue/sources.json", import.meta.url).pathname;
 
-export const testConfig = (env: Record<string, string> = {}): SiteConfig => siteConfig({ DIGEST_NAME: "News Digest", DIGEST_DOMAIN: "digest.example", DESIGN_DIR, SOURCES_FILE, RESEND_BASE_URL: "http://resend-fake.test", ...env });
+export const testConfig = (env: Record<string, string> = {}): SiteConfig =>
+  siteConfig({
+    DIGEST_NAME: "News Digest",
+    DIGEST_DOMAIN: "digest.example",
+    DESIGN_DIR,
+    SOURCES_FILE,
+    RESEND_BASE_URL: "http://resend-fake.test",
+    ...env,
+  });
 
 export function testApp(data: SiteData, over: Partial<SiteDeps> = {}) {
   const cfg = over.cfg ?? testConfig();
@@ -40,7 +48,14 @@ export function fakeData(over: Partial<SiteData> = {}): SiteData {
     threadIndex: async () => ({ ongoing: [], older: [], olderTotal: 0 }),
     mergedInto: none,
     thread: none,
-    stats: async () => ({ sourceHealth: [], sourceUsage: [], recentRuns: [], dedup: { count: 0, avg: null, min: null, max: null }, neverSelected: [], cost: { runs: 0, keptTotal: 0, costTotal: 0, shippedTotal: 0, recipientsLatest: 0 } }),
+    stats: async () => ({
+      sourceHealth: [],
+      sourceUsage: [],
+      recentRuns: [],
+      dedup: { count: 0, avg: null, min: null, max: null },
+      neverSelected: [],
+      cost: { runs: 0, keptTotal: 0, costTotal: 0, shippedTotal: 0, recipientsLatest: 0 },
+    }),
     ping: async () => undefined,
     ...over,
   };

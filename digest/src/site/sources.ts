@@ -48,7 +48,12 @@ export function knownBucket(bias: string): Bucket | undefined {
   return undefined;
 }
 // The sources page and stats fold anything unrecognised into the centre.
-export const bucket = (bias: string): Bucket => (["far-left", "left", "lean-left"].includes(bias) ? "l" : ["lean-right", "right", "far-right"].includes(bias) ? "r" : "c");
+export const bucket = (bias: string): Bucket =>
+  ["far-left", "left", "lean-left"].includes(bias)
+    ? "l"
+    : ["lean-right", "right", "far-right"].includes(bias)
+      ? "r"
+      : "c";
 
 export const parkedIds = (cat: CatalogueEntry[]): Set<string> => new Set(cat.filter((s) => !s.active).map((s) => s.id));
 
@@ -109,12 +114,15 @@ export function sourceRows(cat: CatalogueEntry[]): SourceRow[] {
       perspective: s.perspective.split("_").map(titleCase).join(" "),
       feedCount: n,
     }))
-    .toSorted((a, b) => (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0));
+    .toSorted((a, b) =>
+      a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0,
+    );
 }
 
 // get_sources: the active catalogue as Markdown, one bullet per feed.
 export function sourcesMarkdown(cat: CatalogueEntry[]): string {
-  let out = "# Sources\n\nBias and factuality are Media Bias/Fact Check ratings. Bias runs far-left, left, lean-left, center, lean-right, right, far-right.\n\n";
+  let out =
+    "# Sources\n\nBias and factuality are Media Bias/Fact Check ratings. Bias runs far-left, left, lean-left, center, lean-right, right, far-right.\n\n";
   for (const s of cat.filter((c) => c.active)) {
     out += `- **${s.name}** — bias: ${s.bias} · factuality: ${s.factuality}`;
     if (s.region) out += ` · region: ${s.region}`;

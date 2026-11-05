@@ -16,7 +16,17 @@ function fakeQuery(reply: string | Error, calls: Calls): SdkQuery {
     if (options) calls.options = options;
     return (function* () {
       if (reply instanceof Error) throw reply;
-      yield { type: "result", subtype: "success", result: reply, total_cost_usd: 0.001, usage: {}, duration_ms: 5, is_error: false, num_turns: 1, session_id: "s" } as unknown as SDKMessage;
+      yield {
+        type: "result",
+        subtype: "success",
+        result: reply,
+        total_cost_usd: 0.001,
+        usage: {},
+        duration_ms: 5,
+        is_error: false,
+        num_turns: 1,
+        session_id: "s",
+      } as unknown as SDKMessage;
     })();
   }) as unknown as SdkQuery;
 }
@@ -26,14 +36,28 @@ async function setup(prior: string | null) {
   const path = await freshDb([300, 301]);
   const db = openDb(path);
   await db.run("UPDATE runs SET started_at='2026-09-25 10:25:00' WHERE id=301");
-  for (const [h, t, at] of [["Editorial headline", "Ceasefire talks resume", "2026-09-24 10:40:00"], ["Another", null, "2026-09-20 10:40:00"], ["Too old", null, "2026-09-10 10:40:00"], ["Written after the run", null, "2026-09-25 11:00:00"]])
-    await db.run("INSERT INTO story_sources (headline, tier, source_title, shown_at) VALUES ($1, 'must_know', $2, $3)", [h, t, at]);
+  for (const [h, t, at] of [
+    ["Editorial headline", "Ceasefire talks resume", "2026-09-24 10:40:00"],
+    ["Another", null, "2026-09-20 10:40:00"],
+    ["Too old", null, "2026-09-10 10:40:00"],
+    ["Written after the run", null, "2026-09-25 11:00:00"],
+  ])
+    await db.run(
+      "INSERT INTO story_sources (headline, tier, source_title, shown_at) VALUES ($1, 'must_know', $2, $3)",
+      [h, t, at],
+    );
   const store = new ArtifactStore(path);
   if (prior !== null) await store.put(300, WEEKLY_RECAP, prior);
   return { store, path };
 }
 const week = (d: string, text = `Themes of ${d}.`) => `## Week of ${d}\n${text}\n\n`;
-const deps = (s: Awaited<ReturnType<typeof setup>>, query: SdkQuery, maxAttempts = 3) => ({ store: s.store, dbUrl: s.path, agentsDir: AGENTS, query, maxAttempts });
+const deps = (s: Awaited<ReturnType<typeof setup>>, query: SdkQuery, maxAttempts = 3) => ({
+  store: s.store,
+  dbUrl: s.path,
+  agentsDir: AGENTS,
+  query,
+  maxAttempts,
+});
 afterEach(async () => {
   vi.restoreAllMocks();
 });
@@ -44,7 +68,9 @@ describe("weekly recap activity", () => {
     const calls: Calls = { n: 0 };
     const p = await weeklyRecapActivity(deps(s, fakeQuery("  A week of talks.  ", calls)))(301);
     expect(p?.name).toBe(WEEKLY_RECAP);
-    expect(await s.store.get(p!)).toBe(week("2026-09-11") + week("2026-09-18") + week("2026-09-25", "A week of talks."));
+    expect(await s.store.get(p!)).toBe(
+      week("2026-09-11") + week("2026-09-18") + week("2026-09-25", "A week of talks."),
+    );
     expect(calls.prompt).toBe("- Ceasefire talks resume\n- Another");
     expect(calls.options?.model).toBe("claude-haiku-5-5");
     expect(calls.options?.tools).toEqual([]);
@@ -57,7 +83,9 @@ describe("weekly recap activity", () => {
     expect(calls.n).toBe(0);
   });
   it("keeps the last six weeks", async () => {
-    const six = ["2026-08-14", "2026-08-21", "2026-08-28", "2026-09-04", "2026-09-11", "2026-09-18"].map((d) => week(d)).join("");
+    const six = ["2026-08-14", "2026-08-21", "2026-08-28", "2026-09-04", "2026-09-11", "2026-09-18"]
+      .map((d) => week(d))
+      .join("");
     const s = await setup(six);
     const p = await weeklyRecapActivity(deps(s, fakeQuery("New.", { n: 0 })))(301);
     const kept = [...(await s.store.get(p!)).matchAll(/^## Week of (\S+)/gm)].map((m) => m[1]);
@@ -84,7 +112,9 @@ describe("weekly recap activity", () => {
     expect(await s.store.get(p!)).toBe(week("2026-09-11"));
     expect(String(warn.mock.calls[0]?.[0])).toContain("Weekly recap generation failed (non-fatal)");
     const again = await setup(week("2026-09-11"));
-    await expect(weeklyRecapActivity({ ...deps(again, fakeQuery(new Error("overloaded"), { n: 0 }), 3), attempt: () => 1 })(301)).rejects.toThrow("overloaded");
+    await expect(
+      weeklyRecapActivity({ ...deps(again, fakeQuery(new Error("overloaded"), { n: 0 }), 3), attempt: () => 1 })(301),
+    ).rejects.toThrow("overloaded");
   });
   it("with nothing shown in the week and no earlier recap, stores nothing", async () => {
     const s = await setup(null);

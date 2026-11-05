@@ -3,14 +3,32 @@
 // assembly share this, so "covered" means the same thing in both.
 export function normHeadline(headline: string): string {
   let t = (headline ?? "").normalize("NFKC");
-  for (const [f, p] of [["’", "'"], ["‘", "'"], ["“", '"'], ["”", '"'], ["—", "-"], ["–", "-"]] as const) t = t.replaceAll(f, p);
+  for (const [f, p] of [
+    ["’", "'"],
+    ["‘", "'"],
+    ["“", '"'],
+    ["”", '"'],
+    ["—", "-"],
+    ["–", "-"],
+  ] as const)
+    t = t.replaceAll(f, p);
   // str.casefold() differs from toLowerCase() on ß and final sigma; those two are folded explicitly.
-  return t.replace(/\s+/g, " ").trim().replace(/[.,;:!?]+$/, "").toLowerCase().replaceAll("ß", "ss").replaceAll("ς", "σ");
+  return t
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[.,;:!?]+$/, "")
+    .toLowerCase()
+    .replaceAll("ß", "ss")
+    .replaceAll("ς", "σ");
 }
 
 export const itemIds = (sources: { article_id: string }[]): Set<string> => new Set(sources.map((s) => s.article_id));
 
-export function resultMatches(result: { article_ids?: string[]; headline?: string }, ids: Set<string>, norm: string): boolean {
+export function resultMatches(
+  result: { article_ids?: string[]; headline?: string },
+  ids: Set<string>,
+  norm: string,
+): boolean {
   const rids = result.article_ids ?? [];
   const rset = new Set(rids); // a set, as Python's frozenset: duplicate ids in a result still match
   if (rset.size && ids.size && rset.size === ids.size && [...rset].every((r) => ids.has(r))) return true;

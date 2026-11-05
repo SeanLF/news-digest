@@ -6,7 +6,11 @@ import { linkDecoder, type LinkDecoderDeps } from "./gnews-decode.js";
 const GN = (token: string) => `https://news.google.com/rss/articles/${token}?oc=5`;
 const tokenOf = (url: string) => url.split("/articles/")[1]!.split("?")[0]!;
 const ok = (url: string): DecodeResult => ({ ok: true, url });
-const failed = (reason: "http" | "parse" | "timeout" | "network" = "parse"): DecodeResult => ({ ok: false, reason, message: reason });
+const failed = (reason: "http" | "parse" | "timeout" | "network" = "parse"): DecodeResult => ({
+  ok: false,
+  reason,
+  message: reason,
+});
 const real = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 const RATE_LIMITED: DecodeResult = { ok: false, reason: "rate_limited", status: 429, message: "HTTP 429" };
 
@@ -67,11 +71,19 @@ describe("decodeLinks (gnews-decoder)", () => {
     expect(h.seen.map((s) => s.token)).toEqual(["R1", "R2"]);
   });
 
-  it.each(["http", "network", "timeout", "parse"] as const)("a %s failure keeps the raw link and goes on to the next", async (reason) => {
-    const h = harness({ R1: failed(reason), R2: ok("https://www.reuters.com/r2") });
-    const out = await h.decoder.decodeLinks([GN("R1"), GN("R2")]);
-    expect(out).toEqual({ links: 2, decoded: { [GN("R2")]: "https://www.reuters.com/r2" }, attempted: 2, outcome: "completed" });
-  });
+  it.each(["http", "network", "timeout", "parse"] as const)(
+    "a %s failure keeps the raw link and goes on to the next",
+    async (reason) => {
+      const h = harness({ R1: failed(reason), R2: ok("https://www.reuters.com/r2") });
+      const out = await h.decoder.decodeLinks([GN("R1"), GN("R2")]);
+      expect(out).toEqual({
+        links: 2,
+        decoded: { [GN("R2")]: "https://www.reuters.com/r2" },
+        attempted: 2,
+        outcome: "completed",
+      });
+    },
+  );
 
   it("the deadline is checked between links", async () => {
     const h = harness({});
@@ -83,7 +95,12 @@ describe("decodeLinks (gnews-decoder)", () => {
         return Promise.resolve(ok(`https://www.reuters.com/${tokenOf(url).toLowerCase()}`));
       },
     });
-    expect(await decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({ links: 2, decoded: { [GN("R1")]: "https://www.reuters.com/r1" }, attempted: 1, outcome: "deadline" });
+    expect(await decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({
+      links: 2,
+      decoded: { [GN("R1")]: "https://www.reuters.com/r1" },
+      attempted: 1,
+      outcome: "deadline",
+    });
   });
 
   it("a token is decoded once per pass and afresh on the next", async () => {
@@ -96,7 +113,12 @@ describe("decodeLinks (gnews-decoder)", () => {
 
   it("a link the decoder cannot read as Google News spends nothing and is not counted", async () => {
     const h = harness({}, { decode: () => Promise.resolve({ ok: false, reason: "not_google_news", message: "no" }) });
-    expect(await h.decoder.decodeLinks(["https://news.google.com/articles/"])).toEqual({ links: 1, decoded: {}, attempted: 0, outcome: "completed" });
+    expect(await h.decoder.decodeLinks(["https://news.google.com/articles/"])).toEqual({
+      links: 1,
+      decoded: {},
+      attempted: 0,
+      outcome: "completed",
+    });
     expect(h.sleeps).toEqual([]);
   });
 
@@ -127,22 +149,41 @@ describe("decodeLinks (gnews-decoder)", () => {
   it("a pass cancelled before its first link decodes nothing", async () => {
     const h = harness({ R1: ok("https://www.reuters.com/r1") }, { delayMs: 0 });
     h.controller.abort();
-    expect(await h.decoder.decodeLinks([GN("R1")])).toEqual({ links: 1, decoded: {}, attempted: 0, outcome: "cancelled" });
+    expect(await h.decoder.decodeLinks([GN("R1")])).toEqual({
+      links: 1,
+      decoded: {},
+      attempted: 0,
+      outcome: "cancelled",
+    });
     expect(h.seen).toEqual([]);
   });
 
   it("a decoder that throws costs that link only: counted, kept raw, and the pass goes on", async () => {
     vi.spyOn(log, "warn").mockImplementation(() => undefined);
-    const h = harness({}, {
-      decode: (url) => (tokenOf(url) === "R1" ? Promise.reject(new Error("bug")) : Promise.resolve(ok("https://www.reuters.com/r2"))),
+    const h = harness(
+      {},
+      {
+        decode: (url) =>
+          tokenOf(url) === "R1" ? Promise.reject(new Error("bug")) : Promise.resolve(ok("https://www.reuters.com/r2")),
+      },
+    );
+    expect(await h.decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({
+      links: 2,
+      decoded: { [GN("R2")]: "https://www.reuters.com/r2" },
+      attempted: 2,
+      outcome: "completed",
     });
-    expect(await h.decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({ links: 2, decoded: { [GN("R2")]: "https://www.reuters.com/r2" }, attempted: 2, outcome: "completed" });
     vi.restoreAllMocks();
   });
 
   it("a decode the cancellation aborted is not counted as decoded", async () => {
     const h = harness({ R1: { ok: false, reason: "aborted", message: "aborted by caller" } });
-    expect(await h.decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({ links: 2, decoded: {}, attempted: 1, outcome: "cancelled" });
+    expect(await h.decoder.decodeLinks([GN("R1"), GN("R2")])).toEqual({
+      links: 2,
+      decoded: {},
+      attempted: 1,
+      outcome: "cancelled",
+    });
   });
 
   it("two passes at once run one after the other", async () => {
@@ -161,7 +202,10 @@ describe("decodeLinks (gnews-decoder)", () => {
         return ok(`https://www.reuters.com/${tokenOf(url)}`);
       },
     });
-    const [a, b] = await Promise.all([decoder.decodeLinks([GN("R0"), GN("R1")]), decoder.decodeLinks([GN("R2"), GN("R3")])]);
+    const [a, b] = await Promise.all([
+      decoder.decodeLinks([GN("R0"), GN("R1")]),
+      decoder.decodeLinks([GN("R2"), GN("R3")]),
+    ]);
     expect(peak).toBe(1);
     expect([a.attempted, b.attempted]).toEqual([2, 2]);
     expect(Object.keys(a.decoded)).toEqual([GN("R0"), GN("R1")]);
@@ -203,7 +247,12 @@ describe("decodeLinks (gnews-decoder)", () => {
       },
     });
     const first = decoder.decodeLinks([GN("R0")]);
-    expect(await decoder.decodeLinks([GN("R1")])).toEqual({ links: 1, decoded: {}, attempted: 0, outcome: "cancelled" });
+    expect(await decoder.decodeLinks([GN("R1")])).toEqual({
+      links: 1,
+      decoded: {},
+      attempted: 0,
+      outcome: "cancelled",
+    });
     release();
     await first;
   });

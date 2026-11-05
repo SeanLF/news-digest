@@ -14,10 +14,16 @@ export default class ExtractProvider {
     return `extract:${this.arm}`;
   }
   // `reference` arrives already normalised and truncated (extract-tests.ts), under the corpus's own cap.
-  async callApi(_prompt: string, context: { vars: { html: string; url: string; reference: string; maxChars: number } }) {
+  async callApi(
+    _prompt: string,
+    context: { vars: { html: string; url: string; reference: string; maxChars: number } },
+  ) {
     const t0 = Date.now();
     const { html, url, reference, maxChars } = context.vars;
-    const text = this.arm === "trafilatura" ? reference : truncateAtSentence(await extract(this.arm, readFileSync(html, "utf8"), url), maxChars);
+    const text =
+      this.arm === "trafilatura"
+        ? reference
+        : truncateAtSentence(await extract(this.arm, readFileSync(html, "utf8"), url), maxChars);
     return { output: text, latencyMs: Date.now() - t0 };
   }
 }

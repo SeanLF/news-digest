@@ -33,7 +33,8 @@ const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "obj
 export function firstJsonObject(text: string): Record<string, unknown> {
   const start = text.indexOf("{");
   const got = start >= 0 ? decodeAt(text, start) : undefined;
-  if (!got || !isObject(got.value)) throw new Error(`no JSON object in the reply, which began ${JSON.stringify(text.slice(0, 60))}`);
+  if (!got || !isObject(got.value))
+    throw new Error(`no JSON object in the reply, which began ${JSON.stringify(text.slice(0, 60))}`);
   return got.value;
 }
 

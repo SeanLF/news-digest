@@ -52,7 +52,11 @@ function story(lead: Lead, issueUrl: string, base: string, leaning: (outlet: str
   const t = lead.thread;
   if (t && t.day >= 2) {
     const label = `<span class="loc">Ongoing</span> · day ${t.day}`;
-    parts.push(t.id === null ? `<p class="eyebrow">${label}</p>` : `<p class="eyebrow"><a href="${base}/thread/${t.id}" target="_top">${label} ↗</a></p>`);
+    parts.push(
+      t.id === null
+        ? `<p class="eyebrow">${label}</p>`
+        : `<p class="eyebrow"><a href="${base}/thread/${t.id}" target="_top">${label} ↗</a></p>`,
+    );
   }
   if (lead.why) parts.push(`<div class="why"><span class="lbl">Why it matters</span><p>${lead.why}</p></div>`);
   const varies = lead.varies.slice(0, 3);
@@ -65,12 +69,19 @@ function story(lead: Lead, issueUrl: string, base: string, leaning: (outlet: str
   }
   if (lead.segments.length) {
     const segs = lead.segments.map((s) => `<span class="seg ${s.leaning}" style="flex:${s.n}"></span>`).join("");
-    parts.push(`<p class="e-spread"><span class="biasbar" aria-hidden="true">${segs}</span><span>${[lead.counts, lead.split].filter(Boolean).join(" · ")}</span></p>`);
+    parts.push(
+      `<p class="e-spread"><span class="biasbar" aria-hidden="true">${segs}</span><span>${[lead.counts, lead.split].filter(Boolean).join(" · ")}</span></p>`,
+    );
   }
   return `<article class="first">${parts.join("\n")}</article>`;
 }
 
-export function embedLeadPage(ctx: PageCtx, row: IssueRowData, issue: StoredIssue & { lead: Lead }, leaning: (outlet: string) => Leaning): string {
+export function embedLeadPage(
+  ctx: PageCtx,
+  row: IssueRowData,
+  issue: StoredIssue & { lead: Lead },
+  leaning: (outlet: string) => Leaning,
+): string {
   const base = baseUrl(ctx.cfg);
   const issueUrl = `${base}/issues/${row.date}`;
   const brand = issue.brand ?? escapeHtml(ctx.cfg.digestName);

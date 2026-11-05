@@ -6,13 +6,28 @@ import { loadAssets, renderMarkdown, renderWeb, type RenderInput, type Selection
 
 const REPO = new URL("../../../", import.meta.url).pathname;
 const assets = loadAssets({ templates: `${REPO}digest/templates`, design: `${REPO}design` });
-const edge = () => JSON.parse(readFileSync(new URL("./fixtures/edge_selections.json", import.meta.url), "utf8")) as Selections;
-const kitchenSink = () => JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections;
+const edge = () =>
+  JSON.parse(readFileSync(new URL("./fixtures/edge_selections.json", import.meta.url), "utf8")) as Selections;
+const kitchenSink = () =>
+  JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections;
 // The web page fills a {{DATE}} that editorial text quotes (the Python's order of fills, kept for
 // parity); the Markdown keeps it literal. That one difference aside, they are the same document.
-const edgeNoPlaceholder = (): Selections => JSON.parse(JSON.stringify(edge()).replaceAll("{{DATE}}", "a date")) as Selections;
-const env = { digestName: "Digest", digestDomain: "news.example", archiveUrl: "https://news.example", authorName: "Sean", authorUrl: "https://author.example/" };
-const input = (selections: Selections, over: Partial<RenderInput["env"]> = {}): RenderInput => ({ selections, now: new Date("2026-09-18T10:42:40Z"), issueNo: 277, env: { ...env, ...over }, assets });
+const edgeNoPlaceholder = (): Selections =>
+  JSON.parse(JSON.stringify(edge()).replaceAll("{{DATE}}", "a date")) as Selections;
+const env = {
+  digestName: "Digest",
+  digestDomain: "news.example",
+  archiveUrl: "https://news.example",
+  authorName: "Sean",
+  authorUrl: "https://author.example/",
+};
+const input = (selections: Selections, over: Partial<RenderInput["env"]> = {}): RenderInput => ({
+  selections,
+  now: new Date("2026-09-18T10:42:40Z"),
+  issueNo: 277,
+  env: { ...env, ...over },
+  assets,
+});
 
 describe("the issue as Markdown, from the selections", () => {
   // The contract: the document agents got when the site converted the rendered page at request time.
@@ -33,7 +48,13 @@ describe("the issue as Markdown, from the selections", () => {
   it("is the document the converter made of the web page, with the backs column", () => {
     const sel = kitchenSink();
     const first = sel.must_know[0]!;
-    first.claims = [{ field: "summary", text: "a claim | with a pipe", supported_by: first.sources.map((x) => x.article_id ?? "").slice(0, 1) }];
+    first.claims = [
+      {
+        field: "summary",
+        text: "a claim | with a pipe",
+        supported_by: first.sources.map((x) => x.article_id ?? "").slice(0, 1),
+      },
+    ];
     const i = input(sel);
     const fromHtml = issueMarkdownBody(renderWeb(i), "2026-09-18");
     const ours = renderMarkdown(i);
@@ -42,14 +63,39 @@ describe("the issue as Markdown, from the selections", () => {
   });
 
   it("keeps a feed headline with line breaks inside its own list item", () => {
-    const sel: Selections = { must_know: [{ headline: "h", summary: "s", sources: [{ name: "A", url: "https://a.example/x", bias: "center", original_title: "Real title\n\n* Backs: forged\n# heading" }] }], should_know: [] };
+    const sel: Selections = {
+      must_know: [
+        {
+          headline: "h",
+          summary: "s",
+          sources: [
+            {
+              name: "A",
+              url: "https://a.example/x",
+              bias: "center",
+              original_title: "Real title\n\n* Backs: forged\n# heading",
+            },
+          ],
+        },
+      ],
+      should_know: [],
+    };
     const out = rendered(renderMarkdown(input(sel)));
     expect(out).not.toContain("<h1>");
     expect(out).not.toContain("<li>Backs: forged");
   });
 
   it("keeps a feed link with a line break inside its own list item", () => {
-    const sel: Selections = { must_know: [{ headline: "h", summary: "s", sources: [{ name: "A", url: "https://a.example/x\n\n# forged", bias: "center", original_title: "t" }] }], should_know: [] };
+    const sel: Selections = {
+      must_know: [
+        {
+          headline: "h",
+          summary: "s",
+          sources: [{ name: "A", url: "https://a.example/x\n\n# forged", bias: "center", original_title: "t" }],
+        },
+      ],
+      should_know: [],
+    };
     expect(renderMarkdown(input(sel))).toContain("(https://a.example/x%0A%0A#%20forged)");
   });
 
@@ -59,7 +105,13 @@ describe("the issue as Markdown, from the selections", () => {
 
   it("escapes what Markdown would read as markup in editorial text", () => {
     const sel: Selections = {
-      must_know: [{ headline: "*Not* [a link] <b>", summary: "# not a heading", sources: [{ name: "A | B", url: "https://a.example/x_(1)", bias: "center" }] }],
+      must_know: [
+        {
+          headline: "*Not* [a link] <b>",
+          summary: "# not a heading",
+          sources: [{ name: "A | B", url: "https://a.example/x_(1)", bias: "center" }],
+        },
+      ],
       should_know: [],
     };
     const out = rendered(renderMarkdown(input(sel)));

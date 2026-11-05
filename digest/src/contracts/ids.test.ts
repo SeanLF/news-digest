@@ -10,7 +10,9 @@ describe("article ids", () => {
     for (const bad of ["a1", "A", "A-1", "1", "A1 ", "https://x"]) expect(() => parseArticleId(bad)).toThrow();
   });
   it("scrubUrls replaces every link form with a token", () => {
-    expect(scrubUrls("see https://a.com/x, //b.org/y and http://10.0.0.1/z; 3/4 stays")).toBe("see [link], [link] and [link]; 3/4 stays");
+    expect(scrubUrls("see https://a.com/x, //b.org/y and http://10.0.0.1/z; 3/4 stays")).toBe(
+      "see [link], [link] and [link]; 3/4 stays",
+    );
   });
   it("assertNoUrls throws on a URL and passes on a source id", () => {
     expect(() => assertNoUrls("see https://example.com/x")).toThrow(/URL/);

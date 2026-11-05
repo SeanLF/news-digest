@@ -42,9 +42,11 @@ export interface ThreadDetail {
 }
 
 // The top three clean facts of an update; a fact that fails cleaning yields its place to the next.
-export const factsFrom = (content: string | null): string[] => whatsNew(content).map(cleanFact).filter(Boolean).slice(0, 3);
+export const factsFrom = (content: string | null): string[] =>
+  whatsNew(content).map(cleanFact).filter(Boolean).slice(0, 3);
 
-const sourcesOf = (f: unknown): unknown[] => (f && typeof f === "object" && "sources" in f && Array.isArray(f.sources) ? (f.sources as unknown[]) : []);
+const sourcesOf = (f: unknown): unknown[] =>
+  f && typeof f === "object" && "sources" in f && Array.isArray(f.sources) ? (f.sources as unknown[]) : [];
 
 // The ids one update cited: its recorded cited_ids (written before the faithfulness audit, so they still
 // name the sources of dropped facts), else its surviving facts' own sources.
@@ -58,7 +60,11 @@ export function citedIds(content: string | null): string[] {
   }
   if (!doc || typeof doc !== "object") return [];
   const d = doc as { cited_ids?: unknown; whats_new?: unknown };
-  const listed: unknown[] = Array.isArray(d.cited_ids) ? (d.cited_ids as unknown[]) : Array.isArray(d.whats_new) ? (d.whats_new as unknown[]).flatMap(sourcesOf) : [];
+  const listed: unknown[] = Array.isArray(d.cited_ids)
+    ? (d.cited_ids as unknown[])
+    : Array.isArray(d.whats_new)
+      ? (d.whats_new as unknown[]).flatMap(sourcesOf)
+      : [];
   return listed.flatMap((s) => (typeof s === "string" && s.trim() ? [s.trim()] : []));
 }
 
@@ -71,13 +77,22 @@ const summary = (t: ThreadSummaryData): ThreadSummary => ({
   summary: factsFrom(t.latestContent)[0] ?? "",
 });
 
-export async function threadIndex(data: SiteData, before: { updatedAt: string; id: number } | undefined, limit: number): Promise<ThreadIndexPage> {
+export async function threadIndex(
+  data: SiteData,
+  before: { updatedAt: string; id: number } | undefined,
+  limit: number,
+): Promise<ThreadIndexPage> {
   const lim = Math.min(Math.max(limit, 1), MAX_OLDER_PAGE);
   const raw: ThreadIndexData = await data.threadIndex(before, lim + 1);
   const hasMore = raw.older.length > lim;
   const older = raw.older.slice(0, lim).map(summary);
   const last = older.at(-1);
-  return { ongoing: raw.ongoing.map(summary), older, olderTotal: raw.olderTotal, nextBefore: hasMore && last ? { updatedAt: last.updatedAt, id: last.id } : null };
+  return {
+    ongoing: raw.ongoing.map(summary),
+    older,
+    olderTotal: raw.olderTotal,
+    nextBefore: hasMore && last ? { updatedAt: last.updatedAt, id: last.id } : null,
+  };
 }
 
 // Follows a merge chain to its survivor; undefined for no such thread, a self-merge or a chain too long.
@@ -88,7 +103,11 @@ export async function threadDetail(data: SiteData, requested: number): Promise<T
     if (next === undefined) return undefined;
     if (next === null) break;
     if (next === id || hop >= MAX_MERGE_HOPS) {
-      log.warn({ site: "thread", requested, warning: next === id ? "merged into itself" : `merge chain longer than ${MAX_MERGE_HOPS} hops` });
+      log.warn({
+        site: "thread",
+        requested,
+        warning: next === id ? "merged into itself" : `merge chain longer than ${MAX_MERGE_HOPS} hops`,
+      });
       return undefined;
     }
     id = next;
@@ -99,8 +118,15 @@ export async function threadDetail(data: SiteData, requested: number): Promise<T
     label: t.label,
     status: t.status,
     mergedInto: id === requested ? null : id,
-    entries: t.installments.map((i) => ({ day: i.day, issueDate: i.issueDate, headline: i.story, facts: factsFrom(i.content) })),
+    entries: t.installments.map((i) => ({
+      day: i.day,
+      issueDate: i.issueDate,
+      headline: i.story,
+      facts: factsFrom(i.content),
+    })),
     // Grounded on the ids the raising run cited: article ids are per-run labels.
-    openQuestions: t.openQuestions.flatMap((q) => cleanQuestions([q.question], citedIds(q.raisedContent))).slice(0, LEDGER_MAX),
+    openQuestions: t.openQuestions
+      .flatMap((q) => cleanQuestions([q.question], citedIds(q.raisedContent)))
+      .slice(0, LEDGER_MAX),
   };
 }

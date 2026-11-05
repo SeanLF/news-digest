@@ -15,11 +15,19 @@ import { DigestWorkflow, WORKFLOW_RUN_TIMEOUT } from "../workflow/digest.workflo
 import { PYTHON_TASK_QUEUE } from "../workflow/policy.js";
 import { approveSignal, retrySignal } from "../workflow/signals.js";
 
-type Scenario = { name: string; input?: Partial<DigestInput>; runTimeout?: string; activities?: Partial<Activities>; drive: (h: WorkflowHandle<typeof DigestWorkflow>) => Promise<unknown> };
+type Scenario = {
+  name: string;
+  input?: Partial<DigestInput>;
+  runTimeout?: string;
+  activities?: Partial<Activities>;
+  drive: (h: WorkflowHandle<typeof DigestWorkflow>) => Promise<unknown>;
+};
 const inHold = async (h: WorkflowHandle): Promise<void> => {
   for (let i = 0; i < 600; i++) {
     const events = (await h.fetchHistory()).events ?? [];
-    const notified = events.findIndex((e) => e.activityTaskScheduledEventAttributes?.activityType?.name === "notifyHold");
+    const notified = events.findIndex(
+      (e) => e.activityTaskScheduledEventAttributes?.activityType?.name === "notifyHold",
+    );
     if (notified >= 0 && events.slice(notified).some((e) => e.timerStartedEventAttributes)) return;
     await new Promise((r) => setTimeout(r, 100));
   }
@@ -63,11 +71,19 @@ export const SCENARIOS: Scenario[] = [
   { name: "held-out", runTimeout: "40 minutes", drive: (h) => h.result() },
   { name: "disabled", activities: { sendEnabled: () => Promise.resolve(false) }, drive: (h) => h.result() },
   { name: "resume", input: { resumeRun: 303 }, drive: (h) => h.result() },
-  { name: "parked-abort", input: { failStage: "select" }, drive: async (h) => {
+  {
+    name: "parked-abort",
+    input: { failStage: "select" },
+    drive: async (h) => {
       await h.signal(retrySignal, { decision: "abort" });
       return h.result();
-    } },
-  { name: "failed", activities: { writeStory: () => Promise.reject(ApplicationFailure.nonRetryable("the model is gone", "Record")) }, drive: (h) => h.result().catch(() => undefined) },
+    },
+  },
+  {
+    name: "failed",
+    activities: { writeStory: () => Promise.reject(ApplicationFailure.nonRetryable("the model is gone", "Record")) },
+    drive: (h) => h.result().catch(() => undefined),
+  },
   // A run a deploy would find: waiting in the pre-send hold. Recorded open, then terminated.
   { name: "in-hold", activities: FLAGGED, drive: async (h) => inHold(h) },
 ];
@@ -81,15 +97,26 @@ async function main(outDir: string, address = process.env["TEMPORAL_ADDRESS"] ??
     connection,
     taskQueue: PYTHON_TASK_QUEUE,
     activities: {
-      fetchFulltext: (tasks: FulltextTask[]) => Promise.resolve({ tasks: tasks.length, results: {}, outcome: "completed" }),
+      fetchFulltext: (tasks: FulltextTask[]) =>
+        Promise.resolve({ tasks: tasks.length, results: {}, outcome: "completed" }),
     },
   });
   await python.runUntil(async () => {
     for (const s of SCENARIOS) {
       const taskQueue = `record-${s.name}-${nonce}`;
-      const worker = await Worker.create({ connection, taskQueue, workflowsPath: new URL("../workflow/digest.workflow.js", import.meta.url).pathname, activities: { ...stubActivities(), ...s.activities } });
+      const worker = await Worker.create({
+        connection,
+        taskQueue,
+        workflowsPath: new URL("../workflow/digest.workflow.js", import.meta.url).pathname,
+        activities: { ...stubActivities(), ...s.activities },
+      });
       await worker.runUntil(async () => {
-        const h = await client.workflow.start(DigestWorkflow, { taskQueue, workflowId: `digest-${s.name}-${nonce}`, args: [{ runDate: "2026-09-23", ...s.input }], workflowRunTimeout: s.runTimeout ?? WORKFLOW_RUN_TIMEOUT });
+        const h = await client.workflow.start(DigestWorkflow, {
+          taskQueue,
+          workflowId: `digest-${s.name}-${nonce}`,
+          args: [{ runDate: "2026-09-23", ...s.input }],
+          workflowRunTimeout: s.runTimeout ?? WORKFLOW_RUN_TIMEOUT,
+        });
         await s.drive(h);
         writeFileSync(join(outDir, `${s.name}.json`), `${historyToJSON(await h.fetchHistory())}\n`);
         if (s.name === "in-hold") await h.terminate("recorded in the hold");

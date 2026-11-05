@@ -15,12 +15,15 @@ const FrontmatterSchema = z.strictObject({
   description: z.string().optional(),
   model: z.string().min(1),
   thinking: z.enum(["adaptive", "disabled"]),
-  tools: z.string().nullish().transform((t, ctx) => {
-    const named = (t ?? "").split(/[,\s]+/).filter(Boolean);
-    const bad = named.filter((x) => !StageToolSchema.safeParse(x).success);
-    if (bad.length) ctx.addIssue({ code: "custom", message: `names tools the contract removed: ${bad.join(", ")}` });
-    return named as StageTool[];
-  }),
+  tools: z
+    .string()
+    .nullish()
+    .transform((t, ctx) => {
+      const named = (t ?? "").split(/[,\s]+/).filter(Boolean);
+      const bad = named.filter((x) => !StageToolSchema.safeParse(x).success);
+      if (bad.length) ctx.addIssue({ code: "custom", message: `names tools the contract removed: ${bad.join(", ")}` });
+      return named as StageTool[];
+    }),
   effort: EffortSchema.optional(),
 });
 
@@ -37,7 +40,10 @@ export function parseAgentSpec(markdown: string): StageSpec {
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(markdown.trimStart());
   if (!m) throw new Error("agent spec has no frontmatter");
   const parsed = FrontmatterSchema.safeParse(parseYaml(m[1]!) ?? {});
-  if (!parsed.success) throw new Error(`agent spec frontmatter: ${parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ")}`);
+  if (!parsed.success)
+    throw new Error(
+      `agent spec frontmatter: ${parsed.error.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; ")}`,
+    );
   const { name, model, thinking, tools, effort } = parsed.data;
   return { name, model, thinking, tools, body: m[2]!.trim(), ...(effort ? { effort } : {}) };
 }
@@ -47,7 +53,13 @@ const TOKEN = /\{\{([^{}]*)\}\}/g;
 export function renderBody(body: string, todayIso: string): string {
   const d = new Date(`${todayIso}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) throw new Error(`not a date: ${todayIso}`);
-  const pretty = d.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", timeZone: "UTC" });
+  const pretty = d.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  });
   const out = body.replaceAll("{{CURRENT_DATE}}", pretty);
   const left = [...out.matchAll(TOKEN)].map((m) => m[1]);
   if (left.length) throw new Error(`unrendered token(s): ${[...new Set(left)].join(", ")}`);

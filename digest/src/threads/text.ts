@@ -4,7 +4,10 @@ import { stripArticleIds } from "../contracts/leaks.js";
 // container types are checked as strictly as the element types: a scalar `sources` ("A3" rather
 // than ["A3"]) must not iterate as ["A", "3"], and circulation's Rust mirror renders the same rows.
 
-export interface Fact { fact?: unknown; sources?: unknown }
+export interface Fact {
+  fact?: unknown;
+  sources?: unknown;
+}
 
 const tidy = (text: string): string => text.replace(/\s{2,}/g, " ").trim();
 const escape = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

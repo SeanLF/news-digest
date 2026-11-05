@@ -7,7 +7,9 @@ import { parseVerdicts, type JudgeVerdict } from "../gate/verdict.js";
 
 const file = process.argv[2];
 if (!file) throw new Error("usage: agreement <promptfoo results.json>");
-const doc = JSON.parse(readFileSync(file, "utf8")) as { results: { results: { provider: { id: string; label?: string }; response?: { output?: string } }[] } };
+const doc = JSON.parse(readFileSync(file, "utf8")) as {
+  results: { results: { provider: { id: string; label?: string }; response?: { output?: string } }[] };
+};
 // Loud rather than a report of zero reps if promptfoo's results shape ever changes.
 if (!Array.isArray(doc.results?.results)) throw new Error(`${file}: not a promptfoo results file (no results.results)`);
 const runs = new Map<string, JudgeVerdict[][]>();

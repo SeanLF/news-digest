@@ -2,13 +2,35 @@ import { readFileSync } from "node:fs";
 import { htmlEscape } from "escape-goat";
 import { describe, expect, it } from "vitest";
 import { roundHalfEven, slugify } from "./common.js";
-import { applyDecodedLinks, attachThreads, loadAssets, renderEmail, renderWeb, resolveArticleIds, type RenderInput, type Selections } from "./render.js";
+import {
+  applyDecodedLinks,
+  attachThreads,
+  loadAssets,
+  renderEmail,
+  renderWeb,
+  resolveArticleIds,
+  type RenderInput,
+  type Selections,
+} from "./render.js";
 
 const REPO = new URL("../../../", import.meta.url).pathname;
 const assets = loadAssets({ templates: `${REPO}digest/templates`, design: `${REPO}design` });
-const edge = () => JSON.parse(readFileSync(new URL("./fixtures/edge_selections.json", import.meta.url), "utf8")) as Selections;
-const env = { digestName: "Digest", digestDomain: "news.example", archiveUrl: "https://news.example", authorName: "Sean", authorUrl: "https://author.example/" };
-const input = (selections: Selections): RenderInput => ({ selections, now: new Date("2026-09-18T10:42:40Z"), issueNo: 277, env, assets });
+const edge = () =>
+  JSON.parse(readFileSync(new URL("./fixtures/edge_selections.json", import.meta.url), "utf8")) as Selections;
+const env = {
+  digestName: "Digest",
+  digestDomain: "news.example",
+  archiveUrl: "https://news.example",
+  authorName: "Sean",
+  authorUrl: "https://author.example/",
+};
+const input = (selections: Selections): RenderInput => ({
+  selections,
+  now: new Date("2026-09-18T10:42:40Z"),
+  issueNo: 277,
+  env,
+  assets,
+});
 
 describe("the Python's arithmetic and text rules", () => {
   it("rounds halves to even, as Python's round() does", () => {
@@ -23,38 +45,106 @@ describe("the Python's arithmetic and text rules", () => {
 
 describe("resolution", () => {
   const index = {
-    A1: { name: "Reuters", url: "https://www.reuters.com/a", bias: "center", source_id: "reuters", original_title: "Deal signed - Reuters", wire: true },
-    A2: { name: "Straits Times", url: "https://st.example/a", bias: "center", source_id: "st", original_title: "Deal signed" },
+    A1: {
+      name: "Reuters",
+      url: "https://www.reuters.com/a",
+      bias: "center",
+      source_id: "reuters",
+      original_title: "Deal signed - Reuters",
+      wire: true,
+    },
+    A2: {
+      name: "Straits Times",
+      url: "https://st.example/a",
+      bias: "center",
+      source_id: "st",
+      original_title: "Deal signed",
+    },
     A3: { name: "BBC", url: "https://bbc.example/a", bias: "center", source_id: "bbc", original_title: "Another take" },
     A4: { name: "Broken", url: "https://x.example/a" },
   };
   it("resolves ids, keeps a verbatim repost for the sources box to group, and drops what it cannot resolve", () => {
-    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }, { article_id: "A1" }, { article_id: "A3" }, { article_id: "A9" }] }], should_know: [{ headline: "gone", sources: [{ article_id: "A4" }] }] };
+    const sel: Selections = {
+      must_know: [
+        {
+          headline: "h",
+          sources: [{ article_id: "A2" }, { article_id: "A1" }, { article_id: "A3" }, { article_id: "A9" }],
+        },
+      ],
+      should_know: [{ headline: "gone", sources: [{ article_id: "A4" }] }],
+    };
     const out = resolveArticleIds(sel, index);
     expect(out.must_know[0]!.sources.map((s) => s.name)).toEqual(["Straits Times", "Reuters", "BBC"]);
     expect(out.should_know).toEqual([]);
   });
   it("tags an untagged article as wire copy when its full text opens with a wire dateline", () => {
-    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }, { article_id: "A3" }] }], should_know: [] };
-    const fulltext = { A2: { text: "Deal signed LONDON, Sept 27 (AFP) - The deal" }, A3: { text: "Another take on it." } };
+    const sel: Selections = {
+      must_know: [{ headline: "h", sources: [{ article_id: "A2" }, { article_id: "A3" }] }],
+      should_know: [],
+    };
+    const fulltext = {
+      A2: { text: "Deal signed LONDON, Sept 27 (AFP) - The deal" },
+      A3: { text: "Another take on it." },
+    };
     const out = resolveArticleIds(sel, index, fulltext);
     expect(out.must_know[0]!.sources.map((s) => s.wire_agency ?? null)).toEqual(["afp", null]);
   });
   it("names an angle's outlet from the index, not the writer's text", () => {
-    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A3" }], reporting_varies: [{ source: "British Broadcasting Corp", angle: "a", bias: "center", article_id: "A3" }] }], should_know: [] };
-    expect(resolveArticleIds(sel, index).must_know[0]!.reporting_varies).toEqual([{ source: "BBC", angle: "a", bias: "center" }]);
+    const sel: Selections = {
+      must_know: [
+        {
+          headline: "h",
+          sources: [{ article_id: "A3" }],
+          reporting_varies: [{ source: "British Broadcasting Corp", angle: "a", bias: "center", article_id: "A3" }],
+        },
+      ],
+      should_know: [],
+    };
+    expect(resolveArticleIds(sel, index).must_know[0]!.reporting_varies).toEqual([
+      { source: "BBC", angle: "a", bias: "center" },
+    ]);
   });
   it("names an angle from wire copy after the agency, as the sources box does", () => {
-    const sel: Selections = { must_know: [{ headline: "h", sources: [{ article_id: "A2" }], reporting_varies: [{ source: "Straits Times", angle: "a", bias: "center", article_id: "A2" }] }], should_know: [] };
+    const sel: Selections = {
+      must_know: [
+        {
+          headline: "h",
+          sources: [{ article_id: "A2" }],
+          reporting_varies: [{ source: "Straits Times", angle: "a", bias: "center", article_id: "A2" }],
+        },
+      ],
+      should_know: [],
+    };
     const fulltext = { A2: { text: "Deal signed LONDON, Sept 27 (AFP) - The deal" } };
     expect(resolveArticleIds(sel, index, fulltext).must_know[0]!.reporting_varies?.[0]?.source).toBe("AFP");
   });
   it("upgrades a decoded Google-News link and leaves the rest", () => {
-    const sel: Selections = { must_know: [{ sources: [{ name: "Reuters", url: "https://news.google.com/rss/articles/X" }, { name: "BBC", url: "https://bbc.example/a" }] }], should_know: [] };
-    expect(applyDecodedLinks(sel, { "https://news.google.com/rss/articles/X": "https://www.reuters.com/x" }).must_know[0]!.sources.map((s) => s.url)).toEqual(["https://www.reuters.com/x", "https://bbc.example/a"]);
+    const sel: Selections = {
+      must_know: [
+        {
+          sources: [
+            { name: "Reuters", url: "https://news.google.com/rss/articles/X" },
+            { name: "BBC", url: "https://bbc.example/a" },
+          ],
+        },
+      ],
+      should_know: [],
+    };
+    expect(
+      applyDecodedLinks(sel, {
+        "https://news.google.com/rss/articles/X": "https://www.reuters.com/x",
+      }).must_know[0]!.sources.map((s) => s.url),
+    ).toEqual(["https://www.reuters.com/x", "https://bbc.example/a"]);
   });
   it("attaches thread context by cluster, and to neither of two stories sharing one", () => {
-    const sel: Selections = { must_know: [{ cluster_id: "a", sources: [] }, { cluster_id: "b", sources: [] }, { cluster_id: "b", sources: [] }], should_know: [] };
+    const sel: Selections = {
+      must_know: [
+        { cluster_id: "a", sources: [] },
+        { cluster_id: "b", sources: [] },
+        { cluster_id: "b", sources: [] },
+      ],
+      should_know: [],
+    };
     const out = attachThreads(sel, { a: { day: 3, url: "/thread/1" }, b: { day: 4 } });
     expect(out.must_know.map((s) => s.thread?.day)).toEqual([3, undefined, undefined]);
   });
@@ -68,16 +158,28 @@ describe("the web issue", () => {
     expect(html).not.toMatch(/\{\{[A-Z_]+\}\}/);
   });
   it("refuses to ship an unfilled placeholder", () => {
-    expect(() => renderWeb({ ...input(edge()), assets: { ...assets, template: `${assets.template}{{UNKNOWN_SLOT}}` } })).toThrow(/Unfilled placeholder in rendered digest: \{\{UNKNOWN_SLOT\}\}/);
+    expect(() =>
+      renderWeb({ ...input(edge()), assets: { ...assets, template: `${assets.template}{{UNKNOWN_SLOT}}` } }),
+    ).toThrow(/Unfilled placeholder in rendered digest: \{\{UNKNOWN_SLOT\}\}/);
   });
 });
 
 // The seam the spec names (§6): two renderers, one data source. Every story the web issue shows,
 // the email shows, in the same order, with the same headline, body and source count.
-const text = (s: string) => s.replaceAll(/<[^>]+>/g, " ").replaceAll("&nbsp;", " ").replaceAll(/\s+/g, " ");
+const text = (s: string) =>
+  s
+    .replaceAll(/<[^>]+>/g, " ")
+    .replaceAll("&nbsp;", " ")
+    .replaceAll(/\s+/g, " ");
 const sourceCounts = (t: string) => [...t.matchAll(/(\d+) reports? · (\d+) outlets?/gi)].map((m) => `${m[1]}/${m[2]}`);
 describe("email and web show the same issue", () => {
-  it.each([["edge", edge()], ["kitchen sink", JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections]] as const)("%s", (_n, sel) => {
+  it.each([
+    ["edge", edge()],
+    [
+      "kitchen sink",
+      JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections,
+    ],
+  ] as const)("%s", (_n, sel) => {
     const web = text(renderWeb(input(sel)));
     const email = text(renderEmail(input(sel)));
     let wAt = 0;
@@ -140,14 +242,40 @@ describe("small text", () => {
 });
 
 const story = (sources: Selections["must_know"][number]["sources"]): Selections => ({
-  must_know: [{ headline: "Arrests near air base", summary: "Five men held.", why_it_matters: "A 999 call.", reporting_varies: [{ source: "FT", angle: "an Iran link", bias: "center" }], sources }],
+  must_know: [
+    {
+      headline: "Arrests near air base",
+      summary: "Five men held.",
+      why_it_matters: "A 999 call.",
+      reporting_varies: [{ source: "FT", angle: "an Iran link", bias: "center" }],
+      sources,
+    },
+  ],
   should_know: [],
 });
 describe("the sources box", () => {
   const fairford = story([
-    { name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
-    { name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Police question five men", wire_agency: "reuters" },
-    { name: "Guardian", url: "https://guardian.example/a", bias: "lean-left", original_title: "Minister hints services knew" },
+    {
+      name: "Reuters",
+      url: "https://reuters.example/a",
+      bias: "center",
+      original_title: "Five men held - Reuters",
+      wire: true,
+      wire_agency: "reuters",
+    },
+    {
+      name: "Straits Times",
+      url: "https://st.example/a",
+      bias: "lean-right",
+      original_title: "Police question five men",
+      wire_agency: "reuters",
+    },
+    {
+      name: "Guardian",
+      url: "https://guardian.example/a",
+      bias: "lean-left",
+      original_title: "Minister hints services knew",
+    },
   ]);
   const shared = story([
     { name: "A", url: "https://a.example/a", bias: "center", original_title: "Same words" },
@@ -157,7 +285,9 @@ describe("the sources box", () => {
   it("counts reports and outlets on the web, with the reprint under its origin", () => {
     const web = renderWeb(input(fairford));
     expect(text(web)).toContain("2 reports · 3 outlets");
-    expect(web).toMatch(/<li class="carrier"><span class="nm"><span class="rp">Republished by <\/span>Straits Times<span class="via"> · Lean right<\/span><\/span><ul class="arts"><li><a href="[^"]+">[^<]+<\/a><\/li><\/ul><\/li>/);
+    expect(web).toMatch(
+      /<li class="carrier"><span class="nm"><span class="rp">Republished by <\/span>Straits Times<span class="via"> · Lean right<\/span><\/span><ul class="arts"><li><a href="[^"]+">[^<]+<\/a><\/li><\/ul><\/li>/,
+    );
     expect(web).toContain('<span class="via"> · wire</span>');
     expect(web).toContain('class="seg l"');
     expect(web).toContain('class="seg c"');
@@ -165,11 +295,30 @@ describe("the sources box", () => {
   });
 
   it("puts a republisher running the wire's headline on one line, its name the link", () => {
-    const web = renderWeb(input(story([
-      { name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
-      { name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Five men held", wire_agency: "reuters" },
-    ])));
-    expect(web).toContain('<li class="carrier"><span class="nm"><span class="rp">Republished by </span><a class="out" href="https://st.example/a">Straits Times</a><span class="via"> · Lean right</span></span></li>');
+    const web = renderWeb(
+      input(
+        story([
+          {
+            name: "Reuters",
+            url: "https://reuters.example/a",
+            bias: "center",
+            original_title: "Five men held - Reuters",
+            wire: true,
+            wire_agency: "reuters",
+          },
+          {
+            name: "Straits Times",
+            url: "https://st.example/a",
+            bias: "lean-right",
+            original_title: "Five men held",
+            wire_agency: "reuters",
+          },
+        ]),
+      ),
+    );
+    expect(web).toContain(
+      '<li class="carrier"><span class="nm"><span class="rp">Republished by </span><a class="out" href="https://st.example/a">Straits Times</a><span class="via"> · Lean right</span></span></li>',
+    );
   });
 
   it("calls no one a republisher of shared copy, whose origin is unknown", () => {
@@ -186,7 +335,9 @@ describe("the sources box", () => {
   it("gives the email one line of counts and a link, and none of the box", () => {
     const email = renderEmail(input(fairford));
     expect(text(email)).toContain("2 reports · 3 outlets");
-    expect(email).toMatch(/<a href="https:\/\/news\.example\/issues\/2026-09-18#arrests-near-air-base"[^>]*>Sources and coverage →<\/a>/);
+    expect(email).toMatch(
+      /<a href="https:\/\/news\.example\/issues\/2026-09-18#arrests-near-air-base"[^>]*>Sources and coverage →<\/a>/,
+    );
     expect(text(email)).not.toContain("How reporting varies");
     expect(email).not.toMatch(/<td height="4"/);
   });
@@ -198,9 +349,30 @@ describe("the sources box", () => {
 
 const withClaims = (): Selections => {
   const sel = story([
-    { article_id: "A1", name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Five men held - Reuters", wire: true, wire_agency: "reuters" },
-    { article_id: "A2", name: "Straits Times", url: "https://st.example/a", bias: "lean-right", original_title: "Police question five men", wire_agency: "reuters" },
-    { article_id: "A3", name: "Guardian", url: "https://guardian.example/a", bias: "lean-left", original_title: "Minister hints services knew" },
+    {
+      article_id: "A1",
+      name: "Reuters",
+      url: "https://reuters.example/a",
+      bias: "center",
+      original_title: "Five men held - Reuters",
+      wire: true,
+      wire_agency: "reuters",
+    },
+    {
+      article_id: "A2",
+      name: "Straits Times",
+      url: "https://st.example/a",
+      bias: "lean-right",
+      original_title: "Police question five men",
+      wire_agency: "reuters",
+    },
+    {
+      article_id: "A3",
+      name: "Guardian",
+      url: "https://guardian.example/a",
+      bias: "lean-left",
+      original_title: "Minister hints services knew",
+    },
   ]);
   sel.must_know[0]!.claims = [
     { field: "summary", text: "five men questioned", supported_by: ["A2"] },
@@ -210,23 +382,45 @@ const withClaims = (): Selections => {
   return sel;
 };
 const articleLink = (url: string, title: string) => `<li><a href="${url}">${title}</a></li>`;
-const backs = (claims: string) => `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${claims}</span>`;
+const backs = (claims: string) =>
+  `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${claims}</span>`;
 describe("what each report backs", () => {
   it("lists under each report what its articles back, when the story has claims", () => {
     const web = renderWeb(input(withClaims()));
-    expect(web).toContain(`Reuters<span class="via"> · wire</span></span>${backs("five men questioned; arrests near the base")}`);
+    expect(web).toContain(
+      `Reuters<span class="via"> · wire</span></span>${backs("five men questioned; arrests near the base")}`,
+    );
     expect(web).toContain(`Guardian</span>${backs("Streeting&#39;s partial picture; arrests near the base")}`);
   });
   it("links each article by its own headline, one or several alike, the outlet's name trimmed off the end", () => {
     const sel = withClaims();
-    sel.must_know[0]!.sources.push({ article_id: "A4", name: "Guardian", url: "https://guardian.example/b", bias: "lean-left", original_title: "Second take" });
+    sel.must_know[0]!.sources.push({
+      article_id: "A4",
+      name: "Guardian",
+      url: "https://guardian.example/b",
+      bias: "lean-left",
+      original_title: "Second take",
+    });
     const web = renderWeb(input(sel));
     expect(web).toContain(`<span class="nm">Reuters<span class="via"> · wire</span></span>`);
     expect(web).toContain(`<ul class="arts">${articleLink("https://reuters.example/a", "Five men held")}</ul>`);
-    expect(web).toContain(`<ul class="arts">${articleLink("https://guardian.example/a", "Minister hints services knew")}${articleLink("https://guardian.example/b", "Second take")}</ul>`);
+    expect(web).toContain(
+      `<ul class="arts">${articleLink("https://guardian.example/a", "Minister hints services knew")}${articleLink("https://guardian.example/b", "Second take")}</ul>`,
+    );
   });
   it("shows a headline its feed sent HTML-escaped as text, escaped once", () => {
-    const web = renderWeb(input(story([{ name: "Reuters", url: "https://reuters.example/a", bias: "center", original_title: "Why is Yemen&#x27;s Taiz &amp; Aden important?" }])));
+    const web = renderWeb(
+      input(
+        story([
+          {
+            name: "Reuters",
+            url: "https://reuters.example/a",
+            bias: "center",
+            original_title: "Why is Yemen&#x27;s Taiz &amp; Aden important?",
+          },
+        ]),
+      ),
+    );
     expect(web).toContain(">Why is Yemen&#39;s Taiz &amp; Aden important?</a>");
   });
   it("names an untitled article whose link has no parseable host by its outlet, and still renders", () => {
@@ -234,10 +428,14 @@ describe("what each report backs", () => {
     expect(web).toContain('<a href="http://a b/x">FT</a>');
   });
   it("heads an outlet with no rating as unrated, never with a blank heading", () => {
-    const web = renderWeb(input(story([{ name: "Blog", url: "https://blog.example/a", bias: "", original_title: "A post" }])));
+    const web = renderWeb(
+      input(story([{ name: "Blog", url: "https://blog.example/a", bias: "", original_title: "A post" }])),
+    );
     expect(web).toContain('<div class="src-grp u"><p class="src-gh">Unrated</p>');
     expect(web).not.toContain('<p class="src-gh"></p>');
-    const spaces = renderWeb(input(story([{ name: "Blog", url: "https://blog.example/a", bias: " ", original_title: "A post" }])));
+    const spaces = renderWeb(
+      input(story([{ name: "Blog", url: "https://blog.example/a", bias: " ", original_title: "A post" }])),
+    );
     expect(spaces).toContain('<div class="src-grp u"><p class="src-gh">Unrated</p>');
   });
   it("names an untitled article by its site", () => {
@@ -251,7 +449,9 @@ describe("what each report backs", () => {
   });
   it("groups the reports under one heading per leaning, far left to far right", () => {
     const web = renderWeb(input(withClaims()));
-    const heads = [...web.matchAll(/<div class="src-grp (\w)"><p class="src-gh">([^<]+)<\/p>/g)].map((m) => `${m[1]} ${m[2]}`);
+    const heads = [...web.matchAll(/<div class="src-grp (\w)"><p class="src-gh">([^<]+)<\/p>/g)].map(
+      (m) => `${m[1]} ${m[2]}`,
+    );
     expect(heads).toEqual(["l Lean left", "c Centre"]);
   });
 });

@@ -43,7 +43,11 @@ export function withBias(row: IssueRowData, bias: Map<string, Bucket>): IssueRow
 }
 
 // `year` wins over `before`; a year is unpaginated.
-export async function fetchArchive(data: SiteData, bias: Map<string, Bucket>, q: { before?: string | undefined; year?: number | undefined; limit: number }): Promise<ArchivePage> {
+export async function fetchArchive(
+  data: SiteData,
+  bias: Map<string, Bucket>,
+  q: { before?: string | undefined; year?: number | undefined; limit: number },
+): Promise<ArchivePage> {
   const limit = Math.min(Math.max(q.limit, 1), MAX_LIMIT);
   if (q.year !== undefined) {
     const rows = await data.archive({ year: q.year, limit });
@@ -78,11 +82,18 @@ export function rowHtml(row: IssueRow, isToday: boolean): string {
 
 // Rows with a "Month YYYY" divider before each month's newest issue. Appended pages pass no `today`.
 export function rowsHtml(rows: IssueRow[], today: string | null): string {
-  return rows.map((r) => `${r.isMonthStart ? `<li class="month">${escapeHtml(formatMonthYear(r.date.slice(0, 7)))}</li>` : ""}${rowHtml(r, today === r.date)}`).join("");
+  return rows
+    .map(
+      (r) =>
+        `${r.isMonthStart ? `<li class="month">${escapeHtml(formatMonthYear(r.date.slice(0, 7)))}</li>` : ""}${rowHtml(r, today === r.date)}`,
+    )
+    .join("");
 }
 
 // The /archive fragment: rows, then a hidden sentinel carrying the next cursor when more remain.
 export function fragmentHtml(page: ArchivePage): string {
-  const sentinel = page.nextBefore ? `<li class="more-sentinel" data-next-before="${page.nextBefore}" hidden aria-hidden="true"></li>` : "";
+  const sentinel = page.nextBefore
+    ? `<li class="more-sentinel" data-next-before="${page.nextBefore}" hidden aria-hidden="true"></li>`
+    : "";
   return rowsHtml(page.issues, null) + sentinel;
 }

@@ -17,7 +17,9 @@ export const pglite = (): Promise<PGlite> => (instance ??= start());
 // Every table back to empty, identities from 1.
 export async function emptyPglite(): Promise<PGlite> {
   const db = await pglite();
-  const { rows } = await db.query<{ t: string }>("SELECT string_agg(quote_ident(tablename), ', ') AS t FROM pg_tables WHERE schemaname = 'public'");
+  const { rows } = await db.query<{ t: string }>(
+    "SELECT string_agg(quote_ident(tablename), ', ') AS t FROM pg_tables WHERE schemaname = 'public'",
+  );
   await db.exec(`TRUNCATE ${rows[0]!.t} RESTART IDENTITY CASCADE`);
   return db;
 }

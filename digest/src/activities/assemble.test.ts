@@ -4,48 +4,128 @@ import { ArtifactStore, type Pointer } from "../store/artifacts.js";
 import { freshDb } from "../store/test-db.js";
 import { assemble, clusterFor } from "./assemble.js";
 
-const story = (h: string, ids: string[], extra: Record<string, unknown> = {}) => ({ headline: h, summary: "S", why_it_matters: "W", sources: ids.map((article_id) => ({ article_id })), ...extra });
+const story = (h: string, ids: string[], extra: Record<string, unknown> = {}) => ({
+  headline: h,
+  summary: "S",
+  why_it_matters: "W",
+  sources: ids.map((article_id) => ({ article_id })),
+  ...extra,
+});
 async function setup(results: unknown[], resolution: unknown[] = [], preheader: string | null = "Pre") {
   const store = new ArtifactStore(await freshDb([300]));
-  await store.put(300, "clusters.json", JSON.stringify({ clusters: [{ story: "Russia votes", article_ids: ["A1", "A2"] }, { story: "Yen", article_ids: ["A4"] }] }));
-  await store.put(300, "selected.json", JSON.stringify({ must_know: [], should_know: [], not_covered_blurb: "Held back a Balkan ruling." }));
-  const plans = [["must_know", "Russia votes", ["A1", "A2"], { reporting_varies: [{ source: "NYT (A316)", angle: "a", bias: "center", article_id: "A2" }, { source: "Guardian", angle: "b", bias: "lean-left", article_id: "A9" }, { source: "Spiegel", angle: "c", bias: "lean-left" }] }], ["must_know", "Talks stall", ["A3"], {}], ["must_know", "Deal signed", ["A5"], {}], ["should_know", "Yen jumps", ["A4"], {}]] as const;
+  await store.put(
+    300,
+    "clusters.json",
+    JSON.stringify({
+      clusters: [
+        { story: "Russia votes", article_ids: ["A1", "A2"] },
+        { story: "Yen", article_ids: ["A4"] },
+      ],
+    }),
+  );
+  await store.put(
+    300,
+    "selected.json",
+    JSON.stringify({ must_know: [], should_know: [], not_covered_blurb: "Held back a Balkan ruling." }),
+  );
+  const plans = [
+    [
+      "must_know",
+      "Russia votes",
+      ["A1", "A2"],
+      {
+        reporting_varies: [
+          { source: "NYT (A316)", angle: "a", bias: "center", article_id: "A2" },
+          { source: "Guardian", angle: "b", bias: "lean-left", article_id: "A9" },
+          { source: "Spiegel", angle: "c", bias: "lean-left" },
+        ],
+      },
+    ],
+    ["must_know", "Talks stall", ["A3"], {}],
+    ["must_know", "Deal signed", ["A5"], {}],
+    ["should_know", "Yen jumps", ["A4"], {}],
+  ] as const;
   const drafts: Pointer[] = [];
-  for (const [i, [tier, h, ids, extra]] of plans.entries()) drafts.push(await store.put(300, `draft_s0${i}.json`, JSON.stringify({ plan: { index: i, tier, storyIds: ids, contextIds: ids }, story: story(h, [...ids], extra) })));
+  for (const [i, [tier, h, ids, extra]] of plans.entries())
+    drafts.push(
+      await store.put(
+        300,
+        `draft_s0${i}.json`,
+        JSON.stringify({ plan: { index: i, tier, storyIds: ids, contextIds: ids }, story: story(h, [...ids], extra) }),
+      ),
+    );
   const report = await store.put(300, "coherence_report.json", JSON.stringify({ results }));
   const repair = await store.put(300, "repair_resolution.json", JSON.stringify({ input: "x", results: resolution }));
-  const pre = preheader === null ? null : await store.put(300, "preheader.json", JSON.stringify({ input: "x", line: preheader }));
+  const pre =
+    preheader === null ? null : await store.put(300, "preheader.json", JSON.stringify({ input: "x", line: preheader }));
   return () => assemble(store, 300, drafts, report, repair, pre);
 }
 const pass = (h: string, ids: string[]) => ({ headline: h, article_ids: ids, pass: true, reason: "ok" });
-const fail = (h: string, ids: string[]) => ({ headline: h, article_ids: ids, pass: false, reason: "s", failed_fields: ["summary"] });
+const fail = (h: string, ids: string[]) => ({
+  headline: h,
+  article_ids: ids,
+  pass: false,
+  reason: "s",
+  failed_fields: ["summary"],
+});
 
 describe("assemble", () => {
   it("keeps passes, blanks a why-only fail, applies a confirmed repair, drops the rest, scrubs and labels", async () => {
     const run = await setup(
-      [pass("Russia votes", ["A1", "A2"]), { headline: "Talks stall", article_ids: ["A3"], pass: false, reason: "why", failed_fields: ["why_it_matters"] }, { headline: "Deal signed", article_ids: ["A5"], pass: false, reason: "summary", failed_fields: ["summary"] }, { headline: "Yen jumps", article_ids: ["A4"], pass: false, reason: "why", failed_fields: ["why_it_matters"] }],
+      [
+        pass("Russia votes", ["A1", "A2"]),
+        { headline: "Talks stall", article_ids: ["A3"], pass: false, reason: "why", failed_fields: ["why_it_matters"] },
+        { headline: "Deal signed", article_ids: ["A5"], pass: false, reason: "summary", failed_fields: ["summary"] },
+        { headline: "Yen jumps", article_ids: ["A4"], pass: false, reason: "why", failed_fields: ["why_it_matters"] },
+      ],
       [{ article_ids: ["A5"], status: "repaired", recheck_pass: true, patched_fields: { summary: "Fixed." } }],
     );
     const { selections, report } = await run();
-    expect(selections.must_know.map((s) => [s.headline, s.why_it_matters, s.cluster_id])).toEqual([["Russia votes", "W", "Russia votes"], ["Talks stall", "", undefined], ["Deal signed", "W", undefined]]);
+    expect(selections.must_know.map((s) => [s.headline, s.why_it_matters, s.cluster_id])).toEqual([
+      ["Russia votes", "W", "Russia votes"],
+      ["Talks stall", "", undefined],
+      ["Deal signed", "W", undefined],
+    ]);
     expect(selections.must_know[2]?.summary).toBe("Fixed.");
-    expect(selections.must_know[0]?.reporting_varies).toEqual([{ source: "NYT", angle: "a", bias: "center", article_id: "A2" }]);
-    expect(selections.should_know).toEqual([{ headline: "Yen jumps", summary: "S", sources: [{ article_id: "A4" }], cluster_id: "Yen" }]);
+    expect(selections.must_know[0]?.reporting_varies).toEqual([
+      { source: "NYT", angle: "a", bias: "center", article_id: "A2" },
+    ]);
+    expect(selections.should_know).toEqual([
+      { headline: "Yen jumps", summary: "S", sources: [{ article_id: "A4" }], cluster_id: "Yen" },
+    ]);
     expect(selections.preheader).toBe("Pre");
     expect(selections.not_covered_blurb).toBe("Held back a Balkan ruling.");
     expect(report).toEqual({ shipped: 4, dropped: [], repaired: 1, blanked: 1, removed: 0 });
   });
   it("drops an unrepaired non-why failure and a repair not confirmed by the recheck", async () => {
-    const { selections, report } = await (await setup([pass("Russia votes", ["A1", "A2"]), pass("Talks stall", ["A3"]), { headline: "Deal signed", article_ids: ["A5"], pass: false, reason: "s", failed_fields: ["summary"] }, pass("Yen jumps", ["A4"])], [{ article_ids: ["A5"], status: "recheck_failed", recheck_pass: false, patched_fields: { summary: "x" } }]))();
+    const { selections, report } = await (
+      await setup(
+        [
+          pass("Russia votes", ["A1", "A2"]),
+          pass("Talks stall", ["A3"]),
+          { headline: "Deal signed", article_ids: ["A5"], pass: false, reason: "s", failed_fields: ["summary"] },
+          pass("Yen jumps", ["A4"]),
+        ],
+        [{ article_ids: ["A5"], status: "recheck_failed", recheck_pass: false, patched_fields: { summary: "x" } }],
+      )
+    )();
     expect(report.dropped).toEqual(["Deal signed"]);
     expect(selections.must_know).toHaveLength(2);
   });
   it("fills an empty preheader from the top headline, and refuses an empty digest", async () => {
-    expect((await (await setup([pass("Russia votes", ["A1", "A2"])], [], null))()).selections.preheader).toBe("Russia votes");
-    await expect((await setup([fail("Russia votes", ["A1", "A2"]), fail("Talks stall", ["A3"]), fail("Deal signed", ["A5"])]))()).rejects.toThrow(/no must_know story survived/);
+    expect((await (await setup([pass("Russia votes", ["A1", "A2"])], [], null))()).selections.preheader).toBe(
+      "Russia votes",
+    );
+    await expect(
+      (await setup([fail("Russia votes", ["A1", "A2"]), fail("Talks stall", ["A3"]), fail("Deal signed", ["A5"])]))(),
+    ).rejects.toThrow(/no must_know story survived/);
   });
   it("clusterFor votes by distinct ids, earliest on a tie", async () => {
-    const owner = new Map([["A1", "x"], ["A2", "y"], ["A3", "y"]]);
+    const owner = new Map([
+      ["A1", "x"],
+      ["A2", "y"],
+      ["A3", "y"],
+    ]);
     expect(clusterFor(["A1", "A1", "A2", "A3"], owner)).toBe("y");
     expect(clusterFor(["A1", "A2"], owner)).toBe("x");
   });
@@ -55,18 +135,67 @@ const claims = [
   { field: "summary", text: "the Metz address", supported_by: ["A1", "A9"] },
   { field: "why_it_matters", text: "the concessions call", supported_by: ["A1"] },
 ];
-const attributed = (complete: boolean, backs: Record<string, string[]>, unverified: string[] = [], differ: Record<string, string[]> = {}) => ({ input: "x", stories: { "A1,A2,A3,A4|pope": { complete, unverified, claims: Object.entries(backs).map(([text, supported_by]) => ({ field: claims.find((c) => c.text === text)?.field ?? "summary", text, supported_by, differs: (differ[text] ?? []).map((article_id) => ({ article_id, quote: "q", published: "" })) })) } } });
+const attributed = (
+  complete: boolean,
+  backs: Record<string, string[]>,
+  unverified: string[] = [],
+  differ: Record<string, string[]> = {},
+) => ({
+  input: "x",
+  stories: {
+    "A1,A2,A3,A4|pope": {
+      complete,
+      unverified,
+      claims: Object.entries(backs).map(([text, supported_by]) => ({
+        field: claims.find((c) => c.text === text)?.field ?? "summary",
+        text,
+        supported_by,
+        differs: (differ[text] ?? []).map((article_id) => ({ article_id, quote: "q", published: "" })),
+      })),
+    },
+  },
+});
 const body = (words: number) => Array.from({ length: words }, (_, i) => `w${i}`).join(" ");
-async function ledger(result: Record<string, unknown>, resolution: unknown[] = [], attribution: unknown = attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"], w: ["A2"], s: ["A1"] }), a2Words = 160) {
+async function ledger(
+  result: Record<string, unknown>,
+  resolution: unknown[] = [],
+  attribution: unknown = attributed(true, {
+    "the Metz address": ["A1"],
+    "the concessions call": ["A1"],
+    w: ["A2"],
+    s: ["A1"],
+  }),
+  a2Words = 160,
+) {
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "clusters.json", JSON.stringify({ clusters: [] }));
-  await store.put(300, "article_fulltext.json", JSON.stringify({ A1: { text: body(160) }, A2: { text: body(a2Words) }, A3: { text: "Cut body.\n[truncated]" } }));
-  const s = story("Pope", ["A1", "A2", "A3", "A4"], { reporting_varies: [{ source: "X", angle: "from A2", bias: "center", article_id: "A2" }, { source: "Y", angle: "from A1", bias: "center", article_id: "A1" }] });
-  const drafts = [await store.put(300, "draft_s00.json", JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: s }))];
-  const report = await store.put(300, "coherence_report.json", JSON.stringify({ results: [{ headline: "Pope", article_ids: ["A1", "A2", "A3", "A4"], reason: "ok", ...result }] }));
+  await store.put(
+    300,
+    "article_fulltext.json",
+    JSON.stringify({ A1: { text: body(160) }, A2: { text: body(a2Words) }, A3: { text: "Cut body.\n[truncated]" } }),
+  );
+  const s = story("Pope", ["A1", "A2", "A3", "A4"], {
+    reporting_varies: [
+      { source: "X", angle: "from A2", bias: "center", article_id: "A2" },
+      { source: "Y", angle: "from A1", bias: "center", article_id: "A1" },
+    ],
+  });
+  const drafts = [
+    await store.put(
+      300,
+      "draft_s00.json",
+      JSON.stringify({ plan: { index: 0, tier: "must_know", storyIds: ["A1"], contextIds: ["A1"] }, story: s }),
+    ),
+  ];
+  const report = await store.put(
+    300,
+    "coherence_report.json",
+    JSON.stringify({ results: [{ headline: "Pope", article_ids: ["A1", "A2", "A3", "A4"], reason: "ok", ...result }] }),
+  );
   const repair = await store.put(300, "repair_resolution.json", JSON.stringify({ input: "x", results: resolution }));
   const attr = attribution === null ? null : await store.put(300, "attribution.json", JSON.stringify(attribution));
-  return (removeUnsupported: boolean) => assemble(store, 300, drafts, report, repair, null, { removeUnsupported, attribution: attr });
+  return (removeUnsupported: boolean) =>
+    assemble(store, 300, drafts, report, repair, null, { removeUnsupported, attribution: attr });
 }
 
 describe("assemble: claims and articles that back nothing", () => {
@@ -94,19 +223,36 @@ describe("assemble: claims and articles that back nothing", () => {
     expect((await (await ledger({ pass: true }))(true)).selections.must_know[0]?.sources).toHaveLength(4);
     const none = [{ field: "summary", text: "x", supported_by: [] }];
     const warn = vi.spyOn(log, "warn").mockImplementation(() => undefined);
-    expect((await (await ledger({ pass: true, claims: none }, [], attributed(true, { x: [] })))(true)).selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A2", "A3", "A4"]);
+    expect(
+      (
+        await (
+          await ledger({ pass: true, claims: none }, [], attributed(true, { x: [] }))
+        )(true)
+      ).selections.must_know[0]?.sources.map((x) => x.article_id),
+    ).toEqual(["A1", "A2", "A3", "A4"]);
     expect(warn.mock.calls.some((c) => JSON.stringify(c[0]).includes("the check and its claims disagree"))).toBe(true);
     warn.mockRestore();
   });
   it("drops a blanked why_it_matters' claims before deciding what backs nothing", async () => {
-    const onlyWhy = [{ field: "why_it_matters", text: "w", supported_by: ["A2"] }, { field: "summary", text: "s", supported_by: ["A1"] }];
-    const { selections } = await (await ledger({ pass: false, failed_fields: ["why_it_matters"], claims: onlyWhy }))(true);
+    const onlyWhy = [
+      { field: "why_it_matters", text: "w", supported_by: ["A2"] },
+      { field: "summary", text: "s", supported_by: ["A1"] },
+    ];
+    const { selections } = await (
+      await ledger({ pass: false, failed_fields: ["why_it_matters"], claims: onlyWhy })
+    )(true);
     expect(selections.must_know[0]?.why_it_matters).toBe("");
     expect(selections.must_know[0]?.claims).toEqual([{ field: "summary", text: "s", supported_by: ["A1"] }]);
     expect(selections.must_know[0]?.sources.map((x) => x.article_id)).toEqual(["A1", "A3", "A4"]);
   });
   it("takes what backs each claim from the attribution, not the checker's list", async () => {
-    const { selections, report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1", "A2"], "the concessions call": [] })))(true);
+    const { selections, report } = await (
+      await ledger(
+        { pass: true, claims },
+        [],
+        attributed(true, { "the Metz address": ["A1", "A2"], "the concessions call": [] }),
+      )
+    )(true);
     expect(selections.must_know[0]?.claims).toEqual([
       { field: "summary", text: "the Metz address", supported_by: ["A1", "A2"] },
       { field: "why_it_matters", text: "the concessions call", supported_by: [] },
@@ -114,7 +260,11 @@ describe("assemble: claims and articles that back nothing", () => {
     expect(report.removed).toBe(0);
   });
   it("removes nothing without a complete attribution for every claim, and falls back to the checker's list", async () => {
-    for (const attribution of [null, attributed(false, { "the Metz address": ["A1"], "the concessions call": ["A1"] }), attributed(true, { "the Metz address": ["A1"] })]) {
+    for (const attribution of [
+      null,
+      attributed(false, { "the Metz address": ["A1"], "the concessions call": ["A1"] }),
+      attributed(true, { "the Metz address": ["A1"] }),
+    ]) {
       const { selections, report } = await (await ledger({ pass: true, claims }, [], attribution))(true);
       expect(report.removed).toBe(0);
       expect(selections.must_know[0]?.sources).toHaveLength(4);
@@ -123,20 +273,50 @@ describe("assemble: claims and articles that back nothing", () => {
     expect(selections.must_know[0]?.claims?.[0]?.supported_by).toEqual(["A1"]);
   });
   it("never removes an article said to back a claim whose quote could not be found in it", async () => {
-    const { report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, ["A2"])))(true);
+    const { report } = await (
+      await ledger(
+        { pass: true, claims },
+        [],
+        attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, ["A2"]),
+      )
+    )(true);
     expect(report.removed).toBe(0);
   });
   it("never removes an article that gives a different figure for a claim: it covers the story", async () => {
-    const { report } = await (await ledger({ pass: true, claims }, [], attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, [], { "the Metz address": ["A2"] })))(true);
+    const { report } = await (
+      await ledger(
+        { pass: true, claims },
+        [],
+        attributed(true, { "the Metz address": ["A1"], "the concessions call": ["A1"] }, [], {
+          "the Metz address": ["A2"],
+        }),
+      )
+    )(true);
     expect(report.removed).toBe(0);
   });
   it("shows the checker's list, not a partial attribution, for a story whose attribution is incomplete", async () => {
-    const { selections } = await (await ledger({ pass: true, claims }, [], attributed(false, { "the Metz address": [], "the concessions call": [] })))(false);
+    const { selections } = await (
+      await ledger(
+        { pass: true, claims },
+        [],
+        attributed(false, { "the Metz address": [], "the concessions call": [] }),
+      )
+    )(false);
     expect(selections.must_know[0]?.claims?.map((c) => c.supported_by)).toEqual([["A1"], ["A1"]]);
   });
   it("takes a repaired story's claims from its recheck", async () => {
     const fixed = [{ field: "summary", text: "the fixed specific", supported_by: ["A2"] }];
-    const { selections } = await (await ledger({ pass: false, failed_fields: ["summary"], claims }, [{ article_ids: ["A1", "A2", "A3", "A4"], status: "repaired", recheck_pass: true, patched_fields: { summary: "Fixed." }, claims: fixed }]))(false);
+    const { selections } = await (
+      await ledger({ pass: false, failed_fields: ["summary"], claims }, [
+        {
+          article_ids: ["A1", "A2", "A3", "A4"],
+          status: "repaired",
+          recheck_pass: true,
+          patched_fields: { summary: "Fixed." },
+          claims: fixed,
+        },
+      ])
+    )(false);
     expect(selections.must_know[0]?.claims).toEqual(fixed);
   });
 });

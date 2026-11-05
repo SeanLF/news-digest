@@ -29,7 +29,27 @@ const posthogClaude = posthogClient ? instrument({ client: posthogClient, privac
 // `tools` is the SDK's base set of built-ins and the only option that restricts availability;
 // `allowedTools` merely skips the permission prompt. The disallow list is belt and braces for
 // the tools a preset would otherwise add.
-const BUILTIN = ["Read", "Grep", "Glob", "Write", "Edit", "MultiEdit", "Bash", "WebFetch", "WebSearch", "Task", "NotebookEdit", "TodoWrite", "ExitPlanMode", "BashOutput", "KillBash", "SlashCommand", "ListMcpResources", "ReadMcpResource", "ReadMcpResourceDir"] as const;
+const BUILTIN = [
+  "Read",
+  "Grep",
+  "Glob",
+  "Write",
+  "Edit",
+  "MultiEdit",
+  "Bash",
+  "WebFetch",
+  "WebSearch",
+  "Task",
+  "NotebookEdit",
+  "TodoWrite",
+  "ExitPlanMode",
+  "BashOutput",
+  "KillBash",
+  "SlashCommand",
+  "ListMcpResources",
+  "ReadMcpResource",
+  "ReadMcpResourceDir",
+] as const;
 
 function targetOf(name: string, input: unknown): string {
   const inp = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
@@ -44,7 +64,8 @@ function controllerFor(signal: AbortSignal): AbortController {
   return c;
 }
 
-const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig => (t === "adaptive" ? { type: "adaptive" } : { type: "disabled" });
+const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig =>
+  t === "adaptive" ? { type: "adaptive" } : { type: "disabled" };
 
 // One stage: system prompt from the spec, the stage's input as the user turn, tools scoped to
 // Read and Grep over the input directory, the result as the final message (structured when a
@@ -53,20 +74,36 @@ const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig => (t === "adapti
 export async function runStage(
   spec: StageSpec,
   input: StageInput,
-  opts: { outputSchema?: Record<string, unknown>; today: string; query?: SdkQuery; maxBudgetUsd?: number; heartbeat?: () => void; signal?: AbortSignal; runId?: number },
+  opts: {
+    outputSchema?: Record<string, unknown>;
+    today: string;
+    query?: SdkQuery;
+    maxBudgetUsd?: number;
+    heartbeat?: () => void;
+    signal?: AbortSignal;
+    runId?: number;
+  },
 ): Promise<StageResult> {
-  const q = opts.query ?? (posthogClaude
-    ? ({ prompt, options }) => posthogClaude.query({
-        prompt,
-        ...(options ? { options } : {}),
-        posthog: {
-          traceId: randomUUID(),
-          // The SDK overwrites $ai_session_id with its own session, so the run is a property of ours.
-          properties: { ...(opts.runId === undefined ? {} : { run_id: opts.runId }), stage: spec.name, model: spec.model, thinking: spec.thinking },
-          privacyMode: true,
-        },
-      })
-    : query);
+  const q =
+    opts.query ??
+    (posthogClaude
+      ? ({ prompt, options }) =>
+          posthogClaude.query({
+            prompt,
+            ...(options ? { options } : {}),
+            posthog: {
+              traceId: randomUUID(),
+              // The SDK overwrites $ai_session_id with its own session, so the run is a property of ours.
+              properties: {
+                ...(opts.runId === undefined ? {} : { run_id: opts.runId }),
+                stage: spec.name,
+                model: spec.model,
+                thinking: spec.thinking,
+              },
+              privacyMode: true,
+            },
+          })
+      : query);
   const allowed: readonly string[] = spec.tools;
   const options: Options = {
     model: spec.model,
@@ -93,17 +130,18 @@ export async function runStage(
   const beat = opts.heartbeat;
   const timer = beat ? setInterval(beat, 30_000) : undefined;
   try {
-  for await (const m of q({ prompt: input.userMessage, options })) {
-    beat?.();
-    if (m.type === "assistant") {
-      for (const block of m.message.content) {
-        if (block.type === "tool_use") toolCalls.push({ name: block.name, target: targetOf(block.name, block.input) });
-        else if (block.type === "text") texts.push(block.text);
+    for await (const m of q({ prompt: input.userMessage, options })) {
+      beat?.();
+      if (m.type === "assistant") {
+        for (const block of m.message.content) {
+          if (block.type === "tool_use")
+            toolCalls.push({ name: block.name, target: targetOf(block.name, block.input) });
+          else if (block.type === "text") texts.push(block.text);
+        }
+      } else if (m.type === "result") {
+        result = m;
       }
-    } else if (m.type === "result") {
-      result = m;
     }
-  }
   } finally {
     if (timer) clearInterval(timer);
   }
@@ -112,7 +150,8 @@ export async function runStage(
   // The SDK re-prompts on schema mismatch and ends with error_max_structured_output_retries; a
   // success WITHOUT structured_output when a schema was requested is also a failure.
   const structured = result.structured_output;
-  if (opts.outputSchema && structured === undefined) throw new Error(`stage ${spec.name}: success without structured output`);
+  if (opts.outputSchema && structured === undefined)
+    throw new Error(`stage ${spec.name}: success without structured output`);
   const usage: Record<string, number> = {};
   for (const [k, v] of Object.entries(result.usage)) if (typeof v === "number") usage[k] = v;
   return {

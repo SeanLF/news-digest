@@ -5,14 +5,24 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkDraft, type CheckerShape } from "../activities/coherence.js";
 
-interface Config { fixtureDir: string; today: string; agentsDir?: string; shape?: CheckerShape }
+interface Config {
+  fixtureDir: string;
+  today: string;
+  agentsDir?: string;
+  shape?: CheckerShape;
+}
 
 export default class CheckerProvider {
   private readonly config: Config;
   constructor(options: { config?: Partial<Config> } = {}) {
     const c = options.config ?? {};
     if (!c.fixtureDir || !c.today) throw new Error("checker provider needs config.fixtureDir and config.today");
-    this.config = { fixtureDir: c.fixtureDir, today: c.today, shape: c.shape ?? "inline-grep", agentsDir: c.agentsDir ?? new URL("../../agents/", import.meta.url).pathname };
+    this.config = {
+      fixtureDir: c.fixtureDir,
+      today: c.today,
+      shape: c.shape ?? "inline-grep",
+      agentsDir: c.agentsDir ?? new URL("../../agents/", import.meta.url).pathname,
+    };
   }
   id(): string {
     return `ts-checker:${this.config.shape}`;
@@ -24,7 +34,19 @@ export default class CheckerProvider {
       .toSorted()
       .map((n): [string, string] => [n, readFileSync(join(dir, n), "utf8")]);
     const t0 = Date.now();
-    const r = await checkDraft({ agentsDir: this.config.agentsDir! }, readFileSync(join(dir, "draft_selections.json"), "utf8"), corpus, this.config.today, undefined, this.config.shape);
-    return { output: JSON.stringify(r.report), cost: r.costUsd, latencyMs: Date.now() - t0, metadata: { numTurns: r.numTurns, toolCalls: r.toolCalls, unbackedFails: r.unbacked } };
+    const r = await checkDraft(
+      { agentsDir: this.config.agentsDir! },
+      readFileSync(join(dir, "draft_selections.json"), "utf8"),
+      corpus,
+      this.config.today,
+      undefined,
+      this.config.shape,
+    );
+    return {
+      output: JSON.stringify(r.report),
+      cost: r.costUsd,
+      latencyMs: Date.now() - t0,
+      metadata: { numTurns: r.numTurns, toolCalls: r.toolCalls, unbackedFails: r.unbacked },
+    };
   }
 }

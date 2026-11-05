@@ -3,14 +3,28 @@ import { ogImageUrl } from "../config.js";
 import { log } from "../../log.js";
 import { hiddenPointer, markdownLinkTag } from "../markdown.js";
 import { escapeHtml } from "../text.js";
-import { digestNavCss, proxyTranslateHideScript, railCss, railJs, reducedMotionCss, skipLinkCss, toggleJs } from "./blobs.js";
+import {
+  digestNavCss,
+  proxyTranslateHideScript,
+  railCss,
+  railJs,
+  reducedMotionCss,
+  skipLinkCss,
+  toggleJs,
+} from "./blobs.js";
 import { NO_FLASH_JS, type PageCtx, TOGGLE_BTN, ogImageTags, topbar, translatePill } from "./chrome.js";
 
 // An issue's web page: the HTML the pipeline rendered, with the site's chrome injected at fixed places
 // (circulation's get_digest). The needles are the template's own markup, held by app.test.ts and check-injections.test.ts against
 // digest/templates/digest-template.html.
 
-export const NEEDLES = { head: "</head>", paper: '<div class="paper">', footerMeta: '<p class="footer-meta">', footer: "</footer>", bodyEnd: "</body>" } as const;
+export const NEEDLES = {
+  head: "</head>",
+  paper: '<div class="paper">',
+  footerMeta: '<p class="footer-meta">',
+  footer: "</footer>",
+  bodyEnd: "</body>",
+} as const;
 
 const FAVICON =
   "<link rel=\"icon\" type=\"image/svg+xml\" href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23c45a3b'/%3E%3Cline x1='8' y1='10' x2='24' y2='10' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Cline x1='8' y1='16' x2='20' y2='16' stroke='white' stroke-width='2.5' stroke-linecap='round' opacity='.7'/%3E%3Cline x1='8' y1='22' x2='16' y2='22' stroke='white' stroke-width='2.5' stroke-linecap='round' opacity='.4'/%3E%3C/svg%3E\">";
@@ -50,7 +64,9 @@ function documentStart(html: string): number {
 }
 
 const feedbackHtml = (date: string, email: string | undefined): string =>
-  email ? `<p class="footer-feedback">Got feedback or a suggestion? <a href="mailto:${escapeHtml(email)}?subject=Digest%20feedback%20-%20${date}">Send a note &rarr;</a></p>` : "";
+  email
+    ? `<p class="footer-feedback">Got feedback or a suggestion? <a href="mailto:${escapeHtml(email)}?subject=Digest%20feedback%20-%20${date}">Send a note &rarr;</a></p>`
+    : "";
 
 // The story rail, from the stored stories as web.ts writes them: <article id> holding an <h3>, a
 // should-know one with class "brief". The headline is the stored, already-escaped text without the
@@ -60,10 +76,16 @@ export function storyRail(html: string): string {
   const stories = [...html.matchAll(ARTICLE)].map((m) => ({
     tier: /class="[^"]*\bbrief\b/.test(m[1]!) ? "sk" : "mk",
     id: m[2]!,
-    headline: m[3]!.replace(/<a class="anchor"[\s\S]*?<\/a>/g, "").replace(/<[^>]+>/g, "").trim(),
+    headline: m[3]!
+      .replace(/<a class="anchor"[\s\S]*?<\/a>/g, "")
+      .replace(/<[^>]+>/g, "")
+      .trim(),
   }));
   if (stories.length < 2) return "";
-  const items = stories.map((s, i) => `${i > 0 && s.tier !== stories[i - 1]!.tier ? '<li class="gap" aria-hidden="true"></li>' : ""}<li class="${s.tier}"><a href="#${s.id}"><span class="rail-tip">${s.headline}</span></a></li>`);
+  const items = stories.map(
+    (s, i) =>
+      `${i > 0 && s.tier !== stories[i - 1]!.tier ? '<li class="gap" aria-hidden="true"></li>' : ""}<li class="${s.tier}"><a href="#${s.id}"><span class="rail-tip">${s.headline}</span></a></li>`,
+  );
   return `<nav class="rail" aria-label="Stories in this issue"><ol>${items.join("")}</ol></nav>`;
 }
 
@@ -80,7 +102,12 @@ function inject(html: string, needle: string, replacement: string, missed: strin
 
 // The page, with every needle it failed to find. The feedback line's needles are looked for only when
 // a contact address is configured.
-export function renderIssue(ctx: PageCtx, date: string, stored: { html: string; preheader: string }, mdAbs: string): { html: string; missed: string[] } {
+export function renderIssue(
+  ctx: PageCtx,
+  date: string,
+  stored: { html: string; preheader: string },
+  mdAbs: string,
+): { html: string; missed: string[] } {
   const missed: string[] = [];
   const { cfg } = ctx;
   const title = escapeHtml(`${cfg.digestName} – ${date}`);
@@ -132,8 +159,19 @@ export function renderIssue(ctx: PageCtx, date: string, stored: { html: string; 
 
 // The page as served. A miss still serves what rendered, and is logged at error level: `make
 // check-injections` finds every stored issue that has one.
-export function issuePage(ctx: PageCtx, date: string, stored: { html: string; preheader: string }, mdAbs: string): string {
+export function issuePage(
+  ctx: PageCtx,
+  date: string,
+  stored: { html: string; preheader: string },
+  mdAbs: string,
+): string {
   const { html, missed } = renderIssue(ctx, date, stored, mdAbs);
-  for (const needle of missed) log.error({ site: "issue", date, needle, error: "web injection missed; the stored HTML drifted from the template" });
+  for (const needle of missed)
+    log.error({
+      site: "issue",
+      date,
+      needle,
+      error: "web injection missed; the stored HTML drifted from the template",
+    });
   return html;
 }

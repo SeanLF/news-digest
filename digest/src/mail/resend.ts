@@ -24,8 +24,15 @@ class BoundedResend extends Resend {
   }
 }
 // Throws MailDestinationError when the environment does not allow the destination (resendBaseUrl).
-export const resendClient = (apiKey: string, bounds: { timeoutMs?: number; signal?: () => AbortSignal | undefined } = {}, env: Record<string, string | undefined> = process.env): Resend =>
-  new BoundedResend(apiKey, resendBaseUrl(env), { timeoutMs: bounds.timeoutMs ?? RESEND_TIMEOUT_MS, ...(bounds.signal ? { signal: bounds.signal } : {}) });
+export const resendClient = (
+  apiKey: string,
+  bounds: { timeoutMs?: number; signal?: () => AbortSignal | undefined } = {},
+  env: Record<string, string | undefined> = process.env,
+): Resend =>
+  new BoundedResend(apiKey, resendBaseUrl(env), {
+    timeoutMs: bounds.timeoutMs ?? RESEND_TIMEOUT_MS,
+    ...(bounds.signal ? { signal: bounds.signal } : {}),
+  });
 
 export interface Email {
   from: string;
@@ -51,8 +58,15 @@ export class ResendSendError extends Error {
 // drop. This turns it into a throw the caller's retry policy can see.
 export function emailSender(emails: ResendEmails): SendEmail {
   return async (email, opts) => {
-    const { data, error } = await emails.send(email, opts?.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined);
-    if (error) throw new ResendSendError(`${error.name} (${error.statusCode ?? "no status"}): ${error.message}`, error.statusCode);
+    const { data, error } = await emails.send(
+      email,
+      opts?.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : undefined,
+    );
+    if (error)
+      throw new ResendSendError(
+        `${error.name} (${error.statusCode ?? "no status"}): ${error.message}`,
+        error.statusCode,
+      );
     return { id: data.id };
   };
 }

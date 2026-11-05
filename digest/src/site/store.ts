@@ -1,5 +1,14 @@
 import type { RowOf, Sql } from "../store/db.js";
-import type { IndexMeta, IssueRowData, SearchHit, SiteData, StatsData, ThreadData, ThreadIndexData, ThreadSummaryData } from "./data.js";
+import type {
+  IndexMeta,
+  IssueRowData,
+  SearchHit,
+  SiteData,
+  StatsData,
+  ThreadData,
+  ThreadIndexData,
+  ThreadSummaryData,
+} from "./data.js";
 
 // The site's reads against the product schema (digest/db/migrations). Readers see an issue date's
 // highest revision, and a thread's updates only from published runs (thread_state does the same).
@@ -26,7 +35,9 @@ const SUMMARY_COLS = `t.id, t.label, t.status, t.updated_at, t.update_count,
 // The row types: a table's or view's columns from the generated schema types, and each computed
 // column as the query spells it (count and sum are bigints and numerics, which the pool parses to
 // numbers; ::text and to_char are strings).
-type SummaryRow = Pick<RowOf<"thread_state">, "id" | "label" | "status" | "updated_at" | "update_count"> & { latest_content: RowOf<"thread_updates">["content"] };
+type SummaryRow = Pick<RowOf<"thread_state">, "id" | "label" | "status" | "updated_at" | "update_count"> & {
+  latest_content: RowOf<"thread_updates">["content"];
+};
 const summary = (r: SummaryRow): ThreadSummaryData => ({
   id: n(r.id),
   label: str(r.label),
@@ -36,16 +47,62 @@ const summary = (r: SummaryRow): ThreadSummaryData => ({
   latestContent: strOrNull(r.latest_content),
 });
 
-interface IndexMetaRow { total: number; first: string | null; newest: string | null; stories: number }
-interface ArchiveRow { date: string; preheader: string; issue_no: number; month_start: boolean; must: number; should: number; source_ids: string[] | null }
-interface SearchRow { headline: string; tier: string; date: string | null }
-interface InstallmentRow { day: string; issue_date: string | null; label: string; content: string | null }
+interface IndexMetaRow {
+  total: number;
+  first: string | null;
+  newest: string | null;
+  stories: number;
+}
+interface ArchiveRow {
+  date: string;
+  preheader: string;
+  issue_no: number;
+  month_start: boolean;
+  must: number;
+  should: number;
+  source_ids: string[] | null;
+}
+interface SearchRow {
+  headline: string;
+  tier: string;
+  date: string | null;
+}
+interface InstallmentRow {
+  day: string;
+  issue_date: string | null;
+  label: string;
+  content: string | null;
+}
 type QuestionRow = Pick<RowOf<"thread_question_state">, "question"> & { content: string | null };
-interface HealthRow { source_id: string; total: number; successes: number | null }
-interface UsageRow { source_id: string; tier: string; count: number }
-interface RecentRunRow { run_at: string; articles_kept: number | null; recipients: number; cost: number | null }
-interface DedupRow { c: number; avg: number | null; min: number | null; max: number | null }
-interface CostRow { runs: number; kept: number; cost: number; shipped: number; recipients: number | null }
+interface HealthRow {
+  source_id: string;
+  total: number;
+  successes: number | null;
+}
+interface UsageRow {
+  source_id: string;
+  tier: string;
+  count: number;
+}
+interface RecentRunRow {
+  run_at: string;
+  articles_kept: number | null;
+  recipients: number;
+  cost: number | null;
+}
+interface DedupRow {
+  c: number;
+  avg: number | null;
+  min: number | null;
+  max: number | null;
+}
+interface CostRow {
+  runs: number;
+  kept: number;
+  cost: number;
+  shipped: number;
+  recipients: number | null;
+}
 
 export function siteStore(db: Sql): SiteData {
   return {
@@ -55,7 +112,12 @@ export function siteStore(db: Sql): SiteData {
                 (SELECT count(*) FROM (SELECT DISTINCT run_id, headline FROM story_sources WHERE tier IN ('must_know', 'should_know')) s) AS stories
          FROM issues`,
       ))!;
-      return { total: n(r.total), firstDate: r.first ?? null, newestDate: r.newest ?? null, totalStories: n(r.stories) };
+      return {
+        total: n(r.total),
+        firstDate: r.first ?? null,
+        newestDate: r.newest ?? null,
+        totalStories: n(r.stories),
+      };
     },
 
     async archive(q): Promise<IssueRowData[]> {
@@ -92,7 +154,10 @@ export function siteStore(db: Sql): SiteData {
     // By the date's text, so a lenient date the route accepts ("2026-1-24") finds nothing rather than
     // failing a cast.
     async issue(date) {
-      return db.one<Pick<RowOf<"issues">, "html" | "preheader" | "markdown">>("SELECT html, preheader, markdown FROM issues WHERE issue_date::text = $1 ORDER BY revision DESC LIMIT 1", [date]);
+      return db.one<Pick<RowOf<"issues">, "html" | "preheader" | "markdown">>(
+        "SELECT html, preheader, markdown FROM issues WHERE issue_date::text = $1 ORDER BY revision DESC LIMIT 1",
+        [date],
+      );
     },
 
     async latestIssueDate() {
@@ -100,7 +165,10 @@ export function siteStore(db: Sql): SiteData {
     },
 
     async feed(limit) {
-      return db.all<{ date: string; preheader: string }>(`WITH ${LATEST} SELECT issue_date::text AS date, preheader FROM latest ORDER BY issue_date DESC LIMIT $1`, [limit]);
+      return db.all<{ date: string; preheader: string }>(
+        `WITH ${LATEST} SELECT issue_date::text AS date, preheader FROM latest ORDER BY issue_date DESC LIMIT $1`,
+        [limit],
+      );
     },
 
     // A literal phrase, stemmed English, ranked by ts_rank; unstemmed (`simple`) only when English
@@ -127,7 +195,9 @@ export function siteStore(db: Sql): SiteData {
     },
 
     async threadIndex(before, limit): Promise<ThreadIndexData> {
-      const ongoing = await db.all<SummaryRow>(`SELECT ${SUMMARY_COLS} FROM thread_state t WHERE t.status = 'active' ORDER BY ${SECOND} DESC, t.id DESC`);
+      const ongoing = await db.all<SummaryRow>(
+        `SELECT ${SUMMARY_COLS} FROM thread_state t WHERE t.status = 'active' ORDER BY ${SECOND} DESC, t.id DESC`,
+      );
       const older = await db.all<SummaryRow>(
         `SELECT ${SUMMARY_COLS} FROM thread_state t
          WHERE t.status NOT IN ('active', 'merged')
@@ -135,17 +205,25 @@ export function siteStore(db: Sql): SiteData {
          ORDER BY ${SECOND} DESC, t.id DESC LIMIT $3`,
         [before ? before.updatedAt : null, before ? before.id : 0, limit],
       );
-      const total = await db.one<{ c: number }>("SELECT count(*) AS c FROM thread_state WHERE status NOT IN ('active', 'merged')");
+      const total = await db.one<{ c: number }>(
+        "SELECT count(*) AS c FROM thread_state WHERE status NOT IN ('active', 'merged')",
+      );
       return { ongoing: ongoing.map(summary), older: older.map(summary), olderTotal: n(total?.c) };
     },
 
     async mergedInto(id) {
-      const r = await db.one<Pick<RowOf<"threads">, "merged_into_id">>("SELECT merged_into_id FROM threads WHERE id = $1", [id]);
+      const r = await db.one<Pick<RowOf<"threads">, "merged_into_id">>(
+        "SELECT merged_into_id FROM threads WHERE id = $1",
+        [id],
+      );
       return r === undefined ? undefined : nullable(r.merged_into_id);
     },
 
     async thread(id): Promise<ThreadData | undefined> {
-      const head = await db.one<Pick<RowOf<"thread_state">, "label" | "status">>("SELECT label, status FROM thread_state WHERE id = $1", [id]);
+      const head = await db.one<Pick<RowOf<"thread_state">, "label" | "status">>(
+        "SELECT label, status FROM thread_state WHERE id = $1",
+        [id],
+      );
       if (!head) return undefined;
       const updates = await db.all<InstallmentRow>(
         `SELECT to_char(r.started_at, 'YYYY-MM-DD') AS day, (SELECT max(i.issue_date)::text FROM issues i WHERE i.run_id = u.run_id) AS issue_date, u.label, u.content
@@ -165,7 +243,12 @@ export function siteStore(db: Sql): SiteData {
       return {
         label: str(head.label),
         status: str(head.status),
-        installments: updates.map((u) => ({ day: u.day, issueDate: strOrNull(u.issue_date), story: str(u.label), content: strOrNull(u.content) })),
+        installments: updates.map((u) => ({
+          day: u.day,
+          issueDate: strOrNull(u.issue_date),
+          story: str(u.label),
+          content: strOrNull(u.content),
+        })),
         openQuestions: questions.map((q) => ({ question: String(q.question), raisedContent: strOrNull(q.content) })),
       };
     },
@@ -174,7 +257,9 @@ export function siteStore(db: Sql): SiteData {
       // Past ~5.8 million days Postgres's interval arithmetic overflows; the whole archive fits far inside.
       // The window never reaches past year 1: SQLite's date arithmetic turned NULL there and matched nothing,
       // where a negative year here would be refused by Postgres.
-      const since = new Date(Math.max(now.getTime() - days * 86_400_000, Date.UTC(1, 0, 1))).toISOString().replace(/^\+0*/, "");
+      const since = new Date(Math.max(now.getTime() - days * 86_400_000, Date.UTC(1, 0, 1)))
+        .toISOString()
+        .replace(/^\+0*/, "");
       const [health, usage, runs, dedup, never, cost] = await Promise.all([
         db.all<HealthRow>(
           `SELECT source_id, count(*) AS total, sum(is_success::int) AS successes FROM source_fetches
@@ -224,15 +309,28 @@ export function siteStore(db: Sql): SiteData {
         // A run with no kept count has no row to show (the Rust server dropped it the same way).
         recentRuns: runs
           .filter((r) => r.articles_kept !== null)
-          .map((r) => ({ runAt: r.run_at, articlesKept: n(r.articles_kept), recipients: n(r.recipients), apiCostUsd: nullable(r.cost) })),
+          .map((r) => ({
+            runAt: r.run_at,
+            articlesKept: n(r.articles_kept),
+            recipients: n(r.recipients),
+            apiCostUsd: nullable(r.cost),
+          })),
         dedup: { count: n(dedup?.c), avg: nullable(dedup?.avg), min: nullable(dedup?.min), max: nullable(dedup?.max) },
         neverSelected: never.map((r) => r.source_id),
-        cost: { runs: n(cost?.runs), keptTotal: n(cost?.kept), costTotal: n(cost?.cost), shippedTotal: n(cost?.shipped), recipientsLatest: n(cost?.recipients) },
+        cost: {
+          runs: n(cost?.runs),
+          keptTotal: n(cost?.kept),
+          costTotal: n(cost?.cost),
+          shippedTotal: n(cost?.shipped),
+          recipientsLatest: n(cost?.recipients),
+        },
       };
     },
 
     async ping() {
-      await db.one("SELECT (SELECT count(*) FROM (SELECT 1 FROM issues LIMIT 1) i) + (SELECT count(*) FROM (SELECT 1 FROM story_sources LIMIT 1) s) AS n");
+      await db.one(
+        "SELECT (SELECT count(*) FROM (SELECT 1 FROM issues LIMIT 1) i) + (SELECT count(*) FROM (SELECT 1 FROM story_sources LIMIT 1) s) AS n",
+      );
     },
   };
 }

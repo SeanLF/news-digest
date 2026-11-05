@@ -1,7 +1,25 @@
 import { htmlEscape as esc } from "escape-goat";
 import { transform } from "lightningcss";
-import { codePoints, dates, isSafeUrl, readingTime, slugger, storyCounts, type RenderInput, type Story, type StoryClaim } from "./common.js";
-import { countsLabel, groupReports, leaningGroups, leaningLabel, REPORT_BUCKET_WORD, reportRows, tally } from "./reports.js";
+import {
+  codePoints,
+  dates,
+  isSafeUrl,
+  readingTime,
+  slugger,
+  storyCounts,
+  type RenderInput,
+  type Story,
+  type StoryClaim,
+} from "./common.js";
+import {
+  countsLabel,
+  groupReports,
+  leaningGroups,
+  leaningLabel,
+  REPORT_BUCKET_WORD,
+  reportRows,
+  tally,
+} from "./reports.js";
 
 // The web issue, ported from newsroom/src/render.py (render_digest, then replace_placeholders).
 
@@ -14,16 +32,25 @@ function sourcesBlock(g: ReturnType<typeof groupReports>, claims: StoryClaim[] =
   const row = (r: ReturnType<typeof reportRows>[number]) => {
     // Each article by its own headline, one or several alike, so the link says where it goes; a
     // republisher running the origin's headline links by its name instead of repeating it.
-    const arts = r.articles.length && !r.sameCopy ? `<ul class="arts">${r.articles.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a></li>`).join("")}</ul>` : "";
+    const arts =
+      r.articles.length && !r.sameCopy
+        ? `<ul class="arts">${r.articles.map((a) => `<li><a href="${esc(a.url)}">${esc(a.title)}</a></li>`).join("")}</ul>`
+        : "";
     const tag = r.carrier ? ` · ${esc(leaningLabel(r.leaning))}` : r.wire ? " · wire" : "";
     const label = r.sameCopy ? `<a class="out" href="${esc(r.articles[0]!.url)}">${esc(r.name)}</a>` : esc(r.name);
     const name = `${r.republished ? '<span class="rp">Republished by </span>' : ""}${label}${tag ? `<span class="via">${tag}</span>` : ""}`;
     // The hidden dash is for the Markdown converter and screen readers; the layout separates it by eye.
-    const backs = backsCol && r.backs.length ? `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${esc(r.backs.join("; "))}</span>` : "";
+    const backs =
+      backsCol && r.backs.length
+        ? `<span class="bk"><span class="vh"> — </span><span class="bk-k">Backs: </span>${esc(r.backs.join("; "))}</span>`
+        : "";
     return `<li${r.carrier ? ' class="carrier"' : ""}><span class="nm">${name}</span>${backs}${arts}</li>`;
   };
   const groups = leaningGroups(reportRows(g.reports, claims))
-    .map((gr) => `<div class="src-grp ${gr.bucket}"><p class="src-gh">${esc(leaningLabel(gr.leaning))}</p><ul class="src-list">${gr.rows.map(row).join("")}</ul></div>`)
+    .map(
+      (gr) =>
+        `<div class="src-grp ${gr.bucket}"><p class="src-gh">${esc(leaningLabel(gr.leaning))}</p><ul class="src-list">${gr.rows.map(row).join("")}</ul></div>`,
+    )
     .join("");
   return (
     `<details class="srcbox"><summary class="spread"><span class="biasbar" aria-hidden="true">${segs}</span>` +
@@ -41,17 +68,35 @@ function article(a: Story, slug: string, { brief = false, first = false } = {}):
   let eyebrow = "";
   if ((thread.day ?? 0) >= 2) {
     const label = `<span class="loc">Ongoing</span> · day ${thread.day}`;
-    eyebrow = thread.url ? `<p class="eyebrow"><a href="${esc(thread.url)}" aria-label="Ongoing · day ${thread.day} ↗ how this story developed">${label} ↗</a></p>` : `<p class="eyebrow">${label}</p>`;
+    eyebrow = thread.url
+      ? `<p class="eyebrow"><a href="${esc(thread.url)}" aria-label="Ongoing · day ${thread.day} ↗ how this story developed">${label} ↗</a></p>`
+      : `<p class="eyebrow">${label}</p>`;
   }
   // A continuing thread's delta, today's verified facts, replaces the summary.
   const delta = (thread.delta ?? "").trim();
   const body = delta ? esc(delta) : esc(a.summary ?? "");
   const sources = sourcesBlock(groupReports(a.sources), a.claims ?? []);
-  if (brief) return [`<article class="brief" id="${slug}">`, `<h3>${headline}${anchor}</h3>`, ...(eyebrow ? [eyebrow] : []), `<p class="summary">${body}</p>`, sources, "</article>"].join("\n");
-  const parts = [`<article${first ? ' class="first"' : ""} id="${slug}">`, `<h3 class="head">${headline}${anchor}</h3>`, ...(eyebrow ? [eyebrow] : []), `<p class="lede">${body}</p>`];
+  if (brief)
+    return [
+      `<article class="brief" id="${slug}">`,
+      `<h3>${headline}${anchor}</h3>`,
+      ...(eyebrow ? [eyebrow] : []),
+      `<p class="summary">${body}</p>`,
+      sources,
+      "</article>",
+    ].join("\n");
+  const parts = [
+    `<article${first ? ' class="first"' : ""} id="${slug}">`,
+    `<h3 class="head">${headline}${anchor}</h3>`,
+    ...(eyebrow ? [eyebrow] : []),
+    `<p class="lede">${body}</p>`,
+  ];
   if (why.trim()) parts.push(`<div class="why"><span class="lbl">Why it matters</span><p>${why}</p></div>`);
   const varies = a.reporting_varies ?? [];
-  if (varies.length) parts.push(`<div class="varies"><span class="lbl">How reporting varies</span>${varies.map((rv) => `<p><b>${esc(rv.source ?? "")}:</b> ${esc(rv.angle ?? "")}</p>`).join("")}</div>`);
+  if (varies.length)
+    parts.push(
+      `<div class="varies"><span class="lbl">How reporting varies</span>${varies.map((rv) => `<p><b>${esc(rv.source ?? "")}:</b> ${esc(rv.angle ?? "")}</p>`).join("")}</div>`,
+    );
   parts.push(sources, "</article>");
   return parts.join("\n");
 }
@@ -75,16 +120,24 @@ const v = (major: number) => major << 16;
 export const CSS_TARGETS = { safari: v(15), ios_saf: v(15), chrome: v(100), edge: v(100), firefox: v(91) };
 
 export function minifyCss(css: string): string {
-  return transform({ code: Buffer.from(css), minify: true, filename: "digest.css", targets: CSS_TARGETS }).code.toString();
+  return transform({
+    code: Buffer.from(css),
+    minify: true,
+    filename: "digest.css",
+    targets: CSS_TARGETS,
+  }).code.toString();
 }
 
 export function renderWeb({ selections, now, issueNo, env, assets }: RenderInput): string {
   const slug = slugger();
-  const mustKnow = selections.must_know.map((a, i) => article(a, slug(a.headline ?? ""), { first: i === 0 })).join("\n");
+  const mustKnow = selections.must_know
+    .map((a, i) => article(a, slug(a.headline ?? ""), { first: i === 0 }))
+    .join("\n");
   const shouldKnow = selections.should_know.map((a) => article(a, slug(a.headline ?? ""), { brief: true })).join("\n");
   let c = put(put(assets.template, "{{MUST_KNOW}}", mustKnow), "{{SHOULD_KNOW}}", shouldKnow);
 
-  for (const p of ["{{DIGEST_NAME}}", "{{DATE}}", "{{STYLES}}"]) if (!c.includes(p)) throw new Error(`Missing placeholder ${p} in digest`);
+  for (const p of ["{{DIGEST_NAME}}", "{{DATE}}", "{{STYLES}}"])
+    if (!c.includes(p)) throw new Error(`Missing placeholder ${p} in digest`);
   const d = dates(now);
   c = put(c, "{{STYLES}}", minifyCss(`${assets.tokens}\n${assets.styles}`));
   c = put(c, "{{DIGEST_NAME}}", esc(env.digestName ?? "News Digest"));
@@ -98,11 +151,13 @@ export function renderWeb({ selections, now, issueNo, env, assets }: RenderInput
   c = put(c, "{{PREHEADER}}", esc(selections.preheader ?? ""));
 
   const notCovered = selections.not_covered_blurb;
-  if (typeof notCovered === "string" && notCovered.trim()) c = put(c, "{{NOT_COVERED}}", `Not covered today: ${esc(notCovered.trim())}`);
+  if (typeof notCovered === "string" && notCovered.trim())
+    c = put(c, "{{NOT_COVERED}}", `Not covered today: ${esc(notCovered.trim())}`);
   else c = strip(c, /\s*<p class="not-covered">\{\{NOT_COVERED\}\}<\/p>/g);
 
   const { authorName, authorUrl, archiveUrl, digestDomain } = env;
-  if (authorName && authorUrl && isSafeUrl(authorUrl)) c = put(c, "{{AUTHOR_PLUG}}", `Made by <a href="${esc(authorUrl)}">${esc(authorName)}</a>`);
+  if (authorName && authorUrl && isSafeUrl(authorUrl))
+    c = put(c, "{{AUTHOR_PLUG}}", `Made by <a href="${esc(authorUrl)}">${esc(authorName)}</a>`);
   else if (authorName) c = put(c, "{{AUTHOR_PLUG}}", `Made by ${esc(authorName)}`);
   else c = strip(c, /\s*<p class="footer-meta">\{\{AUTHOR_PLUG\}\}<\/p>/g);
 

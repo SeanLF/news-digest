@@ -20,5 +20,8 @@ export function selfAgreement(runs: JudgeVerdict[][]): { perCriterion: Record<nu
     const c = Number(k.split(":")[1]);
     (byCriterion[c] ??= []).push(same);
   }
-  return { perCriterion: Object.fromEntries(Object.entries(byCriterion).map(([c, xs]) => [Number(c), avg(xs)])), overall: cells.size ? agree / cells.size : 0 };
+  return {
+    perCriterion: Object.fromEntries(Object.entries(byCriterion).map(([c, xs]) => [Number(c), avg(xs)])),
+    overall: cells.size ? agree / cells.size : 0,
+  };
 }

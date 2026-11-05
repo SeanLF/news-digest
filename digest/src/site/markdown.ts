@@ -26,7 +26,10 @@ export function negotiate(accept: string | null | undefined): Negotiated {
       if (p.startsWith("q=")) {
         // A present q overrides 1; out of range clamps; an unparseable one is 0, never the strongest.
         const v = Number.parseFloat(p.slice(2).trim());
-        q = Number.isFinite(v) && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(p.slice(2)) ? Math.min(Math.max(v, 0), 1) : 0;
+        q =
+          Number.isFinite(v) && /^\s*[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?\s*$/.test(p.slice(2))
+            ? Math.min(Math.max(v, 0), 1)
+            : 0;
       }
     }
     const max = (cur: number | undefined) => (cur === undefined || q > cur ? q : cur);
@@ -51,7 +54,8 @@ export function negotiate(accept: string | null | undefined): Negotiated {
 
 // An issue's stored Markdown body as a standalone document. The title is the site's, so the stored
 // body never carries a deployment's name.
-export const issueMarkdown = (digestName: string, date: string, body: string): string => `# ${digestName} — ${date}\n\n${body}\n`;
+export const issueMarkdown = (digestName: string, date: string, body: string): string =>
+  `# ${digestName} — ${date}\n\n${body}\n`;
 
 const abs = (base: string, path: string): string => (base ? `${base.replace(/\/+$/, "")}${path}` : path);
 

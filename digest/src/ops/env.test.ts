@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { operationsEnvWarning } from "./env.js";
 
-const FULL = { HEALTH_ALERT_EMAIL: "ops@x", RESEND_API_KEY: "re", RESEND_FROM: "d@x", HEALTHCHECK_PING_URL: "https://hc-ping.com/u", BROADCAST_ENABLED: "true", RESEND_AUDIENCE_ID: "aud", RESEND_LIVE: "true" };
+const FULL = {
+  HEALTH_ALERT_EMAIL: "ops@x",
+  RESEND_API_KEY: "re",
+  RESEND_FROM: "d@x",
+  HEALTHCHECK_PING_URL: "https://hc-ping.com/u",
+  BROADCAST_ENABLED: "true",
+  RESEND_AUDIENCE_ID: "aud",
+  RESEND_LIVE: "true",
+};
 
 describe("operationsEnvWarning", () => {
   it("is silent when alerts, pings and the send are all configured", () => {
@@ -14,11 +22,15 @@ describe("operationsEnvWarning", () => {
   });
   it("names a mail destination the client will refuse, so a dev worker says why nothing was mailed", () => {
     const { RESEND_LIVE: _, ...dev } = FULL;
-    expect(operationsEnvWarning(dev)).toMatch(/^operations misconfigured: every email will be refused \(RESEND_BASE_URL is unset and RESEND_LIVE is not true/);
+    expect(operationsEnvWarning(dev)).toMatch(
+      /^operations misconfigured: every email will be refused \(RESEND_BASE_URL is unset and RESEND_LIVE is not true/,
+    );
     expect(operationsEnvWarning({ ...dev, RESEND_BASE_URL: "http://resend-fake:8025" })).toBeNull();
   });
   it("names a HOLD_ALWAYS_THROUGH that is not a date, since it holds every run until fixed", () => {
-    expect(operationsEnvWarning({ ...FULL, HOLD_ALWAYS_THROUGH: "true" })).toBe("operations misconfigured: every run will hold (HOLD_ALWAYS_THROUGH='true' is not a YYYY-MM-DD date)");
+    expect(operationsEnvWarning({ ...FULL, HOLD_ALWAYS_THROUGH: "true" })).toBe(
+      "operations misconfigured: every run will hold (HOLD_ALWAYS_THROUGH='true' is not a YYYY-MM-DD date)",
+    );
     expect(operationsEnvWarning({ ...FULL, HOLD_ALWAYS_THROUGH: "2026-10-01" })).toBeNull();
   });
   it("with the send on, a missing audience is named", () => {

@@ -37,7 +37,10 @@ export function joinTags(articleIds: string[], tags: Record<string, Tag>, thresh
     }
   const tree = agnes(dist, { method: "average", isDistanceMatrix: true });
   // sklearn's labels follow the merge order; we order clusters by their first article for a stable output.
-  const groups = tree.cut(threshold).map((c) => c.indices().toSorted((a, b) => a - b)).toSorted((a, b) => a[0]! - b[0]!);
+  const groups = tree
+    .cut(threshold)
+    .map((c) => c.indices().toSorted((a, b) => a - b))
+    .toSorted((a, b) => a[0]! - b[0]!);
   const clusters: Cluster[] = groups.map((members, k) => {
     const ids = members.map((i) => articleIds[i]!);
     return { story: modalEvent(ids, tags) || `cluster ${k + 1}`, article_ids: ids };
@@ -71,7 +74,11 @@ export function mergeSameStory(clusters: Cluster[], absorbMax = STRAY_ABSORB_MAX
   clusters.forEach((c, i) => positions.set(c.story, [...(positions.get(c.story) ?? []), i]));
   const anchorOf = new Map<string, number>();
   for (const [story, idxs] of positions)
-    if (idxs.length > 1) anchorOf.set(story, idxs.reduce((best, i) => (clusters[i]!.article_ids.length > clusters[best]!.article_ids.length ? i : best)));
+    if (idxs.length > 1)
+      anchorOf.set(
+        story,
+        idxs.reduce((best, i) => (clusters[i]!.article_ids.length > clusters[best]!.article_ids.length ? i : best)),
+      );
   if (anchorOf.size === 0) return clusters;
   const out: Cluster[] = [];
   clusters.forEach((c, i) => {

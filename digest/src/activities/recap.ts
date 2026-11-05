@@ -37,7 +37,8 @@ export function recapActivity(deps: RecapDeps): (runId: number, force?: boolean)
       await store.quarantine(runId, RECAP_OUTPUT);
     }
     const input = await store.find(runId, RECAP_INPUT);
-    if (!input) throw ApplicationFailure.nonRetryable(`run ${runId} has no ${RECAP_INPUT}; prepare has not run`, "MissingInput");
+    if (!input)
+      throw ApplicationFailure.nonRetryable(`run ${runId} has no ${RECAP_INPUT}; prepare has not run`, "MissingInput");
     const titles = await store.get(input);
     assertNoUrls(titles); // the invariant, checked where text leaves code (spec §1)
     const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "recap.md"), "utf8"));
@@ -45,10 +46,27 @@ export function recapActivity(deps: RecapDeps): (runId: number, force?: boolean)
     const r = await runStage(
       spec,
       { userMessage: `Recent RSS titles (title,date):\n\n${titles}`, inputDir: tmpdir() },
-      { today: await store.runDate(runId), runId, ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) },
+      {
+        today: await store.runDate(runId),
+        runId,
+        ...(deps.query ? { query: deps.query } : {}),
+        ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+        ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+      },
     );
     deps.heartbeat?.();
-    await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "recap", runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns });
+    await deps.onUsage?.({
+      model: spec.model,
+      thinking: spec.thinking,
+      prompt: spec,
+      effort: r.effort,
+      tokens: r.usage,
+      stage: "recap",
+      runId,
+      costUsd: r.costUsd,
+      durationMs: r.durationMs,
+      numTurns: r.numTurns,
+    });
     const text = r.text.trim();
     if (!validRecap(text)) throw new Error(`recap for run ${runId}: model returned an empty recap`);
     return force ? await store.replace(runId, RECAP_OUTPUT, text) : await store.put(runId, RECAP_OUTPUT, text);

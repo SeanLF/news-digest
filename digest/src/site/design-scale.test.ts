@@ -35,7 +35,8 @@ describe("the design scale", () => {
     expect(offScale("a{font-size:15px} b{font-size:0.9rem} c{font-size:14px}")).toEqual(["15px", "0.9rem"]);
   });
   it("catches a literal timing, and passes a token and a loop", () => {
-    const css = "a{transition:opacity .2s ease} b{transition:color 150ms} c{transition:opacity var(--dur-1) var(--ease)} d{animation:pulse 1s infinite} e{animation-delay:.08s} f{animation-delay:calc(var(--stagger) * 2)} g{transition-duration:.01ms !important}";
+    const css =
+      "a{transition:opacity .2s ease} b{transition:color 150ms} c{transition:opacity var(--dur-1) var(--ease)} d{animation:pulse 1s infinite} e{animation-delay:.08s} f{animation-delay:calc(var(--stagger) * 2)} g{transition-duration:.01ms !important}";
     expect(literalTimings(css)).toEqual(["opacity .2s ease", "color 150ms", ".08s"]);
   });
 });

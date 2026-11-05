@@ -60,15 +60,30 @@ describe("violations", () => {
     expect(violations(healthy({ recipients: null }))).toEqual([]);
   });
   it("the guarded rules cannot judge without their artifact", () => {
-    expect(violations(healthy({ batches_lost: null, stories_dropped_at_write: null, blanked_why: null, usage_rows_dropped: null, fulltext_tasks: null, fulltext_extracted: null }))).toEqual([]);
+    expect(
+      violations(
+        healthy({
+          batches_lost: null,
+          stories_dropped_at_write: null,
+          blanked_why: null,
+          usage_rows_dropped: null,
+          fulltext_tasks: null,
+          fulltext_extracted: null,
+        }),
+      ),
+    ).toEqual([]);
   });
   it("one blanked story is the designed fallback, not an alert", () => {
     expect(violations(healthy({ blanked_why: 1, must_know_shipped: 2 }))).toEqual([]);
   });
   it("rounds the blanked rate half to even, as Python's format does", () => {
-    expect(violations(healthy({ blanked_why: 5, must_know_shipped: 8 }))).toEqual(["BLANKED_WHY_IT_MATTERS: 5 of 8 must_know stories (62%) went out with no why_it_matters"]);
+    expect(violations(healthy({ blanked_why: 5, must_know_shipped: 8 }))).toEqual([
+      "BLANKED_WHY_IT_MATTERS: 5 of 8 must_know stories (62%) went out with no why_it_matters",
+    ]);
     expect(violations(healthy({ blanked_why: 3, must_know_shipped: 8 }))[0]).toContain("(38%)");
-    expect(violations(healthy({ blanked_why: 3, must_know_shipped: null }))).toEqual(["BLANKED_WHY_IT_MATTERS: 3 of None must_know stories went out with no why_it_matters"]);
+    expect(violations(healthy({ blanked_why: 3, must_know_shipped: null }))).toEqual([
+      "BLANKED_WHY_IT_MATTERS: 3 of None must_know stories went out with no why_it_matters",
+    ]);
   });
   it("thread continuity is silent with nothing to continue or the layer switched off, and names a failed linker", () => {
     expect(violations(healthy({ thread_continuations: 0, threads_available: 0 }))).toEqual([]);
@@ -77,8 +92,12 @@ describe("violations", () => {
     expect(violations(healthy({ thread_continuations: 0, linker_ok: null }))[0]).not.toMatch(/linker/);
   });
   it("quotes the run's own numbers the way the Python does", () => {
-    expect(violations(healthy({ batches_lost: 1, title_only_fallback: 40 }))).toEqual(["DEGRADED_CLUSTERING: 1 extraction batch(es) returned nothing usable; 40 articles lost their entity tags"]);
-    expect(violations(healthy({ fulltext_extracted: 0, fulltext_outcome: null }))).toEqual(["FULLTEXT_TOTAL_LOSS: fulltext extracted 0 of 40 candidate articles (worker unknown); stories fell back to CSV summaries"]);
+    expect(violations(healthy({ batches_lost: 1, title_only_fallback: 40 }))).toEqual([
+      "DEGRADED_CLUSTERING: 1 extraction batch(es) returned nothing usable; 40 articles lost their entity tags",
+    ]);
+    expect(violations(healthy({ fulltext_extracted: 0, fulltext_outcome: null }))).toEqual([
+      "FULLTEXT_TOTAL_LOSS: fulltext extracted 0 of 40 candidate articles (worker unknown); stories fell back to CSV summaries",
+    ]);
     expect(violations(healthy({ repair_outcome: "spec_error" }))[0]).toMatch(/: no detail recorded$/);
   });
   it("a dropped continuation is reported elsewhere, never as a violation", () => {
@@ -88,7 +107,9 @@ describe("violations", () => {
     const h: Record<string, unknown> = { ...healthy() };
     delete h["threads_available"];
     delete h["batches_lost"];
-    expect(violations(h as unknown as RunHealth)).toEqual(["MALFORMED_HEALTH: run health is missing ['batches_lost', 'threads_available']; invariants NOT evaluated"]);
+    expect(violations(h as unknown as RunHealth)).toEqual([
+      "MALFORMED_HEALTH: run health is missing ['batches_lost', 'threads_available']; invariants NOT evaluated",
+    ]);
     expect(REQUIRED_KEYS.size).toBe(18);
   });
 });
@@ -100,7 +121,11 @@ describe("coherenceKindCounts", () => {
       coherenceKindCounts(
         report([
           { pass: true, failed_fields: ["headline"] },
-          { pass: false, failed_fields: ["Headline ", "summary"], failure_kinds: { headline: "contradicted", summary: "unsupported" } },
+          {
+            pass: false,
+            failed_fields: ["Headline ", "summary"],
+            failure_kinds: { headline: "contradicted", summary: "unsupported" },
+          },
           { pass: false, failed_fields: ["why_it_matters"], failure_kinds: { why_it_matters: "made_up" } },
           { pass: false, failure_kinds: { summary: "contradicted" } },
           { pass: false, failed_fields: ["preheader"] },
@@ -119,11 +144,19 @@ describe("coherenceKindCounts", () => {
 });
 
 async function runs(): Promise<Db> {
-  const db = openDb(await migratedDb([{ id: 9, runAt: "2026-09-01 10:00:00" }, { id: 10, runAt: "2026-09-02 10:00:00" }]));
-  await db.exec("INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-01', 1, 9, ''), ('2026-09-02', 1, 10, '')");
+  const db = openDb(
+    await migratedDb([
+      { id: 9, runAt: "2026-09-01 10:00:00" },
+      { id: 10, runAt: "2026-09-02 10:00:00" },
+    ]),
+  );
+  await db.exec(
+    "INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-01', 1, 9, ''), ('2026-09-02', 1, 10, '')",
+  );
   return db;
 }
-const artifact = (db: Db, name: string, content: string) => db.run("INSERT INTO artifacts (run_id, name, content, sha256) VALUES (10, $1, $2, '')", [name, content]);
+const artifact = (db: Db, name: string, content: string) =>
+  db.run("INSERT INTO artifacts (run_id, name, content, sha256) VALUES (10, $1, $2, '')", [name, content]);
 
 describe("getRunHealth", () => {
   const opts = { broadcasting: true, threadsEnabled: true, usageRowsDropped: 0 };
@@ -131,22 +164,77 @@ describe("getRunHealth", () => {
     const db = await runs();
     await artifact(db, "cluster_health.json", JSON.stringify({ batches_lost: 1, title_only_fallback: 38 }));
     await artifact(db, "fulltext_health.json", JSON.stringify({ tasks: 40, extracted: 0, outcome: "timeout" }));
-    await artifact(db, "fulltext_topup_health.json", JSON.stringify({ tasks: 20, extracted: 0, outcome: "unavailable" }));
-    await artifact(db, "selections.json", JSON.stringify({ must_know: [{ why_it_matters: " " }, { why_it_matters: "x" }, {}], should_know: [] }));
+    await artifact(
+      db,
+      "fulltext_topup_health.json",
+      JSON.stringify({ tasks: 20, extracted: 0, outcome: "unavailable" }),
+    );
+    await artifact(
+      db,
+      "selections.json",
+      JSON.stringify({ must_know: [{ why_it_matters: " " }, { why_it_matters: "x" }, {}], should_know: [] }),
+    );
     await artifact(db, "write_branches.json", JSON.stringify({ dropped: [{ index: 3 }] }));
-    await artifact(db, "thread_links.json", JSON.stringify({ linker_ok: false, stories: [{ refused: "already_claimed" }, {}] }));
+    await artifact(
+      db,
+      "thread_links.json",
+      JSON.stringify({ linker_ok: false, stories: [{ refused: "already_claimed" }, {}] }),
+    );
     await artifact(db, "repair_health.json", JSON.stringify({ outcome: "spec_error", detail: "repair.md" }));
-    await artifact(db, "attribution.json", JSON.stringify({ input: "x", stories: { a: { complete: true, unverified: [], stale: [{ field: "summary", text: "t", article_id: "A1", published: "p" }], claims: [] }, b: { complete: true, unverified: [], claims: [] } } }));
-    await db.exec("INSERT INTO story_sources (headline, tier, run_id) VALUES ('a', 'must_know', 10), ('a', 'must_know', 10), ('b', 'should_know', 10)");
-    await db.exec("INSERT INTO model_calls (run_id, stage, request_model) VALUES (10, 'select', 'm'), (10, 'write', 'm'), (10, 'write', 'm')");
+    await artifact(
+      db,
+      "attribution.json",
+      JSON.stringify({
+        input: "x",
+        stories: {
+          a: {
+            complete: true,
+            unverified: [],
+            stale: [{ field: "summary", text: "t", article_id: "A1", published: "p" }],
+            claims: [],
+          },
+          b: { complete: true, unverified: [], claims: [] },
+        },
+      }),
+    );
+    await db.exec(
+      "INSERT INTO story_sources (headline, tier, run_id) VALUES ('a', 'must_know', 10), ('a', 'must_know', 10), ('b', 'should_know', 10)",
+    );
+    await db.exec(
+      "INSERT INTO model_calls (run_id, stage, request_model) VALUES (10, 'select', 'm'), (10, 'write', 'm'), (10, 'write', 'm')",
+    );
     await db.exec("INSERT INTO threads (id, created_run_id) VALUES (1, 9), (2, 10)");
-    await db.exec("INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 9, 's', false), (1, 10, 's', true), (2, 10, 't', false)");
+    await db.exec(
+      "INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 9, 's', false), (1, 10, 's', true), (2, 10, 't', false)",
+    );
     const h = await getRunHealth(db, 10, opts);
     expect(h).toEqual({
-      run_id: 10, shipped: 2, stages: 2, artifacts: 8, recipients: null, thread_continuations: 1, threads_available: 1,
-      broadcasting: true, usage_rows_dropped: 0, threads_enabled: true, batches_lost: 1, title_only_fallback: 38,
-      fulltext_tasks: 40, fulltext_extracted: 0, fulltext_outcome: "timeout", fulltext_topup_tasks: 20, fulltext_topup_extracted: 0, fulltext_topup_outcome: "unavailable", blanked_why: 2, must_know_shipped: 3,
-      dropped_continuations: 1, linker_ok: false, repair_outcome: "spec_error", repair_detail: "repair.md", stories_dropped_at_write: 1, stale_figures: 1,
+      run_id: 10,
+      shipped: 2,
+      stages: 2,
+      artifacts: 8,
+      recipients: null,
+      thread_continuations: 1,
+      threads_available: 1,
+      broadcasting: true,
+      usage_rows_dropped: 0,
+      threads_enabled: true,
+      batches_lost: 1,
+      title_only_fallback: 38,
+      fulltext_tasks: 40,
+      fulltext_extracted: 0,
+      fulltext_outcome: "timeout",
+      fulltext_topup_tasks: 20,
+      fulltext_topup_extracted: 0,
+      fulltext_topup_outcome: "unavailable",
+      blanked_why: 2,
+      must_know_shipped: 3,
+      dropped_continuations: 1,
+      linker_ok: false,
+      repair_outcome: "spec_error",
+      repair_detail: "repair.md",
+      stories_dropped_at_write: 1,
+      stale_figures: 1,
     });
   });
   it("a malformed artifact reads as cannot-judge instead of blanking every invariant", async () => {
@@ -155,20 +243,38 @@ describe("getRunHealth", () => {
     await artifact(db, "thread_links.json", JSON.stringify({ linker_ok: "yes", stories: ["already_claimed"] }));
     await artifact(db, "selections.json", JSON.stringify({ must_know: {} }));
     const h = await getRunHealth(db, 10, opts);
-    expect(h).toMatchObject({ batches_lost: null, dropped_continuations: null, linker_ok: null, blanked_why: null, must_know_shipped: null, artifacts: 3 });
+    expect(h).toMatchObject({
+      batches_lost: null,
+      dropped_continuations: null,
+      linker_ok: null,
+      blanked_why: null,
+      must_know_shipped: null,
+      artifacts: 3,
+    });
   });
   it("reads a boolean as SQLite's json_extract did, and counts a send's recipients by its run", async () => {
     const db = await runs();
     await artifact(db, "thread_links.json", JSON.stringify({ linker_ok: true, stories: [] }));
-    await db.exec("INSERT INTO sends (issue_date, run_id, revision, status, recipients) VALUES ('2026-09-02', 10, 1, 'sent', 12)");
-    expect(await getRunHealth(db, 10, opts)).toMatchObject({ linker_ok: true, dropped_continuations: 0, recipients: 12 });
+    await db.exec(
+      "INSERT INTO sends (issue_date, run_id, revision, status, recipients) VALUES ('2026-09-02', 10, 1, 'sent', 12)",
+    );
+    expect(await getRunHealth(db, 10, opts)).toMatchObject({
+      linker_ok: true,
+      dropped_continuations: 0,
+      recipients: 12,
+    });
     expect(await getRunHealth(db, 9, opts)).toMatchObject({ recipients: null, artifacts: 0 });
   });
   it("counts the threads the run's linker could have been offered, by the configured dormancy", async () => {
     const db = openDb(await migratedDb([7, 8, 9, 10, 11].map((id) => ({ id, runAt: `2026-09-0${id - 6} 10:00:00` }))));
-    for (const id of [7, 8, 9, 10]) await db.run("UPDATE runs SET status='completed', outcome='sent' WHERE id=$1", [id]);
-    await db.exec("INSERT INTO issues (issue_date, revision, run_id, html) SELECT (started_at AT TIME ZONE 'UTC')::date, 1, id, '' FROM runs WHERE id <= 10");
-    await db.exec("INSERT INTO threads (id, created_run_id) VALUES (1, 7), (2, 11); INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 7, 's', false), (2, 11, 't', false)");
+    for (const id of [7, 8, 9, 10])
+      await db.run("UPDATE runs SET status='completed', outcome='sent' WHERE id=$1", [id]);
+    await db.exec(
+      "INSERT INTO issues (issue_date, revision, run_id, html) SELECT (started_at AT TIME ZONE 'UTC')::date, 1, id, '' FROM runs WHERE id <= 10",
+    );
+    await db.exec(
+      "INSERT INTO threads (id, created_run_id) VALUES (1, 7), (2, 11); INSERT INTO thread_updates (thread_id, run_id, label, is_continuation) VALUES (1, 7, 's', false), (2, 11, 't', false)",
+    );
     // Thread 1 was last seen in run 7, with runs 8, 9, 10 completed since: 3 runs.
     expect(await getRunHealth(db, 11, { ...opts, dormantAfter: 3 })).toMatchObject({ threads_available: 1 });
     expect(await getRunHealth(db, 11, { ...opts, dormantAfter: 2 })).toMatchObject({ threads_available: 0 });

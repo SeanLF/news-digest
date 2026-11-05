@@ -20,6 +20,8 @@ describe("resendBaseUrl", () => {
     expect(() => resendBaseUrl(env)).toThrow(message);
   });
   it("refuses production pointed at a fake: every send would vanish while reporting success", () => {
-    expect(() => resendBaseUrl({ RESEND_LIVE: "true", RESEND_BASE_URL: "http://resend-fake:8025" })).toThrow(/RESEND_LIVE.*RESEND_BASE_URL/);
+    expect(() => resendBaseUrl({ RESEND_LIVE: "true", RESEND_BASE_URL: "http://resend-fake:8025" })).toThrow(
+      /RESEND_LIVE.*RESEND_BASE_URL/,
+    );
   });
 });

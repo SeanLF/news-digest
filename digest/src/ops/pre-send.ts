@@ -14,7 +14,11 @@ import { getRunHealth, violations } from "./run-health.js";
 //   and the run-health rules in PRE_SEND_RULES.
 // The preheader cap and non-empty sources are not here: assemble truncates the one and the contract
 // refuses the other, so no run that reaches the send can fail them.
-export const PRE_SEND_RULES: readonly string[] = ["BLANKED_WHY_IT_MATTERS", "STORIES_DROPPED_AT_WRITE", "REPAIR_SPEC_ERROR"];
+export const PRE_SEND_RULES: readonly string[] = [
+  "BLANKED_WHY_IT_MATTERS",
+  "STORIES_DROPPED_AT_WRITE",
+  "REPAIR_SPEC_ERROR",
+];
 export const STORY_COUNT_RANGES = { must_know: [1, 6], should_know: [3, 14] } as const;
 
 type DraftStory = { headline: string; sources: { article_id: string }[] };
@@ -40,18 +44,27 @@ export function preSendFailures(i: PreSendInput): string[] {
   leaks.push(...leakedIds(sel.preheader, cited).map((m) => `preheader ${quote(m)}`));
   for (const { tier, s } of stories) {
     const ids = s.sources.map((x) => x.article_id);
-    const fields: [string, string][] = [["headline", s.headline], ["summary", s.summary], ...(s.why_it_matters !== undefined ? [["why_it_matters", s.why_it_matters] as [string, string]] : [])];
-    for (const e of s.reporting_varies ?? []) for (const k of ["source", "angle", "bias"] as const) fields.push([`reporting_varies.${k}`, e[k]]);
+    const fields: [string, string][] = [
+      ["headline", s.headline],
+      ["summary", s.summary],
+      ...(s.why_it_matters !== undefined ? [["why_it_matters", s.why_it_matters] as [string, string]] : []),
+    ];
+    for (const e of s.reporting_varies ?? [])
+      for (const k of ["source", "angle", "bias"] as const) fields.push([`reporting_varies.${k}`, e[k]]);
     for (const c of s.claims ?? []) fields.push(["claims.text", c.text]);
     // The render attaches a delta only to a story whose cluster no other story shares.
     const shared = stories.filter((o) => o.s.cluster_id === s.cluster_id).length > 1;
     const delta = s.cluster_id !== undefined && !shared ? i.threadContext?.[s.cluster_id]?.delta : undefined;
-    for (const [f, text] of fields) leaks.push(...leakedIds(text, ids).map((m) => `${tier}.${f} ${quote(m)} in ${quote(s.headline)}`));
-    if (typeof delta === "string") leaks.push(...leakedIds(delta, ids).map((m) => `thread delta ${quote(m)} in ${quote(s.headline)}`));
+    for (const [f, text] of fields)
+      leaks.push(...leakedIds(text, ids).map((m) => `${tier}.${f} ${quote(m)} in ${quote(s.headline)}`));
+    if (typeof delta === "string")
+      leaks.push(...leakedIds(delta, ids).map((m) => `thread delta ${quote(m)} in ${quote(s.headline)}`));
   }
   if (leaks.length) out.push(`INTERNAL_ID_LEAK: ${leaks.length} leak(s): ${leaks.slice(0, 5).join(" | ")}`);
 
-  const empty = stories.flatMap(({ tier, s }) => (["headline", "summary"] as const).filter((f) => !s[f].trim()).map((f) => `${tier}.${f} in ${quote(s.headline)}`));
+  const empty = stories.flatMap(({ tier, s }) =>
+    (["headline", "summary"] as const).filter((f) => !s[f].trim()).map((f) => `${tier}.${f} in ${quote(s.headline)}`),
+  );
   if (empty.length) out.push(`EMPTY_FIELD: ${empty.length} empty field(s): ${empty.slice(0, 8).join(", ")}`);
 
   const counts = TIERS.flatMap((tier) => {
@@ -77,21 +90,37 @@ export function preSendFailures(i: PreSendInput): string[] {
         return true;
       });
     });
-    if (dropped.length) out.push(`STORIES_DROPPED_AT_COHERENCE: ${dropped.length} story(ies) failed the fact-check, were not repaired, and were dropped: ${dropped.slice(0, 5).map((d) => quote(d.headline)).join(" | ")}`);
+    if (dropped.length)
+      out.push(
+        `STORIES_DROPPED_AT_COHERENCE: ${dropped.length} story(ies) failed the fact-check, were not repaired, and were dropped: ${dropped
+          .slice(0, 5)
+          .map((d) => quote(d.headline))
+          .join(" | ")}`,
+      );
   }
-  if (i.threadAuditFailures) out.push(`THREAD_AUDIT_FAILED: ${i.threadAuditFailures} thread update(s) shipped facts their audit could not check (it fails open)`);
+  if (i.threadAuditFailures)
+    out.push(
+      `THREAD_AUDIT_FAILED: ${i.threadAuditFailures} thread update(s) shipped facts their audit could not check (it fails open)`,
+    );
   out.push(...i.healthViolations.filter((v) => PRE_SEND_RULES.includes(v.split(":")[0]!)));
   return out;
 }
 
 const artifact = async (db: Sql, runId: number, name: string): Promise<unknown> => {
-  const row = await db.one<Pick<RowOf<"artifacts">, "content">>("SELECT content FROM artifacts WHERE run_id=$1 AND name=$2 AND status='current'", [runId, name]);
+  const row = await db.one<Pick<RowOf<"artifacts">, "content">>(
+    "SELECT content FROM artifacts WHERE run_id=$1 AND name=$2 AND status='current'",
+    [runId, name],
+  );
   return row ? (JSON.parse(row.content) as unknown) : null;
 };
 
 // The run's inputs to the checks, from its current artifacts. A run with no readable selections
 // cannot be judged: that throws, and the workflow holds it as a failed check.
-export async function readPreSend(db: Sql, runId: number, opts: { threadsEnabled: boolean; dormantAfter?: number }): Promise<PreSendInput> {
+export async function readPreSend(
+  db: Sql,
+  runId: number,
+  opts: { threadsEnabled: boolean; dormantAfter?: number },
+): Promise<PreSendInput> {
   const raw = await artifact(db, runId, "selections.json");
   if (raw === null) throw new Error(`run ${runId} has no current selections.json to check`);
   const selections = SelectionsSchema.parse(raw);
@@ -99,6 +128,17 @@ export async function readPreSend(db: Sql, runId: number, opts: { threadsEnabled
   const threadContext = (await artifact(db, runId, "thread_context.json")) as PreSendInput["threadContext"];
   const threadHealth = (await artifact(db, runId, "thread_health.json")) as { audit_failures?: unknown } | null;
   const auditFailures = threadHealth?.audit_failures;
-  const health = await getRunHealth(db, runId, { broadcasting: true, threadsEnabled: opts.threadsEnabled, usageRowsDropped: 0, ...(opts.dormantAfter !== undefined ? { dormantAfter: opts.dormantAfter } : {}) });
-  return { selections, draft, threadContext, threadAuditFailures: typeof auditFailures === "number" ? auditFailures : null, healthViolations: violations(health) };
+  const health = await getRunHealth(db, runId, {
+    broadcasting: true,
+    threadsEnabled: opts.threadsEnabled,
+    usageRowsDropped: 0,
+    ...(opts.dormantAfter !== undefined ? { dormantAfter: opts.dormantAfter } : {}),
+  });
+  return {
+    selections,
+    draft,
+    threadContext,
+    threadAuditFailures: typeof auditFailures === "number" ? auditFailures : null,
+    healthViolations: violations(health),
+  };
 }

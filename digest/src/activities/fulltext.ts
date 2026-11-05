@@ -15,7 +15,11 @@ const SETTLED = new Set(["completed", "no_candidates"]);
 
 // fulltext._candidate_article_ids: SELECT lists the representative articles first, so a prefix
 // favours the best-covered sources.
-export function candidateIds(selected: unknown, perStory: number, skip: (id: string) => boolean = () => false): string[] {
+export function candidateIds(
+  selected: unknown,
+  perStory: number,
+  skip: (id: string) => boolean = () => false,
+): string[] {
   const seen = new Set<string>();
   const sel = (selected ?? {}) as Record<string, unknown>;
   for (const tier of ["must_know", "should_know"]) {
@@ -24,7 +28,8 @@ export function candidateIds(selected: unknown, perStory: number, skip: (id: str
     for (const story of stories) {
       const ids = (story as { article_ids?: unknown } | null)?.article_ids;
       if (!Array.isArray(ids)) continue;
-      for (const id of ids.filter((x): x is string => typeof x === "string" && !skip(x)).slice(0, perStory)) seen.add(id);
+      for (const id of ids.filter((x): x is string => typeof x === "string" && !skip(x)).slice(0, perStory))
+        seen.add(id);
     }
   }
   return [...seen];
@@ -32,9 +37,15 @@ export function candidateIds(selected: unknown, perStory: number, skip: (id: str
 
 // `enabled` is FULLTEXT_ENABLED, the switch production's run-281 recovery turns off. `notFetched`:
 // the catalogue's sources marked "fulltext": false, whose sites refuse automated fetching.
-export function fulltextActivities(deps: { store: ArtifactStore; perStory: number; enabled: boolean; notFetched?: ReadonlySet<string> }) {
+export function fulltextActivities(deps: {
+  store: ArtifactStore;
+  perStory: number;
+  enabled: boolean;
+  notFetched?: ReadonlySet<string>;
+}) {
   const { store } = deps;
-  const refused = (index: Record<string, { source_id?: unknown } | undefined>) => (id: string) => deps.notFetched?.has(String(index[id]?.source_id)) ?? false;
+  const refused = (index: Record<string, { source_id?: unknown } | undefined>) => (id: string) =>
+    deps.notFetched?.has(String(index[id]?.source_id)) ?? false;
   return {
     async planFulltext(runId: number, selected: Pointer, force = false): Promise<FulltextPlan> {
       const existing = await store.find(runId, FULLTEXT_OUTPUT);
@@ -50,11 +61,15 @@ export function fulltextActivities(deps: { store: ArtifactStore; perStory: numbe
       }
       if (!deps.enabled) return { tasks: [], skip: "disabled" };
       const indexPtr = await store.find(runId, "article_index.json");
-      const index = indexPtr ? (JSON.parse(await store.get(indexPtr)) as Record<string, { url?: unknown; source_id?: unknown } | undefined>) : {};
-      const tasks = candidateIds(JSON.parse(await store.get(selected)), deps.perStory, refused(index)).flatMap((id): FulltextTask[] => {
-        const url = index[id]?.url;
-        return typeof url === "string" && url ? [[id, url]] : [];
-      });
+      const index = indexPtr
+        ? (JSON.parse(await store.get(indexPtr)) as Record<string, { url?: unknown; source_id?: unknown } | undefined>)
+        : {};
+      const tasks = candidateIds(JSON.parse(await store.get(selected)), deps.perStory, refused(index)).flatMap(
+        (id): FulltextTask[] => {
+          const url = index[id]?.url;
+          return typeof url === "string" && url ? [[id, url]] : [];
+        },
+      );
       return tasks.length ? { tasks } : { tasks, skip: "no_candidates" };
     },
     // The articles WRITE cited that the first fetch did not read: it fetched before WRITE chose.
@@ -67,31 +82,52 @@ export function fulltextActivities(deps: { store: ArtifactStore; perStory: numbe
         await store.quarantine(runId, FULLTEXT_TOPUP_HEALTH);
       }
       if (!deps.enabled) return { tasks: [], skip: "disabled" };
-      const have = text ? new Set(Object.keys(JSON.parse(await store.get(text)) as Record<string, unknown>)) : new Set<string>();
+      const have = text
+        ? new Set(Object.keys(JSON.parse(await store.get(text)) as Record<string, unknown>))
+        : new Set<string>();
       const indexPtr = await store.find(runId, "article_index.json");
-      const index = indexPtr ? (JSON.parse(await store.get(indexPtr)) as Record<string, { url?: unknown; source_id?: unknown } | undefined>) : {};
+      const index = indexPtr
+        ? (JSON.parse(await store.get(indexPtr)) as Record<string, { url?: unknown; source_id?: unknown } | undefined>)
+        : {};
       const cited = new Set<string>();
-      for (const d of drafts) for (const s of (JSON.parse(await store.get(d)) as { story: { sources: { article_id: string }[] } }).story.sources) cited.add(s.article_id);
-      const tasks = [...cited].filter((id) => !have.has(id) && !refused(index)(id)).flatMap((id): FulltextTask[] => {
-        const url = index[id]?.url;
-        return typeof url === "string" && url ? [[id, url]] : [];
-      });
+      for (const d of drafts)
+        for (const s of (JSON.parse(await store.get(d)) as { story: { sources: { article_id: string }[] } }).story
+          .sources)
+          cited.add(s.article_id);
+      const tasks = [...cited]
+        .filter((id) => !have.has(id) && !refused(index)(id))
+        .flatMap((id): FulltextTask[] => {
+          const url = index[id]?.url;
+          return typeof url === "string" && url ? [[id, url]] : [];
+        });
       return tasks.length ? { tasks } : { tasks, skip: "no_candidates" };
     },
     async storeFulltextTopup(runId: number, fetched: FulltextFetch, force = false): Promise<Pointer> {
       const current = await store.find(runId, FULLTEXT_OUTPUT);
       const merged = { ...(current ? (JSON.parse(await store.get(current)) as Record<string, { text: string }>) : {}) };
       for (const [id, body] of Object.entries(fetched.results)) merged[id] = { text: scrubUrls(body) };
-      const health = JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(fetched.results).length, outcome: fetched.outcome });
-      await (force ? store.replace(runId, FULLTEXT_TOPUP_HEALTH, health) : store.put(runId, FULLTEXT_TOPUP_HEALTH, health));
+      const health = JSON.stringify({
+        tasks: fetched.tasks,
+        extracted: Object.keys(fetched.results).length,
+        outcome: fetched.outcome,
+      });
+      await (force
+        ? store.replace(runId, FULLTEXT_TOPUP_HEALTH, health)
+        : store.put(runId, FULLTEXT_TOPUP_HEALTH, health));
       const body = Object.keys(merged).length ? JSON.stringify(merged, null, 2) : "{}";
       return current ? store.replace(runId, FULLTEXT_OUTPUT, body) : store.put(runId, FULLTEXT_OUTPUT, body);
     },
     // Links are scrubbed here, at the source, as prepare scrubs the summaries: no URL reaches a model.
     async storeFulltext(runId: number, fetched: FulltextFetch, force = false): Promise<Pointer> {
-      const payload = Object.fromEntries(Object.entries(fetched.results).map(([id, text]) => [id, { text: scrubUrls(text) }]));
-      const write = (name: string, text: string) => (force ? store.replace(runId, name, text) : store.put(runId, name, text));
-      await write(FULLTEXT_HEALTH, JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(payload).length, outcome: fetched.outcome }));
+      const payload = Object.fromEntries(
+        Object.entries(fetched.results).map(([id, text]) => [id, { text: scrubUrls(text) }]),
+      );
+      const write = (name: string, text: string) =>
+        force ? store.replace(runId, name, text) : store.put(runId, name, text);
+      await write(
+        FULLTEXT_HEALTH,
+        JSON.stringify({ tasks: fetched.tasks, extracted: Object.keys(payload).length, outcome: fetched.outcome }),
+      );
       return write(FULLTEXT_OUTPUT, Object.keys(payload).length ? JSON.stringify(payload, null, 2) : "{}");
     },
   };

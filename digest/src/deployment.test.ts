@@ -5,7 +5,14 @@ import { Worker } from "@temporalio/worker";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { stubActivities } from "./activities/stub.js";
 import { scheduleOptions, startOptions } from "./client.js";
-import { DEPLOYMENT_NAME, deploymentOptions, setCurrentVersion, strandedRuns, waitingLine, waitingRuns } from "./deployment.js";
+import {
+  DEPLOYMENT_NAME,
+  deploymentOptions,
+  setCurrentVersion,
+  strandedRuns,
+  waitingLine,
+  waitingRuns,
+} from "./deployment.js";
 import { missingPollers } from "./pollers.js";
 import { TASK_QUEUE } from "./worker.js";
 import { approveSignal } from "./workflow/signals.js";
@@ -22,14 +29,19 @@ describe("deploymentOptions", () => {
       defaultVersioningBehavior: "PINNED",
     });
   });
-  it.each([undefined, "", "  "])("refuses a worker with no build id (GIT_SHA %j): it would share a version with every other such build", (sha) => {
-    expect(() => deploymentOptions(sha === undefined ? {} : { GIT_SHA: sha })).toThrow(/GIT_SHA/);
-  });
+  it.each([undefined, "", "  "])(
+    "refuses a worker with no build id (GIT_SHA %j): it would share a version with every other such build",
+    (sha) => {
+      expect(() => deploymentOptions(sha === undefined ? {} : { GIT_SHA: sha })).toThrow(/GIT_SHA/);
+    },
+  );
 });
 
 describe("waitingLine", () => {
   it("is the line set-current prints for a run no worker has taken", () => {
-    expect(waitingLine(["digest-2026-10-05"])).toBe("waiting: digest-2026-10-05 -- no worker has taken these; they start once a polling build is current");
+    expect(waitingLine(["digest-2026-10-05"])).toBe(
+      "waiting: digest-2026-10-05 -- no worker has taken these; they start once a polling build is current",
+    );
   });
 });
 
@@ -41,13 +53,24 @@ describe("setCurrentVersion", () => {
   it("does not set a build that polls but is not yet registered in the deployment (NOT_FOUND)", async () => {
     let describes = 0;
     const registered = () => describes > 2;
-    const notFound = Object.assign(new Error("5 NOT_FOUND: build ID 'build-z' not found in Worker Deployment 'digest'"), { code: 5, details: "", metadata: {} });
+    const notFound = Object.assign(
+      new Error("5 NOT_FOUND: build ID 'build-z' not found in Worker Deployment 'digest'"),
+      { code: 5, details: "", metadata: {} },
+    );
     const sets: string[] = [];
     const workflowService = {
-      describeTaskQueue: () => Promise.resolve({ pollers: [{ deploymentOptions: { deploymentName: DEPLOYMENT_NAME, buildId: "build-z" } }] }),
+      describeTaskQueue: () =>
+        Promise.resolve({ pollers: [{ deploymentOptions: { deploymentName: DEPLOYMENT_NAME, buildId: "build-z" } }] }),
       describeWorkerDeploymentVersion: () => {
         describes++;
-        return registered() ? Promise.resolve({ versionTaskQueues: [{ name: TASK_QUEUE, type: 1 }, { name: TASK_QUEUE, type: 2 }] }) : Promise.reject(notFound);
+        return registered()
+          ? Promise.resolve({
+              versionTaskQueues: [
+                { name: TASK_QUEUE, type: 1 },
+                { name: TASK_QUEUE, type: 2 },
+              ],
+            })
+          : Promise.reject(notFound);
       },
       setWorkerDeploymentCurrentVersion: ({ buildId }: { buildId: string }) => {
         if (!registered()) return Promise.reject(notFound);
@@ -67,7 +90,9 @@ describe("setCurrentVersion", () => {
 let env: TestWorkflowEnvironment;
 let python: { shutdown: () => void; done: Promise<void> } | undefined;
 beforeAll(async () => {
-  env = await TestWorkflowEnvironment.createLocal({ server: { executable: { type: "cached-download", version: "v1.9.1" } } });
+  env = await TestWorkflowEnvironment.createLocal({
+    server: { executable: { type: "cached-download", version: "v1.9.1" } },
+  });
   const w = await Worker.create({
     connection: env.nativeConnection,
     taskQueue: PYTHON_TASK_QUEUE, // unversioned, as the Python worker is in production
@@ -88,9 +113,19 @@ const workflowsPath = new URL("./workflow/digest.workflow.ts", import.meta.url).
 const held = () => ({ ...stubActivities(), checkPreSend: () => Promise.resolve(["TEST: held for the operator"]) });
 // The production worker's options on the production queue, with stub activities.
 const versioned = (buildId: string) =>
-  Worker.create({ connection: env.nativeConnection, taskQueue: TASK_QUEUE, workflowsPath, maxCachedWorkflows: 0, workerDeploymentOptions: deploymentOptions({ GIT_SHA: buildId }), activities: held() });
+  Worker.create({
+    connection: env.nativeConnection,
+    taskQueue: TASK_QUEUE,
+    workflowsPath,
+    maxCachedWorkflows: 0,
+    workerDeploymentOptions: deploymentOptions({ GIT_SHA: buildId }),
+    activities: held(),
+  });
 const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const completedTasks = async (h: WorkflowHandle) => ((await h.fetchHistory()).events ?? []).flatMap((e) => (e.workflowTaskCompletedEventAttributes ? [e.workflowTaskCompletedEventAttributes] : []));
+const completedTasks = async (h: WorkflowHandle) =>
+  ((await h.fetchHistory()).events ?? []).flatMap((e) =>
+    e.workflowTaskCompletedEventAttributes ? [e.workflowTaskCompletedEventAttributes] : [],
+  );
 async function versionOf(h: WorkflowHandle) {
   const v = (await h.describe()).raw.workflowExecutionInfo?.versioningInfo;
   return { behavior: v?.behavior, buildId: v?.deploymentVersion?.buildId };
@@ -100,7 +135,9 @@ async function moveToVersion(workflowId: string, buildId: string): Promise<void>
   await env.client.workflowService.updateWorkflowExecutionOptions({
     namespace: env.client.options.namespace,
     workflowExecution: { workflowId },
-    workflowExecutionOptions: { versioningOverride: { pinned: { behavior: PIN, version: { deploymentName: DEPLOYMENT_NAME, buildId } } } },
+    workflowExecutionOptions: {
+      versioningOverride: { pinned: { behavior: PIN, version: { deploymentName: DEPLOYMENT_NAME, buildId } } },
+    },
     updateMask: { paths: ["versioning_override"] },
   });
 }
@@ -144,8 +181,12 @@ describe("worker versioning on a dev server", () => {
       expect(await versionOf(h)).toEqual({ behavior: PINNED, buildId: "build-a" });
       // The Python worker is unversioned, on its own queue; a pinned run's activities there still reach it.
       const evs = (await h.fetchHistory()).events ?? [];
-      const scheduled = evs.filter((e) => e.activityTaskScheduledEventAttributes?.activityType?.name === "fetchFulltext").map((e) => String(e.eventId));
-      const completed = evs.filter((e) => scheduled.includes(String(e.activityTaskCompletedEventAttributes?.scheduledEventId)));
+      const scheduled = evs
+        .filter((e) => e.activityTaskScheduledEventAttributes?.activityType?.name === "fetchFulltext")
+        .map((e) => String(e.eventId));
+      const completed = evs.filter((e) =>
+        scheduled.includes(String(e.activityTaskCompletedEventAttributes?.scheduledEventId)),
+      );
       expect(scheduled.length).toBe(1);
       expect(completed.length).toBe(1);
     });
@@ -155,7 +196,10 @@ describe("worker versioning on a dev server", () => {
     const a = await versioned("build-a");
     await a.runUntil(async () => {
       await setCurrentVersion(env.client, "build-a", TASK_QUEUE);
-      const schedule = await env.client.schedule.create({ ...scheduleOptions(), scheduleId: "digest-daily-versioning-test" });
+      const schedule = await env.client.schedule.create({
+        ...scheduleOptions(),
+        scheduleId: "digest-daily-versioning-test",
+      });
       await schedule.trigger();
       let started: string | undefined;
       for (let i = 0; i < 100 && !started; i++) {
@@ -175,7 +219,12 @@ describe("worker versioning on a dev server", () => {
   // while the current build-p has an activity backlog. Setting build-q current inside that gap is
   // refused (FAILED_PRECONDITION: "missing active task queues"); under CI load, NOT_FOUND.
   it("a build is made current once the server has registered it on both queue types, not when its first poller shows", async () => {
-    const opts = (buildId: string) => ({ connection: env.nativeConnection, taskQueue: TASK_QUEUE, maxCachedWorkflows: 0, workerDeploymentOptions: deploymentOptions({ GIT_SHA: buildId }) });
+    const opts = (buildId: string) => ({
+      connection: env.nativeConnection,
+      taskQueue: TASK_QUEUE,
+      maxCachedWorkflows: 0,
+      workerDeploymentOptions: deploymentOptions({ GIT_SHA: buildId }),
+    });
     const p = await versioned("build-p");
     await p.runUntil(() => setCurrentVersion(env.client, "build-p", TASK_QUEUE));
     const pWorkflows = await Worker.create({ ...opts("build-p"), workflowsPath });
@@ -192,7 +241,13 @@ describe("worker versioning on a dev server", () => {
       await pause(4000);
       actDone = qActivities.run();
       await setting;
-      const { routingConfig } = (await env.client.workflowService.describeWorkerDeployment({ namespace: env.client.options.namespace, deploymentName: DEPLOYMENT_NAME })).workerDeploymentInfo ?? {};
+      const { routingConfig } =
+        (
+          await env.client.workflowService.describeWorkerDeployment({
+            namespace: env.client.options.namespace,
+            deploymentName: DEPLOYMENT_NAME,
+          })
+        ).workerDeploymentInfo ?? {};
       expect(routingConfig?.currentDeploymentVersion?.buildId).toBe("build-q");
     } finally {
       await h.terminate("checked").catch(() => undefined);
@@ -205,12 +260,20 @@ describe("worker versioning on a dev server", () => {
     const f = await versioned("build-h");
     await f.runUntil(async () => {
       await setCurrentVersion(env.client, "build-h", TASK_QUEUE);
-      await env.client.workflowService.setWorkerDeploymentCurrentVersion({ namespace: env.client.options.namespace, deploymentName: DEPLOYMENT_NAME, buildId: "build-i", allowNoPollers: true, ignoreMissingTaskQueues: true });
+      await env.client.workflowService.setWorkerDeploymentCurrentVersion({
+        namespace: env.client.options.namespace,
+        deploymentName: DEPLOYMENT_NAME,
+        buildId: "build-i",
+        allowNoPollers: true,
+        ignoreMissingTaskQueues: true,
+      });
       const h = await env.client.workflow.start("DigestWorkflow", startOptions("2026-10-05", {}));
       try {
         await pause(3000);
         expect(await completedTasks(h)).toEqual([]);
-        await expect(setCurrentVersion(env.client, "build-i", TASK_QUEUE, 3000)).rejects.toThrow(/no worker of digest:build-i/);
+        await expect(setCurrentVersion(env.client, "build-i", TASK_QUEUE, 3000)).rejects.toThrow(
+          /no worker of digest:build-i/,
+        );
         expect(await strandedRuns(env.client, "build-i")).toEqual([]); // what set-current listed before
         expect(await waitingRuns(env.client)).toEqual([h.workflowId]);
         await setCurrentVersion(env.client, "build-h", TASK_QUEUE);

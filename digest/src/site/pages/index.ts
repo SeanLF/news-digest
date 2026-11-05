@@ -8,12 +8,16 @@ import { type PageCtx, brand, indexChrome, wholeParts, pageBody, pageHead, scrip
 // The home page: the archive as an issue-numbered running order.
 
 export const NOTICES: Record<string, string> = {
-  subscribed: '<p class="notice ok" role="status"><span class="ni" aria-hidden="true">✓</span> Subscribed. The next issue will land in your inbox.</p>',
+  subscribed:
+    '<p class="notice ok" role="status"><span class="ni" aria-hidden="true">✓</span> Subscribed. The next issue will land in your inbox.</p>',
   pending:
     '<p class="notice ok" role="status"><span class="ni" aria-hidden="true">✓</span> Almost there — check your inbox (and your spam folder, just in case) and click the link to confirm your subscription.</p>',
-  subscribe_invalid: '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> That address looks invalid or disposable — please try a different email.</p>',
-  subscribe_ratelimited: '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> Too many attempts — please try again in a little while.</p>',
-  subscribe_error: '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> That didn\'t go through — something failed on our end. Please try again.</p>',
+  subscribe_invalid:
+    '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> That address looks invalid or disposable — please try a different email.</p>',
+  subscribe_ratelimited:
+    '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> Too many attempts — please try again in a little while.</p>',
+  subscribe_error:
+    '<p class="notice bad" role="alert"><span class="ni" aria-hidden="true">✕</span> That didn\'t go through — something failed on our end. Please try again.</p>',
 };
 
 export type IndexScope = { kind: "all" } | { kind: "before"; before: string } | { kind: "year"; year: number };
@@ -21,9 +25,17 @@ export type IndexScope = { kind: "all" } | { kind: "before"; before: string } | 
 const loadmore = (hasMore: boolean, next: string): string =>
   `<div class="loadmore" id="loadmore">${hasMore ? `<a class="btn secondary" id="loadMore" rel="next" href="/?before=${escapeHtml(next)}">Load older issues</a>` : ""}<p class="loadmore-status" role="status" aria-live="polite"></p></div>`;
 
-const segButton = (seg: string, active: string, label: string): string => `<button type="button" data-seg="${seg}" aria-pressed="${seg === active}">${label}</button>`;
+const segButton = (seg: string, active: string, label: string): string =>
+  `<button type="button" data-seg="${seg}" aria-pressed="${seg === active}">${label}</button>`;
 
-export function indexPage(ctx: PageCtx, meta: IndexMeta, scope: IndexScope, page: ArchivePage | undefined, notice: string, markdownPointer: string): string {
+export function indexPage(
+  ctx: PageCtx,
+  meta: IndexMeta,
+  scope: IndexScope,
+  page: ArchivePage | undefined,
+  notice: string,
+  markdownPointer: string,
+): string {
   const subs = subscriptionsEnabled(ctx.cfg);
   let list: string;
   let more = "";
@@ -68,7 +80,13 @@ export function indexPage(ctx: PageCtx, meta: IndexMeta, scope: IndexScope, page
     </section>`
     : "";
   const stat = `<b>${meta.total}</b> issues &middot; since ${meta.firstDate ? formatDayMonthYear(meta.firstDate) : ""} &middot; <b>${thousands(meta.totalStories)}</b> stories`;
-  const head = pageHead(ctx, escapeHtml(ctx.cfg.digestName), "Daily briefing on geopolitics, tech, and privacy. All sides. No fluff.", indexCss, `\n<link rel="alternate" type="text/markdown" href="/index.md">`);
+  const head = pageHead(
+    ctx,
+    escapeHtml(ctx.cfg.digestName),
+    "Daily briefing on geopolitics, tech, and privacy. All sides. No fluff.",
+    indexCss,
+    `\n<link rel="alternate" type="text/markdown" href="/index.md">`,
+  );
   const inner = `<header class="masthead">
       <h1 class="brand">${brand(ctx)}</h1>
       <div class="sub"><span class="kicker">${wholeParts("Geopolitics &middot; Tech &middot; Privacy &middot; All sides, no fluff")}</span><span class="stat">${wholeParts(stat)}</span></div>

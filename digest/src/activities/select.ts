@@ -17,7 +17,11 @@ const OPTIONAL = ["weekly_recap.txt", "yesterday_headlines.txt"];
 
 const Pick = z.object({ cluster_index: z.number().int(), article_ids: z.array(z.string()) });
 // Shape only, never count: the tier targets live in the prompt, not the grammar.
-export const SelectedSchema = z.object({ must_know: z.array(Pick), should_know: z.array(Pick), not_covered_blurb: z.string().optional() });
+export const SelectedSchema = z.object({
+  must_know: z.array(Pick),
+  should_know: z.array(Pick),
+  not_covered_blurb: z.string().optional(),
+});
 export type Selected = z.infer<typeof SelectedSchema>;
 export const selectedJsonSchema = (): Record<string, unknown> => z.toJSONSchema(SelectedSchema, { target: "draft-07" });
 
@@ -37,7 +41,9 @@ export function checkSelected(s: Selected, knownIds: ReadonlySet<string>): strin
 }
 
 const articleIds = (csv: string): string[] =>
-  parse<Record<string, string>>(csv, { columns: true, skip_empty_lines: true, relax_column_count: true }).flatMap((r) => (r["article_id"] ? [r["article_id"]] : []));
+  parse<Record<string, string>>(csv, { columns: true, skip_empty_lines: true, relax_column_count: true }).flatMap((r) =>
+    r["article_id"] ? [r["article_id"]] : [],
+  );
 
 export interface SelectDeps {
   signal?: () => AbortSignal | undefined;
@@ -51,7 +57,13 @@ export interface SelectDeps {
 // SELECT keeps its read loop: ~250 KB of inputs, read selectively. The inputs are materialised
 // into a scratch directory, links scrubbed, as the model's only Read surface, and discarded after.
 export function selectActivity(deps: SelectDeps) {
-  return async (runId: number, _clusters: Pointer, _recap: Pointer, note?: string, input?: { force?: boolean }): Promise<Pointer> => {
+  return async (
+    runId: number,
+    _clusters: Pointer,
+    _recap: Pointer,
+    note?: string,
+    input?: { force?: boolean },
+  ): Promise<Pointer> => {
     const { store } = deps;
     const force = input?.force ?? false;
     const existing = await store.find(runId, SELECT_OUTPUT);
@@ -62,7 +74,8 @@ export function selectActivity(deps: SelectDeps) {
     }
     const names = await store.names(runId);
     const csvs = names.filter((n) => /^articles_\d+\.csv$/.test(n));
-    for (const r of REQUIRED) if (!names.includes(r)) throw ApplicationFailure.nonRetryable(`run ${runId} has no ${r}`, "MissingInput");
+    for (const r of REQUIRED)
+      if (!names.includes(r)) throw ApplicationFailure.nonRetryable(`run ${runId} has no ${r}`, "MissingInput");
     const dir = mkdtempSync(join(tmpdir(), `select-${runId}-`));
     const known = new Set<string>();
     try {
@@ -78,9 +91,32 @@ export function selectActivity(deps: SelectDeps) {
       await recordOperatorNote(store, runId, "select", note);
       const message = `The input directory is ${dir}. Begin.${note ? `\n\nOperator note for this attempt: ${note}` : ""}`;
       deps.heartbeat?.();
-      const r = await runStage(spec, { userMessage: message, inputDir: dir }, { today: await store.runDate(runId), runId, outputSchema: selectedJsonSchema(), ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) });
+      const r = await runStage(
+        spec,
+        { userMessage: message, inputDir: dir },
+        {
+          today: await store.runDate(runId),
+          runId,
+          outputSchema: selectedJsonSchema(),
+          ...(deps.query ? { query: deps.query } : {}),
+          ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+          ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+        },
+      );
       deps.heartbeat?.();
-      await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "select", runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns, toolCalls: r.toolCalls.length });
+      await deps.onUsage?.({
+        model: spec.model,
+        thinking: spec.thinking,
+        prompt: spec,
+        effort: r.effort,
+        tokens: r.usage,
+        stage: "select",
+        runId,
+        costUsd: r.costUsd,
+        durationMs: r.durationMs,
+        numTurns: r.numTurns,
+        toolCalls: r.toolCalls.length,
+      });
       const parsed = SelectedSchema.safeParse(r.structured);
       if (!parsed.success) throw new Error(`select for run ${runId}: output does not match the schema`);
       const problems = checkSelected(parsed.data, known);

@@ -46,12 +46,16 @@ export const PARSERS: Record<number, (v: string) => unknown> = {
   [OIDS.TIMESTAMPTZ]: utcText,
 };
 const pgTypes = {
-  getTypeParser: (oid: number, format?: string): ((v: string) => unknown) => PARSERS[oid] ?? (pg.types.getTypeParser(oid, format as "text") as (v: string) => unknown),
+  getTypeParser: (oid: number, format?: string): ((v: string) => unknown) =>
+    PARSERS[oid] ?? (pg.types.getTypeParser(oid, format as "text") as (v: string) => unknown),
 };
 
 const LOCK = "SELECT pg_advisory_xact_lock(hashtext($1))";
 
-function sqlOn(q: (text: string, params?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }>, exec: (text: string) => Promise<unknown>): Sql {
+function sqlOn(
+  q: (text: string, params?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }>,
+  exec: (text: string) => Promise<unknown>,
+): Sql {
   return {
     all: async <T>(text: string, params?: unknown[]) => (await q(text, params)).rows as T[],
     one: async <T>(text: string, params?: unknown[]) => (await q(text, params)).rows[0] as T | undefined,
@@ -67,7 +71,10 @@ function poolDb(url: string): Db {
   // An idle client's connection can drop (a Postgres restart); the pool discards that client and the
   // next query opens a new one. Unhandled, the pool's error event would take the worker down.
   pool.on("error", (e) => log.error(`an idle Postgres connection was lost; the pool replaces it: ${e.message}`));
-  const base = sqlOn((text, params) => pool.query(text, params), (text) => pool.query(text));
+  const base = sqlOn(
+    (text, params) => pool.query(text, params),
+    (text) => pool.query(text),
+  );
   return {
     ...base,
     tx: async (fn, lock) => {
@@ -75,7 +82,12 @@ function poolDb(url: string): Db {
       try {
         await client.query("BEGIN");
         if (lock !== undefined) await client.query(LOCK, [lock]);
-        const out = await fn(sqlOn((text, params) => client.query(text, params), (text) => client.query(text)));
+        const out = await fn(
+          sqlOn(
+            (text, params) => client.query(text, params),
+            (text) => client.query(text),
+          ),
+        );
         await client.query("COMMIT");
         return out;
       } catch (e) {

@@ -17,9 +17,26 @@ export const REPAIR_OUTPUT = "repair_resolution.json";
 const FIELDS = ["headline", "summary", "why_it_matters"] as const;
 type Field = (typeof FIELDS)[number];
 
-export interface RepairRequest { article_ids: string[]; failed_fields: Field[]; reason: string; fields: Record<Field, string> }
-export interface Resolution { article_ids: string[]; status: "repaired" | "guard_failed" | "recheck_failed"; recheck_pass: boolean; patched_fields: Partial<Record<Field, string>>; guard?: string; claims?: Claim[] }
-export interface ResolutionDoc { input: string; results: Resolution[]; recheck?: CoherenceReport; fault?: string }
+export interface RepairRequest {
+  article_ids: string[];
+  failed_fields: Field[];
+  reason: string;
+  fields: Record<Field, string>;
+}
+export interface Resolution {
+  article_ids: string[];
+  status: "repaired" | "guard_failed" | "recheck_failed";
+  recheck_pass: boolean;
+  patched_fields: Partial<Record<Field, string>>;
+  guard?: string;
+  claims?: Claim[];
+}
+export interface ResolutionDoc {
+  input: string;
+  results: Resolution[];
+  recheck?: CoherenceReport;
+  fault?: string;
+}
 
 // A failure repair can handle: failed_fields a non-empty subset of the three text fields, on every
 // matching failure (repair.build_repair_requests). Anything else stays on the drop path.
@@ -38,12 +55,23 @@ export function buildRepairRequests(draft: Draft, report: CoherenceReport): Repa
       f.forEach((x) => fields.add(x));
     }
     if (!usable || !fields.size) continue;
-    out.push({ article_ids: [...ids].toSorted(), failed_fields: [...fields].toSorted(), reason: matches.map((m) => m.reason).join("; "), fields: { headline: item.headline, summary: item.summary, why_it_matters: item.why_it_matters ?? "" } });
+    out.push({
+      article_ids: [...ids].toSorted(),
+      failed_fields: [...fields].toSorted(),
+      reason: matches.map((m) => m.reason).join("; "),
+      fields: { headline: item.headline, summary: item.summary, why_it_matters: item.why_it_matters ?? "" },
+    });
   }
   return out;
 }
 
-const Patch = z.object({ article_ids: z.array(z.string()), action: z.string().optional(), headline: z.string().optional(), summary: z.string().optional(), why_it_matters: z.string().optional() });
+const Patch = z.object({
+  article_ids: z.array(z.string()),
+  action: z.string().optional(),
+  headline: z.string().optional(),
+  summary: z.string().optional(),
+  why_it_matters: z.string().optional(),
+});
 export const RepairedSchema = z.object({ results: z.array(Patch) });
 const key = (ids: string[]) => [...new Set(ids)].toSorted().join(",");
 
@@ -63,13 +91,21 @@ export function applyRepairs(requests: RepairRequest[], repaired: z.infer<typeof
     if (!patch) return { ...base, status: "guard_failed", guard: "missing from repaired output" };
     const present = FIELDS.filter((f) => patch[f] !== undefined);
     if (present.join() !== [...req.failed_fields].toSorted((a, b) => FIELDS.indexOf(a) - FIELDS.indexOf(b)).join())
-      return { ...base, status: "guard_failed", guard: `repaired fields ${present.join(",")} do not match flagged ${req.failed_fields.join(",")}` };
+      return {
+        ...base,
+        status: "guard_failed",
+        guard: `repaired fields ${present.join(",")} do not match flagged ${req.failed_fields.join(",")}`,
+      };
     for (const f of present) {
       const v = patch[f] ?? "";
       if (!v.trim()) return { ...base, status: "guard_failed", guard: `${f} is empty` };
       if (leaksInternalId(v)) return { ...base, status: "guard_failed", guard: `${f} leaks an internal id` };
     }
-    return { ...base, status: "recheck_failed", patched_fields: Object.fromEntries(present.map((f) => [f, patch[f]!])) };
+    return {
+      ...base,
+      status: "recheck_failed",
+      patched_fields: Object.fromEntries(present.map((f) => [f, patch[f]!])),
+    };
   });
 }
 
@@ -117,7 +153,10 @@ export function repairActivity(deps: RepairDeps) {
       if (prior.input === input && prior.fault === undefined) return existing; // a cached fault is rerun
       await store.quarantine(runId, REPAIR_OUTPUT);
     }
-    const write = (doc: ResolutionDoc) => (force ? store.replace(runId, REPAIR_OUTPUT, JSON.stringify(doc, null, 2)) : store.put(runId, REPAIR_OUTPUT, JSON.stringify(doc, null, 2)));
+    const write = (doc: ResolutionDoc) =>
+      force
+        ? store.replace(runId, REPAIR_OUTPUT, JSON.stringify(doc, null, 2))
+        : store.put(runId, REPAIR_OUTPUT, JSON.stringify(doc, null, 2));
     const requests = buildRepairRequests(draft, CoherenceReportSchema.parse(JSON.parse(reportText)));
     if (!requests.length) return write({ input, results: [] });
     let applied: Resolution[] = [];
@@ -126,7 +165,10 @@ export function repairActivity(deps: RepairDeps) {
       let repaired: z.infer<typeof RepairedSchema>;
       try {
         const files: [string, string][] = [["repair_requests.json", JSON.stringify({ requests }, null, 2)]];
-        for (const n of (await store.names(runId)).filter((x) => /^articles_\d+\.csv$/.test(x) || x === "article_fulltext.json")) files.push([n, await store.content(runId, n)]);
+        for (const n of (await store.names(runId)).filter(
+          (x) => /^articles_\d+\.csv$/.test(x) || x === "article_fulltext.json",
+        ))
+          files.push([n, await store.content(runId, n)]);
         for (const [n, raw] of files) {
           const text = scrubUrls(raw);
           assertNoUrls(text);
@@ -134,8 +176,32 @@ export function repairActivity(deps: RepairDeps) {
         }
         const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "repair.md"), "utf8"));
         deps.heartbeat?.();
-        const r = await runStage(spec, { userMessage: `The input directory is ${dir}. Begin.`, inputDir: dir }, { today: await store.runDate(runId), runId, outputSchema: z.toJSONSchema(RepairedSchema, { target: "draft-07" }), ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) });
-        await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "repair", runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns, toolCalls: r.toolCalls.length, unbackedFails: 0 });
+        const r = await runStage(
+          spec,
+          { userMessage: `The input directory is ${dir}. Begin.`, inputDir: dir },
+          {
+            today: await store.runDate(runId),
+            runId,
+            outputSchema: z.toJSONSchema(RepairedSchema, { target: "draft-07" }),
+            ...(deps.query ? { query: deps.query } : {}),
+            ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+            ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+          },
+        );
+        await deps.onUsage?.({
+          model: spec.model,
+          thinking: spec.thinking,
+          prompt: spec,
+          effort: r.effort,
+          tokens: r.usage,
+          stage: "repair",
+          runId,
+          costUsd: r.costUsd,
+          durationMs: r.durationMs,
+          numTurns: r.numTurns,
+          toolCalls: r.toolCalls.length,
+          unbackedFails: 0,
+        });
         repaired = RepairedSchema.parse(r.structured);
       } finally {
         rmSync(dir, { recursive: true, force: true }); // the mkdtemp directory this call created
@@ -151,13 +217,34 @@ export function repairActivity(deps: RepairDeps) {
           if (p) scoped[tier].push({ ...s, ...p });
         }
       const checked = await runChecker(deps, runId, JSON.stringify(scoped, null, 2));
-      await deps.onUsage?.({ model: checked.model, thinking: checked.thinking, prompt: checked.prompt, effort: checked.effort, tokens: checked.tokens, stage: "repair_recheck", runId, costUsd: checked.costUsd, durationMs: checked.durationMs, numTurns: checked.numTurns, toolCalls: checked.toolCalls, unbackedFails: checked.unbacked });
+      await deps.onUsage?.({
+        model: checked.model,
+        thinking: checked.thinking,
+        prompt: checked.prompt,
+        effort: checked.effort,
+        tokens: checked.tokens,
+        stage: "repair_recheck",
+        runId,
+        costUsd: checked.costUsd,
+        durationMs: checked.durationMs,
+        numTurns: checked.numTurns,
+        toolCalls: checked.toolCalls,
+        unbackedFails: checked.unbacked,
+      });
       return write({ input, results: resolve(applied, checked.report, scoped), recheck: checked.report });
     } catch (e) {
       // A cancellation is not a fault: Temporal's own, or the SDK's AbortError once our signal fired.
       if (e instanceof CancelledFailure || deps.signal?.()?.aborted) throw e;
       if (currentAttempt() < deps.maxAttempts) throw e; // let the model retry policy try again
-      return write({ input, results: applied.map((a) => ({ ...a, status: a.status === "repaired" ? "recheck_failed" : a.status, recheck_pass: false })), fault: String(e).slice(0, 300) });
+      return write({
+        input,
+        results: applied.map((a) => ({
+          ...a,
+          status: a.status === "repaired" ? "recheck_failed" : a.status,
+          recheck_pass: false,
+        })),
+        fault: String(e).slice(0, 300),
+      });
     }
   };
 }

@@ -17,7 +17,13 @@ export function parseVerdicts(text: string): JudgeVerdict[] {
   return parsed.map((raw: unknown, i) => {
     const o = (raw ?? {}) as Record<string, unknown>;
     const { story, criterion, pass, reason } = o;
-    if (typeof story !== "number" || typeof criterion !== "number" || criterion < 1 || criterion > 7 || typeof pass !== "boolean")
+    if (
+      typeof story !== "number" ||
+      typeof criterion !== "number" ||
+      criterion < 1 ||
+      criterion > 7 ||
+      typeof pass !== "boolean"
+    )
       throw new Error(`judge verdict ${i} is malformed: ${JSON.stringify(raw)}`);
     return { story, criterion: criterion as Criterion, pass, reason: typeof reason === "string" ? reason : "" };
   });

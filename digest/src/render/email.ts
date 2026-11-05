@@ -1,6 +1,16 @@
 import { htmlEscape as esc } from "escape-goat";
 import { Engine } from "mrml";
-import { dates, lightTokens, readingTime, slugger, storyCounts, type Bucket, type RenderInput, type Story, type ThreadContext } from "./common.js";
+import {
+  dates,
+  lightTokens,
+  readingTime,
+  slugger,
+  storyCounts,
+  type Bucket,
+  type RenderInput,
+  type Story,
+  type ThreadContext,
+} from "./common.js";
 import { countsLabel, groupReports } from "./reports.js";
 
 // The email, ported from newsroom/src/render_email.py: MJML compiled by mrml, the Rust engine
@@ -13,7 +23,16 @@ const SIDE = "28px";
 const MONO_UP = 'letter-spacing="1px" text-transform="uppercase"';
 const whole = (s: string) => `<span style="white-space:nowrap;">${s}</span>`;
 
-interface Palette { bg: string; ink: string; ink2: string; muted: string; hair: string; accent: string; accentInk: string; bias: Record<Bucket, string> }
+interface Palette {
+  bg: string;
+  ink: string;
+  ink2: string;
+  muted: string;
+  hair: string;
+  accent: string;
+  accentInk: string;
+  bias: Record<Bucket, string>;
+}
 function palette(tokensCss: string): Palette {
   const t = lightTokens(tokensCss);
   const need = (k: string) => {
@@ -21,13 +40,31 @@ function palette(tokensCss: string): Palette {
     if (v === undefined) throw new Error(`design token --${k} missing from tokens.css`);
     return v;
   };
-  return { bg: need("bg"), ink: need("ink"), ink2: need("ink2"), muted: need("muted"), hair: need("hair"), accent: need("accent"), accentInk: need("accent-ink"), bias: { l: need("bias-l"), c: need("bias-c"), r: need("bias-r") } };
+  return {
+    bg: need("bg"),
+    ink: need("ink"),
+    ink2: need("ink2"),
+    muted: need("muted"),
+    hair: need("hair"),
+    accent: need("accent"),
+    accentInk: need("accent-ink"),
+    bias: { l: need("bias-l"), c: need("bias-c"), r: need("bias-r") },
+  };
 }
 
 // Each mj-text carries only the attributes that differ from the <mj-attributes> defaults, which
 // are built from this same map, so the two cannot drift.
 type TxtKey = "font-family" | "font-size" | "color" | "line-height" | "align" | "padding";
-interface TxtOpts { size?: number; color?: string; font?: string; lh?: string; weight?: string; align?: string; padding?: string; extra?: string }
+interface TxtOpts {
+  size?: number;
+  color?: string;
+  font?: string;
+  lh?: string;
+  weight?: string;
+  align?: string;
+  padding?: string;
+  extra?: string;
+}
 
 // A continuing thread's delta, today's verified facts, replaces the summary.
 function bodyOf(a: Story): string {
@@ -36,19 +73,52 @@ function bodyOf(a: Story): string {
 }
 
 function renderer(p: Palette) {
-  const defaults: Record<TxtKey, string> = { "font-family": SERIF, "font-size": "18px", color: p.ink2, "line-height": "1.6", align: "left", padding: "0" };
-  const txt = (content: string, { size = 18, color = p.ink2, font = SERIF, lh = "1.6", weight, align = "left", padding = "0", extra = "" }: TxtOpts = {}) => {
-    const vals: Record<TxtKey, string> = { "font-family": font, "font-size": `${size}px`, color, "line-height": lh, align, padding };
-    let attrs = (Object.keys(vals) as TxtKey[]).filter((k) => vals[k] !== defaults[k]).map((k) => `${k}="${vals[k]}"`).join(" ");
+  const defaults: Record<TxtKey, string> = {
+    "font-family": SERIF,
+    "font-size": "18px",
+    color: p.ink2,
+    "line-height": "1.6",
+    align: "left",
+    padding: "0",
+  };
+  const txt = (
+    content: string,
+    {
+      size = 18,
+      color = p.ink2,
+      font = SERIF,
+      lh = "1.6",
+      weight,
+      align = "left",
+      padding = "0",
+      extra = "",
+    }: TxtOpts = {},
+  ) => {
+    const vals: Record<TxtKey, string> = {
+      "font-family": font,
+      "font-size": `${size}px`,
+      color,
+      "line-height": lh,
+      align,
+      padding,
+    };
+    let attrs = (Object.keys(vals) as TxtKey[])
+      .filter((k) => vals[k] !== defaults[k])
+      .map((k) => `${k}="${vals[k]}"`)
+      .join(" ");
     if (weight) attrs += ` font-weight="${weight}"`;
     if (extra) attrs += ` ${extra}`;
     return `<mj-text ${attrs}>${content}</mj-text>`;
   };
   // Mail clients do not inherit link colour, so every <a> is styled inline.
-  const link = (url: string, text: string, color = p.accentInk) => `<a href="${url}" style="color:${color};">${text}</a>`;
-  const eyebrow = (label: string) => txt(label, { size: 12, color: p.accentInk, font: MONO, weight: "600", padding: "0 0 4px", extra: MONO_UP });
+  const link = (url: string, text: string, color = p.accentInk) =>
+    `<a href="${url}" style="color:${color};">${text}</a>`;
+  const eyebrow = (label: string) =>
+    txt(label, { size: 12, color: p.accentInk, font: MONO, weight: "600", padding: "0 0 4px", extra: MONO_UP });
   const section = (inner: string, { padding = `0 ${SIDE}`, borderLeft = false } = {}) => {
-    const col = borderLeft ? `<mj-column padding="0 0 0 16px" border-left="2px solid ${p.accent}">${inner}</mj-column>` : `<mj-column>${inner}</mj-column>`;
+    const col = borderLeft
+      ? `<mj-column padding="0 0 0 16px" border-left="2px solid ${p.accent}">${inner}</mj-column>`
+      : `<mj-column>${inner}</mj-column>`;
     return `<mj-section padding="${padding}">${col}</mj-section>`;
   };
   // The label cell is fixed at 150px and the rule cell has no width: a percentage rule cell starved
@@ -90,20 +160,33 @@ function renderer(p: Palette) {
   const story = (a: Story, slug: string, homepage: string) => {
     const thread = a.thread ?? {};
     const why = esc(a.why_it_matters ?? "").trim();
-    const parts = [section(txt(esc(a.headline ?? ""), { size: 25, color: p.ink, lh: "1.24", weight: "600", padding: "0 0 12px" }) + threadEyebrow(thread) + txt(bodyOf(a), { color: p.ink }), { padding: `24px ${SIDE} 0` })];
+    const parts = [
+      section(
+        txt(esc(a.headline ?? ""), { size: 25, color: p.ink, lh: "1.24", weight: "600", padding: "0 0 12px" }) +
+          threadEyebrow(thread) +
+          txt(bodyOf(a), { color: p.ink }),
+        { padding: `24px ${SIDE} 0` },
+      ),
+    ];
     if (why) parts.push(section(eyebrow("Why it matters") + txt(why), { padding: `16px ${SIDE} 0`, borderLeft: true }));
     parts.push(sources(a, slug, homepage));
     return parts.join("");
   };
   const brief = (a: Story, slug: string, homepage: string, first: boolean) => {
-    const inner = txt(esc(a.headline ?? ""), { size: 20, color: p.ink, lh: "1.3", weight: "600", padding: "0 0 4px" }) + threadEyebrow(a.thread ?? {}, "0 0 4px") + txt(bodyOf(a));
+    const inner =
+      txt(esc(a.headline ?? ""), { size: 20, color: p.ink, lh: "1.3", weight: "600", padding: "0 0 4px" }) +
+      threadEyebrow(a.thread ?? {}, "0 0 4px") +
+      txt(bodyOf(a));
     // The first brief needs a gap below the section header; later ones get it from the separator.
     return section(inner, { padding: first ? `20px ${SIDE} 0` : `0 ${SIDE}` }) + sources(a, slug, homepage);
   };
   return { defaults, txt, link, section, sectionHeader, separator, story, brief };
 }
 
-export function renderEmail({ selections, now, issueNo, env, assets }: RenderInput, unsubscribeUrl = "{{{RESEND_UNSUBSCRIBE_URL}}}"): string {
+export function renderEmail(
+  { selections, now, issueNo, env, assets }: RenderInput,
+  unsubscribeUrl = "{{{RESEND_UNSUBSCRIBE_URL}}}",
+): string {
   const p = palette(assets.tokens);
   const { defaults, txt, link, section, sectionHeader, separator, story, brief } = renderer(p);
   const d = dates(now);
@@ -116,16 +199,42 @@ export function renderEmail({ selections, now, issueNo, env, assets }: RenderInp
   body.push(
     homepage
       ? section(
-          txt(`<a href="${homepage}" style="color:${p.muted};text-decoration:none;">View in browser</a> <span style="color:${p.hair};">·</span> <a href="${homepage}/translate" style="color:${p.muted};text-decoration:none;"><span>文A</span> Translate</a>`, { size: 12, color: p.muted, font: MONO, align: "center", extra: MONO_UP }),
+          txt(
+            `<a href="${homepage}" style="color:${p.muted};text-decoration:none;">View in browser</a> <span style="color:${p.hair};">·</span> <a href="${homepage}/translate" style="color:${p.muted};text-decoration:none;"><span>文A</span> Translate</a>`,
+            { size: 12, color: p.muted, font: MONO, align: "center", extra: MONO_UP },
+          ),
           { padding: `24px ${SIDE} 0` },
         )
       : "",
   );
-  const brand = txt(`Sean&#39;s Daily <span style="color:${p.accentInk};">Digest</span>`, { size: 27, color: p.ink, weight: "600", lh: "1" });
-  const issue = txt(`${issueNo === null ? "" : `No. ${issueNo}<br/>`}Filed ${d.filed}`, { size: 12, color: p.muted, font: MONO, align: "right", lh: "1.55", extra: MONO_UP });
-  body.push(`<mj-section padding="20px ${SIDE} 0"><mj-column width="60%" vertical-align="bottom">${brand}</mj-column><mj-column width="40%" vertical-align="bottom">${issue}</mj-column></mj-section>`);
-  body.push(section(txt(`<span style="color:${p.accent};">■</span> ${whole(d.long)} &nbsp;/&nbsp; ${whole(readingTime(selections))} &nbsp;/&nbsp; ${whole(storyCounts(selections))}`, { size: 12, color: p.muted, font: MONO, padding: "6px 0 12px", extra: MONO_UP })));
-  body.push(`<mj-section padding="0 ${SIDE}"><mj-column><mj-divider border-width="2px" border-color="${p.ink}" padding="0" /></mj-column></mj-section>`);
+  const brand = txt(`Sean&#39;s Daily <span style="color:${p.accentInk};">Digest</span>`, {
+    size: 27,
+    color: p.ink,
+    weight: "600",
+    lh: "1",
+  });
+  const issue = txt(`${issueNo === null ? "" : `No. ${issueNo}<br/>`}Filed ${d.filed}`, {
+    size: 12,
+    color: p.muted,
+    font: MONO,
+    align: "right",
+    lh: "1.55",
+    extra: MONO_UP,
+  });
+  body.push(
+    `<mj-section padding="20px ${SIDE} 0"><mj-column width="60%" vertical-align="bottom">${brand}</mj-column><mj-column width="40%" vertical-align="bottom">${issue}</mj-column></mj-section>`,
+  );
+  body.push(
+    section(
+      txt(
+        `<span style="color:${p.accent};">■</span> ${whole(d.long)} &nbsp;/&nbsp; ${whole(readingTime(selections))} &nbsp;/&nbsp; ${whole(storyCounts(selections))}`,
+        { size: 12, color: p.muted, font: MONO, padding: "6px 0 12px", extra: MONO_UP },
+      ),
+    ),
+  );
+  body.push(
+    `<mj-section padding="0 ${SIDE}"><mj-column><mj-divider border-width="2px" border-color="${p.ink}" padding="0" /></mj-column></mj-section>`,
+  );
   body.push(
     section(
       txt(
@@ -137,7 +246,10 @@ export function renderEmail({ selections, now, issueNo, env, assets }: RenderInp
       { padding: `12px ${SIDE}` },
     ),
   );
-  for (const [label, num, key, isBrief] of [["Must Know", "01", "must_know", false], ["Should Know", "02", "should_know", true]] as const) {
+  for (const [label, num, key, isBrief] of [
+    ["Must Know", "01", "must_know", false],
+    ["Should Know", "02", "should_know", true],
+  ] as const) {
     const items = selections[key];
     if (!items.length) continue;
     body.push(sectionHeader(num, label, key === "should_know"));
@@ -158,12 +270,17 @@ export function renderEmail({ selections, now, issueNo, env, assets }: RenderInp
     '<mj-spacer height="16px" />' +
     txt(nav, { size: 12, color: p.muted, font: SANS, lh: "1.7" }) +
     txt("Reply to this email with feedback.", { size: 12, color: p.muted, font: SANS, padding: "8px 0 0" }) +
-    (notCovered ? txt(`Not covered today: ${esc(notCovered)}`, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
+    (notCovered
+      ? txt(`Not covered today: ${esc(notCovered)}`, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" })
+      : "") +
     (plug ? txt(plug, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" }) : "") +
     txt(d.generated, { size: 13, color: p.muted, font: SANS, padding: "8px 0 0" });
   body.push(`<mj-section padding="0 ${SIDE}"><mj-column>${footer}</mj-column></mj-section>`);
 
-  const textDefaults = (Object.keys(defaults) as TxtKey[]).filter((k) => k !== "font-family").map((k) => `${k}="${defaults[k]}"`).join(" ");
+  const textDefaults = (Object.keys(defaults) as TxtKey[])
+    .filter((k) => k !== "font-family")
+    .map((k) => `${k}="${defaults[k]}"`)
+    .join(" ");
   const mjml =
     "<mjml><mj-head>" +
     `<mj-attributes><mj-all font-family="${SERIF}" />` +

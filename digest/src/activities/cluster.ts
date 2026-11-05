@@ -5,7 +5,15 @@ import { join } from "node:path";
 import { ApplicationFailure } from "@temporalio/common";
 import { parse } from "csv-parse/sync";
 import { joinTags, type Cluster } from "../cluster/join.js";
-import { coerceTag, ExtractItemsSchema, extractItemsJsonSchema, itemsForBatch, TAG_BAG_WEIGHTS, usable, type Tag } from "../cluster/tags.js";
+import {
+  coerceTag,
+  ExtractItemsSchema,
+  extractItemsJsonSchema,
+  itemsForBatch,
+  TAG_BAG_WEIGHTS,
+  usable,
+  type Tag,
+} from "../cluster/tags.js";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
 import { parseAgentSpec } from "../runner/prompt.js";
 import { runStage, type SdkQuery } from "../runner/run-stage.js";
@@ -33,22 +41,44 @@ export async function loadArticles(store: ArtifactStore, runId: number): Promise
   for (const name of (await store.names(runId)).filter((n) => /^articles_\d+\.csv$/.test(n))) {
     const p = await store.find(runId, name);
     if (!p) continue;
-    const rows = parse(await store.get(p), { columns: true, skip_empty_lines: true, relax_column_count: true }) as Record<string, string>[];
-    for (const r of rows) if (r["article_id"]) out.push({ article_id: r["article_id"], title: r["title"] ?? "", summary: r["summary"] ?? "", source_id: r["source_id"] ?? "", published: r["published"] ?? "" });
+    const rows = parse(await store.get(p), {
+      columns: true,
+      skip_empty_lines: true,
+      relax_column_count: true,
+    }) as Record<string, string>[];
+    for (const r of rows)
+      if (r["article_id"])
+        out.push({
+          article_id: r["article_id"],
+          title: r["title"] ?? "",
+          summary: r["summary"] ?? "",
+          source_id: r["source_id"] ?? "",
+          published: r["published"] ?? "",
+        });
   }
   return out;
 }
 
 export function planBatches(articles: Article[], size = EXTRACT_BATCH): ExtractBatch[] {
   const ids = articles.map((a) => a.article_id);
-  return Array.from({ length: Math.ceil(ids.length / size) }, (_, i) => ({ index: i, ids: ids.slice(i * size, (i + 1) * size) }));
+  return Array.from({ length: Math.ceil(ids.length / size) }, (_, i) => ({
+    index: i,
+    ids: ids.slice(i * size, (i + 1) * size),
+  }));
 }
 
 // TSV of (article_id, title, summary) for one extraction batch, as the Python stage builds it.
 // Summaries are scrubbed of links: the words are the clustering signal, the address is not.
 const clean = (s: string) => scrubUrls(s.replaceAll("\n", " ").replaceAll("\t", " "));
 // JSON with object keys sorted at every level, as the Python's sort_keys=True writes it.
-const stableJson = (v: unknown) => JSON.stringify(v, (_k, val: unknown) => (val && typeof val === "object" && !Array.isArray(val) ? Object.fromEntries(Object.entries(val as Record<string, unknown>).toSorted(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : val));
+const stableJson = (v: unknown) =>
+  JSON.stringify(v, (_k, val: unknown) =>
+    val && typeof val === "object" && !Array.isArray(val)
+      ? Object.fromEntries(
+          Object.entries(val as Record<string, unknown>).toSorted(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        )
+      : val,
+  );
 
 export function buildExtractPrompt(batch: string[], arts: Map<string, Article>): string {
   const rows = ["article_id\ttitle\tsummary"];
@@ -85,7 +115,11 @@ export function clusterActivities(deps: ClusterDeps) {
   return {
     planBatches: async (runId: number): Promise<{ batches: ExtractBatch[] }> => {
       const articles = await loadArticles(store, runId);
-      if (articles.length === 0) throw ApplicationFailure.nonRetryable(`run ${runId} has no articles_*.csv; prepare has not run`, "MissingInput");
+      if (articles.length === 0)
+        throw ApplicationFailure.nonRetryable(
+          `run ${runId} has no articles_*.csv; prepare has not run`,
+          "MissingInput",
+        );
       return { batches: planBatches(articles) };
     },
 
@@ -104,15 +138,42 @@ export function clusterActivities(deps: ClusterDeps) {
       assertNoUrls(prompt);
       const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "cluster-extract.md"), "utf8"));
       deps.heartbeat?.();
-      const r = await runStage(spec, { userMessage: prompt, inputDir: tmpdir() }, { today: await store.runDate(runId), runId, outputSchema: extractItemsJsonSchema(), ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) });
+      const r = await runStage(
+        spec,
+        { userMessage: prompt, inputDir: tmpdir() },
+        {
+          today: await store.runDate(runId),
+          runId,
+          outputSchema: extractItemsJsonSchema(),
+          ...(deps.query ? { query: deps.query } : {}),
+          ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+          ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+        },
+      );
       deps.heartbeat?.();
-      await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "cluster-extract", runId, batch: batch.index, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns });
+      await deps.onUsage?.({
+        model: spec.model,
+        thinking: spec.thinking,
+        prompt: spec,
+        effort: r.effort,
+        tokens: r.usage,
+        stage: "cluster-extract",
+        runId,
+        batch: batch.index,
+        costUsd: r.costUsd,
+        durationMs: r.durationMs,
+        numTurns: r.numTurns,
+      });
       const parsed = ExtractItemsSchema.safeParse(r.structured);
-      if (!parsed.success) throw new Error(`extract batch ${batch.index}: structured output did not match the items schema`);
+      if (!parsed.success)
+        throw new Error(`extract batch ${batch.index}: structured output did not match the items schema`);
       const items = itemsForBatch(parsed.data.items, batch.ids)
         .map((it) => ({ article_id: it.article_id, ...coerceTag(it) }))
         .filter((it) => usable(it));
-      if (items.length === 0) throw new Error(`extract batch ${batch.index}: 0/${batch.ids.length} articles extracted (${parsed.data.items.length} items parsed)`);
+      if (items.length === 0)
+        throw new Error(
+          `extract batch ${batch.index}: 0/${batch.ids.length} articles extracted (${parsed.data.items.length} items parsed)`,
+        );
       const text = JSON.stringify({ items } satisfies TagFile);
       return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
     },
@@ -128,21 +189,37 @@ export function clusterActivities(deps: ClusterDeps) {
       }
       // The three outputs are one write: regenerating quarantines every sibling a previous attempt
       // left, or put would conflict on the ones that differ.
-      if (!force) for (const name of [CLUSTERS_OUTPUT, "cluster_tags.json", "cluster_health.json"]) if (await store.find(runId, name)) await store.quarantine(runId, name);
+      if (!force)
+        for (const name of [CLUSTERS_OUTPUT, "cluster_tags.json", "cluster_health.json"])
+          if (await store.find(runId, name)) await store.quarantine(runId, name);
       const articles = await loadArticles(store, runId);
       const ids = articles.map((a) => a.article_id);
       const tags: Record<string, Tag> = {};
-      for (const p of tagBatches) if (p) for (const it of (JSON.parse(await store.get(p)) as TagFile).items) tags[it.article_id] = coerceTag(it);
+      for (const p of tagBatches)
+        if (p) for (const it of (JSON.parse(await store.get(p)) as TagFile).items) tags[it.article_id] = coerceTag(it);
       const missing = ids.filter((a) => !usable(tags[a]));
       if (missing.length > ids.length * MAX_FALLBACK_FRACTION)
-        throw ApplicationFailure.nonRetryable(`extract-join: ${missing.length}/${ids.length} articles fell back to title-only (> ${MAX_FALLBACK_FRACTION * 100}%); refusing a degenerate partition`, "DegeneratePartition");
+        throw ApplicationFailure.nonRetryable(
+          `extract-join: ${missing.length}/${ids.length} articles fell back to title-only (> ${MAX_FALLBACK_FRACTION * 100}%); refusing a degenerate partition`,
+          "DegeneratePartition",
+        );
       const byId = new Map(articles.map((a) => [a.article_id, a]));
-      for (const a of missing) tags[a] = { entities: [], keywords: [], primary_event: (byId.get(a)?.title ?? "").slice(0, 60) };
+      for (const a of missing)
+        tags[a] = { entities: [], keywords: [], primary_event: (byId.get(a)?.title ?? "").slice(0, 60) };
       const clusters: Cluster[] = joinTags(ids, tags);
       if (clusters.length === 0) throw new Error("extract-join: no clusters");
-      const write = (name: string, text: string) => (force ? store.replace(runId, name, text) : store.put(runId, name, text));
+      const write = (name: string, text: string) =>
+        force ? store.replace(runId, name, text) : store.put(runId, name, text);
       await write("cluster_tags.json", stableJson({ tag_bag_weights: TAG_BAG_WEIGHTS, tags }));
-      await write("cluster_health.json", JSON.stringify({ articles: ids.length, title_only_fallback: missing.length, batches_lost: tagBatches.filter((p) => !p).length, tags_archived: true }));
+      await write(
+        "cluster_health.json",
+        JSON.stringify({
+          articles: ids.length,
+          title_only_fallback: missing.length,
+          batches_lost: tagBatches.filter((p) => !p).length,
+          tags_archived: true,
+        }),
+      );
       return write(CLUSTERS_OUTPUT, JSON.stringify({ clusters }, null, 2));
     },
   };

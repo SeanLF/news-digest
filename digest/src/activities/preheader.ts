@@ -31,18 +31,30 @@ export function truncateOnWordBoundary(input: string, max: number): string {
 // A closed set of label prefixes, not a shape: `^word+:` would decapitate "WHO: companies filed..."
 // (orchestrate.clean_preheader, measured against 1,225 archived headlines).
 const LABELS = ["preheader", "preheader line", "here is the preheader", "the preheader"];
-const LABEL_RE = new RegExp(`^\\**\\s*(?:${LABELS.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*\\**\\s*:\\**\\s*`, "i");
+const LABEL_RE = new RegExp(
+  `^\\**\\s*(?:${LABELS.map((l) => l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\s*\\**\\s*:\\**\\s*`,
+  "i",
+);
 const LIST_RE = /^\s*(?:[-*•]|\d+[.)])\s+/;
-const QUOTES: [string, string][] = [['"', '"'], ["'", "'"], ["“", "”"], ["‘", "’"]];
+const QUOTES: [string, string][] = [
+  ['"', '"'],
+  ["'", "'"],
+  ["“", "”"],
+  ["‘", "’"],
+];
 
 // The first usable line, unlabelled, unlisted, unquoted, within the cap. "" when nothing usable is
 // left, which assemble fills from the first headline: this field degrades, it never aborts a digest.
 export function cleanPreheader(text: string): string {
-  const lines = text.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("```"));
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith("```"));
   while (lines.length && lines[0]!.replace(LABEL_RE, "").trim() === "") lines.shift();
   if (!lines.length) return "";
   let first = lines[0]!.replace(LIST_RE, "").replace(LABEL_RE, "").trim();
-  for (const [o, c] of QUOTES) if (first.length > 1 && first.startsWith(o) && first.endsWith(c)) first = first.slice(1, -1).trim();
+  for (const [o, c] of QUOTES)
+    if (first.length > 1 && first.startsWith(o) && first.endsWith(c)) first = first.slice(1, -1).trim();
   return truncateOnWordBoundary(first, PREHEADER_MAX_CHARS);
 }
 
@@ -76,8 +88,29 @@ export function preheaderActivity(deps: PreheaderDeps) {
     assertNoUrls(message);
     const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "preheader.md"), "utf8"));
     deps.heartbeat?.();
-    const r = await runStage(spec, { userMessage: message, inputDir: tmpdir() }, { today: await store.runDate(runId), runId, ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) });
-    await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "preheader", runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns });
+    const r = await runStage(
+      spec,
+      { userMessage: message, inputDir: tmpdir() },
+      {
+        today: await store.runDate(runId),
+        runId,
+        ...(deps.query ? { query: deps.query } : {}),
+        ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+        ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+      },
+    );
+    await deps.onUsage?.({
+      model: spec.model,
+      thinking: spec.thinking,
+      prompt: spec,
+      effort: r.effort,
+      tokens: r.usage,
+      stage: "preheader",
+      runId,
+      costUsd: r.costUsd,
+      durationMs: r.durationMs,
+      numTurns: r.numTurns,
+    });
     const line = cleanPreheader(r.text);
     if (!line) throw new Error(`preheader for run ${runId}: nothing usable in the reply`);
     const doc = JSON.stringify({ input, line });

@@ -5,7 +5,14 @@ import { type Assets, FAVICON_SVG } from "./assets.js";
 import { type SiteConfig, baseUrl, subscriptionsEnabled } from "./config.js";
 import type { SiteData } from "./data.js";
 import { FEED_ENTRY_LIMIT, atomFeed } from "./feed.js";
-import { htmlLinkHeader, indexMarkdown, issueMarkdown, markdownLinkHeader, negotiate, hiddenPointer } from "./markdown.js";
+import {
+  htmlLinkHeader,
+  indexMarkdown,
+  issueMarkdown,
+  markdownLinkHeader,
+  negotiate,
+  hiddenPointer,
+} from "./markdown.js";
 import { NOTICES, type IndexScope, indexPage } from "./pages/index.js";
 import { issuePage } from "./pages/issue.js";
 import type { PageCtx } from "./pages/chrome.js";
@@ -17,7 +24,15 @@ import { latestLead, leaningOf } from "./embed.js";
 import { embedEmptyPage, embedLeadPage } from "./pages/embed.js";
 import { type CatalogueEntry, sourceRows } from "./sources.js";
 import { computeMetrics, statsFrom, statsJson, statsValue } from "./stats.js";
-import { type Mail, CONFIRM_TTL_S, addContact, isValidEmail, makeToken, sendConfirmation, verifyToken } from "./subscribe.js";
+import {
+  type Mail,
+  CONFIRM_TTL_S,
+  addContact,
+  isValidEmail,
+  makeToken,
+  sendConfirmation,
+  verifyToken,
+} from "./subscribe.js";
 import { OLDER_PAGE, threadDetail, threadIndex } from "./threads.js";
 import { SEARCH_LIMIT, isValidDate, sanitizeQuery } from "./text.js";
 import { proxyTarget, validQueryLang, validTranslatePath } from "./translate.js";
@@ -37,8 +52,13 @@ export interface SiteDeps {
 
 const md = (c: Context, body: string, link: string, status = 200) =>
   c.body(body, status as 200, { "content-type": "text/markdown; charset=utf-8", vary: "accept", link });
-const text = (c: Context, body: string, status: number) => c.body(body, status as 200, { "content-type": "text/plain; charset=utf-8" });
-const notAcceptable = (c: Context) => c.body("Not Acceptable — this URL is available as text/html or text/markdown.\n", 406, { "content-type": "text/plain; charset=utf-8", vary: "accept" });
+const text = (c: Context, body: string, status: number) =>
+  c.body(body, status as 200, { "content-type": "text/plain; charset=utf-8" });
+const notAcceptable = (c: Context) =>
+  c.body("Not Acceptable — this URL is available as text/html or text/markdown.\n", 406, {
+    "content-type": "text/plain; charset=utf-8",
+    vary: "accept",
+  });
 // A redirect the Rust server sent: 303 after a form, 307 temporary, 308 permanent.
 const redirect = (c: Context, to: string, status: 303 | 307 | 308) => c.body(null, status, { location: to });
 
@@ -46,7 +66,9 @@ const redirect = (c: Context, to: string, status: 303 | 307 | 308) => c.body(nul
 function intQuery(c: Context, name: string, unsigned: boolean): number | undefined | Response {
   const raw = c.req.query(name);
   if (raw === undefined) return undefined;
-  const ok = unsigned ? /^\+?\d+$/.test(raw) && Number(raw) <= 0xffffffff : /^[+-]?\d+$/.test(raw) && Number.isSafeInteger(Number(raw));
+  const ok = unsigned
+    ? /^\+?\d+$/.test(raw) && Number(raw) <= 0xffffffff
+    : /^[+-]?\d+$/.test(raw) && Number.isSafeInteger(Number(raw));
   return ok ? Number(raw) : text(c, `Failed to deserialize query string: ${name}: invalid digit found in string`, 400);
 }
 
@@ -54,7 +76,10 @@ function intQuery(c: Context, name: string, unsigned: boolean): number | undefin
 // method does not, as axum answered.
 const METHODS: [RegExp, string][] = [
   [/^\/subscribe$/, "POST"],
-  [/^\/(|confirm|privacy|health|favicon\.ico|robots\.txt|llms\.txt|llms-full\.txt|index\.md|apple-touch-icon(-precomposed)?\.png|og-image\.png|sources|feed\.xml|stats|stats\.json|archive|threads|threads\/more|search|feedback|today|translate|today\/translate|embed\/lead)$/, "GET,HEAD"],
+  [
+    /^\/(|confirm|privacy|health|favicon\.ico|robots\.txt|llms\.txt|llms-full\.txt|index\.md|apple-touch-icon(-precomposed)?\.png|og-image\.png|sources|feed\.xml|stats|stats\.json|archive|threads|threads\/more|search|feedback|today|translate|today\/translate|embed\/lead)$/,
+    "GET,HEAD",
+  ],
   [/^\/(thread|issues)\/[^/]+$/, "GET,HEAD"],
   [/^\/issues\/[^/]+\/translate$/, "GET,HEAD"],
   [/^\/assets\/fonts\/[^/]+$/, "GET,HEAD"],
@@ -70,7 +95,8 @@ function unavailable(c: Context, what: string, e: unknown): Response {
   return text(c, what, 503);
 }
 
-const bytes = (c: Context, b: Buffer | string, type: string, cache: string) => c.body(typeof b === "string" ? b : new Uint8Array(b), 200, { "content-type": type, "cache-control": cache });
+const bytes = (c: Context, b: Buffer | string, type: string, cache: string) =>
+  c.body(typeof b === "string" ? b : new Uint8Array(b), 200, { "content-type": type, "cache-control": cache });
 
 // The threads cursor is usable only as a pair; half of one, or an empty `before`, is refused rather
 // than quietly served as the newest page.
@@ -81,7 +107,8 @@ function cursor(c: Context): { updatedAt: string; id: number } | undefined | Res
   if (before === undefined && id === undefined) return undefined;
   // Only the cursor the site itself writes: whole seconds, "YYYY-MM-DD HH:MM:SS". Anything else would
   // fail a timestamp cast, or with a fraction repeat that second's rows.
-  if (before && id !== undefined && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(before)) return { updatedAt: before, id };
+  if (before && id !== undefined && /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(before))
+    return { updatedAt: before, id };
   if (before && id !== undefined) return text(c, "before must be a timestamp of the form YYYY-MM-DD HH:MM:SS", 400);
   return text(c, "before and before_id must be supplied together, and before must not be empty", 400);
 }
@@ -96,7 +123,8 @@ export function siteApp(deps: SiteDeps): Hono {
   const names = new Map(catalogue.map((s) => [s.id, s.name]));
   const app = new Hono({ strict: false });
   const ctx: PageCtx = { cfg, assets };
-  const page404 = (c: Context, heading = "Page not found", message = "There's nothing at this address.") => c.html(notFoundPage(ctx, heading, message), 404);
+  const page404 = (c: Context, heading = "Page not found", message = "There's nothing at this address.") =>
+    c.html(notFoundPage(ctx, heading, message), 404);
   const nowMs = () => deps.now().getTime();
 
   app.use(...securityHeaders());
@@ -145,10 +173,22 @@ export function siteApp(deps: SiteDeps): Hono {
         if (want === "markdown") return await indexMd(c);
       }
       const meta = await data.indexMeta();
-      const scope: IndexScope = year !== undefined ? { kind: "year", year } : before !== undefined ? { kind: "before", before } : { kind: "all" };
+      const scope: IndexScope =
+        year !== undefined
+          ? { kind: "year", year }
+          : before !== undefined
+            ? { kind: "before", before }
+            : { kind: "all" };
       let page: ArchivePage | undefined;
-      if (meta.total > 0) page = await fetchArchive(data, bias, scope.kind === "year" ? { year: scope.year, limit: 100 } : { before, limit: DEFAULT_LIMIT });
-      const notice = ["subscribed", "pending", "subscribe_invalid", "subscribe_ratelimited", "subscribe_error"].find((k) => c.req.query(k) !== undefined);
+      if (meta.total > 0)
+        page = await fetchArchive(
+          data,
+          bias,
+          scope.kind === "year" ? { year: scope.year, limit: 100 } : { before, limit: DEFAULT_LIMIT },
+        );
+      const notice = ["subscribed", "pending", "subscribe_invalid", "subscribe_ratelimited", "subscribe_error"].find(
+        (k) => c.req.query(k) !== undefined,
+      );
       const html = indexPage(ctx, meta, scope, page, notice ? NOTICES[notice]! : "", hiddenPointer(`${base}/index.md`));
       return c.html(html, 200, { vary: "accept", link: markdownLinkHeader("/index.md") });
     } catch (e) {
@@ -168,7 +208,11 @@ export function siteApp(deps: SiteDeps): Hono {
     const limit = intQuery(c, "limit", false);
     if (limit instanceof Response) return limit;
     try {
-      return c.html(fragmentHtml(await fetchArchive(data, bias, { before: c.req.query("before"), year, limit: limit ?? DEFAULT_LIMIT })));
+      return c.html(
+        fragmentHtml(
+          await fetchArchive(data, bias, { before: c.req.query("before"), year, limit: limit ?? DEFAULT_LIMIT }),
+        ),
+      );
     } catch (e) {
       return unavailable(c, "Service unavailable", e);
     }
@@ -183,7 +227,11 @@ export function siteApp(deps: SiteDeps): Hono {
     } catch (e) {
       return unavailable(c, "Digest unavailable", e);
     }
-    return redirect(c, proxyTarget(cfg.digestDomain, `/issues/${date}`, c.req.query("lang"), c.req.header("accept-language")), 307);
+    return redirect(
+      c,
+      proxyTarget(cfg.digestDomain, `/issues/${date}`, c.req.query("lang"), c.req.header("accept-language")),
+      307,
+    );
   });
   app.get("/issues/:date", async (c) => {
     const raw = c.req.param("date");
@@ -199,13 +247,25 @@ export function siteApp(deps: SiteDeps): Hono {
     } catch (e) {
       return unavailable(c, "Digest unavailable", e);
     }
-    if (!stored) return page404(c, "No issue for that date", `There's no issue dated ${date} in the archive — it may not have been published, or the date is off by a day.`);
+    if (!stored)
+      return page404(
+        c,
+        "No issue for that date",
+        `There's no issue dated ${date} in the archive — it may not have been published, or the date is off by a day.`,
+      );
     if (want === "markdown") {
       // Vary: the same URL answers a browser with the page.
-      if (stored.markdown === null) return c.body(`No Markdown version of the issue dated ${date}; the web page is /issues/${date}.\n`, 404, { "content-type": "text/plain; charset=utf-8", vary: "accept" });
+      if (stored.markdown === null)
+        return c.body(`No Markdown version of the issue dated ${date}; the web page is /issues/${date}.\n`, 404, {
+          "content-type": "text/plain; charset=utf-8",
+          vary: "accept",
+        });
       return md(c, issueMarkdown(cfg.digestName, date, stored.markdown), htmlLinkHeader(`/issues/${date}`));
     }
-    return c.html(issuePage(ctx, date, stored, `${base}/issues/${date}.md`), 200, { vary: "accept", link: markdownLinkHeader(`/issues/${date}.md`) });
+    return c.html(issuePage(ctx, date, stored, `${base}/issues/${date}.md`), 200, {
+      vary: "accept",
+      link: markdownLinkHeader(`/issues/${date}.md`),
+    });
   });
   const latest = async (c: Context, then: (date: string) => Response) => {
     let date;
@@ -221,7 +281,18 @@ export function siteApp(deps: SiteDeps): Hono {
     const lang = validQueryLang(c.req.query("lang"));
     return latest(c, (d) => redirect(c, `/issues/${d}/translate${lang ? `?lang=${lang}` : ""}`, 307));
   });
-  app.get("/translate", (c) => redirect(c, proxyTarget(cfg.digestDomain, validTranslatePath(c.req.query("to")) ?? "/", c.req.query("lang"), c.req.header("accept-language")), 307));
+  app.get("/translate", (c) =>
+    redirect(
+      c,
+      proxyTarget(
+        cfg.digestDomain,
+        validTranslatePath(c.req.query("to")) ?? "/",
+        c.req.query("lang"),
+        c.req.header("accept-language"),
+      ),
+      307,
+    ),
+  );
 
   // ── the framable lead story (seanfloyd.dev's homepage) ──
   const leaning = leaningOf(catalogue);
@@ -242,7 +313,9 @@ export function siteApp(deps: SiteDeps): Hono {
   // ── the feed and the discovery files ──
   app.get("/feed.xml", async (c) => {
     try {
-      return c.body(atomFeed(cfg.digestName, base, await data.feed(FEED_ENTRY_LIMIT)), 200, { "content-type": "application/atom+xml; charset=utf-8" });
+      return c.body(atomFeed(cfg.digestName, base, await data.feed(FEED_ENTRY_LIMIT)), 200, {
+        "content-type": "application/atom+xml; charset=utf-8",
+      });
     } catch (e) {
       return unavailable(c, "Service unavailable", e);
     }
@@ -261,8 +334,16 @@ export function siteApp(deps: SiteDeps): Hono {
   // Redirects to the index rather than concatenating every issue: that grows without bound and is mostly stale.
   app.get("/llms-full.txt", (c) => redirect(c, "/index.md", 307));
   // Crawlable, and consenting to be read and cited but not trained on (Content-Signal).
-  app.get("/robots.txt", (c) => text(c, "User-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\nAllow: /\n", 200));
-  app.get("/privacy", (c) => redirect(c, cfg.homepageUrl ? `${cfg.homepageUrl.replace(/\/+$/, "")}/privacy` : "https://seanfloyd.dev/privacy", 307));
+  app.get("/robots.txt", (c) =>
+    text(c, "User-agent: *\nContent-Signal: search=yes, ai-input=yes, ai-train=no\nAllow: /\n", 200),
+  );
+  app.get("/privacy", (c) =>
+    redirect(
+      c,
+      cfg.homepageUrl ? `${cfg.homepageUrl.replace(/\/+$/, "")}/privacy` : "https://seanfloyd.dev/privacy",
+      307,
+    ),
+  );
   app.get("/health", async (c) => {
     try {
       await data.ping();
@@ -276,7 +357,9 @@ export function siteApp(deps: SiteDeps): Hono {
   // ── static assets ──
   app.get("/favicon.ico", (c) => bytes(c, FAVICON_SVG, "image/svg+xml", "public, max-age=86400"));
   app.get("/apple-touch-icon.png", (c) => bytes(c, assets.appleTouchIcon, "image/png", "public, max-age=86400"));
-  app.get("/apple-touch-icon-precomposed.png", (c) => bytes(c, assets.appleTouchIcon, "image/png", "public, max-age=86400"));
+  app.get("/apple-touch-icon-precomposed.png", (c) =>
+    bytes(c, assets.appleTouchIcon, "image/png", "public, max-age=86400"),
+  );
   app.get("/og-image.png", (c) => bytes(c, assets.ogImage, "image/png", "public, max-age=31536000, immutable"));
   // The path carries the font's hash, so it is cached for a year.
   app.get(assets.fontUrl, (c) => bytes(c, assets.font, "font/woff2", "public, max-age=31536000, immutable"));
@@ -352,7 +435,8 @@ export function siteApp(deps: SiteDeps): Hono {
     const email = typeof form["email"] === "string" ? form["email"].trim().toLowerCase() : "";
     // The address is never logged, and the IP only ever keys the limiter.
     if (!isValidEmail(email)) return redirect(c, "/?subscribe_invalid=1", 303);
-    if (!subscribeLimiter.check(clientKey(c.req.header("x-forwarded-for")), nowMs())) return redirect(c, "/?subscribe_ratelimited=1", 303);
+    if (!subscribeLimiter.check(clientKey(c.req.header("x-forwarded-for")), nowMs()))
+      return redirect(c, "/?subscribe_ratelimited=1", 303);
     if (!subscriptionsEnabled(cfg) || !deps.mail) {
       log.error({ site: "subscribe", error: "subscriptions are not configured" });
       return redirect(c, "/?subscribe_error=1", 303);
@@ -369,7 +453,8 @@ export function siteApp(deps: SiteDeps): Hono {
     return redirect(c, ok ? "/?subscribed=1" : "/?subscribe_error=1", 303);
   });
   app.get("/confirm", async (c) => {
-    if (!cfg.subscribeTokenSecret || !deps.mail || !subscriptionsEnabled(cfg)) return redirect(c, "/?subscribe_error=1", 303);
+    if (!cfg.subscribeTokenSecret || !deps.mail || !subscriptionsEnabled(cfg))
+      return redirect(c, "/?subscribe_error=1", 303);
     const email = verifyToken(cfg.subscribeTokenSecret, c.req.query("token") ?? "", Math.floor(nowMs() / 1000));
     if (!email) {
       log.info({ site: "confirm", event: "invalid or expired token" });

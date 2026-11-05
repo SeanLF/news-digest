@@ -23,12 +23,28 @@ afterAll(() => {
 
 describe("subscribe against resend-fake", () => {
   it("mails the confirmation there, then adds the contact to the audience, idempotently", async () => {
-    const cfg = siteConfig({ RESEND_API_KEY: "re_dev_fake", RESEND_AUDIENCE_ID: "aud-dev", RESEND_FROM: "news@dev.invalid", DIGEST_DOMAIN: "site.dev.invalid", SUBSCRIBE_TOKEN_SECRET: "sixteen-chars-ok", RESEND_BASE_URL: base });
+    const cfg = siteConfig({
+      RESEND_API_KEY: "re_dev_fake",
+      RESEND_AUDIENCE_ID: "aud-dev",
+      RESEND_FROM: "news@dev.invalid",
+      DIGEST_DOMAIN: "site.dev.invalid",
+      SUBSCRIBE_TOKEN_SECRET: "sixteen-chars-ok",
+      RESEND_BASE_URL: base,
+    });
     const mail = new Resend(cfg.resendApiKey, { baseUrl: cfg.resendBaseUrl! });
-    expect(await sendConfirmation(cfg, mail, "reader@example.com", "https://site.dev.invalid/confirm?token=t")).toBe(true);
+    expect(await sendConfirmation(cfg, mail, "reader@example.com", "https://site.dev.invalid/confirm?token=t")).toBe(
+      true,
+    );
     expect(await addContact(cfg, mail, "reader@example.com")).toBe(true);
     expect(await addContact(cfg, mail, "reader@example.com")).toBe(true); // Resend upserts
-    expect(fake.messages()).toMatchObject([{ kind: "email", to: ["reader@example.com"], subject: "Confirm your subscription to News Digest", replyTo: ["news@dev.invalid"] }]);
+    expect(fake.messages()).toMatchObject([
+      {
+        kind: "email",
+        to: ["reader@example.com"],
+        subject: "Confirm your subscription to News Digest",
+        replyTo: ["news@dev.invalid"],
+      },
+    ]);
     expect(fake.contacts("aud-dev").map((c) => [c.email, c.unsubscribed])).toEqual([["reader@example.com", false]]);
   });
 });

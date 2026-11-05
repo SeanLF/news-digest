@@ -5,7 +5,10 @@ import { readFileSync } from "node:fs";
 import { CoherenceReportSchema } from "../contracts/coherence.js";
 import { scorePlanted, type PlantedKey } from "./planted-score.js";
 
-export default function plantedAssert(output: string, context: { vars: { draft: string; key: string; maxFalseDrops: number } }) {
+export default function plantedAssert(
+  output: string,
+  context: { vars: { draft: string; key: string; maxFalseDrops: number } },
+) {
   const report = CoherenceReportSchema.parse(JSON.parse(output));
   const draft = JSON.parse(readFileSync(context.vars.draft, "utf8")) as Parameters<typeof scorePlanted>[1];
   const key = JSON.parse(readFileSync(context.vars.key, "utf8")) as PlantedKey;

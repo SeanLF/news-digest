@@ -38,7 +38,11 @@ export function resolveClusterIndex(clusters: { article_ids: string[] }[], story
 // One plan per selected story in SELECT's order: its tier, its citations, and the evidence it may
 // see (its cluster unioned with its citations, restricted to ids the run has). A story with no
 // evidence is dropped rather than written from nothing.
-export function planStories(selectedJson: string, clustersJson: string, knownIds: ReadonlySet<string>): { plans: StoryPlan[]; dropped: { index: number; tier: string; reason: string }[] } {
+export function planStories(
+  selectedJson: string,
+  clustersJson: string,
+  knownIds: ReadonlySet<string>,
+): { plans: StoryPlan[]; dropped: { index: number; tier: string; reason: string }[] } {
   const selected = SelectedSchema.parse(JSON.parse(selectedJson));
   const clusters = (JSON.parse(clustersJson) as { clusters: { article_ids: string[] }[] }).clusters;
   const plans: StoryPlan[] = [];
@@ -48,11 +52,20 @@ export function planStories(selectedJson: string, clustersJson: string, knownIds
     for (const pick of selected[tier]) {
       // The citations decide; SELECT's stated index is only the fallback when no cited id has a cluster.
       const byCitation = resolveClusterIndex(clusters, pick.article_ids);
-      const resolved = byCitation ?? (pick.cluster_index >= 0 && pick.cluster_index < clusters.length ? pick.cluster_index : undefined);
+      const resolved =
+        byCitation ??
+        (pick.cluster_index >= 0 && pick.cluster_index < clusters.length ? pick.cluster_index : undefined);
       const cluster = resolved !== undefined ? clusters[resolved]!.article_ids : [];
       const contextIds = [...new Set([...cluster, ...pick.article_ids])].filter((a) => knownIds.has(a));
       if (contextIds.length === 0) dropped.push({ index, tier, reason: "no article in this run's CSVs" });
-      else plans.push({ index, tier, storyIds: pick.article_ids, contextIds, ...(resolved !== undefined ? { clusterIndex: resolved } : {}) });
+      else
+        plans.push({
+          index,
+          tier,
+          storyIds: pick.article_ids,
+          contextIds,
+          ...(resolved !== undefined ? { clusterIndex: resolved } : {}),
+        });
       index++;
     }
   return { plans, dropped };
@@ -63,10 +76,15 @@ const DraftStory = z.object({
   summary: z.string(),
   why_it_matters: z.string().optional(),
   sources: z.array(z.object({ article_id: z.string() })),
-  reporting_varies: z.array(z.object({ source: z.string(), angle: z.string(), bias: z.string(), article_id: z.string().optional() })).optional(),
+  reporting_varies: z
+    .array(z.object({ source: z.string(), angle: z.string(), bias: z.string(), article_id: z.string().optional() }))
+    .optional(),
 });
 // The prompt's own output shape, kept so the prompt text carries over; shape only, never count.
-export const BranchDraftSchema = z.object({ must_know: z.array(DraftStory).optional(), should_know: z.array(DraftStory).optional() });
+export const BranchDraftSchema = z.object({
+  must_know: z.array(DraftStory).optional(),
+  should_know: z.array(DraftStory).optional(),
+});
 export type DraftStory = z.infer<typeof DraftStory>;
 
 // Exactly one well-formed story, the fields its tier requires, and only citations to the branch's
@@ -74,7 +92,10 @@ export type DraftStory = z.infer<typeof DraftStory>;
 // A writer that splits its cluster into several stories (Sonnet 5.5 did, 2 times in 3, on run 310's
 // OpenAI and South Africa clusters) keeps the one citing most of SELECT's articles, the event the
 // cluster was selected for; a retry would only re-roll the split, and three failures fail the run.
-export function checkBranch(draft: z.infer<typeof BranchDraftSchema>, plan: StoryPlan): { story?: DraftStory; problems: string[]; set_aside?: number } {
+export function checkBranch(
+  draft: z.infer<typeof BranchDraftSchema>,
+  plan: StoryPlan,
+): { story?: DraftStory; problems: string[]; set_aside?: number } {
   const stories = [...(draft.must_know ?? []), ...(draft.should_know ?? [])];
   if (stories.length === 0) return { problems: ["expected a story, found none"] };
   const chosen = new Set(plan.storyIds);
@@ -111,12 +132,19 @@ export const WRITE_BRANCHES = "write_branches.json";
 export const ISSUE_BUDGET = "issue_budget.json";
 type BudgetLine = { index: number; tier: string; cluster?: number; story: string };
 
-async function runArticles(store: ArtifactStore, runId: number): Promise<{ ids: Set<string>; header: string[]; rows: Record<string, string>[] }> {
+async function runArticles(
+  store: ArtifactStore,
+  runId: number,
+): Promise<{ ids: Set<string>; header: string[]; rows: Record<string, string>[] }> {
   const rows: Record<string, string>[] = [];
   let header: string[] = [];
   for (const name of (await store.names(runId)).filter((n) => /^articles_\d+\.csv$/.test(n))) {
     const text = await store.content(runId, name);
-    const recs = parse<Record<string, string>>(text, { columns: true, skip_empty_lines: true, relax_column_count: true });
+    const recs = parse<Record<string, string>>(text, {
+      columns: true,
+      skip_empty_lines: true,
+      relax_column_count: true,
+    });
     if (recs[0] && header.length === 0) header = Object.keys(recs[0]);
     rows.push(...recs);
   }
@@ -132,14 +160,36 @@ export function writeActivities(deps: WriteDeps) {
       const { plans, dropped } = planStories(await store.get(selected), clustersJson, ids);
       await store.replace(runId, WRITE_BRANCHES, JSON.stringify({ dropped }));
       const labels = (JSON.parse(clustersJson) as { clusters: { story: string }[] }).clusters;
-      await store.replace(runId, ISSUE_BUDGET, JSON.stringify(plans.map((p): BudgetLine => ({ index: p.index, tier: p.tier, ...(p.clusterIndex !== undefined ? { cluster: p.clusterIndex } : {}), story: p.clusterIndex !== undefined ? (labels[p.clusterIndex]?.story ?? "") : "" }))));
+      await store.replace(
+        runId,
+        ISSUE_BUDGET,
+        JSON.stringify(
+          plans.map((p): BudgetLine => ({
+            index: p.index,
+            tier: p.tier,
+            ...(p.clusterIndex !== undefined ? { cluster: p.clusterIndex } : {}),
+            story: p.clusterIndex !== undefined ? (labels[p.clusterIndex]?.story ?? "") : "",
+          })),
+        ),
+      );
       if (dropped.length) log.error({ stage: "write-plan", runId, dropped });
-      for (const d of dropped) deps.log?.(`write s${String(d.index).padStart(2, "0")} DROPPED (${d.tier}): ${d.reason}`);
-      if (plans.length === 0) throw ApplicationFailure.nonRetryable(`run ${runId}: no selected story has evidence to write from`, "NothingToWrite");
+      for (const d of dropped)
+        deps.log?.(`write s${String(d.index).padStart(2, "0")} DROPPED (${d.tier}): ${d.reason}`);
+      if (plans.length === 0)
+        throw ApplicationFailure.nonRetryable(
+          `run ${runId}: no selected story has evidence to write from`,
+          "NothingToWrite",
+        );
       return { plans };
     },
 
-    writeStory: async (runId: number, plan: StoryPlan, selected: Pointer, note?: string, force = false): Promise<Pointer> => {
+    writeStory: async (
+      runId: number,
+      plan: StoryPlan,
+      selected: Pointer,
+      note?: string,
+      force = false,
+    ): Promise<Pointer> => {
       const name = draftName(plan.index);
       const existing = await store.find(runId, name);
       if (existing && !force) {
@@ -148,8 +198,15 @@ export function writeActivities(deps: WriteDeps) {
         await store.quarantine(runId, name); // written for a different story or evidence
       }
       const sel = SelectedSchema.parse(JSON.parse(await store.get(selected)));
-      const pick = { article_ids: plan.storyIds, ...(plan.clusterIndex !== undefined ? { cluster_index: plan.clusterIndex } : {}) };
-      const one = { must_know: plan.tier === "must_know" ? [pick] : [], should_know: plan.tier === "should_know" ? [pick] : [], ...(sel.not_covered_blurb ? { not_covered_blurb: sel.not_covered_blurb } : {}) };
+      const pick = {
+        article_ids: plan.storyIds,
+        ...(plan.clusterIndex !== undefined ? { cluster_index: plan.clusterIndex } : {}),
+      };
+      const one = {
+        must_know: plan.tier === "must_know" ? [pick] : [],
+        should_know: plan.tier === "should_know" ? [pick] : [],
+        ...(sel.not_covered_blurb ? { not_covered_blurb: sel.not_covered_blurb } : {}),
+      };
       const { header, rows } = await runArticles(store, runId);
       const keep = new Set(plan.contextIds);
       const dir = mkdtempSync(join(tmpdir(), `write-${runId}-s${plan.index}-`));
@@ -160,11 +217,20 @@ export function writeActivities(deps: WriteDeps) {
           writeFileSync(join(dir, file), clean);
         };
         put("selected.json", JSON.stringify(one, null, 2));
-        put("articles_1.csv", stringify(rows.filter((r) => keep.has(r["article_id"] ?? "")), { header: true, columns: header }));
+        put(
+          "articles_1.csv",
+          stringify(
+            rows.filter((r) => keep.has(r["article_id"] ?? "")),
+            { header: true, columns: header },
+          ),
+        );
         const ft = await store.find(runId, "article_fulltext.json");
         if (ft) {
           const all = JSON.parse(await store.get(ft)) as Record<string, unknown>;
-          put("article_fulltext.json", JSON.stringify(Object.fromEntries(Object.entries(all).filter(([k]) => keep.has(k))), null, 2));
+          put(
+            "article_fulltext.json",
+            JSON.stringify(Object.fromEntries(Object.entries(all).filter(([k]) => keep.has(k))), null, 2),
+          );
         }
         for (const f of SHARED) {
           const p = await store.find(runId, f);
@@ -174,27 +240,59 @@ export function writeActivities(deps: WriteDeps) {
         if (budget) {
           // A story on this writer's own cluster carries this writer's own label, which the rule would
           // tell it to steer away from; joinTags's "cluster N" fallback names no event at all.
-          const others = (JSON.parse(await store.get(budget)) as BudgetLine[]).filter((b) => b.index !== plan.index && b.story && !/^cluster \d+$/.test(b.story) && (b.cluster === undefined || b.cluster !== plan.clusterIndex));
+          const others = (JSON.parse(await store.get(budget)) as BudgetLine[]).filter(
+            (b) =>
+              b.index !== plan.index &&
+              b.story &&
+              !/^cluster \d+$/.test(b.story) &&
+              (b.cluster === undefined || b.cluster !== plan.clusterIndex),
+          );
           if (others.length) put("issue_budget.txt", others.map((b) => `${b.tier} | ${b.story}\n`).join(""));
         }
         const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "write.md"), "utf8"));
         await recordOperatorNote(store, runId, "write", note);
         const message = `The input directory is ${dir}. Begin.${note ? `\n\nOperator note for this attempt: ${note}` : ""}`;
         deps.heartbeat?.();
-        const r = await runStage(spec, { userMessage: message, inputDir: dir }, {
-          today: await store.runDate(runId),
-          runId,
-          outputSchema: z.toJSONSchema(BranchDraftSchema, { target: "draft-07" }),
-          maxBudgetUsd: WRITE_BRANCH_BUDGET_USD,
-          ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
-        });
+        const r = await runStage(
+          spec,
+          { userMessage: message, inputDir: dir },
+          {
+            today: await store.runDate(runId),
+            runId,
+            outputSchema: z.toJSONSchema(BranchDraftSchema, { target: "draft-07" }),
+            maxBudgetUsd: WRITE_BRANCH_BUDGET_USD,
+            ...(deps.query ? { query: deps.query } : {}),
+            ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+            ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+          },
+        );
         deps.heartbeat?.();
-        await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "write", runId, story: plan.index, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns, toolCalls: r.toolCalls.length });
+        await deps.onUsage?.({
+          model: spec.model,
+          thinking: spec.thinking,
+          prompt: spec,
+          effort: r.effort,
+          tokens: r.usage,
+          stage: "write",
+          runId,
+          story: plan.index,
+          costUsd: r.costUsd,
+          durationMs: r.durationMs,
+          numTurns: r.numTurns,
+          toolCalls: r.toolCalls.length,
+        });
         const parsed = BranchDraftSchema.safeParse(r.structured);
         if (!parsed.success) throw new Error(`write s${plan.index}: output does not match the schema`);
         const { story, problems, set_aside } = checkBranch(parsed.data, plan);
         if (problems.length || !story) throw new Error(`write s${plan.index}: ${problems.join("; ")}`);
-        if (set_aside) log.warn({ stage: "write", runId, story: plan.index, warning: "the writer split its cluster; kept the story on SELECT's articles", set_aside });
+        if (set_aside)
+          log.warn({
+            stage: "write",
+            runId,
+            story: plan.index,
+            warning: "the writer split its cluster; kept the story on SELECT's articles",
+            set_aside,
+          });
         const text = JSON.stringify({ plan, story }, null, 2);
         return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
       } finally {

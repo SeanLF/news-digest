@@ -34,7 +34,8 @@ export interface RunHealth {
 }
 
 // Python's str() of a value interpolated into a message.
-const py = (v: string | number | boolean | null): string => (v === null ? "None" : v === true ? "True" : v === false ? "False" : String(v));
+const py = (v: string | number | boolean | null): string =>
+  v === null ? "None" : v === true ? "True" : v === false ? "False" : String(v);
 // Python's `:.0f`: round half to even.
 function fixed0(x: number): string {
   const floor = Math.floor(x);
@@ -50,17 +51,20 @@ const RULES: Rule[] = [
   [
     "USAGE_ROWS_LOST",
     (h) => (h.usage_rows_dropped ?? 0) > 0,
-    (h) => `${py(h.usage_rows_dropped)} usage row(s) failed to persist; this run's per-stage cost/config picture is incomplete`,
+    (h) =>
+      `${py(h.usage_rows_dropped)} usage row(s) failed to persist; this run's per-stage cost/config picture is incomplete`,
   ],
   [
     "DEGRADED_CLUSTERING",
     (h) => (h.batches_lost ?? 0) > 0,
-    (h) => `${py(h.batches_lost)} extraction batch(es) returned nothing usable; ${py(h.title_only_fallback)} articles lost their entity tags`,
+    (h) =>
+      `${py(h.batches_lost)} extraction batch(es) returned nothing usable; ${py(h.title_only_fallback)} articles lost their entity tags`,
   ],
   [
     "STORIES_DROPPED_AT_WRITE",
     (h) => (h.stories_dropped_at_write ?? 0) > 0,
-    (h) => `${py(h.stories_dropped_at_write)} story(ies) SELECT chose never reached WRITE; the digest shipped shorter than it was curated to be`,
+    (h) =>
+      `${py(h.stories_dropped_at_write)} story(ies) SELECT chose never reached WRITE; the digest shipped shorter than it was curated to be`,
   ],
   [
     "BLANKED_WHY_IT_MATTERS",
@@ -73,45 +77,75 @@ const RULES: Rule[] = [
   [
     "FULLTEXT_TOTAL_LOSS",
     (h) => (h.fulltext_tasks ?? 0) > 0 && (h.fulltext_extracted ?? 0) === 0,
-    (h) => `fulltext extracted 0 of ${py(h.fulltext_tasks)} candidate articles (worker ${h.fulltext_outcome || "unknown"}); stories fell back to CSV summaries`,
+    (h) =>
+      `fulltext extracted 0 of ${py(h.fulltext_tasks)} candidate articles (worker ${h.fulltext_outcome || "unknown"}); stories fell back to CSV summaries`,
   ],
   [
     "FULLTEXT_TOPUP_TOTAL_LOSS",
     (h) => (h.fulltext_topup_tasks ?? 0) > 0 && (h.fulltext_topup_extracted ?? 0) === 0,
-    (h) => `fulltext top-up extracted 0 of ${py(h.fulltext_topup_tasks)} cited articles (worker ${h.fulltext_topup_outcome || "unknown"}); the checker read their summaries only`,
+    (h) =>
+      `fulltext top-up extracted 0 of ${py(h.fulltext_topup_tasks)} cited articles (worker ${h.fulltext_topup_outcome || "unknown"}); the checker read their summaries only`,
   ],
   [
     "STALE_FIGURE",
     (h) => (h.stale_figures ?? 0) > 0,
-    (h) => `${py(h.stale_figures ?? 0)} claim(s) give a figure that a cited article published later reports differently; the story may be out of date (attribution.json, stale)`,
+    (h) =>
+      `${py(h.stale_figures ?? 0)} claim(s) give a figure that a cited article published later reports differently; the story may be out of date (attribution.json, stale)`,
   ],
   [
     "REPAIR_SPEC_ERROR",
     (h) => h.repair_outcome === "spec_error",
-    (h) => `the repair path was disabled by a prompt/config error, so any coherence-flagged story would drop: ${h.repair_detail || "no detail recorded"}`,
+    (h) =>
+      `the repair path was disabled by a prompt/config error, so any coherence-flagged story would drop: ${h.repair_detail || "no detail recorded"}`,
   ],
   ["NO_ARTIFACTS", (h) => h.artifacts === 0, "no intermediate artifacts were archived, so this run cannot be replayed"],
   [
     "NO_THREAD_CONTINUATIONS",
     (h) => h.threads_enabled && h.threads_available > 0 && h.thread_continuations === 0,
-    (h) => "no shipped story continued an existing thread, though live threads existed" + (h.linker_ok === false ? " -- the linker call itself failed" : ""),
+    (h) =>
+      "no shipped story continued an existing thread, though live threads existed" +
+      (h.linker_ok === false ? " -- the linker call itself failed" : ""),
   ],
 ];
 
 export const REQUIRED_KEYS: ReadonlySet<string> = new Set([
-  "shipped", "stages", "artifacts", "recipients", "broadcasting", "thread_continuations", "threads_available", "threads_enabled",
-  "batches_lost", "stories_dropped_at_write", "usage_rows_dropped", "repair_outcome", "repair_detail", "title_only_fallback",
-  "dropped_continuations", "linker_ok", "blanked_why", "must_know_shipped",
+  "shipped",
+  "stages",
+  "artifacts",
+  "recipients",
+  "broadcasting",
+  "thread_continuations",
+  "threads_available",
+  "threads_enabled",
+  "batches_lost",
+  "stories_dropped_at_write",
+  "usage_rows_dropped",
+  "repair_outcome",
+  "repair_detail",
+  "title_only_fallback",
+  "dropped_continuations",
+  "linker_ok",
+  "blanked_why",
+  "must_know_shipped",
 ]);
 
 // One readable line per violated invariant; empty means healthy.
 export function violations(health: RunHealth): string[] {
   const missing = [...REQUIRED_KEYS].filter((k) => !(k in health)).toSorted();
-  if (missing.length) return [`MALFORMED_HEALTH: run health is missing [${missing.map((k) => `'${k}'`).join(", ")}]; invariants NOT evaluated`];
-  return RULES.filter(([, fires]) => fires(health)).map(([code, , message]) => `${code}: ${typeof message === "function" ? message(health) : message}`);
+  if (missing.length)
+    return [
+      `MALFORMED_HEALTH: run health is missing [${missing.map((k) => `'${k}'`).join(", ")}]; invariants NOT evaluated`,
+    ];
+  return RULES.filter(([, fires]) => fires(health)).map(
+    ([code, , message]) => `${code}: ${typeof message === "function" ? message(health) : message}`,
+  );
 }
 
-export interface KindCounts { contradicted: number; unsupported: number; unlabelled: number }
+export interface KindCounts {
+  contradicted: number;
+  unsupported: number;
+  unlabelled: number;
+}
 const isKind = (k: unknown): k is keyof KindCounts => (FAILURE_KINDS as readonly unknown[]).includes(k);
 const isField = (f: string): boolean => (COHERENCE_FIELDS as readonly string[]).includes(f);
 
@@ -162,7 +196,8 @@ const parsed = (text: string | undefined): Json | undefined => {
     return undefined;
   }
 };
-const isObj = (v: Json | undefined): v is { [k: string]: Json } => typeof v === "object" && v !== null && !Array.isArray(v);
+const isObj = (v: Json | undefined): v is { [k: string]: Json } =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
 function extract(doc: Json | undefined, key: string): number | string | null {
   if (!isObj(doc)) return null;
   const v = doc[key];
@@ -187,8 +222,19 @@ const textOf = (v: Json | undefined, key: string): string | null => {
 // `usageRowsDropped` is process state (rows that never reached the table cannot be counted from it).
 // threads_available is what the run's linker could have been offered: published threads last seen
 // within `dormantAfter` sent runs before this one, as ThreadStore.activeThreads counts them.
-export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting: boolean; threadsEnabled: boolean; usageRowsDropped: number; dormantAfter?: number }): Promise<RunHealth> {
-  const counts = (await db.one<{ shipped: number; stages: number; artifacts: number; recipients: number | null; thread_continuations: number; threads_available: number }>(
+export async function getRunHealth(
+  db: Sql,
+  runId: number,
+  opts: { broadcasting: boolean; threadsEnabled: boolean; usageRowsDropped: number; dormantAfter?: number },
+): Promise<RunHealth> {
+  const counts = (await db.one<{
+    shipped: number;
+    stages: number;
+    artifacts: number;
+    recipients: number | null;
+    thread_continuations: number;
+    threads_available: number;
+  }>(
     `SELECT
        (SELECT COUNT(DISTINCT headline) FROM story_sources WHERE run_id = $1) AS shipped,
        (SELECT COUNT(DISTINCT stage) FROM model_calls WHERE run_id = $1) AS stages,
@@ -202,9 +248,21 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
             AND (SELECT COUNT(*) FROM sent_runs s WHERE s.run_id > l.last_run_id AND s.run_id < $1) <= $2) AS threads_available`,
     [runId, opts.dormantAfter ?? 3],
   ))!;
-  const names = ["cluster_health.json", "fulltext_health.json", "fulltext_topup_health.json", "selections.json", "thread_links.json", "repair_health.json", "write_branches.json", "attribution.json"];
+  const names = [
+    "cluster_health.json",
+    "fulltext_health.json",
+    "fulltext_topup_health.json",
+    "selections.json",
+    "thread_links.json",
+    "repair_health.json",
+    "write_branches.json",
+    "attribution.json",
+  ];
   const docs = new Map<string, Json | undefined>();
-  for (const r of await db.all<{ n: string; c: string }>("SELECT name AS n, content AS c FROM artifacts WHERE run_id = $1 AND status = 'current' AND name = ANY($2::text[])", [runId, names]))
+  for (const r of await db.all<{ n: string; c: string }>(
+    "SELECT name AS n, content AS c FROM artifacts WHERE run_id = $1 AND status = 'current' AND name = ANY($2::text[])",
+    [runId, names],
+  ))
     docs.set(r.n, parsed(r.c));
   const cluster = docs.get("cluster_health.json");
   const fulltext = docs.get("fulltext_health.json");
@@ -218,7 +276,8 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
   const dropped = isObj(branches) && Array.isArray(branches["dropped"]) ? branches["dropped"] : null;
   const linkerOk = extract(links, "linker_ok");
   const attributed = docs.get("attribution.json");
-  const attributedStories = isObj(attributed) && isObj(attributed["stories"]) ? Object.values(attributed["stories"]) : null;
+  const attributedStories =
+    isObj(attributed) && isObj(attributed["stories"]) ? Object.values(attributed["stories"]) : null;
   return {
     run_id: runId,
     shipped: counts.shipped,
@@ -238,17 +297,32 @@ export async function getRunHealth(db: Sql, runId: number, opts: { broadcasting:
     fulltext_topup_tasks: num(extract(topup, "tasks")),
     fulltext_topup_extracted: num(extract(topup, "extracted")),
     fulltext_topup_outcome: str(extract(topup, "outcome")),
-    blanked_why: mustKnow === null ? null : mustKnow.filter((s) => (textOf(s, "why_it_matters") ?? "").replace(/^ +| +$/g, "") === "").length,
+    blanked_why:
+      mustKnow === null
+        ? null
+        : mustKnow.filter((s) => (textOf(s, "why_it_matters") ?? "").replace(/^ +| +$/g, "") === "").length,
     must_know_shipped: mustKnow === null ? null : mustKnow.length,
-    dropped_continuations: stories === null ? null : stories.some((s) => !isObj(s)) ? null : stories.filter((s) => isObj(s) && s["refused"] === "already_claimed").length,
+    dropped_continuations:
+      stories === null
+        ? null
+        : stories.some((s) => !isObj(s))
+          ? null
+          : stories.filter((s) => isObj(s) && s["refused"] === "already_claimed").length,
     // Only 1 and 0 are answers; anything else in that slot is a malformed trace, never "healthy".
     linker_ok: linkerOk === 1 ? true : linkerOk === 0 ? false : null,
     repair_outcome: str(extract(repair, "outcome")),
     repair_detail: str(extract(repair, "detail")),
     stories_dropped_at_write: dropped === null ? null : dropped.length,
-    stale_figures: attributedStories === null ? null : attributedStories.reduce((n: number, s) => n + (isObj(s) && Array.isArray(s["stale"]) ? s["stale"].length : 0), 0),
+    stale_figures:
+      attributedStories === null
+        ? null
+        : attributedStories.reduce(
+            (n: number, s) => n + (isObj(s) && Array.isArray(s["stale"]) ? s["stale"].length : 0),
+            0,
+          ),
   };
 }
 
 // The config flag the Python reads (config.THREADS_ENABLED), parsed the same way.
-export const threadsEnabled = (env: NodeJS.ProcessEnv = process.env): boolean => ["1", "true", "yes"].includes((env["THREADS_ENABLED"] ?? "false").toLowerCase());
+export const threadsEnabled = (env: NodeJS.ProcessEnv = process.env): boolean =>
+  ["1", "true", "yes"].includes((env["THREADS_ENABLED"] ?? "false").toLowerCase());

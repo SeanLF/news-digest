@@ -65,10 +65,12 @@ export function linkDecoder(deps: LinkDecoderDeps): LinkDecoder {
         }
         const s = signal();
         // The library returns every expected failure; a throw is a bug in it, and costs this link only.
-        const result = await deps.decode(url, s ? { signal: s, timeoutMs: deps.timeoutMs } : { timeoutMs: deps.timeoutMs }).catch((e: unknown): DecodeResult => {
-          log.warn({ stage: "gnews", warning: "decoder threw", error: String(e) });
-          return { ok: false, reason: "parse", message: String(e) };
-        });
+        const result = await deps
+          .decode(url, s ? { signal: s, timeoutMs: deps.timeoutMs } : { timeoutMs: deps.timeoutMs })
+          .catch((e: unknown): DecodeResult => {
+            log.warn({ stage: "gnews", warning: "decoder threw", error: String(e) });
+            return { ok: false, reason: "parse", message: String(e) };
+          });
         if (!result.ok && result.reason === "not_google_news") {
           tried.set(key, null);
           continue; // no request was made
@@ -114,10 +116,14 @@ export function linkDecoder(deps: LinkDecoderDeps): LinkDecoder {
 
 // The worker's decoder, configured as the Python's was: GNEWS_RESOLVE_TIMEOUT_S (15),
 // GNEWS_RESOLVE_DELAY_S (2) and GNEWS_RESOLVE_DEADLINE_S (120).
-export function linkDecoderFromEnv(env: NodeJS.ProcessEnv, hooks: Pick<LinkDecoderDeps, "heartbeat" | "signal"> = {}): LinkDecoder {
+export function linkDecoderFromEnv(
+  env: NodeJS.ProcessEnv,
+  hooks: Pick<LinkDecoderDeps, "heartbeat" | "signal"> = {},
+): LinkDecoder {
   const seconds = (name: string, fallback: number, min: "zero" | "positive") => {
     const v = Number(env[name] ?? fallback);
-    if (!Number.isFinite(v) || v < 0 || (min === "positive" && v === 0)) throw new Error(`${name} must be a ${min === "positive" ? "positive " : ""}number of seconds, got ${env[name]}`);
+    if (!Number.isFinite(v) || v < 0 || (min === "positive" && v === 0))
+      throw new Error(`${name} must be a ${min === "positive" ? "positive " : ""}number of seconds, got ${env[name]}`);
     return v * 1000;
   };
   const decoder = createDecoder();

@@ -36,7 +36,9 @@ if (process.argv[1]?.endsWith("check-injections.js")) {
   // Subscriptions play no part in an issue page, and the worker's environment configures them for mail.
   const cfg = siteConfig({ ...process.env, RESEND_API_KEY: "", RESEND_AUDIENCE_ID: "" });
   const db = openDb(dbUrl());
-  const dates = (await db.all<{ date: string }>("SELECT DISTINCT issue_date::text AS date FROM issues ORDER BY 1")).map((r) => r.date);
+  const dates = (await db.all<{ date: string }>("SELECT DISTINCT issue_date::text AS date FROM issues ORDER BY 1")).map(
+    (r) => r.date,
+  );
   const store = siteStore(db);
   const misses = await checkInjections({ cfg, assets: loadAssets(cfg.designDir) }, dates, (d) => store.issue(d));
   for (const m of misses) console.log(JSON.stringify(m));

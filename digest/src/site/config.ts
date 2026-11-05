@@ -68,7 +68,9 @@ export function siteConfig(env: NodeJS.ProcessEnv): SiteConfig {
       ...(cfg.fromEmail ? [] : ["RESEND_FROM (the confirmation email's sender)"]),
     ];
     if (missing.length) {
-      throw new ConfigError(`subscriptions are on with double opt-in, but ${missing.join(", ")} is unset; set it, or set SUBSCRIBE_DOUBLE_OPT_IN=false to add contacts without confirmation on purpose`);
+      throw new ConfigError(
+        `subscriptions are on with double opt-in, but ${missing.join(", ")} is unset; set it, or set SUBSCRIBE_DOUBLE_OPT_IN=false to add contacts without confirmation on purpose`,
+      );
     }
   }
   return cfg;
@@ -81,7 +83,8 @@ function embedAncestors(explicit: string | undefined, homepage: string | undefin
   if (explicit) {
     const origins = explicit.split(/\s+/);
     const bad = origins.find((o) => !ORIGIN.test(o));
-    if (bad) throw new ConfigError(`EMBED_ANCESTORS: ${JSON.stringify(bad)} is not an origin (scheme://host[:port], no path)`);
+    if (bad)
+      throw new ConfigError(`EMBED_ANCESTORS: ${JSON.stringify(bad)} is not an origin (scheme://host[:port], no path)`);
     return origins;
   }
   if (!homepage) return [];
@@ -92,12 +95,14 @@ function embedAncestors(explicit: string | undefined, homepage: string | undefin
   }
 }
 
-export const subscriptionsEnabled = (c: SiteConfig): boolean => c.resendApiKey !== undefined && c.resendAudienceId !== undefined;
+export const subscriptionsEnabled = (c: SiteConfig): boolean =>
+  c.resendApiKey !== undefined && c.resendAudienceId !== undefined;
 
 // "https://<domain>", or "" when no domain is configured (links then stay root-relative).
 export const baseUrl = (c: SiteConfig): string => (c.digestDomain ? `https://${c.digestDomain}` : "");
 
-export const privacyUrl = (c: SiteConfig): string => (c.homepageUrl ? `${c.homepageUrl.replace(/\/+$/, "")}/privacy` : "/privacy");
+export const privacyUrl = (c: SiteConfig): string =>
+  c.homepageUrl ? `${c.homepageUrl.replace(/\/+$/, "")}/privacy` : "/privacy";
 
 export const ogImageUrl = (c: SiteConfig): string => (c.digestDomain ? `https://${c.digestDomain}/og-image.png` : "");
 

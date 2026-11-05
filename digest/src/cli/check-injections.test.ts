@@ -32,6 +32,8 @@ describe("check-injections", () => {
   });
 
   it("reports a date the database lists but cannot return", async () => {
-    expect(await checkInjections(ctx, ["2026-09-04"], async () => undefined)).toEqual([{ date: "2026-09-04", needles: [], error: "no stored issue" }]);
+    expect(await checkInjections(ctx, ["2026-09-04"], async () => undefined)).toEqual([
+      { date: "2026-09-04", needles: [], error: "no stored issue" },
+    ]);
   });
 });

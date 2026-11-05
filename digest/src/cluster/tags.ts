@@ -27,12 +27,19 @@ export function extractItemsJsonSchema(): Record<string, unknown> {
   return z.toJSONSchema(ExtractItemsSchema, { target: "draft-07" });
 }
 
-const strs = (v: unknown): string[] => (Array.isArray(v) ? v.flatMap((x: unknown) => (typeof x === "string" ? [x] : typeof x === "number" ? [String(x)] : [])) : []);
+const strs = (v: unknown): string[] =>
+  Array.isArray(v)
+    ? v.flatMap((x: unknown) => (typeof x === "string" ? [x] : typeof x === "number" ? [String(x)] : []))
+    : [];
 
 export function coerceTag(item: object): Tag {
   const o = item as Record<string, unknown>;
   const pe = o["primary_event"];
-  return { entities: strs(o["entities"]), keywords: strs(o["keywords"]), primary_event: typeof pe === "string" ? pe : typeof pe === "number" ? String(pe) : "" };
+  return {
+    entities: strs(o["entities"]),
+    keywords: strs(o["keywords"]),
+    primary_event: typeof pe === "string" ? pe : typeof pe === "number" ? String(pe) : "",
+  };
 }
 
 // Term bag: entities x3 (the strongest same-story signal), keywords x1, primary_event x2.

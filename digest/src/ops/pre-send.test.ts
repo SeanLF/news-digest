@@ -5,8 +5,19 @@ import { openDb } from "../store/db.js";
 import { freshDb } from "../store/test-db.js";
 import { preSendFailures, readPreSend, type PreSendInput } from "./pre-send.js";
 
-const story = (headline: string, ids: string[], over: Record<string, unknown> = {}) => ({ headline, summary: `${headline} happened.`, why_it_matters: "It matters.", sources: ids.map((article_id) => ({ article_id })), ...over });
-const brief = (headline: string, ids: string[], over: Record<string, unknown> = {}) => ({ headline, summary: `${headline} happened.`, sources: ids.map((article_id) => ({ article_id })), ...over });
+const story = (headline: string, ids: string[], over: Record<string, unknown> = {}) => ({
+  headline,
+  summary: `${headline} happened.`,
+  why_it_matters: "It matters.",
+  sources: ids.map((article_id) => ({ article_id })),
+  ...over,
+});
+const brief = (headline: string, ids: string[], over: Record<string, unknown> = {}) => ({
+  headline,
+  summary: `${headline} happened.`,
+  sources: ids.map((article_id) => ({ article_id })),
+  ...over,
+});
 const clean = (): Selections => ({
   must_know: [story("Ceasefire holds", ["A1", "A2"]), story("Rates cut", ["A3"])],
   should_know: [brief("Storm nears coast", ["A4"]), brief("Chip maker reports", ["A5"]), brief("Vote delayed", ["A6"])],
@@ -14,7 +25,14 @@ const clean = (): Selections => ({
 });
 const input = (over: Partial<PreSendInput> = {}): PreSendInput => {
   const selections = over.selections ?? clean();
-  return { selections, draft: { must_know: selections.must_know, should_know: selections.should_know }, threadContext: {}, threadAuditFailures: 0, healthViolations: [], ...over };
+  return {
+    selections,
+    draft: { must_know: selections.must_know, should_know: selections.should_know },
+    threadContext: {},
+    threadAuditFailures: 0,
+    healthViolations: [],
+    ...over,
+  };
 };
 const codes = (i: PreSendInput) => preSendFailures(i).map((f) => f.split(":")[0]);
 
@@ -46,13 +64,17 @@ describe("preSendFailures", () => {
   it("a claim's text, which the sources box shows, is checked for ids", () => {
     const s = clean();
     s.must_know[0]!.claims = [{ field: "summary", text: "A2's dateline in Cairo", supported_by: ["A2"] }];
-    expect(preSendFailures(input({ selections: s }))).toEqual(["INTERNAL_ID_LEAK: 1 leak(s): must_know.claims.text 'A2' in 'Ceasefire holds'"]);
+    expect(preSendFailures(input({ selections: s }))).toEqual([
+      "INTERNAL_ID_LEAK: 1 leak(s): must_know.claims.text 'A2' in 'Ceasefire holds'",
+    ]);
   });
   it("a thread delta, which takes the summary's slot at render, is checked against its story's ids", () => {
     const s = clean();
     s.must_know[0]!.cluster_id = "ceasefire";
     const ctx = { ceasefire: { delta: "New today, per A2, talks resumed." } };
-    expect(preSendFailures(input({ selections: s, threadContext: ctx }))).toEqual(["INTERNAL_ID_LEAK: 1 leak(s): thread delta 'A2' in 'Ceasefire holds'"]);
+    expect(preSendFailures(input({ selections: s, threadContext: ctx }))).toEqual([
+      "INTERNAL_ID_LEAK: 1 leak(s): thread delta 'A2' in 'Ceasefire holds'",
+    ]);
     // Two stories on one cluster: the render attaches neither delta, so none reaches readers.
     s.must_know[1]!.cluster_id = "ceasefire";
     expect(preSendFailures(input({ selections: s, threadContext: ctx }))).toEqual([]);
@@ -61,7 +83,9 @@ describe("preSendFailures", () => {
     const s = clean();
     s.should_know[0]!.summary = "  ";
     s.must_know[1]!.why_it_matters = "";
-    expect(preSendFailures(input({ selections: s }))).toEqual(["EMPTY_FIELD: 1 empty field(s): should_know.summary in 'Storm nears coast'"]);
+    expect(preSendFailures(input({ selections: s }))).toEqual([
+      "EMPTY_FIELD: 1 empty field(s): should_know.summary in 'Storm nears coast'",
+    ]);
   });
   it("story counts outside the L1 ranges fail", () => {
     const s = clean();
@@ -71,7 +95,9 @@ describe("preSendFailures", () => {
   it("a story COHERENCE flagged and repair could not save is named as dropped", () => {
     const i = input();
     i.draft!.must_know = [...i.draft!.must_know, story("Minister resigns", ["A9"])];
-    expect(preSendFailures(i)).toEqual(["STORIES_DROPPED_AT_COHERENCE: 1 story(ies) failed the fact-check, were not repaired, and were dropped: 'Minister resigns'"]);
+    expect(preSendFailures(i)).toEqual([
+      "STORIES_DROPPED_AT_COHERENCE: 1 story(ies) failed the fact-check, were not repaired, and were dropped: 'Minister resigns'",
+    ]);
   });
   it("a repaired headline is not a drop: stories are matched by their cited ids", () => {
     const i = input();
@@ -90,11 +116,25 @@ describe("preSendFailures", () => {
     expect(codes(i)).toEqual(["STORIES_DROPPED_AT_COHERENCE"]);
   });
   it("a thread audit that failed open fails", () => {
-    expect(preSendFailures(input({ threadAuditFailures: 2 }))).toEqual(["THREAD_AUDIT_FAILED: 2 thread update(s) shipped facts their audit could not check (it fails open)"]);
+    expect(preSendFailures(input({ threadAuditFailures: 2 }))).toEqual([
+      "THREAD_AUDIT_FAILED: 2 thread update(s) shipped facts their audit could not check (it fails open)",
+    ]);
   });
   it("keeps the run-health rules that judge the content before the send, and only those", () => {
-    const v = ["BLANKED_WHY_IT_MATTERS: 2 of 5 ...", "STORIES_DROPPED_AT_WRITE: 1 ...", "REPAIR_SPEC_ERROR: x", "ZERO_STORIES: y", "DEGRADED_CLUSTERING: z", "FULLTEXT_TOTAL_LOSS: w", "NO_THREAD_CONTINUATIONS: v"];
-    expect(codes(input({ healthViolations: v }))).toEqual(["BLANKED_WHY_IT_MATTERS", "STORIES_DROPPED_AT_WRITE", "REPAIR_SPEC_ERROR"]);
+    const v = [
+      "BLANKED_WHY_IT_MATTERS: 2 of 5 ...",
+      "STORIES_DROPPED_AT_WRITE: 1 ...",
+      "REPAIR_SPEC_ERROR: x",
+      "ZERO_STORIES: y",
+      "DEGRADED_CLUSTERING: z",
+      "FULLTEXT_TOTAL_LOSS: w",
+      "NO_THREAD_CONTINUATIONS: v",
+    ];
+    expect(codes(input({ healthViolations: v }))).toEqual([
+      "BLANKED_WHY_IT_MATTERS",
+      "STORIES_DROPPED_AT_WRITE",
+      "REPAIR_SPEC_ERROR",
+    ]);
   });
   it("without the draft or the thread trace, the checks that read them are skipped", () => {
     expect(preSendFailures(input({ draft: null, threadAuditFailures: null }))).toEqual([]);
@@ -104,7 +144,11 @@ describe("preSendFailures", () => {
 describe("readPreSend", () => {
   it("reads the run's current artifacts and its run health", async () => {
     const db = openDb(await freshDb([7]));
-    const put = (name: string, content: unknown) => db.run("INSERT INTO artifacts (run_id, name, content, sha256, status, stage, kind) VALUES (7, $1, $2, repeat('0', 64), 'current', 'x', 'output')", [name, JSON.stringify(content)]);
+    const put = (name: string, content: unknown) =>
+      db.run(
+        "INSERT INTO artifacts (run_id, name, content, sha256, status, stage, kind) VALUES (7, $1, $2, repeat('0', 64), 'current', 'x', 'output')",
+        [name, JSON.stringify(content)],
+      );
     const s = clean();
     await put("selections.json", s);
     await put("draft_selections.json", { must_know: s.must_know, should_know: s.should_know, preheader: "" });

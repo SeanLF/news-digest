@@ -14,7 +14,10 @@ export class MailDestinationError extends Error {
 export function resendBaseUrl(env: Record<string, string | undefined>): string {
   const base = env["RESEND_BASE_URL"]?.trim() || undefined;
   if (env["RESEND_LIVE"] === "true") {
-    if (base) throw new MailDestinationError(`RESEND_LIVE=true but RESEND_BASE_URL is set (${base}): production would mail a stand-in; unset one of them`);
+    if (base)
+      throw new MailDestinationError(
+        `RESEND_LIVE=true but RESEND_BASE_URL is set (${base}): production would mail a stand-in; unset one of them`,
+      );
     return RESEND_API_URL;
   }
   if (!base) {
@@ -28,8 +31,10 @@ export function resendBaseUrl(env: Record<string, string | undefined>): string {
   } catch {
     throw new MailDestinationError(`RESEND_BASE_URL is not a URL: ${base}`);
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") throw new MailDestinationError(`RESEND_BASE_URL is not a URL: ${base}`);
+  if (url.protocol !== "http:" && url.protocol !== "https:")
+    throw new MailDestinationError(`RESEND_BASE_URL is not a URL: ${base}`);
   const host = url.hostname.toLowerCase().replace(/\.$/, "");
-  if (host === "resend.com" || host.endsWith(".resend.com")) throw new MailDestinationError(`RESEND_BASE_URL names Resend itself (${host}) and RESEND_LIVE is not true`);
+  if (host === "resend.com" || host.endsWith(".resend.com"))
+    throw new MailDestinationError(`RESEND_BASE_URL names Resend itself (${host}) and RESEND_LIVE is not true`);
   return base.replace(/\/+$/, "");
 }

@@ -39,15 +39,28 @@ const currentAttempt = (): number => {
 // run.py's maybe_update_weekly_recap. The rolling file lives in the archive rather than in data/: each
 // run's copy is the latest earlier run's, with a new week appended (last six kept) once the newest
 // entry is a week old. Stored before SELECT, so the run that writes a week also reads it.
-export function weeklyRecapActivity(deps: WeeklyRecapDeps): (runId: number, force?: boolean) => Promise<Pointer | null> {
+export function weeklyRecapActivity(
+  deps: WeeklyRecapDeps,
+): (runId: number, force?: boolean) => Promise<Pointer | null> {
   return async (runId, force = false) => {
     const { store } = deps;
     const existing = await store.find(runId, WEEKLY_RECAP);
     if (existing && !force) return existing;
-    const write = (text: string): Promise<Pointer> => (force ? store.replace(runId, WEEKLY_RECAP, text) : store.put(runId, WEEKLY_RECAP, text));
+    const write = (text: string): Promise<Pointer> =>
+      force ? store.replace(runId, WEEKLY_RECAP, text) : store.put(runId, WEEKLY_RECAP, text);
     const db = openDb(deps.dbUrl);
-    const prior = (await db.one<Pick<RowOf<"artifacts">, "content">>("SELECT content FROM artifacts WHERE name=$1 AND run_id < $2 AND status = 'current' ORDER BY run_id DESC LIMIT 1", [WEEKLY_RECAP, runId]))?.content ?? null;
-    const titles = (await previousHeadlines(db, await runAt(db, runId))).map((t) => t.headline).filter(Boolean).map((t) => `- ${t}`).join("\n");
+    const prior =
+      (
+        await db.one<Pick<RowOf<"artifacts">, "content">>(
+          "SELECT content FROM artifacts WHERE name=$1 AND run_id < $2 AND status = 'current' ORDER BY run_id DESC LIMIT 1",
+          [WEEKLY_RECAP, runId],
+        )
+      )?.content ?? null;
+    const titles = (await previousHeadlines(db, await runAt(db, runId)))
+      .map((t) => t.headline)
+      .filter(Boolean)
+      .map((t) => `- ${t}`)
+      .join("\n");
     const carry = async (): Promise<Pointer | null> => (prior === null ? null : write(prior));
     const today = await store.runDate(runId);
     const last = prior === null ? undefined : [...prior.matchAll(/^## Week of (\d{4}-\d{2}-\d{2})/gm)].at(-1)?.[1];
@@ -59,8 +72,29 @@ export function weeklyRecapActivity(deps: WeeklyRecapDeps): (runId: number, forc
     try {
       const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "weekly-recap.md"), "utf8"));
       deps.heartbeat?.();
-      const r = await runStage(spec, { userMessage: titles, inputDir: tmpdir() }, { today, runId, ...(deps.query ? { query: deps.query } : {}), ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}), ...(deps.signal?.() ? { signal: deps.signal()! } : {}) });
-      await deps.onUsage?.({ model: spec.model, thinking: spec.thinking, prompt: spec, effort: r.effort, tokens: r.usage, stage: "weekly_recap", runId, costUsd: r.costUsd, durationMs: r.durationMs, numTurns: r.numTurns });
+      const r = await runStage(
+        spec,
+        { userMessage: titles, inputDir: tmpdir() },
+        {
+          today,
+          runId,
+          ...(deps.query ? { query: deps.query } : {}),
+          ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
+          ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
+        },
+      );
+      await deps.onUsage?.({
+        model: spec.model,
+        thinking: spec.thinking,
+        prompt: spec,
+        effort: r.effort,
+        tokens: r.usage,
+        stage: "weekly_recap",
+        runId,
+        costUsd: r.costUsd,
+        durationMs: r.durationMs,
+        numTurns: r.numTurns,
+      });
       summary = r.text.trim();
       if (!summary) throw new Error("model returned an empty recap");
     } catch (e) {

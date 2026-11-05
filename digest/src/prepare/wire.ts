@@ -2,14 +2,39 @@
 // from, so the digest can collapse reposts onto their origin. Matched exactly, never as a substring:
 // "Reuters Institute" is a research body and "Michael Bloomberg" a person.
 export const WIRE_AGENCIES: ReadonlySet<string> = new Set([
-  "reuters", "afp", "agence france-presse", "associated press", "ap", "dpa", "deutsche presse-agentur",
-  "pa media", "press association", "efe", "agencia efe", "ansa", "bloomberg", "xinhua", "pti",
-  "press trust of india", "ians", "anadolu agency", "kyodo", "yonhap", "tass", "upi", "united press international",
+  "reuters",
+  "afp",
+  "agence france-presse",
+  "associated press",
+  "ap",
+  "dpa",
+  "deutsche presse-agentur",
+  "pa media",
+  "press association",
+  "efe",
+  "agencia efe",
+  "ansa",
+  "bloomberg",
+  "xinhua",
+  "pti",
+  "press trust of india",
+  "ians",
+  "anadolu agency",
+  "kyodo",
+  "yonhap",
+  "tass",
+  "upi",
+  "united press international",
 ]);
 
 export function wireAgency(value: string | null | undefined): string | null {
   if (!value) return null;
-  let name = value.split(/\s+/).filter(Boolean).join(" ").replace(/^[.,;:\-–—]+|[.,;:\-–—]+$/g, "").toLowerCase();
+  let name = value
+    .split(/\s+/)
+    .filter(Boolean)
+    .join(" ")
+    .replace(/^[.,;:\-–—]+|[.,;:\-–—]+$/g, "")
+    .toLowerCase();
   if (name.startsWith("the ")) name = name.slice(4);
   return WIRE_AGENCIES.has(name) ? name : null;
 }

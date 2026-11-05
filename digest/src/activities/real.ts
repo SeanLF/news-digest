@@ -37,7 +37,11 @@ const sourcesFile = (): string => process.env["SOURCES_FILE"] ?? "/app/sources.j
 const notFetched = (): Set<string> => notFetchedSources(JSON.parse(readFileSync(sourcesFile(), "utf8")));
 const agentsDir = (): string => process.env["AGENTS_DIR"] ?? DEFAULT_AGENTS_DIR;
 // The newsroom's template and stylesheet and the shared design tokens, copied into the image.
-const renderAssets = () => loadAssets({ templates: process.env["TEMPLATES_DIR"] ?? "/app/digest/templates", design: process.env["DESIGN_DIR"] ?? "/app/design" });
+const renderAssets = () =>
+  loadAssets({
+    templates: process.env["TEMPLATES_DIR"] ?? "/app/digest/templates",
+    design: process.env["DESIGN_DIR"] ?? "/app/design",
+  });
 
 // The worker's activity set: real activities as they are ported (plan A2), stubs for the rest.
 const safeHeartbeat = () => {
@@ -69,6 +73,58 @@ export function workerActivities(): Activities {
     await recordUsage(usageDb, row);
     void hc.log(stageDoneLine(row));
   };
-  const deps = { store, agentsDir: agentsDir(), heartbeat: safeHeartbeat, signal: safeSignal, onUsage: log, log: (m: string) => void hc.log(m) };
-  return { ...stubActivities(), ...clusterActivities(deps), recap: recapActivity(deps), ...writeActivities(deps), select: selectActivity(deps), preheader: preheaderActivity(deps), coherence: coherenceActivity(deps), repair: repairActivity({ ...deps, maxAttempts: MODEL_MAX_ATTEMPTS }), attribute: attributeActivity(deps), assemble: assembleActivity({ ...deps, removeUnsupported: (process.env["KITCHEN_SINK_REMOVAL"] ?? "true").toLowerCase() !== "false" }), ...fulltextActivities({ store, notFetched: notFetched(), perStory: Number(process.env["FULLTEXT_PER_STORY"] ?? 3), enabled: !["0", "false", "no"].includes((process.env["FULLTEXT_ENABLED"] ?? "true").toLowerCase()) }), ...gnewsActivities({ store, enabled: ["1", "true", "yes"].includes((process.env["GNEWS_RESOLVE_ENABLED"] ?? "true").toLowerCase()) }), ...linkDecoderFromEnv(process.env, { heartbeat: safeHeartbeat, signal: safeSignal }), render: renderActivity({ store, dbUrl: dbUrl(), assets: renderAssets(), env: envFrom(process.env) }), prepare: prepareActivity({ store, dbUrl: dbUrl() }), ...threadsActivities({ ...deps, dbUrl: dbUrl(), config: threadsConfigFrom(process.env), maxAttempts: MODEL_MAX_ATTEMPTS }), ...runActivities({ store, dbUrl: dbUrl(), sourcesFile: sourcesFile(), track }), weeklyRecap: weeklyRecapActivity({ ...deps, dbUrl: dbUrl(), maxAttempts: WEEKLY_RECAP_MAX_ATTEMPTS }), ...opsActivities({ dbUrl: dbUrl(), env: process.env, maxAttempts: OPS_MAX_ATTEMPTS, healthcheck: hc }), ...recordActivities({ store, dbUrl: dbUrl(), track }), ...broadcastActivities({ store, dbUrl: dbUrl(), mail: mailClient, env: process.env, signal: safeSignal, heartbeat: safeHeartbeat }) };
+  const deps = {
+    store,
+    agentsDir: agentsDir(),
+    heartbeat: safeHeartbeat,
+    signal: safeSignal,
+    onUsage: log,
+    log: (m: string) => void hc.log(m),
+  };
+  return {
+    ...stubActivities(),
+    ...clusterActivities(deps),
+    recap: recapActivity(deps),
+    ...writeActivities(deps),
+    select: selectActivity(deps),
+    preheader: preheaderActivity(deps),
+    coherence: coherenceActivity(deps),
+    repair: repairActivity({ ...deps, maxAttempts: MODEL_MAX_ATTEMPTS }),
+    attribute: attributeActivity(deps),
+    assemble: assembleActivity({
+      ...deps,
+      removeUnsupported: (process.env["KITCHEN_SINK_REMOVAL"] ?? "true").toLowerCase() !== "false",
+    }),
+    ...fulltextActivities({
+      store,
+      notFetched: notFetched(),
+      perStory: Number(process.env["FULLTEXT_PER_STORY"] ?? 3),
+      enabled: !["0", "false", "no"].includes((process.env["FULLTEXT_ENABLED"] ?? "true").toLowerCase()),
+    }),
+    ...gnewsActivities({
+      store,
+      enabled: ["1", "true", "yes"].includes((process.env["GNEWS_RESOLVE_ENABLED"] ?? "true").toLowerCase()),
+    }),
+    ...linkDecoderFromEnv(process.env, { heartbeat: safeHeartbeat, signal: safeSignal }),
+    render: renderActivity({ store, dbUrl: dbUrl(), assets: renderAssets(), env: envFrom(process.env) }),
+    prepare: prepareActivity({ store, dbUrl: dbUrl() }),
+    ...threadsActivities({
+      ...deps,
+      dbUrl: dbUrl(),
+      config: threadsConfigFrom(process.env),
+      maxAttempts: MODEL_MAX_ATTEMPTS,
+    }),
+    ...runActivities({ store, dbUrl: dbUrl(), sourcesFile: sourcesFile(), track }),
+    weeklyRecap: weeklyRecapActivity({ ...deps, dbUrl: dbUrl(), maxAttempts: WEEKLY_RECAP_MAX_ATTEMPTS }),
+    ...opsActivities({ dbUrl: dbUrl(), env: process.env, maxAttempts: OPS_MAX_ATTEMPTS, healthcheck: hc }),
+    ...recordActivities({ store, dbUrl: dbUrl(), track }),
+    ...broadcastActivities({
+      store,
+      dbUrl: dbUrl(),
+      mail: mailClient,
+      env: process.env,
+      signal: safeSignal,
+      heartbeat: safeHeartbeat,
+    }),
+  };
 }

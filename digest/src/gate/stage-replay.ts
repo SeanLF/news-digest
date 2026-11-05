@@ -24,13 +24,28 @@ const MIN = 60_000;
 // Production's policy per stage: the workflow's proxies (model, verdict, attributing in
 // digest.workflow.ts); stage-replay.test.ts holds this table to them.
 export const PROD_POLICY: Record<Mode, { timeoutMs: number; perCall: boolean; onFailure: string }> = {
-  cluster: { timeoutMs: 45 * MIN, perCall: true, onFailure: `each batch retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then lost: the join falls back to titles` },
-  select: { timeoutMs: 45 * MIN, perCall: true, onFailure: `retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then the run parks for an operator` },
+  cluster: {
+    timeoutMs: 45 * MIN,
+    perCall: true,
+    onFailure: `each batch retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then lost: the join falls back to titles`,
+  },
+  select: {
+    timeoutMs: 45 * MIN,
+    perCall: true,
+    onFailure: `retried up to ${MODEL_MAX_ATTEMPTS} attempts (5, then 10 min apart), then the run parks for an operator`,
+  },
   coherence: { timeoutMs: 45 * MIN, perCall: true, onFailure: "one attempt: the run parks for an operator" },
   attribute: { timeoutMs: 10 * MIN, perCall: false, onFailure: "one attempt: the issue ships without attribution" },
 };
 
-export interface Usage { calls: number; costUsd: number; tokens: Record<string, number>; models: string[]; efforts: string[]; lostBatches: string[] }
+export interface Usage {
+  calls: number;
+  costUsd: number;
+  tokens: Record<string, number>;
+  models: string[];
+  efforts: string[];
+  lostBatches: string[];
+}
 
 async function drafts(store: ArtifactStore, run: number): Promise<Pointer[]> {
   const names = (await store.names(run)).filter((n) => /^draft_s\d+\.json$/.test(n)).toSorted();
@@ -43,10 +58,20 @@ async function need(store: ArtifactStore, run: number, name: string): Promise<Po
   return p;
 }
 
-export interface Replayed { artifact: unknown; usage: Usage; failure?: { error: string; prodOnFailure: string } }
+export interface Replayed {
+  artifact: unknown;
+  usage: Usage;
+  failure?: { error: string; prodOnFailure: string };
+}
 
 // `test` swaps in a fake model call and a shorter timeout; the command passes neither.
-export async function replay(mode: Mode, store: ArtifactStore, run: number, agentsDir: string, test: { query?: SdkQuery; timeoutMs?: number } = {}): Promise<Replayed> {
+export async function replay(
+  mode: Mode,
+  store: ArtifactStore,
+  run: number,
+  agentsDir: string,
+  test: { query?: SdkQuery; timeoutMs?: number } = {},
+): Promise<Replayed> {
   const usage: Usage = { calls: 0, costUsd: 0, tokens: {}, models: [], efforts: [], lostBatches: [] };
   const onUsage = (r: UsageRow) => {
     usage.calls++;
@@ -60,7 +85,13 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
   const { perCall, onFailure } = PROD_POLICY[mode];
   const timeoutMs = test.timeoutMs ?? PROD_POLICY[mode].timeoutMs;
   const whole = perCall ? undefined : AbortSignal.timeout(timeoutMs);
-  const deps = { store, agentsDir, onUsage, signal: () => whole ?? AbortSignal.timeout(timeoutMs), ...(test.query ? { query: test.query } : {}) };
+  const deps = {
+    store,
+    agentsDir,
+    onUsage,
+    signal: () => whole ?? AbortSignal.timeout(timeoutMs),
+    ...(test.query ? { query: test.query } : {}),
+  };
   // Everything the stage reads is read and validated first, outside the try: the agent file as the plan
   // overrode it, the articles, drafts, report and repair. A missing or malformed input, database or run
   // is the harness's failure and fails the replay, never a variant's (a broken instrument must not read
@@ -76,11 +107,28 @@ export async function replay(mode: Mode, store: ArtifactStore, run: number, agen
   return { artifact: JSON.parse(await store.get(out)), usage };
 }
 
-type Deps = { store: ArtifactStore; agentsDir: string; onUsage: (r: UsageRow) => void; signal: () => AbortSignal; query?: SdkQuery };
+type Deps = {
+  store: ArtifactStore;
+  agentsDir: string;
+  onUsage: (r: UsageRow) => void;
+  signal: () => AbortSignal;
+  query?: SdkQuery;
+};
 
-const AGENT_FILE: Record<Mode, string> = { cluster: "cluster-extract.md", select: "select.md", coherence: "coherence.md", attribute: "attribute.md" };
+const AGENT_FILE: Record<Mode, string> = {
+  cluster: "cluster-extract.md",
+  select: "select.md",
+  coherence: "coherence.md",
+  attribute: "attribute.md",
+};
 
-async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number, usage: Usage): Promise<() => Promise<Pointer>> {
+async function prepare(
+  mode: Mode,
+  deps: Deps,
+  store: ArtifactStore,
+  run: number,
+  usage: Usage,
+): Promise<() => Promise<Pointer>> {
   parseAgentSpec(readFileSync(join(deps.agentsDir, AGENT_FILE[mode]), "utf8"));
   if ((await loadArticles(store, run)).length === 0) throw new Error(`run ${run} has no articles`);
   if (mode === "cluster") {
@@ -91,7 +139,9 @@ async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number
       const settled = await mapBounded(batches, MODEL_FANOUT_LIMIT, (b) => c.extractBatch(run, b, true));
       const tags = settled.map((r, i) => {
         if (r.status === "fulfilled") return r.value;
-        usage.lostBatches.push(`b${batches[i]!.index}: ${String(r.reason)} (in a run: ${PROD_POLICY.cluster.onFailure})`);
+        usage.lostBatches.push(
+          `b${batches[i]!.index}: ${String(r.reason)} (in a run: ${PROD_POLICY.cluster.onFailure})`,
+        );
         return null;
       });
       return c.joinClusters(run, tags, true);
@@ -110,7 +160,10 @@ async function prepare(mode: Mode, deps: Deps, store: ArtifactStore, run: number
     await draftFrom(store, ds);
     return () => coherenceActivity(deps)(run, ds, fulltext, undefined, true);
   }
-  const [report, repair] = [await need(store, run, "coherence_report.json"), await need(store, run, "repair_resolution.json")];
+  const [report, repair] = [
+    await need(store, run, "coherence_report.json"),
+    await need(store, run, "repair_resolution.json"),
+  ];
   await draftFrom(store, ds);
   CoherenceReportSchema.parse(JSON.parse(await store.get(report)));
   JSON.parse(await store.get(repair));

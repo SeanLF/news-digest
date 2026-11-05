@@ -9,7 +9,8 @@ import { type PageCtx, brand, pageBody, pageHead, subChrome, subMasthead } from 
 // friendly 404, each in the shared frame.
 
 const name = (ctx: PageCtx) => escapeHtml(ctx.cfg.digestName);
-const TAG_ALL = "An automated daily briefing. Curated and fact-checked by Claude; no human edits any issue. &copy; Sean Floyd";
+const TAG_ALL =
+  "An automated daily briefing. Curated and fact-checked by Claude; no human edits any issue. &copy; Sean Floyd";
 
 // ── 404 ──
 export function notFoundPage(ctx: PageCtx, heading: string, message: string): string {
@@ -53,13 +54,19 @@ function biasSection(rows: SourceRow[], key: string, anchor: string, label: stri
   if (!rows.length) return "";
   return `<section class="sec" id="${anchor}"><div class="sec-h"><span class="dot ${key}" aria-hidden="true"></span><h2>${label}</h2><span class="ct">${rows.length} outlets</span></div><div class="colhead"><span>Source</span><span class="r">Factuality</span></div><ul class="srcs">${rows.map(sourceRow).join("")}</ul></section>`;
 }
-const lab = (n: number, anchor: string, label: string): string => (n > 0 ? `<a class="on" href="#${anchor}">${label}</a>` : `<span>${label}</span>`);
+const lab = (n: number, anchor: string, label: string): string =>
+  n > 0 ? `<a class="on" href="#${anchor}">${label}</a>` : `<span>${label}</span>`;
 export function sourcesPage(ctx: PageCtx, sources: SourceRow[]): string {
   const left = sources.filter((s) => bucket(s.bias) === "l");
   const centre = sources.filter((s) => bucket(s.bias) === "c");
   const right = sources.filter((s) => bucket(s.bias) === "r");
   const feeds = sources.reduce((n, s) => n + s.feedCount, 0);
-  const chrome = subChrome(ctx.cfg, "sources", "/sources", "Bias &amp; factuality ratings via Media Bias/Fact Check; each row links to the outlet.");
+  const chrome = subChrome(
+    ctx.cfg,
+    "sources",
+    "/sources",
+    "Bias &amp; factuality ratings via Media Bias/Fact Check; each row links to the outlet.",
+  );
   const spectrum = `<div class="spectrum">
       <div class="spec-counts" aria-hidden="true"><span></span><span></span><span>${left.length}</span><span>${centre.length}</span><span>${right.length}</span><span></span><span></span></div>
       <div class="spec-bar2" role="img" aria-label="Bias distribution: ${left.length} lean-left, ${centre.length} centre, ${right.length} lean-right outlets; none far-left or far-right">
@@ -76,12 +83,19 @@ export function sourcesPage(ctx: PageCtx, sources: SourceRow[]): string {
     ${spectrum}
     ${biasSection(left, "l", "lean-left", "Lean left")}${biasSection(centre, "c", "centre", "Centre")}${biasSection(right, "r", "lean-right", "Lean right")}
     </main>`;
-  return pageHead(ctx, name(ctx), "News sources by bias and factuality — the catalog behind the digest.", sourcesCss) + pageBody(ctx, chrome, inner);
+  return (
+    pageHead(ctx, name(ctx), "News sources by bias and factuality — the catalog behind the digest.", sourcesCss) +
+    pageBody(ctx, chrome, inner)
+  );
 }
 
 // ── search ──
 const tierParts = (tier: string): [string, string] =>
-  tier === "must_know" ? ["must", "Must Know"] : tier === "should_know" ? ["should", "Should Know"] : ["should", tier === "" ? "" : escapeHtml(tier)];
+  tier === "must_know"
+    ? ["must", "Must Know"]
+    : tier === "should_know"
+      ? ["should", "Should Know"]
+      : ["should", tier === "" ? "" : escapeHtml(tier)];
 function resultRow(r: SearchHit): string {
   const [cls, label] = tierParts(r.tier);
   const head = escapeHtml(r.headline);
@@ -90,9 +104,15 @@ function resultRow(r: SearchHit): string {
     : `<li class="result unlinked"><span class="r-tier ${cls}">${label}</span><span class="r-head">${head}</span></li>`;
 }
 export function searchPage(ctx: PageCtx, query: string | undefined, results: SearchHit[]): string {
-  const chrome = subChrome(ctx.cfg, "", "/search", "Search covers all published headlines. Full-text over each issue's stories.");
+  const chrome = subChrome(
+    ctx.cfg,
+    "",
+    "/search",
+    "Search covers all published headlines. Full-text over each issue's stories.",
+  );
   let body: string;
-  if (query === undefined) body = '<p class="note">Search matches wording in every published headline. Enter a term above.</p>';
+  if (query === undefined)
+    body = '<p class="note">Search matches wording in every published headline. Enter a term above.</p>';
   else if (!results.length)
     body = `<p class="rescount">No results for &ldquo;${escapeHtml(query)}&rdquo;.</p><p class="note">Search matches headline wording — try a broader or differently-worded term.</p>`;
   else
@@ -108,7 +128,10 @@ export function searchPage(ctx: PageCtx, query: string | undefined, results: Sea
     <main id="main">
     ${body}
     </main>`;
-  return pageHead(ctx, name(ctx), "Search every published headline in the digest archive.", searchCss) + pageBody(ctx, chrome, inner);
+  return (
+    pageHead(ctx, name(ctx), "Search every published headline in the digest archive.", searchCss) +
+    pageBody(ctx, chrome, inner)
+  );
 }
 
 // ── stats ──
@@ -129,8 +152,12 @@ const BIAS = [
 const LABEL_MIN_PCT = 10;
 function spectrumRow(label: string, p: [number, number, number], aria: string): string {
   const segs = BIAS.map(([k, n], i) => ({ k, n, v: p[i]! })).filter((s) => s.v > 0);
-  const bar = segs.map((s) => `<span class="on-${s.k}" style="flex-grow:${s.v}" data-tip="${s.v}% · ${s.n}"></span>`).join("");
-  const keys = segs.map((s) => `<span class="bkey" style="flex-grow:${s.v}">${s.v >= LABEL_MIN_PCT ? `${s.v}%` : ""}</span>`).join("");
+  const bar = segs
+    .map((s) => `<span class="on-${s.k}" style="flex-grow:${s.v}" data-tip="${s.v}% · ${s.n}"></span>`)
+    .join("");
+  const keys = segs
+    .map((s) => `<span class="bkey" style="flex-grow:${s.v}">${s.v >= LABEL_MIN_PCT ? `${s.v}%` : ""}</span>`)
+    .join("");
   return `<div class="balrow"><span class="rl">${label}</span><div class="barwrap"><div class="sbar" role="img" aria-label="${aria}">${bar}</div><div class="bkeys" aria-hidden="true">${keys}</div></div></div>`;
 }
 // One series, so one ink: neither a bias colour nor a status one. The bar is scaled to the largest row.
@@ -157,20 +184,36 @@ function sparkline(recent: Stats["recentRuns"]): string {
   });
   const lastI = runs.findLastIndex((r) => r.apiCostUsd !== null);
   const hits = runs
-    .map((r, i) => (r.apiCostUsd === null ? "" : `<rect x="${fixed(x(i) - step / 2, 1)}" y="0" width="${fixed(step, 1)}" height="${H}"><title>$${fixed(r.apiCostUsd, 2)} · ${escapeHtml(r.runAt.slice(0, 10))}</title></rect>`))
+    .map((r, i) =>
+      r.apiCostUsd === null
+        ? ""
+        : `<rect x="${fixed(x(i) - step / 2, 1)}" y="0" width="${fixed(step, 1)}" height="${H}"><title>$${fixed(r.apiCostUsd, 2)} · ${escapeHtml(r.runAt.slice(0, 10))}</title></rect>`,
+    )
     .join("");
   const aria = `Cost per run over the last ${runs.length} runs: $${fixed(costs[0]!, 2)} oldest, $${fixed(costs.at(-1)!, 2)} latest, between $${fixed(lo, 2)} and $${fixed(hi, 2)}`;
   return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}"><path d="${d}"/><circle cx="${fixed(x(lastI), 1)}" cy="${fixed(y(runs[lastI]!.apiCostUsd!), 1)}" r="4"/>${hits}</svg>`;
 }
 const fixed = (x: number, d: number): string => x.toFixed(d);
 
-const aria = (w: string, p: [number, number, number]): string => `${w} mix: ${p[0]}% lean-left, ${p[1]}% centre, ${p[2]}% lean-right`;
+const aria = (w: string, p: [number, number, number]): string =>
+  `${w} mix: ${p[0]}% lean-left, ${p[1]}% centre, ${p[2]}% lean-right`;
 function balance(m: Metrics): string {
-  const [verdict, cls] = m.jsd < 0.05 ? ["Tracks catalog", "ok"] : m.jsd < 0.15 ? ["Slight lean", "warn"] : ["Skews the shelf", "bad"];
+  const [verdict, cls] =
+    m.jsd < 0.05 ? ["Tracks catalog", "ok"] : m.jsd < 0.15 ? ["Slight lean", "warn"] : ["Skews the shelf", "bad"];
   const tiles =
-    tile(verdict, cls, "Selection vs shelf", `<span title="Jensen–Shannon divergence: distance from shipped mix to the catalog (0 = identical)">JSD</span> ${fixed(m.jsd, 2)} — curation isn't the skew`) +
+    tile(
+      verdict,
+      cls,
+      "Selection vs shelf",
+      `<span title="Jensen–Shannon divergence: distance from shipped mix to the catalog (0 = identical)">JSD</span> ${fixed(m.jsd, 2)} — curation isn't the skew`,
+    ) +
     tile(`${m.bucketsSourced} of 7`, "", "Spectrum buckets sourced", "left and right fold into lean-*") +
-    tile(`${m.factualityHighPct}%`, m.factualityHighPct >= 90 ? "ok" : "warn", "Shipped ≥ high factuality", "MBFC High or Very High");
+    tile(
+      `${m.factualityHighPct}%`,
+      m.factualityHighPct >= 90 ? "ok" : "warn",
+      "Shipped ≥ high factuality",
+      "MBFC High or Very High",
+    );
   return `<section>
   <div class="sec-h"><h2>Balance</h2><span class="ct">shipped vs catalog</span></div>
   <div class="stats">${tiles}</div>
@@ -183,14 +226,27 @@ function balance(m: Metrics): string {
 </section>`;
 }
 function concentration(m: Metrics, never: string[], days: number): string {
-  const [hhiCls, hhiDesc] = m.hhi < 0.15 ? ["ok", "low — well spread"] : m.hhi < 0.25 ? ["warn", "moderate"] : ["bad", "concentrated"];
+  const [hhiCls, hhiDesc] =
+    m.hhi < 0.15 ? ["ok", "low — well spread"] : m.hhi < 0.25 ? ["warn", "moderate"] : ["bad", "concentrated"];
   const top = m.topSources[0];
   const tiles =
-    tile(`${m.sourcesUsed}<span style="color:var(--muted);font-size:18px;"> / ${m.catalogTotal}</span>`, "", "Sources used", `${m.coveragePct}% catalog coverage`) +
-    tile(fixed(m.hhi, 2), hhiCls, 'Concentration <span title="Herfindahl–Hirschman Index: how concentrated sourcing is; low = well spread">(HHI)</span>', `${hhiDesc} · eff. ${fixed(m.effectiveN, 0)} sources`) +
+    tile(
+      `${m.sourcesUsed}<span style="color:var(--muted);font-size:18px;"> / ${m.catalogTotal}</span>`,
+      "",
+      "Sources used",
+      `${m.coveragePct}% catalog coverage`,
+    ) +
+    tile(
+      fixed(m.hhi, 2),
+      hhiCls,
+      'Concentration <span title="Herfindahl–Hirschman Index: how concentrated sourcing is; low = well spread">(HHI)</span>',
+      `${hhiDesc} · eff. ${fixed(m.effectiveN, 0)} sources`,
+    ) +
     tile(top ? `${fixed(top.sharePct, 0)}%` : "—", "", "Top source share", top ? escapeHtml(top.name) : "");
   const shares = m.topSources.map((s) => shareRow(s.name, s.count, s.sharePct, s.barPct)).join("");
-  const drill = never.length ? `<p class="drill">Never used in ${days} days (${never.length}): ${never.map((s) => `<code>${escapeHtml(s)}</code>`).join(", ")}.</p>` : "";
+  const drill = never.length
+    ? `<p class="drill">Never used in ${days} days (${never.length}): ${never.map((s) => `<code>${escapeHtml(s)}</code>`).join(", ")}.</p>`
+    : "";
   return `<section>
   <div class="sec-h"><h2>Concentration &amp; coverage</h2><span class="ct">${m.totalShipped} source picks · ${days} days</span></div>
   <div class="stats">${tiles}</div>
@@ -223,7 +279,13 @@ function cost(s: Stats): string {
   const perArticle = c.keptTotal > 0 ? c.costTotal / c.keptTotal : 0;
   const spark = sparkline(s.recentRuns);
   const tiles =
-    tile(`$${fixed(perRun, 2)}`, "", "Cost / run", `API list-price equiv.${spark ? ` · trend of last ${s.recentRuns.length} runs` : ""}`, spark) +
+    tile(
+      `$${fixed(perRun, 2)}`,
+      "",
+      "Cost / run",
+      `API list-price equiv.${spark ? ` · trend of last ${s.recentRuns.length} runs` : ""}`,
+      spark,
+    ) +
     tile(`$${fixed(perSub, 3)}`, "", "Cost / subscriber", `${c.recipientsLatest} recipients`) +
     tile(`$${fixed(perStory, 3)}`, "", "Cost / shipped story", `${c.shippedTotal} stories readers saw`) +
     tile(`$${fixed(perArticle, 4)}`, "", "Cost / article ingested", `${c.keptTotal} read by curation`);
@@ -245,7 +307,9 @@ function geographic(m: Metrics): string {
   const top = Math.max(m.regions[0]?.[1] ?? 1, 1);
   const rows = m.regions.map(([n, c]) => shareRow(n, c, total > 0 ? (c / total) * 100 : 0, (c / top) * 100)).join("");
   const topPct = total > 0 ? Math.round(((m.regions[0]?.[1] ?? 0) / total) * 100) : 0;
-  const tiles = tile(fixed(m.geoEffective, 1), "", "Effective regions", `of ${m.regions.length} · geo-HHI ${fixed(m.geoHhi, 2)}`) + tile(m.regions[0]?.[0] ?? "", "", "Top region", `${topPct}% of stories`);
+  const tiles =
+    tile(fixed(m.geoEffective, 1), "", "Effective regions", `of ${m.regions.length} · geo-HHI ${fixed(m.geoHhi, 2)}`) +
+    tile(m.regions[0]?.[0] ?? "", "", "Top region", `${topPct}% of stories`);
   return `<section>
   <div class="sec-h"><h2>Geographic origin</h2><span class="ct">source vantage, not story location</span></div>
   <div class="stats">${tiles}</div>
@@ -254,7 +318,12 @@ function geographic(m: Metrics): string {
 </section>`;
 }
 export function statsPage(ctx: PageCtx, days: number, s: Stats, m: Metrics, names: Map<string, string>): string {
-  const chrome = subChrome(ctx.cfg, "stats", "/stats", "Balance = shipped source-bias mix vs. the catalog. Cost is API list-price equiv., not billed spend.");
+  const chrome = subChrome(
+    ctx.cfg,
+    "stats",
+    "/stats",
+    "Balance = shipped source-bias mix vs. the catalog. Cost is API list-price equiv., not billed spend.",
+  );
   const opt = (d: number, label: string) => `<a href="?days=${d}" aria-current="${d === days}">${label}</a>`;
   const toggle = `<div class="toolbar"><div class="seg" role="group" aria-label="Reporting period">${opt(7, "7 days")}${opt(30, "30 days")}${opt(90, "90 days")}</div></div>`;
   const inner = `${subMasthead(brand(ctx), "Stats", `Editorial health &middot; last ${days} days`, `<b>${s.cost.runs}</b> runs &middot; <b>${s.cost.recipientsLatest}</b> subscribers &middot; <b>$${fixed(s.cost.costTotal, 2)}</b> API-equiv.`)}
@@ -266,7 +335,10 @@ export function statsPage(ctx: PageCtx, days: number, s: Stats, m: Metrics, name
     ${health(s, names)}
     ${cost(s)}
     </main>`;
-  return pageHead(ctx, name(ctx), "How the digest is performing: balance, source health, cost, and coverage.", statsCss) + pageBody(ctx, chrome, inner);
+  return (
+    pageHead(ctx, name(ctx), "How the digest is performing: balance, source health, cost, and coverage.", statsCss) +
+    pageBody(ctx, chrome, inner)
+  );
 }
 
 // ── feedback ──
@@ -278,7 +350,9 @@ const HELPS = [
 ];
 export function feedbackPage(ctx: PageCtx): string {
   const chrome = subChrome(ctx.cfg, "", "/feedback", "No form, no tracking — feedback goes straight to a human inbox.");
-  const mail = ctx.cfg.contactEmail ? `<a class="btn primary" href="mailto:${escapeHtml(ctx.cfg.contactEmail)}?subject=Digest%20feedback">&#9993; Email your feedback</a>` : "";
+  const mail = ctx.cfg.contactEmail
+    ? `<a class="btn primary" href="mailto:${escapeHtml(ctx.cfg.contactEmail)}?subject=Digest%20feedback">&#9993; Email your feedback</a>`
+    : "";
   const inner = `<main id="main" class="narrow">
       <a class="brandmark" href="/">${brand(ctx)}</a>
       <h1 class="h1">Tell me what you <em>think</em></h1>
@@ -290,7 +364,10 @@ export function feedbackPage(ctx: PageCtx): string {
         <ul>${HELPS.map((h) => `<li>${h}</li>`).join("")}</ul>
       </div>
     </main>`;
-  return pageHead(ctx, name(ctx), "Tell me what you think — feedback goes straight to a human inbox.", feedbackCss) + pageBody(ctx, chrome, inner);
+  return (
+    pageHead(ctx, name(ctx), "Tell me what you think — feedback goes straight to a human inbox.", feedbackCss) +
+    pageBody(ctx, chrome, inner)
+  );
 }
 
 export const TAGLINE_ALL = TAG_ALL;

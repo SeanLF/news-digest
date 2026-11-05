@@ -47,10 +47,25 @@ export function gnewsActivities(deps: { store: ArtifactStore; enabled: boolean }
       const decoded = Object.fromEntries(Object.entries(result.decoded).filter(([, to]) => to.startsWith("http")));
       const upgraded = Object.keys(decoded).length;
       if (result.links && !upgraded && result.outcome !== "rate_limited" && result.attempted >= CANARY_MIN_ATTEMPTS) {
-        log.warn({ stage: "gnews", warning: "upgraded 0 shown links; the decoder contract has probably moved again, check gnews-decoder for an update (npm run test:live there)", links: result.links, attempted: result.attempted });
+        log.warn({
+          stage: "gnews",
+          warning:
+            "upgraded 0 shown links; the decoder contract has probably moved again, check gnews-decoder for an update (npm run test:live there)",
+          links: result.links,
+          attempted: result.attempted,
+        });
       }
-      const write = (name: string, text: string) => (force ? store.replace(runId, name, text) : store.put(runId, name, text));
-      await write(GNEWS_HEALTH, JSON.stringify({ links: result.links, decoded: upgraded, attempted: result.attempted, outcome: result.outcome }));
+      const write = (name: string, text: string) =>
+        force ? store.replace(runId, name, text) : store.put(runId, name, text);
+      await write(
+        GNEWS_HEALTH,
+        JSON.stringify({
+          links: result.links,
+          decoded: upgraded,
+          attempted: result.attempted,
+          outcome: result.outcome,
+        }),
+      );
       return write(DECODED_LINKS, JSON.stringify(decoded, null, 2));
     },
   };

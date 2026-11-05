@@ -11,7 +11,9 @@ describe("agent overrides", () => {
     const replaced = setFrontmatter(AGENT, "model", "claude-haiku-5-5");
     expect(replaced).toContain("model: claude-haiku-5-5\nthinking");
     expect(replaced).toContain("model: in body");
-    expect(setFrontmatter(AGENT, "effort", "high")).toBe("---\nname: select\nmodel: claude-sonnet-5-5\nthinking: adaptive\neffort: high\n---\nBody: keep\nmodel: in body\n");
+    expect(setFrontmatter(AGENT, "effort", "high")).toBe(
+      "---\nname: select\nmodel: claude-sonnet-5-5\nthinking: adaptive\neffort: high\n---\nBody: keep\nmodel: in body\n",
+    );
     expect(() => setFrontmatter("no frontmatter", "effort", "high")).toThrow(/frontmatter/);
   });
 

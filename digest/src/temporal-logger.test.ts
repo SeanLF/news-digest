@@ -33,7 +33,11 @@ describe("temporalLogger", () => {
 
   it("writes a line even when a value's toJSON throws", () => {
     const { logger, lines } = capture();
-    const bad = { toJSON: () => { throw new Error("boom"); } };
+    const bad = {
+      toJSON: () => {
+        throw new Error("boom");
+      },
+    };
     expect(() => temporalLogger(logger).warn("Activity failed", { taskQueue: "digest", context: bad })).not.toThrow();
     expect(lines()[0]).toMatchObject({ level: "warn" });
   });
