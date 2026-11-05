@@ -343,7 +343,7 @@ ALTER TABLE run_usage ADD COLUMN result          TEXT;  -- ok|invalid|error|time
   verdict stays inside the four allowed reasons (control flow on verdicts).
 - **Not in prod:** promptfoo runs, judge transcripts and scores (promptfoo's own SQLite, `~/.promptfoo/promptfoo.db`:
   115 evals, 2,853 results, 60 MB, Drizzle-migrated), Sean's adjudications and planted keys (git,
-  `docs/proposed/gate-fixtures/`, `docs/proposed/coherence-planted/`). Labels are small, need review and
+  `evals/fixtures/gate/`, `evals/fixtures/coherence-planted/`). Labels are small, need review and
   want diffs; git gives all three. The one experiment-side table that might earn a place later is a
   `labels` table joining human verdicts to `(run, story)`; not until a harness needs the join.
 
@@ -465,7 +465,7 @@ triggers (every legal and illegal edge); circulation's suite against an imported
 
 Engine-neutral: this is what `bin/import-legacy` must produce whichever engine holds the new schema.
 Counts from `sqlite3 -readonly data/prod-20260923b.db` (runs 1-305, yoyo head `20260916190000`); the
-query for every line is `docs/2026-09-23-import-expectations.sql`. "=" means row for row and column for
+query for every line is [`docs/2026-09-23-import-expectations.sql`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-23-import-expectations.sql). "=" means row for row and column for
 column, except where a column is named.
 
 | new table | from | expected rows on the clone | content check |
@@ -484,7 +484,7 @@ column, except where a column is named.
 | `thread_updates` | `thread_installments` | 1,597 | `is_continuation` = `matched_score IS NOT NULL` (641); `content` 605 set |
 | `thread_questions` | `thread_questions` | 3,116 | 2,408 open, 708 resolved, every resolving run published |
 | `thread_question_resolutions` | resolved questions | 708 | `(question_id, resolved_run_id, answer)` |
-| not carried | `cluster_runs` (99, equal to `clusters.json` 99/99, none without it), `thread_runs` (98), `story_feedback` (37, last 2026-07-05: exported to `docs/2026-09-23-story-feedback.csv`), `threads.slug`, `dedup_log.action`, the yoyo tables | | |
+| not carried | `cluster_runs` (99, equal to `clusters.json` 99/99, none without it), `thread_runs` (98), `story_feedback` (37, last 2026-07-05: exported to [`docs/2026-09-23-story-feedback.csv`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-23-story-feedback.csv)), `threads.slug`, `dedup_log.action`, the yoyo tables | | |
 
 Things the clone showed that §4 did not say:
 - The derived `status` matches only when dormancy is counted up to, and excluding, the newest run: the

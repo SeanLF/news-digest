@@ -279,7 +279,7 @@ The column *is* the measure — no per-element `max-width`s.
 - **Feedback** — no form (Yes/No removed); warm mailto CTA (primary button) + "especially useful to
   hear" list, narrow 560px measure.
 
-**Steals applied** (see `docs/2026-07-04-chrome-design-research-and-language.md` + the `ui-design-craft`
+**Steals applied** (see [`2026-07-04-chrome-design-research-and-language.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-04-chrome-design-research-and-language.md) + the `ui-design-craft`
 dotfiles skill): Radix 12-step scale model (accent step-9, text 11/12 APCA-guaranteed — retires manual
 AA-lock and fixes the dark filled-button bug via computed contrast text), alpha hairlines, table craft,
 editorial issue-numbering, single-accent discipline, `tabular-nums`/`text-wrap:pretty`/`hanging-punctuation`.
@@ -346,7 +346,7 @@ column width. Multi-file drift is invisible to the eye and to Lighthouse; measur
   floating inside wide chrome reads as broken (content must share the chrome's left edge). This
   full-width-rules-over-a-narrow-measure layout is a *researched* editorial device (NN/g / NYT /
   Economist — "reads 'designed grid' more than any font choice"), not a compromise — see
-  `2026-07-04-chrome-design-research-and-language.md` §5. Feedback uses the **standard nav** like every
+  [`2026-07-04-chrome-design-research-and-language.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-04-chrome-design-research-and-language.md) §5. Feedback uses the **standard nav** like every
   page; its "arrive-from-a-digest" context lives in the body CTA ("reply to today's issue"), not a
   bespoke top-bar back-link.
 - **Footer:** one shared `.site-foot` (`display:flex;flex-direction:column;gap:6px`; a `.row` of

@@ -123,7 +123,7 @@ check-injections: ## Render every stored issue in the dev stack's database and l
 
 replay: ## Replay model stages of stored runs via promptfoo, each call on a copy of digest_clone (CONFIG=gate/replay.yaml or /app/data/x.yaml REPS=1 J=8; model calls; make db-clone first)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ)-$$$$; $(COMPOSE) up -d --wait digest-pg && \
-	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
+	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
 	  $(PROMPTFOO_IN) eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
 
 band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (RUN=300 DATE=2026-09-18 REPS=3; model calls, ~$4/rep)
@@ -138,8 +138,8 @@ band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via prom
 	$(COMPOSE) up -d --force-recreate digest-worker >/dev/null; exit $$status  # the worker goes back to the digest database, broadcast on
 
 judges: ## Two judge families x5 (REPS=5) on a gate fixture (FIXTURE=day-300, or e.g. day-305/python) via promptfoo, in the worker container (model calls, ~$5)
-	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); fx=$${FIXTURE:-day-300}; test -f docs/proposed/gate-fixtures/$$fx/digest.html || { echo "no fixture docs/proposed/gate-fixtures/$$fx/{digest.html,inputs/}"; exit 2; }; \
-	sed "s#gate-fixtures/day-300/#gate-fixtures/$$fx/#g" digest/gate/judges.yaml > digest/gate/judges.run.yaml; \
+	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); fx=$${FIXTURE:-day-300}; test -f evals/fixtures/gate/$$fx/digest.html || { echo "no fixture evals/fixtures/gate/$$fx/{digest.html,inputs/}"; exit 2; }; \
+	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/#g" digest/gate/judges.yaml > digest/gate/judges.run.yaml; \
 	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) && $(PROMPTFOO_IN) eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json && node dist/cli/agreement.js ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json"
 
 planted: ## COHERENCE planted-defect band on the new runner via promptfoo, in the worker container (REPS=3; ~$1/rep)
@@ -159,9 +159,9 @@ fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved c
 # judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here.
 CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
-JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
+JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
 # The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
 # scan): installed in the dev image for the in-container evals, and on the host for band and fulltext-fork.
-EVAL_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/docs:/app/docs:ro" digest-replay
+EVAL_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" digest-replay
 $(PROMPTFOO): evals/package-lock.json
 	cd evals && npm ci --no-audit --no-fund && touch $(PROMPTFOO)

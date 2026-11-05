@@ -32,7 +32,7 @@ Before shipping a composite score, answer:
 3. **What is the self-agreement band of the reference?** For model-generated
    gold, measure the N-run band before trusting any metric computed against it
    (see the Sonnet-vs-Sonnet ARI 0.60-0.88 finding in
-   `docs/2026-06-26-cluster-eval-methodology.md`).
+   [`docs/2026-06-26-cluster-eval-methodology.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-06-26-cluster-eval-methodology.md)).
 
 ## What survives the test
 
@@ -70,5 +70,5 @@ estimate. That distinction is the whole lesson.
 
 - [[write-the-cost-equation-before-scoping-an-optimization]] -- same discipline
   applied to cost: write the model down before spending effort against it.
-- `docs/2026-06-26-cluster-eval-noground-truth-literature.md` -- task-grounded
+- [`docs/2026-06-26-cluster-eval-noground-truth-literature.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-06-26-cluster-eval-noground-truth-literature.md) -- task-grounded
   evaluation beats ARI; stability is not validity.

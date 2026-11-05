@@ -64,6 +64,6 @@ re-reading it replaced was more expensive than the thinking. Do not assume the d
 
 ## Related
 
-- `docs/2026-08-30-health-check-and-clustering-sota.md` — full measurement and decision
+- [`docs/2026-08-30-health-check-and-clustering-sota.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-08-30-health-check-and-clustering-sota.md) — full measurement and decision
 - `docs/lessons/strict-types-on-model-output-turn-drift-into-silent-loss.md` — the sibling failure:
   a constraint that guarantees shape while losing correspondence

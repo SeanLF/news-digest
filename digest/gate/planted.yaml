@@ -1,6 +1,7 @@
 # Planted-defect recall of the TypeScript checker on planted278 (8 planted fabrications, 24 clean
-# fields), the fixture and key the old checker's band was measured on (docs/proposed/coherence-
-# planted/band-2026-09-18: recall 8/8 every rep, false drops 1-3). Run with `make planted`.
+# fields), the fixture and key the old checker's band was measured on (recall 8/8 every rep, false
+# drops 1-3; docs-archive-2026-11-04:docs/proposed/coherence-planted/band-2026-09-18). Run with
+# `make planted`.
 description: COHERENCE planted-defect band on the new runner
 prompts: ["planted278"]
 # Both sides of the spec's pre-registered checker fork (§2.2): inline+Grep, and the Read loop. The
@@ -8,14 +9,14 @@ prompts: ["planted278"]
 providers:
   - id: file://../dist/gate/checker-provider.js
     label: inline-grep
-    config: { fixtureDir: ../docs/proposed/coherence-planted/fixtures/planted278, today: "2026-08-28", shape: inline-grep }
+    config: { fixtureDir: ../evals/fixtures/coherence-planted/planted278, today: "2026-08-28", shape: inline-grep }
   - id: file://../dist/gate/checker-provider.js
     label: read-loop
-    config: { fixtureDir: ../docs/proposed/coherence-planted/fixtures/planted278, today: "2026-08-28", shape: read-loop }
+    config: { fixtureDir: ../evals/fixtures/coherence-planted/planted278, today: "2026-08-28", shape: read-loop }
 tests:
   - vars:
-      draft: ../docs/proposed/coherence-planted/fixtures/planted278/draft_selections.json
-      key: ../docs/proposed/coherence-planted/planted278_key.json
+      draft: ../evals/fixtures/coherence-planted/planted278/draft_selections.json
+      key: ../evals/fixtures/coherence-planted/planted278_key.json
       maxFalseDrops: 3
     assert:
       - type: javascript

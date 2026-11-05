@@ -89,4 +89,4 @@ failure mode move my metric in the direction I assumed".
 - [[a-repair-erases-the-evidence-its-detector-is-validated-against]] -- validating a
   detector on data that no longer contains the failure.
 - Fixture: `newsroom/tests/fixtures/null_delta_pairs.json`.
-  Full record: `docs/2026-07-26-write-delta-poc-findings.md`.
+  Full record: [`docs/2026-07-26-write-delta-poc-findings.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-26-write-delta-poc-findings.md).

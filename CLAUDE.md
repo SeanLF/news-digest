@@ -7,7 +7,7 @@ TypeScript on Temporal since the cut-over of 2026-09-25; the Python pipeline (`n
 web server (`circulation/`) are deleted (last in `ae5f03d`).
 
 Where things were decided: `docs/2026-09-24-web-tier-and-ops-decisions.md` (the decision record, which
-wins over the spec it supersedes), `docs/superpowers/specs/2026-09-21-four-systems-rewrite-design.md` (the
+wins over the spec it supersedes), `docs/2026-09-21-four-systems-rewrite-design.md` (the
 spec), `docs/2026-09-23-temporal-cutover-runbook.md` (operating the Temporal side on the box),
 `docs/2026-09-23-data-model-design.md` (the Postgres schema).
 
@@ -72,7 +72,9 @@ a patch or a new worker build (`digest/src/deployment.ts`, the runbook's "Strand
   incident or landing a non-obvious fix, as its own commit. Convention in `docs/lessons/README.md`.
 - `docs/operations.md` — command reference and environment notes.
 - `docs/postmortems/` — incident narratives.
-- `docs/` (dated files) — design docs, evals, handoffs; history, stale by default.
+- `docs/` (dated files) — the decision docs live files cite; history, stale by default. Older design
+  docs, eval evidence and handoffs are at the `docs-archive-2026-11-04` tag (`git show <tag>:docs/...`).
+- `evals/fixtures/` — the inputs `make judges` and `make planted` read.
 
 ## Persistent TODO
 

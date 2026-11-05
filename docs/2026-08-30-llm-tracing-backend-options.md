@@ -22,7 +22,7 @@ already in `run_artifacts` at higher fidelity.
 whole measurement: a 60-run COHERENCE model comparison ran every arm with
 `thinking: {"type": "disabled"}` inherited from `orchestrate.py:66`, and thinking turned out to be
 a **larger** lever than model choice (recall 0.761 to 0.919, p=0.002, and 26% cheaper). Full write-up
-in `docs/2026-08-30-health-check-and-clustering-sota.md`; the reusable lesson is
+in [`docs/2026-08-30-health-check-and-clustering-sota.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-08-30-health-check-and-clustering-sota.md); the reusable lesson is
 `docs/lessons/measure-the-config-before-the-model.md`.
 
 The fix already exists and is uncommitted (and was still being extended while this doc was being
@@ -204,7 +204,7 @@ Ironically PostHog has the best retention on the list at a full year.
 ## 7. Self-hosting: ruled out by arithmetic, again
 
 Production is a Hetzner CX23, 2 vCPU and 4 GB, already running the newsroom container and the Rust
-circulation server. `docs/2026-07-01-improvement-roadmap.md:126-131` (item C7) reached this exact
+circulation server. [`docs/2026-07-01-improvement-roadmap.md:126-131`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-01-improvement-roadmap.md) (item C7) reached this exact
 conclusion two months ago and said "**do NOT self-host SigNoz/ClickHouse on the 4GB CX23**". Nothing
 has changed except that the numbers are now sourced.
 
@@ -368,7 +368,7 @@ PostHog, Langfuse and Phoenix on ingest shape; Braintrust on §8.
 
 ## 12. Prior art in this repo, and what changed since
 
-This question was already asked. `docs/2026-07-01-improvement-roadmap.md:126-131` filed it as **C7**,
+This question was already asked. [`docs/2026-07-01-improvement-roadmap.md:126-131`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-01-improvement-roadmap.md) filed it as **C7**,
 scoped it correctly ("wiring is pure env"), named Grafana/Honeycomb/Dash0, ruled out self-hosting on
 the CX23, flagged the console-exporter trap, and judged that per-stage latency plus `/stats` "covers
 ~80% of the need". It was deferred at line 159 as "needs a backend".

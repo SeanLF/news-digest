@@ -73,7 +73,7 @@ describe("the site's reads", () => {
   });
 
   it("searches a literal phrase, operators and all, one row per story, with the issue it ran in", async () => {
-    // Run 1's story is cited by two sources: one row, not two (docs/proposed/2026-09-23-search-tuning).
+    // Run 1's story is cited by two sources: one row, not two.
     const hits = await store().search("ceasefire holds", 50);
     expect(hits.map((h) => h.headline)).toEqual(["Ceasefire holds in the north"]);
     expect(hits[0]!.date).toBe("2026-08-28");

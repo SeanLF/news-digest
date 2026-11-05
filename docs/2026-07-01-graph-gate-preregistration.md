@@ -1,6 +1,6 @@
 # Extract→join vs holistic-CLUSTER — the REAL gate (pre-registration, 2026-07-01)
 
-Executes the go/no-go the `2026-06-30-phase2-close-and-graph-poc-handoff.md` handoff
+Executes the go/no-go the [`2026-06-30-phase2-close-and-graph-poc-handoff.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-06-30-phase2-close-and-graph-poc-handoff.md) handoff
 demanded. **This document fixes the arms, the signals, and the DECISION RULE before any
 result is looked at** — the single discipline this investigation keeps relearning
 (`feedback_eval_ill_posed_metric`: a metric read after the fact, or a bar set to match a

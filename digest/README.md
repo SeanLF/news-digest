@@ -1,7 +1,7 @@
 # digest
 
 The pipeline and the site, TypeScript on Temporal, in production since 2026-09-25 (spec:
-`docs/superpowers/specs/2026-09-21-four-systems-rewrite-design.md`, as amended by
+`docs/2026-09-21-four-systems-rewrite-design.md`, as amended by
 `docs/2026-09-24-web-tier-and-ops-decisions.md`).
 Node 26, Postgres through node-postgres (schema: `db/migrations`, applied by dbmate; tests on in-process PGlite),
 the Agent SDK for model stages, Temporal for sequencing, signals and the run budget.

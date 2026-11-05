@@ -6,7 +6,7 @@ A sweep says keep it as it is, for a reason the AUC could not have shown.*
 ## The argument I made, which looked airtight
 
 `cluster_extractjoin._tag_bag` builds the join's term bag as `entities*3 + keywords + primary_event*2`.
-`docs/2026-07-02-dedup-poc-findings.md` — a blind-judge study, n=178, Cohen's kappa 0.87 — measured
+[`docs/2026-07-02-dedup-poc-findings.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-02-dedup-poc-findings.md) — a blind-judge study, n=178, Cohen's kappa 0.87 — measured
 each signal's power to predict "same story":
 
 ```
@@ -73,7 +73,7 @@ this sweep is evidence *for* it rather than against.
 ## Cost of the lesson
 
 $3.30 of extraction — and the reusable artifact is the tags, not the answer. They are archived in
-`docs/proposed/join-tags/` (`scratch/` is gitignored, and paying twice for the same tokens would be
+[`docs/proposed/join-tags/`](https://github.com/SeanLF/news-digest/tree/docs-archive-2026-11-04/docs/proposed/join-tags) (`scratch/` is gitignored, and paying twice for the same tokens would be
 the real waste). `cluster_tags.json` now archives them per-run, so the next sweep is free.
 
 ---

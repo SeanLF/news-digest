@@ -80,7 +80,7 @@ Roughly two dollars a day in API-equivalent cost (Sonnet to select, write and ch
 
 ## Status
 
-Production has run this since 2026-09-25 (`deploy/2026-09-25-035737Z`); before that, a Python pipeline and a Rust web server did, and both are deleted (their last commit is `ae5f03d`). What was verified before the cut-over, and how, is in the [runbook](docs/2026-09-23-temporal-cutover-runbook.md) and the `docs/proposed/` evidence it links.
+Production has run this since 2026-09-25 (`deploy/2026-09-25-035737Z`); before that, a Python pipeline and a Rust web server did, and both are deleted (their last commit is `ae5f03d`). What was verified before the cut-over, and how, is in the [runbook](docs/2026-09-23-temporal-cutover-runbook.md) and the evidence it links, archived at the [`docs-archive-2026-11-04`](https://github.com/SeanLF/news-digest/tree/docs-archive-2026-11-04/docs) tag.
 
 ## More
 

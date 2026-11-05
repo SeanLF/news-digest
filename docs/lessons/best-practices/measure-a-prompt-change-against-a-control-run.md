@@ -120,4 +120,4 @@ here. Prefer a deterministic check with a citable trigger over another prompt ar
 **Do not reach for a fixed similarity threshold either.** The same headline pair
 scores 0.869 against a prior-week IDF corpus and 0.661 against an all-time one, and
 at 0.75 the rule caught only 2 of the 4 bad headlines in this experiment. Full
-record: `docs/2026-07-26-write-delta-poc-findings.md`.
+record: [`docs/2026-07-26-write-delta-poc-findings.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-07-26-write-delta-poc-findings.md).

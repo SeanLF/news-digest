@@ -20,7 +20,7 @@ mechanisms, each living in a different stage.**
 
 ## The evidence
 
-Of the 8 labelled duplicates in runs 284-311 (`docs/2026-09-29-duplicate-stories.md`):
+Of the 8 labelled duplicates in runs 284-311 ([`docs/2026-09-29-duplicate-stories.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-29-duplicate-stories.md)):
 
 | mechanism | cases | stage |
 |---|---|---|

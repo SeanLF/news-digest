@@ -55,7 +55,7 @@ was deleted, not fixed: `b114c6a` (2026-07-28, the same day as this lesson) reti
 `cluster_index` as load-bearing pipeline-wide, so by 2026-09-01 the check was failing 52% of
 healthy runs for a reason unrelated to id integrity — 88.5% of its failures were the model
 miscounting a position in a several-hundred-element array, not a stray id. See
-`docs/2026-09-01-eval-stages-grader-diagnosis.md`.
+[`docs/2026-09-01-eval-stages-grader-diagnosis.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-01-eval-stages-grader-diagnosis.md).
 
 The corollary above still held: rather than leave SELECT with no id-integrity check,
 `grade_select` now asserts `select_article_ids_resolve` (every `article_id` resolves in

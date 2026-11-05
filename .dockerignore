@@ -18,3 +18,5 @@ digest/sbom.cdx.json
 # and the fulltext fork corpus. Not secrets today, but nothing local belongs in a prod image.
 digest/gate/*.run.yaml
 digest/fulltext/
+# Eval inputs: mounted by the eval targets, never baked into an image.
+evals/fixtures/

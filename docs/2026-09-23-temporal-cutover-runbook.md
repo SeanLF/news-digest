@@ -5,7 +5,7 @@ it is on the box at all, and which pipeline sends the digest. This runbook cover
 the flip back, and running the Temporal side day to day.
 
 Terraform: `$INFRA_DIR/infrastructure/terraform/news-digest-temporal.tf`, branch `digest-temporal` of
-seanfloyd.dev. Spec: §2.1 and §5 of `docs/superpowers/specs/2026-09-21-four-systems-rewrite-design.md`.
+seanfloyd.dev. Spec: §2.1 and §5 of `docs/2026-09-21-four-systems-rewrite-design.md`.
 
 ## The switch
 

@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-24
 **Supersedes:** §3 (web tier), §5 (infrastructure and operations), §6 (seams) and the Plan B gate in §7.2 of
-`superpowers/specs/2026-09-21-four-systems-rewrite-design.md`. Where the two disagree, this record wins.
+`2026-09-21-four-systems-rewrite-design.md`. Where the two disagree, this record wins.
 **Evidence:** two adversarial reviews of the design (architecture, then the whole settled design) and one of
 the Python worker, all on 2026-09-24; the measurements below were taken the same day on the dev stack.
 

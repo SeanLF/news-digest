@@ -29,7 +29,7 @@ articles that belonged to the story.
 
 The proposed fix was a free post-check on the judge's strays: keep a stray that shares the
 story's core entities with the dominant group. Replayed against the blind labels
-(`docs/2026-09-03-cohesion-stray-postcheck-probe.md`), the feature ran the wrong way. Strays
+([`docs/2026-09-03-cohesion-stray-postcheck-probe.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-03-cohesion-stray-postcheck-probe.md)), the feature ran the wrong way. Strays
 that should have been kept had *lower* mean entity overlap (0.530) than strays that were
 correctly removed (0.620). At the pair level the two classes were indistinguishable — mean
 entity Jaccard 0.277 for pairs that should merge, 0.281 for pairs that must stay split — and
@@ -62,8 +62,8 @@ alternative was shipping a rule that re-merged 26 of 38 correctly removed strays
 
 ## See also
 
-- `docs/2026-09-03-cohesion-stray-postcheck-probe.md` — the numbers.
-- `docs/2026-09-03-cohesion-gate-measurement.md` — the gate failure this was meant to fix.
+- [`docs/2026-09-03-cohesion-stray-postcheck-probe.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-03-cohesion-stray-postcheck-probe.md) — the numbers.
+- [`docs/2026-09-03-cohesion-gate-measurement.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-03-cohesion-gate-measurement.md) — the gate failure this was meant to fix.
 - `a-lexical-detector-is-anti-correlated-with-a-rewording-defect.md` — same shape: a detector
   whose features are the ones the defect moves.
 - `an-unfiltered-sibling-tells-generator-from-validator.md` — the general question of what a

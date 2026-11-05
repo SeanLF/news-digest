@@ -52,5 +52,5 @@ dateline), so that is all the grouping uses (`digest/src/render/reports.ts`).
 
 ## Related
 
-- `docs/2026-09-28-sources-box-design.md` §3 D4.
+- [`docs/2026-09-28-sources-box-design.md`](https://github.com/SeanLF/news-digest/blob/docs-archive-2026-11-04/docs/2026-09-28-sources-box-design.md) §3 D4.
 - [the-metric-was-the-problem.md](../the-metric-was-the-problem.md).
