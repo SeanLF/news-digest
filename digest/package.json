@@ -99,5 +99,8 @@
     "lightningcss-darwin-arm64": "1.33.0",
     "lightningcss-linux-arm64-gnu": "1.33.0",
     "lightningcss-linux-x64-gnu": "1.33.0"
+  },
+  "overrides": {
+    "fast-xml-parser": "5.12.0"
   }
 }
