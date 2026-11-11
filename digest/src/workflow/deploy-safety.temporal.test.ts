@@ -1,5 +1,6 @@
 import { Context } from "@temporalio/activity";
 import { WorkflowFailedError, type WorkflowHandle } from "@temporalio/client";
+import type { Duration } from "@temporalio/common";
 import { TestWorkflowEnvironment } from "@temporalio/testing";
 import { Worker } from "@temporalio/worker";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -49,7 +50,7 @@ const worker = (taskQueue: string, activities: Partial<Activities>, workflowsPat
     maxCachedWorkflows: 0,
     activities: { ...stub, ...activities },
   });
-const start = (taskQueue: string, runDate: string, workflowRunTimeout: string = WORKFLOW_RUN_TIMEOUT) =>
+const start = (taskQueue: string, runDate: string, workflowRunTimeout: Duration = WORKFLOW_RUN_TIMEOUT) =>
   env.client.workflow.start(DigestWorkflow, {
     taskQueue: `${taskQueue}-${nonce}`,
     workflowId: `${workflowIdFor(runDate)}-${nonce}`,
@@ -137,7 +138,7 @@ function writes(old: "cancellable" | "killed") {
   return { attempts, inFlight, zombie, oldWrite, newWrite, wasCancelled: () => cancelled };
 }
 
-async function restartInHold(q: string, runDate: string, newCode: string, runTimeout?: string) {
+async function restartInHold(q: string, runDate: string, newCode: string, runTimeout?: Duration) {
   const { calls, acts } = opsRecorder();
   const inHold = deferred();
   const h = await start(q, runDate, runTimeout);

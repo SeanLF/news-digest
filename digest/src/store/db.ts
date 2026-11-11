@@ -34,9 +34,10 @@ export const PARSERS: Record<number, (v: string) => unknown> = {
   [OIDS.TIMESTAMP]: utcText,
   [OIDS.TIMESTAMPTZ]: utcText,
 };
+const builtinTypes: { getTypeParser(oid: number, format?: string): (v: string) => unknown } = pg.types;
 const pgTypes = {
   getTypeParser: (oid: number, format?: string): ((v: string) => unknown) =>
-    PARSERS[oid] ?? (pg.types.getTypeParser(oid, format as "text") as (v: string) => unknown),
+    PARSERS[oid] ?? builtinTypes.getTypeParser(oid, format),
 };
 
 const LOCK = "SELECT pg_advisory_xact_lock(hashtext($1))";

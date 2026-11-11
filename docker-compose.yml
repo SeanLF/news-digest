@@ -110,7 +110,7 @@ services:
 
   # The Temporal CLI's dev server (Server 1.32.0 + UI, SQLite on a volume). Production's is plan C's.
   temporal:
-    image: temporalio/temporal:1.9.1
+    image: temporalio/temporal:1.10.0
     command: ["server", "start-dev", "--ip", "0.0.0.0", "--db-filename", "/data/temporal.db"]
     volumes: [temporal-data:/data]
     user: "0:0" # the image's own user cannot write a fresh root-owned volume; local dev only

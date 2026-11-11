@@ -1,5 +1,6 @@
 import { isGrpcServiceError, type Client } from "@temporalio/client";
 import { decodeVersioningBehavior } from "@temporalio/common";
+import { temporal } from "@temporalio/proto";
 import type { WorkerDeploymentOptions } from "@temporalio/worker";
 
 export const DEPLOYMENT_NAME = "digest";
@@ -18,8 +19,8 @@ export function deploymentOptions(env: Record<string, string | undefined> = proc
 export type Stranded = { workflowId: string; buildId: string };
 const RUNNING_DIGESTS = 'WorkflowType="DigestWorkflow" AND ExecutionStatus="Running"';
 
-const WORKFLOW_QUEUE = 1;
-export const ACTIVITY_QUEUE = 2;
+const WORKFLOW_QUEUE = temporal.api.enums.v1.TaskQueueType.TASK_QUEUE_TYPE_WORKFLOW;
+export const ACTIVITY_QUEUE = temporal.api.enums.v1.TaskQueueType.TASK_QUEUE_TYPE_ACTIVITY;
 
 export async function setCurrentVersion(
   client: Client,

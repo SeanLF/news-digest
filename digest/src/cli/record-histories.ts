@@ -1,8 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Client, Connection, type WorkflowHandle } from "@temporalio/client";
-import { ApplicationFailure } from "@temporalio/common";
-import { historyToJSON } from "@temporalio/common/lib/proto-utils.js";
+import { ApplicationFailure, type Duration } from "@temporalio/common";
+import { historyToJSON } from "@temporalio/common/proto-utils";
 import { NativeConnection, Worker } from "@temporalio/worker";
 import type { Activities, DigestInput, FulltextTask } from "../activities/index.js";
 import { stubActivities } from "../activities/stub.js";
@@ -13,7 +13,7 @@ import { approveSignal, retrySignal } from "../workflow/signals.js";
 type Scenario = {
   name: string;
   input?: Partial<DigestInput>;
-  runTimeout?: string;
+  runTimeout?: Duration;
   activities?: Partial<Activities>;
   drive: (h: WorkflowHandle<typeof DigestWorkflow>) => Promise<unknown>;
 };
