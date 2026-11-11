@@ -31,7 +31,7 @@
     "csv-parse": "7.0.3",
     "csv-stringify": "6.9.0",
     "dbmate": "2.38.1",
-    "entities": "8.1.0",
+    "entities": "9.0.0",
     "escape-goat": "4.0.0",
     "feedsmith": "3.0.1",
     "gnews-decoder": "0.1.0",
