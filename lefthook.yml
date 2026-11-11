@@ -11,7 +11,7 @@ pre-commit:
       root: digest/
       glob: "digest/src/**/*.ts"
       exclude: ["digest/src/**/fixtures/**", "digest/src/store/schema.gen.ts"]
-      run: docker compose run --rm -v "$(git rev-parse --show-toplevel)/digest/src:/app/digest/src" ci-ts npx oxfmt {staged_files}
+      run: docker compose run --rm -v "$PWD/src:/app/digest/src" ci-ts npx oxfmt {staged_files}
       stage_fixed: true
     2-ruff:
       glob: "{bin/tests,digest/python}/**/*.py"
