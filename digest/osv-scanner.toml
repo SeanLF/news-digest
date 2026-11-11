@@ -1,1 +1,9 @@
 # bin/deploy-digest refuses on any finding; each ignore names why it cannot reach production and expires.
+[[IgnoredVulns]]
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2026-12-10
+reason = "glob 13.0.7, fixed only in the 14 major; mjml 6.0.0-alpha.1's CLIs (mjml-cli, js-beautify's cli.js) are the only code that loads it, and the worker calls mjml's library API, which does not"
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2026-12-10
+reason = "minimatch 10.2.6, fixed only in the 11 major; reached through mjml-cli and js-beautify's cli.js (editorconfig), neither of which the worker's render loads"

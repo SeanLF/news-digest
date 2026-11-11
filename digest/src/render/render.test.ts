@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { htmlEscape } from "escape-goat";
 import { describe, expect, it } from "vitest";
 import { roundHalfEven, slugify } from "./common.js";
@@ -177,9 +178,9 @@ describe("email and web show the same issue", () => {
       "kitchen sink",
       JSON.parse(readFileSync(`${REPO}digest/src/render/fixtures/kitchensink_selections.json`, "utf8")) as Selections,
     ],
-  ] as const)("%s", (_n, sel) => {
+  ] as const)("%s", async (_n, sel) => {
     const web = text(renderWeb(input(sel)));
-    const email = text(renderEmail(input(sel)));
+    const email = text(await renderEmail(input(sel)));
     let wAt = 0;
     let eAt = 0;
     for (const s of [...sel.must_know, ...sel.should_know]) {
@@ -197,10 +198,10 @@ describe("email and web show the same issue", () => {
     expect(sourceCounts(web).length).toBeGreaterThan(0);
     expect(sourceCounts(email)).toEqual(sourceCounts(web));
   });
-  it("diverges where editorial text quotes a placeholder", () => {
+  it("diverges where editorial text quotes a placeholder", async () => {
     const sel = edge();
     expect(text(renderWeb(input(sel)))).toContain("it quotes Friday, September 18, 2026 literally");
-    expect(text(renderEmail(input(sel)))).toContain("it quotes {{DATE}} literally");
+    expect(text(await renderEmail(input(sel)))).toContain("it quotes {{DATE}} literally");
   });
 });
 
@@ -222,14 +223,31 @@ describe("small text", () => {
   it("sets nothing below 12px on the web issue", () => {
     expect(textSizesUnder12(renderWeb(input(edge())))).toEqual([]);
   });
-  it("sets nothing below 12px in the email", () => {
-    expect(textSizesUnder12(renderEmail(input(edge())))).toEqual([]);
+  it("sets nothing below 12px in the email", async () => {
+    expect(textSizesUnder12(await renderEmail(input(edge())))).toEqual([]);
   });
-  it("keeps each part of the email dateline on one line", () => {
-    const email = renderEmail(input(edge()));
+  it("keeps iOS and Windows from inflating the email's text, which mjml 6's skeleton no longer prevents", async () => {
+    const head = /<head>[\s\S]*<\/head>/.exec(await renderEmail(input(edge())))?.[0] ?? "";
+    expect(head).toMatch(/body\{[^}]*-webkit-text-size-adjust:100%/);
+    expect(head).toMatch(/body\{[^}]*-ms-text-size-adjust:100%/);
+  });
+  it("keeps each part of the email dateline on one line", async () => {
+    const email = await renderEmail(input(edge()));
     for (const part of ["Friday, September 18, 2026", "min read", "must-know"]) {
-      expect(email).toMatch(new RegExp(`<span style="white-space:nowrap;">[^<]*${part}`));
+      expect(email).toMatch(new RegExp(`<span style="white-space:nowrap;?">[^<]*${part}`));
     }
+  });
+});
+
+describe("the email's size", () => {
+  it("keeps the biggest recent issue (run 349) under 100,000 bytes, short of Gmail's 102,400-byte clip", async () => {
+    const run349 = JSON.parse(
+      readFileSync(new URL("./fixtures/run349_selections.json", import.meta.url), "utf8"),
+    ) as Selections;
+    expect(Buffer.byteLength(await renderEmail(input(run349)))).toBeLessThan(100_000);
+  });
+  it("runs the mjml alpha that dropped Outlook, so a bump to a newer or stable 6.x fails here and the email is re-checked for size and against screenshots before the pin moves", () => {
+    expect(createRequire(import.meta.url)("mjml/package.json")).toMatchObject({ version: "6.0.0-alpha.1" });
   });
 });
 
@@ -324,8 +342,8 @@ describe("the sources box", () => {
     expect(web).toContain('class="seg u"');
   });
 
-  it("gives the email one line of counts and a link, and none of the box", () => {
-    const email = renderEmail(input(fairford));
+  it("gives the email one line of counts and a link, and none of the box", async () => {
+    const email = await renderEmail(input(fairford));
     expect(text(email)).toContain("2 reports · 3 outlets");
     expect(email).toMatch(
       /<a href="https:\/\/news\.example\/issues\/2026-09-18#arrests-near-air-base"[^>]*>Sources and coverage →<\/a>/,

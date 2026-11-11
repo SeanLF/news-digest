@@ -1,0 +1,1057 @@
+{
+  "must_know": [
+    {
+      "headline": "Tech rout spreads to Asia and Europe after S&P 500 falls 4.4% on fears of US AI curbs",
+      "summary": "Asian and European stocks fell on Friday after a Wall Street sell-off in which the S&P 500 dropped 4.4%, its worst day since April 2025, according to CBC. Investors fear tighter rules on AI and data centres after Democrats' sweep in the US midterms. Japan's Nikkei 225 and Topix fell nearly 6%, and the Nasdaq entered correction territory, with $2.5 trillion wiped off its value, according to Reuters.",
+      "why_it_matters": "The sell-off ties the AI trade to US politics: markets are pricing a Democratic Congress that could slow data centre building, the spending that had been propping up tech valuations.",
+      "sources": [
+        {
+          "name": "CBC News",
+          "url": "https://www.cbc.ca/news/business/ai-stocks-markets-9.7411079?cmp=rss",
+          "bias": "lean-left",
+          "source_id": "cbc_news",
+          "original_title": "AI stock sell-off sends the S&amp;P 500 down 4.4% in worst day since April 2025",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A85"
+        },
+        {
+          "name": "Financial Times",
+          "url": "https://www.ft.com/content/b77ebe43-a017-4e63-af84-5bdec8f47648?syn-25a6b1a6=1",
+          "bias": "center",
+          "source_id": "financial_times",
+          "original_title": "Japanese stocks post biggest one-day fall since ‘liberation day’ chaos",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A176"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/legal/transactional/ai-data-center-stocks-slip-democratic-sweep-clouds-expansion-plans-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Investors wipe $2.5 trillion off Nasdaq as blue tsunami prompts AI fears - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A436"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/business/sp-500-futures-steady-after-midterm-rally-nasdaq-lags-chip-weakness-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Nasdaq posts biggest daily drop in 19 months on fears of AI regulations - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A441"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/americas/20261106-live-european-stocks-plunge-after-us-midterm-election-results-shock-markets",
+          "bias": "center",
+          "source_id": "france24",
+          "original_title": "Live: European stocks plunge after US midterm election results shock markets",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A197"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/technology/20261106-tech-stocks-plunge-us-midterm-ai-rules",
+          "bias": "center",
+          "source_id": "france24",
+          "original_title": "Tech stocks plunge as US midterm results fuel fears of tighter AI rules",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A202"
+        },
+        {
+          "name": "Financial Times",
+          "url": "https://www.ft.com/content/642b32dc-e3a1-4df8-ae91-5c84bdeb89e0",
+          "bias": "center",
+          "source_id": "financial_times",
+          "original_title": "Wall Street AI sell-off spreads to Asia and Europe",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A178"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/asia-pacific/dollar-holds-yen-gains-equity-rout-saps-risk-appetite-ahead-payrolls-2026-11-06/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Dollar climbs on haven bid as AI rout grips Asian markets - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A428"
+        },
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/video/newsfeed/2026/11/6/global-tech-stocks-plunge-over-fears-of-ai-curbs-in-us?traffic_source=rss",
+          "bias": "lean-left",
+          "source_id": "al_jazeera",
+          "original_title": "Global tech stocks plunge over fears of AI curbs in US",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A10"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Financial Times",
+          "angle": "Reports that Donald Trump blamed voters for the tech rout, while futures suggested markets would stabilise at the US open.",
+          "bias": "Business press, centrist"
+        }
+      ],
+      "cluster_id": "global AI stock sell-off after Democratic midterm sweep",
+      "thread": {
+        "thread_id": 1255,
+        "day": 5,
+        "delta": "The S&P 500 fell 4.4% in its worst day since April 2025 as AI stocks sold off over worries about possible moratoriums on data centres after the Democratic midterm sweep. The Nasdaq posted its biggest daily drop in 19 months on fears of AI regulations, with investors wiping $2.5 trillion off the index, according to Reuters. The Nasdaq slid about 4% into correction territory, and Reuters reported it was set to confirm the correction as AI spending worries mounted.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1255"
+      }
+    },
+    {
+      "headline": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz",
+      "summary": "Iran has sent Washington a nuclear proposal through Qatar, a senior Iranian official told Reuters, to be discussed only after the US meets Tehran's seven demands. The official said the US was reviewing it. Iran's top security official, Mohsen Rezaei, said Iran will neither reopen the Strait of Hormuz nor negotiate until those conditions are met. They include lifting sanctions, releasing frozen assets and war reparations. Iran also reported three more tankers damaged in Hormuz on Thursday.",
+      "why_it_matters": "Iran is offering a nuclear channel while keeping Hormuz shut and attacking shipping, so it holds its main leverage over oil prices even as talks move. Washington has said nuclear issues must be part of any first round, so the two sides disagree on the order of talks.",
+      "sources": [
+        {
+          "name": "Al-Monitor",
+          "url": "https://www.al-monitor.com/originals/2026/11/iran-sent-nuclear-proposal-us-qatar-senior-iranian-official-tells-reuters",
+          "bias": "lean-left",
+          "source_id": "al_monitor",
+          "original_title": "Iran sent nuclear proposal to the US via Qatar, senior Iranian official tells Reuters",
+          "wire": false,
+          "wire_agency": "reuters",
+          "article_id": "A27"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/middle-east/iran-sent-nuclear-proposal-us-via-qatar-senior-iranian-official-tells-reuters-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Iran sent nuclear proposal to the US via Qatar, senior Iranian official tells Reuters - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A389"
+        },
+        {
+          "name": "Haaretz Middle East",
+          "url": "https://www.haaretz.com/middle-east-news/iran/2026-11-06/ty-article/iran-sent-nuclear-proposal-to-u-s-via-qatar-senior-iranian-official-says/000001a1-ae09-dd7a-a3ed-ef4969d10000",
+          "bias": "left",
+          "source_id": "haaretz_middle_east",
+          "original_title": "Iran sent nuclear proposal to U.S. via Qatar, senior Iranian official says",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A235"
+        },
+        {
+          "name": "Al-Monitor",
+          "url": "https://www.al-monitor.com/originals/2026/11/tankers-hit-hormuz-iran-keeps-pressure-after-us-vote",
+          "bias": "lean-left",
+          "source_id": "al_monitor",
+          "original_title": "Tankers hit in Hormuz as Iran keeps up pressure after US vote",
+          "wire": false,
+          "wire_agency": "reuters",
+          "article_id": "A37"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/middle-east/tankers-hit-hormuz-iran-keeps-up-pressure-after-us-vote-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Tankers hit in Hormuz as Iran keeps up pressure after US vote - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A427"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/05/world/middleeast/peace-talks-iran-united-states-qatar-nuclear-program.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Iran is Reviewing ‘Concrete Proposals’ on Nuclear Program, Officials Say",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A319"
+        },
+        {
+          "name": "Financial Times",
+          "url": "https://www.ft.com/content/d89a6369-7572-42e4-b3eb-413b462c587d?syn-25a6b1a6=1",
+          "bias": "center",
+          "source_id": "financial_times",
+          "original_title": "Qatar’s emir urges Trump to pursue Iran talks as mediators seek deal to end war",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A167"
+        },
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/news/2026/11/6/why-is-iran-exempting-india-china-qatar-iraq-from-hormuz-restrictions?traffic_source=rss",
+          "bias": "lean-left",
+          "source_id": "al_jazeera",
+          "original_title": "Why is Iran exempting India, China, Qatar, Iraq from Hormuz restrictions?",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A14"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "NYT World",
+          "angle": "Says Iran's willingness to re-engage on the nuclear issue suggests Qatar-led efforts to avert full-blown war have had some success.",
+          "bias": "Center-left"
+        }
+      ],
+      "cluster_id": "Iran sends nuclear proposal to US via Qatar",
+      "thread": {
+        "thread_id": 1226,
+        "day": 7,
+        "delta": "Iran has sent the United States a nuclear proposal via Qatar, but a senior Iranian official says it will be discussed only after Washington meets Tehran's seven demands. Tehran has also demanded the lifting of U.S. sanctions, the release of frozen assets and war reparations, according to reporting on its nuclear proposal. Iran reported three more tankers damaged in the Strait of Hormuz on Thursday, and Reuters says shipping will remain in peril while the Gulf war is unresolved.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1226"
+      }
+    },
+    {
+      "headline": "Eisenkot wins 67 Knesset endorsements over Netanyahu; Herzog to name coalition-builder Sunday",
+      "summary": "Opposition leader Gadi Eisenkot of Yashar secured recommendations from 67 lawmakers, including Arab parties, after two days of talks with President Isaac Herzog. Herzog said he will announce on Sunday, Nov. 8, whom he will task with trying to form a government. The Globe and Mail reports that neither Eisenkot nor Netanyahu has a clear path to a majority.",
+      "why_it_matters": "Eisenkot's lead rests on Arab-party recommendations, the same votes Netanyahu and his allies have attacked with fraud allegations that election officials say could not have changed the result, so any coalition Eisenkot builds will be contested on legitimacy as well as numbers.",
+      "sources": [
+        {
+          "name": "Al-Monitor",
+          "url": "https://www.al-monitor.com/originals/2026/11/arab-parties-backing-gives-eisenkot-edge-over-netanyahu-pm-what-know",
+          "bias": "lean-left",
+          "source_id": "al_monitor",
+          "original_title": "Arab parties&#x27; backing gives Eisenkot edge over Netanyahu for PM: What to know",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A40"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/video/20261106-netanyahu-rival-eisenkot-secures-broad-backing-in-bid-to-form-government",
+          "bias": "center",
+          "source_id": "france24",
+          "original_title": "Netanyahu rival Eisenkot secures broad backing in bid to form government",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A194"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/world/2026/nov/05/herzog-netanyahu-eisenkot-israel-election-decision",
+          "bias": "lean-left",
+          "source_id": "the_guardian",
+          "original_title": "Israel’s Herzog yet to decide on who should form government as Eisenkot secures significant backing",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A574"
+        },
+        {
+          "name": "Globe and Mail",
+          "url": "https://www.theglobeandmail.com/world/article-israel-election-netanyahu-eisenkot-leadership-battle/",
+          "bias": "lean-right",
+          "source_id": "globe_and_mail",
+          "original_title": "Israeli president Herzog pledges to pick candidate to form government on Sunday",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A222"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/05/world/middleeast/israel-election-netanyahu-trump.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Netanyahu Alleges Election Fraud in Connection With Arab Turnout",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A335"
+        },
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/news/2026/11/6/israels-herzog-to-name-a-candidate-to-form-government-on-sunday?traffic_source=rss",
+          "bias": "lean-left",
+          "source_id": "al_jazeera",
+          "original_title": "Israel’s President Herzog to name candidate to form government on Sunday",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A11"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "NYT World",
+          "angle": "Netanyahu and allies allege Arab voters stole the election; election officials say any foul play under investigation could not have affected the result.",
+          "bias": "Center-left"
+        },
+        {
+          "source": "Globe and Mail",
+          "angle": "Stresses that neither Netanyahu nor Eisenkot has a clear path to a parliamentary majority, despite Eisenkot's lead in recommendations.",
+          "bias": "Center"
+        }
+      ],
+      "cluster_id": "Israel coalition formation Eisenkot nominated over Netanyahu",
+      "thread": {
+        "thread_id": 1186,
+        "day": 12,
+        "delta": "President Isaac Herzog will announce on Sunday, November 8, whom he will task with trying to form the next government. 67 Knesset members back opposition leader Gadi Eisenkot's candidacy, a majority of lawmakers endorsing him over Netanyahu for the mandate to form a government. The Arab-majority parties have backed Eisenkot's bid to form the government, which gives him an edge over Netanyahu for the premiership.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1186"
+      }
+    },
+    {
+      "headline": "Trump predicts 'big' Russia deal covering 'all of Europe' after meeting Putin envoy Dmitriev",
+      "summary": "President Trump said Thursday he met Kirill Dmitriev, Russian President Putin's envoy, and predicted an imminent agreement covering Ukraine and \"all of Europe\". The remarks followed a White House event where first lady Melania Trump hosted Russian and Ukrainian officials to mark the Oleshky ceasefire, which ran from Oct. 27 to Nov. 1. On Friday the Kremlin said Europe was struggling to decide who would speak for it in any future security talks.",
+      "why_it_matters": "A deal Trump describes as covering all of Europe is being shaped in talks where, by the Kremlin's own account, Europeans have not settled who represents them, so terms could be set before they have a voice.",
+      "sources": [
+        {
+          "name": "SCMP World",
+          "url": "https://www.scmp.com/news/world/united-states-canada/article/3373459/melania-trump-hosts-ukraine-russia-officials-calls-more-enduring-truce",
+          "bias": "lean-left",
+          "source_id": "scmp_world",
+          "original_title": "Trump touts ‘big, beautiful’ deal after meeting Putin’s envoy at White House",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A494"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/trump-says-he-met-putin-envoy-dmitriev-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Trump says he met Putin envoy Dmitriev - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A385"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/united-states/trump-says-he-met-putin-envoy-dmitriev",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Trump says he met Putin envoy, sees Ukraine deal soon",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A545"
+        },
+        {
+          "name": "Der Spiegel",
+          "url": "https://www.spiegel.de/ausland/donald-trump-us-praesident-stellt-nach-treffen-mit-kremlberater-abkommen-fuer-ganz-europa-in-aussicht-a-b44601ad-c7f8-4909-8e21-ba38cf8829a7#ref=rss",
+          "bias": "lean-left",
+          "source_id": "der_spiegel",
+          "original_title": "Donald Trump: US-Präsident stellt nach Treffen mit Kremlberater Abkommen für »ganz Europa« in Aussicht",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A133"
+        },
+        {
+          "name": "Globe and Mail",
+          "url": "https://www.theglobeandmail.com/world/article-melania-trump-putin-envoy-oleshky-ceasefire/",
+          "bias": "lean-right",
+          "source_id": "globe_and_mail",
+          "original_title": "Melania Trump joins Russia, Ukraine officials at White House event to mark Oleshky ceasefire",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A228"
+        },
+        {
+          "name": "BBC World",
+          "url": "https://www.bbc.co.uk/news/articles/c9p8g085mz07o?at_medium=RSS&at_campaign=rss",
+          "bias": "center",
+          "source_id": "bbc_world",
+          "original_title": "Melania Trump calls for lasting Ukraine truce as she hosts Russian and Ukrainian officials",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A72"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/europe/kremlin-accuses-europe-of-struggling-to-decide-who-will-speak-for-it-at-future-ukraine-security",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Kremlin accuses Europe of struggling to decide who will speak for it at future Ukraine security talks",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A505"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Der Spiegel",
+          "angle": "Notes Trump recently wanted Russian help to import diesel, and says his turn to a political deal likely alarms Europeans.",
+          "bias": "Center-left"
+        }
+      ],
+      "cluster_id": "Melania Trump hosts Ukraine-Russia truce talks",
+      "thread": {
+        "thread_id": 1297,
+        "day": 2,
+        "delta": "After meeting Putin's envoy Kirill Dmitriev at the White House, Trump predicted an imminent deal with Russia covering Ukraine and \"all of Europe.\" Melania Trump hosted Russian and Ukrainian officials at a White House event marking the Oleshky local ceasefire, which ran from Oct. 27 to Nov. 1 and was described as the most significant truce since the war began. The Kremlin said Friday that Europe is struggling to decide who would represent it in any future Ukraine security talks.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1297"
+      }
+    },
+    {
+      "headline": "Democrats plan Trump probes and eye 2028 as Trump keeps control of foreign policy",
+      "summary": "After Democrats took both the House and Senate in Tuesday's midterms, they are drawing up investigations into Trump family business dealings, the administration's handling of the Epstein case and ICE operations. The Guardian's live blog says Democrats have passed 250 House seats, with more races still being called. Reuters analysis says Trump is diminished in Washington but still commands foreign policy, and the 2028 presidential race is already opening up.",
+      "why_it_matters": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns.",
+      "sources": [
+        {
+          "name": "Al-Monitor",
+          "url": "https://www.al-monitor.com/originals/2026/11/analysis-midterms-upended-congress-trump-still-commands-foreign-policy",
+          "bias": "lean-left",
+          "source_id": "al_monitor",
+          "original_title": "Analysis-Midterms upended Congress but Trump still commands foreign policy",
+          "wire": false,
+          "wire_agency": "reuters",
+          "article_id": "A31"
+        },
+        {
+          "name": "Globe and Mail",
+          "url": "https://www.theglobeandmail.com/world/us-politics/article-democrats-probes-into-trump-corruption/",
+          "bias": "lean-right",
+          "source_id": "globe_and_mail",
+          "original_title": "‘Lawyer up’: Democrats vow major probes into Trump and corruption in his administration",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A230"
+        },
+        {
+          "name": "Globe and Mail",
+          "url": "https://www.theglobeandmail.com/world/us-politics/article-democrats-2028-presidential-race-us-midterm-elections/",
+          "bias": "lean-right",
+          "source_id": "globe_and_mail",
+          "original_title": "Democrats plunge into wide-open 2028 presidential race after resounding midterm sweep",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A233"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/us-news/live/2026/nov/06/us-midterm-elections-2026-democrats-blue-wave-congress-latest-news-updates",
+          "bias": "lean-left",
+          "source_id": "the_guardian",
+          "original_title": "US midterm elections 2026 live: Democrats exceed 250 House seats as blue wave sweeping Congress grows",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A573"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/video/20261105-us-midterms-donald-trump-s-wings-have-been-more-than-clipped",
+          "bias": "center",
+          "source_id": "france24",
+          "original_title": "US midterms: &#x27;Donald Trump&#x27;s wings have been more than clipped&#x27;",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A215"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/06/world/europe/europe-trump-midterms.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Europe Still Sees Trump As Powerful, Especially in Foreign Policy",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A308"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/06/world/europe/russia-ukraine-trump-midterms.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Guarded Optimism, and Some Jokes, in Ukraine Over Trump’s Midterm Wipeout",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A322"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/commentisfree/2026/nov/05/the-guardian-view-on-the-midterms-and-foreign-policy-american-voters-spoke-and-now-the-world-waits-anxiously",
+          "bias": "lean-left",
+          "source_id": "the_guardian",
+          "original_title": "The Guardian view on the midterms and foreign policy: American voters spoke, and now the world waits anxiously | Editorial",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A598"
+        },
+        {
+          "name": "SCMP China",
+          "url": "https://www.scmp.com/news/china/diplomacy/article/3373425/facing-two-years-lame-duck-what-can-trump-do-stay-control",
+          "bias": "lean-left",
+          "source_id": "scmp_china",
+          "original_title": "Facing 2 years as a lame duck, what can Trump do to stay in control?",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A479"
+        },
+        {
+          "name": "Clarín",
+          "url": "https://www.clarin.com/mundo/panorama-internacional-derrota-donald-trump-hora-venganza_0_iZTCb0s6zk.html",
+          "bias": "lean-right",
+          "source_id": "clarin_mundo",
+          "original_title": "Panorama Internacional: La derrota de Donald Trump y la hora de la venganza",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A89"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "NYT World",
+          "angle": "Europeans feel private relief but show no official glee, because Ukraine, Iran and NATO still depend on Trump.",
+          "bias": "Mainstream, centre-left"
+        },
+        {
+          "source": "The Guardian",
+          "angle": "Voters have given Democrats new powers to constrain Trump, but the defeat could push him to new excesses.",
+          "bias": "Left-leaning"
+        },
+        {
+          "source": "Reuters",
+          "angle": "The Republican losses leave Trump diminished at home, yet he still holds the levers of foreign policy.",
+          "bias": "Centrist wire service"
+        }
+      ],
+      "cluster_id": "US midterm elections fallout for Trump",
+      "thread": {
+        "thread_id": 1306,
+        "day": 2,
+        "delta": "Democrats seized control of both the House of Representatives and the Senate in the November 3 midterm elections. Democrats had won more than 250 House seats as of the latest count, and some races were still not called. Hakeem Jeffries is tipped to become House Speaker and has said Congress will rein in an executive branch he described as out of control.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1306"
+      }
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Bank of England raises rates for first time since 2023 and says more may come",
+      "summary": "The Bank of England raised interest rates on Thursday, its first increase since 2023, and said further rises may follow, according to Reuters. The Wall Street Journal ties the move to the Iran war, which has lifted energy prices. It adds that prices have fallen since the US midterms raised hopes for an end to the war.",
+      "sources": [
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/business/bank-england-raises-rates-first-time-since-2023-says-more-may-come-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Bank of England raises rates for first time since 2023, says more may come - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A434"
+        },
+        {
+          "name": "WSJ World",
+          "url": "https://www.wsj.com/economy/central-banking/bank-of-england-raises-rates-for-first-time-since-start-of-iran-war-f6353d96?mod=rss_worldnews",
+          "bias": "lean-right",
+          "source_id": "wsj_world",
+          "original_title": "Bank of England Raises Rates for First Time Since Start of Iran War",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A667"
+        }
+      ],
+      "cluster_id": "Bank of England raises interest rates first time since 2023",
+      "thread": {
+        "thread_id": 1294,
+        "day": 3,
+        "delta": "The Bank of England raised interest rates for the first time since 2023 and said more increases may come. The rate rise is the first since the start of the Iran War, a conflict that lifted energy prices, though prices have fallen since the midterms raised hopes for an end to the war.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1294"
+      }
+    },
+    {
+      "headline": "Paraguay's Peña resigns over Ueno bank collapse; lawmakers impeach him and reportedly refuse the resignation",
+      "summary": "Paraguayan President Santiago Peña announced his resignation on Thursday after the collapse of the digital lender Ueno froze access to millions of accounts. The lower house voted to impeach him minutes later. Clarín reports the legislature declined to accept the resignation, so he must face an impeachment trial in the Senate, and he says he will appear and defend himself. Clarín also reports the attorney general opened three criminal cases over the bank's collapse.",
+      "sources": [
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/americas/paraguay-president-pea-resigns-under-mounting-pressure-bank-collapse-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Paraguay&#x27;s Peña resigns as bank collapse triggers political crisis - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A410"
+        },
+        {
+          "name": "France 24",
+          "url": "https://www.france24.com/en/americas/20261105-paraguay-s-president-pe%C3%B1a-impeached-moments-after-resigning-amid-banking-scandal",
+          "bias": "center",
+          "source_id": "france24",
+          "original_title": "Paraguay&#x27;s president Pena impeached after resigning over banking scandal",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A212"
+        },
+        {
+          "name": "NPR World",
+          "url": "https://www.npr.org/2026/11/05/nx-s1-6030842/paraguay-president-impeached-bank-collapse",
+          "bias": "lean-left",
+          "source_id": "npr_world",
+          "original_title": "Paraguay&#x27;s president is impeached minutes after resigning following a bank collapse",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A305"
+        },
+        {
+          "name": "Clarín",
+          "url": "https://www.clarin.com/mundo/crisis-paraguay-rechazaron-renuncia-presidente-santiago-pena-escandalo-bancario-debera-enfrentar-juicio-politico_0_zFuBYvwp1H.html",
+          "bias": "lean-right",
+          "source_id": "clarin_mundo",
+          "original_title": "Crisis en Paraguay: rechazaron la renuncia del presidente Santiago Peña por el escándalo bancario y deberá enfrentar un juicio político",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A92"
+        },
+        {
+          "name": "Clarín",
+          "url": "https://www.clarin.com/mundo/presentare-ejercere-derecho-defensa-santiago-pena-confirmo-acatara-juicio-politico_0_Izw5vZ1caT.html",
+          "bias": "lean-right",
+          "source_id": "clarin_mundo",
+          "original_title": "&quot;Me presentaré y ejerceré mi derecho a la defensa&quot;: Santiago Peña confirmó que acatará el juicio político",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A93"
+        },
+        {
+          "name": "Clarín",
+          "url": "https://www.clarin.com/mundo/fiscal-general-paraguay-formulo-cargos-santiago-pena-colapso-banco-ueno_0_G6M9H9Zo02.html",
+          "bias": "lean-right",
+          "source_id": "clarin_mundo",
+          "original_title": "El fiscal general de Paraguay formuló cargos contra Santiago Peña por el colapso del banco Ueno",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A94"
+        },
+        {
+          "name": "SCMP World",
+          "url": "https://www.scmp.com/news/world/americas/article/3373458/paraguays-president-pena-resigns-under-mounting-pressure-bank-collapse",
+          "bias": "lean-left",
+          "source_id": "scmp_world",
+          "original_title": "Paraguay’s President Pena resigns as bank collapse sparks crisis",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A495"
+        }
+      ],
+      "cluster_id": "Paraguay Peña impeachment over Ueno bank crisis"
+    },
+    {
+      "headline": "Malaysian court orders Najib moved to house arrest, but attorney general suspends transfer",
+      "summary": "A court issued an order moving jailed ex-PM Najib Razak to house arrest after his party UMNO paid a 50 million ringgit ($12m) fine, his lawyer said on Friday. The attorney general's chambers then said the transfer was temporarily suspended, and that Najib stays in prison while legal questions over his conditional royal pardon are clarified. Najib, jailed since 2022 over the 1MDB scandal, denies wrongdoing; UMNO used crowdfunding to pay the fine because his bank accounts are frozen, and the king agreed to the pardon in September.",
+      "sources": [
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/news/2026/11/6/courts-grant-ex-malaysian-pm-najib-house-arrest-after-12m-royal-pardon?traffic_source=rss",
+          "bias": "lean-left",
+          "source_id": "al_jazeera",
+          "original_title": "Court grants ex-Malaysian PM Najib house arrest after $12m royal pardon",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A1"
+        },
+        {
+          "name": "Daily Maverick",
+          "url": "https://www.dailymaverick.co.za/article/2026-11-06-malaysia-ex-pm-najib-razak-set-for-house-arrest-after-party-pays-fine-to/",
+          "bias": "center",
+          "source_id": "daily_maverick",
+          "original_title": "Malaysia ex-PM Najib Razak set for house arrest after party pays fine to",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A104"
+        },
+        {
+          "name": "Nikkei Asia",
+          "url": "https://asia.nikkei.com/politics/malaysia-ex-pm-najib-set-for-house-arrest-after-party-pays-12m-fine",
+          "bias": "lean-right",
+          "source_id": "nikkei_asia",
+          "original_title": "Malaysia ex-PM Najib set for house arrest after party pays $12m fine - Nikkei Asia",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A299"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/asia-pacific/malaysia-ex-pm-najib-razak-set-house-arrest-after-party-pays-fine-leave-jail-2026-11-06/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Malaysia ex-PM Najib Razak set for house arrest after party pays fine to leave jail - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A354"
+        }
+      ],
+      "cluster_id": "Najib Razak house arrest after royal pardon fine paid"
+    },
+    {
+      "headline": "Defeated Brazilian candidate Flávio Bolsonaro says he will keep his escape secret; Milei adviser reportedly helped",
+      "summary": "Speaking from Miami, Flávio Bolsonaro told The New York Times he will take the secret of how he left Brazil \"to the grave\". He also questioned the election result after Lula's win and denied receiving help from other governments. The Times reported, citing three people involved, that a top adviser to Argentine President Javier Milei met him at an Argentine airport. It said his stolen-election claims are unfounded and his party is not challenging the results.",
+      "sources": [
+        {
+          "name": "Clarín",
+          "url": "https://www.clarin.com/mundo/llevare-tumba-secreto-fuga-brasil-admitio-flavio-bolsonaro-exclusiva-the-new-york-times_0_iDoOLRdosk.html",
+          "bias": "lean-right",
+          "source_id": "clarin_mundo",
+          "original_title": "&quot;Me llevaré a la tumba el secreto sobre la fuga de Brasil&quot;, admitió Flávio Bolsonaro en una exclusiva con The New York Times",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A90"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/05/world/americas/flavio-bolsonaro-florida-brazil.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "How Did Flávio Bolsonaro Flee Brazil? ‘I’ll Take That to the Grave,’ He Says",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A317"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/05/world/americas/bolsonaro-escape-brazil-milei-adviser-argentina.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Bolsonaro’s Escape From Brazil Was Aided by Milei Adviser at Argentine Airport",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A318"
+        }
+      ],
+      "cluster_id": "Flávio Bolsonaro flight from Brazil after election defeat"
+    },
+    {
+      "headline": "Putin receives Iran's security chief Rezaei, who delivers a message from Supreme Leader Khamenei",
+      "summary": "Russian President Vladimir Putin met Mohsen Rezaei, secretary of Iran's Supreme National Security Council, at the Kremlin on Thursday. Rezaei delivered a letter from Supreme Leader Mojtaba Khamenei, whose contents he did not disclose. He said they discussed post-war regional security and a gas pipeline from Russia to Iran, and repeated that Tehran will not open the Strait of Hormuz or hold talks until the US meets seven conditions. Separately, the Guardian reported, citing leaked documents, that Russia arranged to supply Iran with 90 launchers for advanced guided missiles, and Der Spiegel said Moscow reportedly promised Tehran military equipment.",
+      "sources": [
+        {
+          "name": "Al Jazeera",
+          "url": "https://www.aljazeera.com/news/2026/11/6/irans-security-chief-meets-putin-delivers-message-from-khamenei?traffic_source=rss",
+          "bias": "lean-left",
+          "source_id": "al_jazeera",
+          "original_title": "Iran’s security chief meets Putin, delivers message from Khamenei",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A24"
+        },
+        {
+          "name": "Al-Monitor",
+          "url": "https://www.al-monitor.com/originals/2026/11/irans-security-chief-discusses-regional-bilateral-affairs-putin",
+          "bias": "lean-left",
+          "source_id": "al_monitor",
+          "original_title": "Iran&#x27;s security chief discusses regional, bilateral affairs with Putin",
+          "wire": false,
+          "wire_agency": "reuters",
+          "article_id": "A35"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/middle-east/putin-met-iranian-security-council-chief-rezaei-moscow-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Iran&#x27;s security chief discusses regional, bilateral affairs with Putin - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A423"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/irans-security-chief-discusses-regional-bilateral-affairs-with-putin",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Iran’s security chief discusses regional, bilateral affairs with Putin",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A554"
+        },
+        {
+          "name": "Der Spiegel",
+          "url": "https://www.spiegel.de/ausland/russland-wladimir-putin-hat-mit-iran-ueber-bau-einer-gaspipeline-gesprochen-a-0886923d-f1a9-496d-865d-748abf75d6e8#ref=rss",
+          "bias": "lean-left",
+          "source_id": "der_spiegel",
+          "original_title": "Russland: Wladimir Putin hat mit Iran über Bau einer Gaspipeline gesprochen",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A140"
+        },
+        {
+          "name": "The Guardian",
+          "url": "https://www.theguardian.com/world/2026/nov/05/russia-agreed-to-supply-iran-90-helicopter-missile-launchers",
+          "bias": "lean-left",
+          "source_id": "the_guardian",
+          "original_title": "Russia agreed to supply Iran with 90 helicopter missile launchers",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A612"
+        }
+      ],
+      "cluster_id": "Iran security chief Rezaei meets Putin in Moscow"
+    },
+    {
+      "headline": "Xi heads into Shenzhen Apec summit with US truce likely to be extended and a purged party elite",
+      "summary": "Trump and Xi are expected to meet at the Apec summit in Shenzhen later this month, and one Tsinghua scholar writing in the South China Morning Post expects their trade truce to be extended. The truce, agreed in South Korea last October, suspended US port fees on Chinese-built ships and Chinese rare-earth export controls. The New York Times says a China summit that also involved Putin would pose uncomfortable choices for Xi on Ukraine and nuclear arms limits. Meanwhile, The Diplomat reports that the party's fifth plenum, which closed Oct. 29, was missing 43 full members and 54 alternates, after 33 expulsions.",
+      "sources": [
+        {
+          "name": "SCMP China",
+          "url": "https://www.scmp.com/opinion/china-opinion/article/3373140/chances-are-us-china-truce-will-be-extended-shenzhen-apec-summit",
+          "bias": "lean-left",
+          "source_id": "scmp_china",
+          "original_title": "Chances are, US-China truce will be extended at Shenzhen Apec summit",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A471"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/06/world/asia/china-trump-putin-xi-summit.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "A Summit in China With Trump and Putin? That Might be Awkward for Xi.",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A314"
+        },
+        {
+          "name": "The Diplomat",
+          "url": "https://thediplomat.com/2026/11/what-chinas-half-empty-5th-plenum-says-about-its-next-leaders/",
+          "bias": "center",
+          "source_id": "the_diplomat",
+          "original_title": "What China’s Half-Empty 5th Plenum Says About Its Next Leaders",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A564"
+        }
+      ],
+      "cluster_id": "Trump-Putin-Xi summit proposal in China"
+    },
+    {
+      "headline": "Putin orders seizure of Japan Tobacco's Russian business; Tokyo demands reversal",
+      "summary": "President Putin ordered Russia to take control of Japan Tobacco's Russian assets, including its factories, and Japan has demanded Moscow reverse the move. Japan Tobacco runs the largest cigarette company in the Russian market, according to the Financial Times, and is the latest foreign firm to lose control of its operations in a widening Kremlin crackdown. The Wall Street Journal reports the move follows a Russian pattern of targeting Western firms over Ukraine and of punishing Tokyo.",
+      "sources": [
+        {
+          "name": "Financial Times",
+          "url": "https://www.ft.com/content/5397eabe-5c04-4851-a216-9a269f69682c?syn-25a6b1a6=1",
+          "bias": "center",
+          "source_id": "financial_times",
+          "original_title": "Putin orders seizure of Japan Tobacco’s Russian business",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A179"
+        },
+        {
+          "name": "Nikkei Asia",
+          "url": "https://asia.nikkei.com/politics/international-relations/japan-demands-russia-reverse-seizure-of-japan-tobacco-units",
+          "bias": "lean-right",
+          "source_id": "nikkei_asia",
+          "original_title": "Japan demands Russia reverse seizure of Japan Tobacco units - Nikkei Asia",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A296"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/asia-pacific/putin-places-japan-tobaccos-russian-assets-under-temporary-administration-2026-11-05/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Putin seizes control of Japan Tobacco&#x27;s Russian assets - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A429"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/putin-seizes-control-of-japan-tobaccos-russian-assets",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Putin seizes control of Japan Tobacco’s Russian assets",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A525"
+        },
+        {
+          "name": "WSJ World",
+          "url": "https://www.wsj.com/business/japan-urges-russia-to-return-control-of-japan-tobacco-assets-cfe0723e?mod=rss_worldnews",
+          "bias": "lean-right",
+          "source_id": "wsj_world",
+          "original_title": "Moscow Seizes Japan Tobacco’s Russia Factories",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A671"
+        }
+      ],
+      "cluster_id": "Russia seizes Japan Tobacco Russian assets"
+    },
+    {
+      "headline": "US extends suspension of export restrictions on Chinese firms",
+      "summary": "The US has extended its suspension of export restrictions on Chinese firms, according to Nikkei Asia. Separately, the Federal Communications Commission voted on Oct. 29 to stop recognising testing labs in China and other economies without a reciprocal recognition deal with the US, effective Dec. 1, 2028, an SCMP opinion piece says. FCC chairman Brendan Carr cited that about 82% of US equipment-authorisation applications last year involved testing firms in China.",
+      "sources": [
+        {
+          "name": "Nikkei Asia",
+          "url": "https://asia.nikkei.com/politics/international-relations/us-china-tensions/us-extends-suspension-of-export-restrictions-on-chinese-firms",
+          "bias": "lean-right",
+          "source_id": "nikkei_asia",
+          "original_title": "US extends suspension of export restrictions on Chinese firms - Nikkei Asia",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A275"
+        },
+        {
+          "name": "SCMP China",
+          "url": "https://www.scmp.com/opinion/china-opinion/article/3373171/us-china-tech-contest-has-moved-gatekeeping-product-testers",
+          "bias": "lean-left",
+          "source_id": "scmp_china",
+          "original_title": "The US-China tech contest has moved – to the gatekeeping product testers",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A478"
+        }
+      ],
+      "cluster_id": "US extends suspension of export restrictions on Chinese firms",
+      "thread": {
+        "thread_id": 1317,
+        "day": 2,
+        "delta": "The US has extended its suspension of export restrictions on Chinese firms. Democrats won control of the US Congress in the midterm elections, and Chinese analysts interviewed do not expect a sea change in US foreign policy as a result. China's top legislature passed a law targeting cross-border corruption, giving Beijing broader tools to pursue illicit offshore assets.",
+        "url": "https://news-digest.seanfloyd.dev/thread/1317"
+      }
+    },
+    {
+      "headline": "Pope Leo leaves for 12-day South America tour weeks after lung cancer surgery",
+      "summary": "Pope Leo XIV, 71, left on Friday for Uruguay, Argentina and Peru, his first major trip since part of a lung was removed last month. Reuters reports crowds in the millions are expected as the first US-born pope returns to a Catholic stronghold. A US-based clergy abuse watchdog used the eve of the visit to call for a truth commission on Church abuse in Peru.",
+      "sources": [
+        {
+          "name": "BBC World",
+          "url": "https://www.bbc.co.uk/news/articles/cqn06j0y61k6o?at_medium=RSS&at_campaign=rss",
+          "bias": "center",
+          "source_id": "bbc_world",
+          "original_title": "Pope begins lengthy trip to Latin America weeks after lung cancer surgery",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A59"
+        },
+        {
+          "name": "Daily Maverick",
+          "url": "https://www.dailymaverick.co.za/article/2026-11-06-pope-leo-starts-south-america-homecoming-tour-a-month-after-lung-surgery/",
+          "bias": "center",
+          "source_id": "daily_maverick",
+          "original_title": "Pope Leo starts South America ‘homecoming’ tour a month after lung surgery",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A103"
+        },
+        {
+          "name": "Der Spiegel",
+          "url": "https://www.spiegel.de/ausland/papst-leo-beginnt-trotz-krebs-op-seine-reise-durch-suedamerika-a-5fb8dece-d632-449a-b52b-6d2dbf2d2ab5#ref=rss",
+          "bias": "lean-left",
+          "source_id": "der_spiegel",
+          "original_title": "Papst Leo beginnt trotz Krebs-OP seine Reise durch Südamerika",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A138"
+        },
+        {
+          "name": "NPR World",
+          "url": "https://www.npr.org/2026/11/06/nx-s1-6032454/pope-leo-latin-america-trip",
+          "bias": "lean-left",
+          "source_id": "npr_world",
+          "original_title": "After cancer surgery, Pope Leo embarks on Latin America trip",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A304"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/06/world/europe/12-planes-in-12-days-pope-begins-major-latin-america-tour-weeks-after-surgery.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "12 Planes in 12 Days: Pope Begins Major Latin America Tour, Weeks After Surgery",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A311"
+        },
+        {
+          "name": "NYT World",
+          "url": "https://www.nytimes.com/2026/11/06/world/americas/pope-leo-uruguay-argentina-peru.html",
+          "bias": "lean-left",
+          "source_id": "nyt_world",
+          "original_title": "Pope Leo’s Trip to Latin America: What to Know",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A312"
+        },
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/americas/pope-leo-starts-south-america-homecoming-tour-month-after-lung-surgery-2026-11-06/",
+          "bias": "center",
+          "source_id": "reuters",
+          "original_title": "Pope Leo starts South America &#x27;homecoming&#x27; tour a month after lung surgery - Reuters",
+          "wire": true,
+          "wire_agency": "reuters",
+          "article_id": "A361"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/europe/pope-leo-starts-south-america-homecoming-tour-a-month-after-lung-surgery",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Pope Leo starts South America ‘homecoming’ tour a month after lung surgery",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A524"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/pope-leo-on-emotional-south-america-tour-weeks-after-cancer-surgery",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "Pope Leo on emotional South America tour weeks after cancer surgery",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A527"
+        },
+        {
+          "name": "Straits Times",
+          "url": "https://www.straitstimes.com/world/europe/us-watchdog-calls-for-truth-commission-to-investigate-church-abuses-cases-in-peru",
+          "bias": "lean-right",
+          "source_id": "straits_times",
+          "original_title": "US watchdog calls for truth commission to investigate Church abuses cases in Peru",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A550"
+        }
+      ],
+      "cluster_id": "Pope Leo XIV Latin America tour after lung surgery"
+    },
+    {
+      "headline": "Meloni asks EU to settle who speaks for Europe in Ukraine talks after Stubb and Støre call Putin",
+      "summary": "Italian Prime Minister Giorgia Meloni wrote to EU Council President António Costa demanding a binding decision on who sits at the table for the EU in Ukraine peace talks, and with what mandate. She wants it discussed at next week's informal European Council in Dublin, with a formal decision at the Dec. 17-18 summit in Brussels. Costa replied that he would schedule time for the discussion. Rome had criticised an uncoordinated call to Putin in late October by Finland's President Alexander Stubb and Norway's Prime Minister Jonas Gahr Støre.",
+      "sources": [
+        {
+          "name": "Der Spiegel",
+          "url": "https://www.spiegel.de/ausland/ukraine-giorgia-meloni-fordert-europaeische-einigkeit-nach-putin-telefon-a-6d837331-77d6-4c18-a2a3-4ae83a113827#ref=rss",
+          "bias": "lean-left",
+          "source_id": "der_spiegel",
+          "original_title": "Ukraine: Giorgia Meloni fordert europäische Einigkeit nach Putin-Telefonat",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A135"
+        }
+      ],
+      "cluster_id": "Stubb and Støre Putin phone call sparks European rift"
+    },
+    {
+      "headline": "OpenAI drops NDAs for data center projects after midterm vote against expansion",
+      "summary": "OpenAI announced new commitments to communities where it is working on data center projects, including stepping back from nondisclosure agreements, according to The Verge. The move follows this week's midterms, where The Verge says voters resoundingly voiced opposition to data center expansion.",
+      "sources": [
+        {
+          "name": "The Verge",
+          "url": "https://www.theverge.com/ai-artificial-intelligence/1028454/openai-data-center-nda",
+          "bias": "lean-left",
+          "source_id": "the_verge",
+          "original_title": "OpenAI is stepping back from NDAs for data center projects",
+          "wire": false,
+          "wire_agency": null,
+          "article_id": "A647"
+        }
+      ],
+      "cluster_id": "OpenAI GPT-6 Cyber model launch"
+    }
+  ],
+  "preheader": "Tech rout spreads to Asia and Europe after S&P 500 falls 4.4%; Iran says it sent US a nuclear proposal as tankers are hit in Hormuz",
+  "not_covered_blurb": "We left out ongoing coverage of the European airline bomb hoaxes, France's strikes, Joshua Wong's sentence and South Africa's local election results, plus the Hegseth impeachment push, Russian strikes on Ukrainian energy sites and several regional stories, because they lacked big new developments or were crowded out."
+}

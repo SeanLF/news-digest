@@ -85,7 +85,7 @@ export function renderActivity(deps: RenderDeps) {
       assets: deps.assets,
     };
     const html = await write(runId, WEB_OUTPUT, renderWeb(input));
-    const email = await write(runId, EMAIL_OUTPUT, renderEmail(input));
+    const email = await write(runId, EMAIL_OUTPUT, await renderEmail(input));
     await write(runId, MARKDOWN_OUTPUT, renderMarkdown(input));
     log.info({
       stage: "render",

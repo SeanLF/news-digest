@@ -1,5 +1,5 @@
 import { htmlEscape as esc } from "escape-goat";
-import { Engine } from "mrml";
+import mjml2html from "mjml";
 import {
   dates,
   lightTokens,
@@ -171,10 +171,10 @@ function renderer(p: Palette) {
   return { defaults, txt, link, section, sectionHeader, separator, story, brief };
 }
 
-export function renderEmail(
+export async function renderEmail(
   { selections, now, issueNo, env, assets }: RenderInput,
   unsubscribeUrl = "{{{RESEND_UNSUBSCRIBE_URL}}}",
-): string {
+): Promise<string> {
   const p = palette(assets.tokens);
   const { defaults, txt, link, section, sectionHeader, separator, story, brief } = renderer(p);
   const d = dates(now);
@@ -270,14 +270,18 @@ export function renderEmail(
     .map((k) => `${k}="${defaults[k]}"`)
     .join(" ");
   const mjml =
-    "<mjml><mj-head>" +
+    '<mjml support-outlook-classic="false"><mj-head>' +
     `<mj-attributes><mj-all font-family="${SERIF}" />` +
     `<mj-text ${textDefaults} /></mj-attributes>` +
     `<mj-preview>${esc(selections.preheader ?? "")}</mj-preview>` +
+    "<mj-style>body { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }</mj-style>" +
     "</mj-head>" +
     `<mj-body background-color="${p.bg}" width="660px">${body.join("")}</mj-body></mjml>`;
-  const result = new Engine().toHtml(mjml);
-  if (result.type === "error") throw new Error(`MJML compile error, refusing to send: ${result.message}`);
-  if (!result.content.trim()) throw new Error("render_email produced empty HTML; refusing to send");
-  return result.content;
+  const { html } = await mjml2html(mjml, { validationLevel: "strict", keepComments: false, minify: true }).catch(
+    (e: unknown) => {
+      throw new Error(`MJML compile error, refusing to send: ${e instanceof Error ? e.message : String(e)}`);
+    },
+  );
+  if (!html.trim()) throw new Error("render_email produced empty HTML; refusing to send");
+  return html;
 }
