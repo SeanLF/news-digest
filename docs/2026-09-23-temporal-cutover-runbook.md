@@ -265,6 +265,13 @@ history. Rehearsed under systemd in a container: no unit files and no active uni
 - **UI and the three signals.** Open `https://seanfloyd-hetzner.tail739266.ts.net:8233` on the tailnet;
   it has no login and is not on any public interface. From the CLI (`$T` as above):
   `bin/ssh "$T workflow signal -w <id> --name approve --input '{\"decision\":\"approve\"}'"`.
+- **A parked run.** When select or coherence fails after its retries, the run parks on the `retry`
+  signal and emails `HEALTH_ALERT_EMAIL` an `[Alert] <id> parked at <stage>` naming the stage, the
+  error and both answers (from 2026-11-10, under the `parked-alert` patch). Unanswered, it fails at
+  its run deadline. On the box:
+  `bin/ssh "$T workflow signal -w <id> --name retry --input '{\"decision\":\"retry\"}'"` runs the
+  stage again, and `{\"decision\":\"abort\"}` ends the run unsent. On the dev stack:
+  `make digest-retry` / `make digest-abort` (`WORKFLOW=<id>`, default today's).
 - **The pre-send hold** (spec §2.3, from 2026-09-24). A run that passes its pre-send checks
   (`digest/src/ops/pre-send.ts`) sends at once, unheld. A run that fails one emails
   `HEALTH_ALERT_EMAIL` a `[Hold]` notice naming each failed check and holds 15 minutes: `approve`
@@ -344,7 +351,9 @@ history. Rehearsed under systemd in a container: no unit files and no active uni
     ```
     It then replays its history on the new code. If the workflow's commands changed between the two
     builds on the path the run took, the replay fails with a nondeterminism error and the run shows as
-    stuck. Terminate it and start the day again, with `--force`: `startRun` refuses a day whose run
+    stuck. A change guarded by `patched()` replays clean, since the old history has no marker
+    (`parked-alert` is one: `replay.test.ts` replays a run parked before it shipped). Otherwise,
+    terminate it and start the day again, with `--force`: `startRun` refuses a day whose run
     is still marked running from the last 4 h
     (`bin/ssh docker exec -d news-digest-worker node dist/cli/start.js <YYYY-MM-DD> --force`).
     `digest/src/deployment.test.ts` covers the move on a dev server.

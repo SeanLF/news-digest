@@ -1,3 +1,4 @@
+import { htmlEscape } from "escape-goat";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { log } from "../log.js";
 import type { Email, SendEmail } from "../mail/resend.js";
@@ -139,6 +140,27 @@ describe("alertEmail", () => {
     expect(h.subject).toBe("[Alert] Digest not sent: no time left for the send (run 305)");
     expect(h.html).toContain("resume it on a fresh budget");
     expect(h.html).toContain('ARGS="--resume 305"');
+  });
+  it("parked names the stage, escapes the error, and gives the retry and abort commands for the box and the dev stack", () => {
+    const e = alertEmail({
+      kind: "parked",
+      workflowId: "digest-2026-11-10",
+      runId: 360,
+      stage: "select",
+      reason: "Activity task failed <- overloaded <529>",
+    });
+    expect(e.subject).toBe("[Alert] digest-2026-11-10 parked at select, waiting for retry or abort (run 360)");
+    expect(e.html).toContain("overloaded &lt;529&gt;");
+    for (const decision of ["retry", "abort"]) {
+      expect(e.html).toContain(
+        htmlEscape(
+          `bin/ssh "$T workflow signal -w digest-2026-11-10 --name retry --input '{\\"decision\\":\\"${decision}\\"}'"`,
+        ),
+      );
+      expect(e.html).toContain(`make digest-${decision} WORKFLOW=digest-2026-11-10`);
+    }
+    expect(e.html).toContain("run deadline");
+    expect(e.dropped).toBe("digest-2026-11-10 (run 360) parked at select: Activity task failed <- overloaded <529>");
   });
 });
 

@@ -101,7 +101,8 @@ dev-mail-clear: ## Empty resend-fake: caught mail and the dev audience's contact
 # The issue is dated the UTC day a run starts, so a new run is today's: DATE defaults to it, and another
 # day is refused unless it names the run to resume. ARGS=--force runs today again: a new revision of the
 # issue on the site, never a second send.
-digest-approve digest-reject: DATE ?= $(shell date -u +%Y-%m-%d)
+digest-approve digest-reject digest-retry digest-abort: DATE ?= $(shell date -u +%Y-%m-%d)
+digest-retry digest-abort: WORKFLOW ?= digest-$(DATE)
 
 digest-start: ## Start today's (UTC) DigestWorkflow on the dev stack and wait for it (ARGS=--force: run today again, published, never re-sent; DATE=2026-09-18 ARGS="--resume 300")
 	$(COMPOSE) run --rm --no-deps digest-worker node dist/cli/start.js $(DATE) $(ARGS)
@@ -111,6 +112,12 @@ digest-approve: ## Send a held run now instead of at the hold's end (DATE defaul
 
 digest-reject: ## Stop a held run: nothing is published or sent (DATE defaults to today, UTC)
 	$(COMPOSE) exec -T temporal temporal workflow signal --workflow-id digest-$(DATE) --name approve --input '{"decision":"reject"}'
+
+digest-retry: ## Run a parked run's failed stage again (the [Alert] ... parked mail names WORKFLOW; it defaults to today's, UTC)
+	$(COMPOSE) exec -T temporal temporal workflow signal --workflow-id $(WORKFLOW) --name retry --input '{"decision":"retry"}'
+
+digest-abort: ## End a parked run unsent (WORKFLOW as for digest-retry)
+	$(COMPOSE) exec -T temporal temporal workflow signal --workflow-id $(WORKFLOW) --name retry --input '{"decision":"abort"}'
 
 digest-schedule: ## Create or update the daily 10:25Z schedule on the dev stack's Temporal
 	$(COMPOSE) run --rm --no-deps digest-worker node dist/cli/schedule.js

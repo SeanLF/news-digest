@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { Worker } from "@temporalio/worker";
 import { describe, expect, it } from "vitest";
-import { changedWorkflowPath } from "./deploy-variant.js";
+import { changedWorkflowPath, unpatchedWorkflowPath } from "./deploy-variant.js";
+import { PARKED_ALERT_PATCH } from "./policy.js";
 
 const dir = new URL("./histories/", import.meta.url);
 const fixtures = readdirSync(dir)
@@ -13,6 +14,7 @@ const fixtures = readdirSync(dir)
   }));
 type RecordedEvent = {
   eventType?: string;
+  markerRecordedEventAttributes?: { details?: Record<string, { payloads?: { data?: string }[] }> };
   activityTaskScheduledEventAttributes?: { activityType?: { name?: string } };
 };
 const currentCode = new URL("./digest.workflow.ts", import.meta.url).pathname;
@@ -33,6 +35,7 @@ describe("workflow replay", () => {
       "flagged-sent",
       "held-out",
       "in-hold",
+      "parked-abort-before-alert",
       "parked-abort",
       "rejected-in-hold",
       "rejected",
@@ -81,6 +84,23 @@ describe("workflow replay", () => {
     expect(types.slice(cancelled).includes("broadcast")).toBe(sendAfter !== undefined);
   });
 
+  it.each([
+    ["parked-abort", true],
+    ["parked-abort-before-alert", false],
+  ])("%s: carries the parked-alert patch marker and its alert: %s", (name, alerted) => {
+    const history = fixtures.find((f) => f.workflowId === name)?.history as { events?: RecordedEvent[] } | undefined;
+    const events = history?.events ?? [];
+    const marked = events.some((e) =>
+      (e.markerRecordedEventAttributes?.details?.["patch-data"]?.payloads ?? []).some(
+        (p) =>
+          (JSON.parse(Buffer.from(p.data ?? "", "base64").toString()) as { id?: string }).id === PARKED_ALERT_PATCH,
+      ),
+    );
+    const types = events.map((e) => e.activityTaskScheduledEventAttributes?.activityType?.name ?? "");
+    expect(marked).toBe(alerted);
+    expect(types.includes("alert")).toBe(alerted);
+  });
+
   it("every recorded history replays against the current workflow code", async () => {
     expect(await replay(currentCode)).toEqual(Object.fromEntries(fixtures.map((f) => [f.workflowId, "ok"])));
   }, 120_000);
@@ -94,10 +114,19 @@ describe("workflow replay", () => {
       "held-out": "DeterminismViolationError",
       "in-hold": "DeterminismViolationError",
       "parked-abort": "ok",
+      "parked-abort-before-alert": "ok",
       rejected: "ok",
       "rejected-in-hold": "DeterminismViolationError",
       resume: "DeterminismViolationError",
       sent: "DeterminismViolationError",
     });
+  }, 120_000);
+
+  it("negative control: the parked alert without its patch fails both parked histories, the one from before the alert shipped included, and no other", async () => {
+    const out = await replay(unpatchedWorkflowPath());
+    expect(Object.entries(out).filter(([, r]) => r !== "ok")).toEqual([
+      ["parked-abort-before-alert", "DeterminismViolationError"],
+      ["parked-abort", "DeterminismViolationError"],
+    ]);
   }, 120_000);
 });

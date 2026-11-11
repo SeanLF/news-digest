@@ -197,6 +197,7 @@ function parkedOnce(over: Partial<Activities> = {}) {
       : stubActivities().select(runId, ...rest);
   return recorder({ select, ...over });
 }
+const PARKED_AT_SELECT = ["alert", { kind: "parked", stage: "select" }];
 describe("DigestWorkflow", () => {
   it("runs every stage over stub activities and sends", async () => {
     const out = await withWorker(() => runToEnd("2026-09-21"));
@@ -326,6 +327,39 @@ describe("DigestWorkflow", () => {
     expect(out).toMatchObject({ runId: 303, broadcast: "sent" });
   }, 120_000);
   describe("operations", () => {
+    it("a parked run alerts before it waits, naming the stage and the error, and alerts again on each failed retry", async () => {
+      let n = 0;
+      const { calls, acts } = recorder({
+        select: () => Promise.reject(ApplicationFailure.nonRetryable(`overloaded ${++n}`, "T")),
+      });
+      const out = await withWorker(async () => {
+        const h = await start("2026-11-11");
+        while (named(calls, "alert").length < 1) await new Promise((r) => setTimeout(r, 20));
+        await h.signal(retrySignal, { decision: "retry" });
+        while (named(calls, "alert").length < 2) await new Promise((r) => setTimeout(r, 20));
+        await h.signal(retrySignal, { decision: "abort" });
+        return h.result();
+      }, acts);
+      expect(out.broadcast).toBe("skipped");
+      expect(named(calls, "alert")).toMatchObject([
+        ["alert", { kind: "parked", workflowId: workflowIdFor("2026-11-11"), runId: 1, stage: "select" }],
+        ["alert", { kind: "parked", stage: "select" }],
+      ]);
+      const reasons = named(calls, "alert").map((c) => (c[1] as Extract<AlertRequest, { kind: "parked" }>).reason);
+      expect(reasons[0]).toContain("overloaded 1");
+      expect(reasons[1]).toContain("overloaded 2");
+    }, 120_000);
+    it("a run parked at coherence names coherence", async () => {
+      const { calls, acts } = recorder({ coherence: failed("judge down") });
+      const out = await withWorker(async () => {
+        const h = await start("2026-11-12");
+        while (named(calls, "alert").length < 1) await new Promise((r) => setTimeout(r, 20));
+        await h.signal(retrySignal, { decision: "abort" });
+        return h.result();
+      }, acts);
+      expect(out.broadcast).toBe("skipped");
+      expect(named(calls, "alert")).toMatchObject([["alert", { kind: "parked", stage: "coherence" }]]);
+    }, 120_000);
     it("a delivered run pings start and success, keeps the weekly recap before SELECT, and checks its health", async () => {
       const { calls, acts } = recorder();
       const out = await withWorker(() => runToEnd("2026-11-02"), acts);
@@ -423,7 +457,10 @@ describe("DigestWorkflow", () => {
       );
       expect(err).toBeInstanceOf(WorkflowFailedError);
       expect((err as WorkflowFailedError).cause?.message).toMatch(/deadline/);
-      expect(named(calls, "alert")).toMatchObject([["alert", { kind: "run-failed", runId: 1, timedOut: true }]]);
+      expect(named(calls, "alert")).toMatchObject([
+        ["alert", { kind: "parked", stage: "select" }],
+        ["alert", { kind: "run-failed", runId: 1, timedOut: true }],
+      ]);
       expect(named(calls, "healthcheck")).toEqual([
         ["healthcheck", "start"],
         ["healthcheck", "fail"],
@@ -814,7 +851,10 @@ describe("DigestWorkflow", () => {
         }, acts);
         expect(out.broadcast).toBe("held-out");
         expect(sends).toEqual([]);
-        expect(named(calls, "alert")).toMatchObject([["alert", { kind: "not-sent", reason: "held-out" }]]);
+        expect(named(calls, "alert")).toMatchObject([
+          PARKED_AT_SELECT,
+          ["alert", { kind: "not-sent", reason: "held-out" }],
+        ]);
       }, 120_000);
       it("a clean run retried at 195 minutes, with 5 of its 200 minutes before the tail left, sends", async () => {
         const { calls, acts } = parkedOnce();
@@ -825,7 +865,7 @@ describe("DigestWorkflow", () => {
           return h.result();
         }, acts);
         expect(out.broadcast).toBe("sent");
-        expect(named(calls, "alert")).toEqual([]);
+        expect(named(calls, "alert")).toMatchObject([PARKED_AT_SELECT]);
       }, 120_000);
       it("an operator's retry at 115 minutes still gets a sent digest (the reviewer's case)", async () => {
         const { calls, acts } = parkedOnce();
@@ -836,7 +876,7 @@ describe("DigestWorkflow", () => {
           return h.result();
         }, acts);
         expect(out.broadcast).toBe("sent");
-        expect(named(calls, "alert")).toEqual([]);
+        expect(named(calls, "alert")).toMatchObject([PARKED_AT_SELECT]);
         expect(named(calls, "healthcheck")).toEqual([
           ["healthcheck", "start"],
           ["healthcheck", "success"],
@@ -865,7 +905,7 @@ describe("DigestWorkflow", () => {
         expect(out).toMatchObject({ broadcast: "sent", recipients: 12 });
         expect(sends).toEqual(["sent"]);
         expect(finished).toEqual(["sent"]);
-        expect(named(calls, "alert")).toEqual([]);
+        expect(named(calls, "alert")).toMatchObject([PARKED_AT_SELECT]);
         expect(named(calls, "healthcheck")).toEqual([
           ["healthcheck", "start"],
           ["healthcheck", "success"],

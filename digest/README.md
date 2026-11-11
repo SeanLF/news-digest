@@ -22,6 +22,7 @@ cd digest && npm install && npm test && npm run typecheck && npm run lint   # bi
 make dev-up                            # the dev stack: Temporal (UI :8233) + the worker, the site, resend-fake, digest-pg
 make digest-start                      # start today's DigestWorkflow (UTC); it sends at once, or holds 15 min if a pre-send check fails
 make digest-approve                    # or digest-reject, during a hold; the send lands in resend-fake, never Resend
+make digest-retry                      # or digest-abort, for a run parked at select or coherence (WORKFLOW=<id>)
 make digest-schedule                   # create or update the daily schedule
 make dev-down                          # stop; keeps the volumes (docs/operations.md, "The dev stack")
 bash scripts/check-api-names.sh        # every library name used is declared in the installed types

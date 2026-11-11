@@ -28,6 +28,14 @@ const inHold = async (h: WorkflowHandle): Promise<void> => {
   }
   throw new Error("never reached the hold");
 };
+const scheduled = async (h: WorkflowHandle, activity: string): Promise<void> => {
+  for (let i = 0; i < 600; i++) {
+    const events = (await h.fetchHistory()).events ?? [];
+    if (events.some((e) => e.activityTaskScheduledEventAttributes?.activityType?.name === activity)) return;
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  throw new Error(`never scheduled ${activity}`);
+};
 const signalled = (decision: "approve" | "reject") => async (h: WorkflowHandle<typeof DigestWorkflow>) => {
   await h.signal(approveSignal, { decision });
   return h.result();
@@ -63,6 +71,7 @@ export const SCENARIOS: Scenario[] = [
     name: "parked-abort",
     input: { failStage: "select" },
     drive: async (h) => {
+      await scheduled(h, "alert");
       await h.signal(retrySignal, { decision: "abort" });
       return h.result();
     },

@@ -33,7 +33,7 @@ them to URL, source and bias afterwards. Stage prompts are `digest/agents/*.md`.
 - **CI**: `make ci` (`bin/ci`: the TypeScript, Python worker and `bin/` scripts suites, each in its
   container, in parallel); the pre-commit hook runs `bin/ci --staged`.
 - **Dev stack**: `make dev-up` / `dev-down` / `dev-urls`; `make db-clone` then `make dev-import` loads prod;
-  `make digest-start` runs today; `make digest-approve` / `digest-reject` during a hold. Mail goes
+  `make digest-start` runs today; `make digest-approve` / `digest-reject` during a hold, `make digest-retry` / `digest-abort` for a parked run. Mail goes
   to resend-fake, never Resend (`docs/operations.md`, "The dev stack").
 - **Evals** (model calls, promptfoo in the worker image): `make band`, `make judges`, `make planted`,
   `make fulltext-fork`.

@@ -24,7 +24,16 @@ export type AlertRequest =
       broadcastStatus?: string | null;
       date?: string;
     }
-  | { kind: "not-sent"; workflowId: string; runId: number; reason: "disabled" | "held-out"; detail: string };
+  | { kind: "not-sent"; workflowId: string; runId: number; reason: "disabled" | "held-out"; detail: string }
+  | { kind: "parked"; workflowId: string; runId: number; stage: ParkedStage; reason: string };
+
+export type ParkedStage = "select" | "coherence";
+export type RetryDecision = "retry" | "abort";
+
+export const boxSignalCommand = (workflowId: string, decision: RetryDecision): string =>
+  `bin/ssh "$T workflow signal -w ${workflowId} --name retry --input '{\\"decision\\":\\"${decision}\\"}'"`;
+export const devSignalCommand = (workflowId: string, decision: RetryDecision): string =>
+  `make digest-${decision} WORKFLOW=${workflowId}`;
 
 const resumeHint = (runId: number | null) => `<code>make digest-start DATE=... ARGS="--resume ${runId ?? "N"}"</code>`;
 
@@ -117,6 +126,27 @@ ${FOOTER}`,
 <p>${next}</p>
 ${FOOTER}`,
         dropped: `${req.workflowId} (run ${req.runId}) not sent: ${req.detail}`,
+      };
+    }
+    case "parked": {
+      const commands = (["retry", "abort"] as const)
+        .map(
+          (d) =>
+            `<li>${d}: on the box <code>${htmlEscape(boxSignalCommand(req.workflowId, d))}</code>; on the dev stack <code>${htmlEscape(devSignalCommand(req.workflowId, d))}</code></li>`,
+        )
+        .join("\n");
+      return {
+        subject: `[Alert] ${req.workflowId} parked at ${req.stage}, waiting for retry or abort (run ${req.runId})`,
+        html: `<h2>News Digest Run Parked</h2>
+<p>Workflow <strong>${htmlEscape(req.workflowId)}</strong> (run ${req.runId}) failed at <strong>${req.stage}</strong> and waits for the operator:</p>
+<pre>${htmlEscape(req.reason)}</pre>
+<p>Retry runs ${req.stage} again; abort ends the run unsent. Unanswered, the run fails at its run deadline.</p>
+<ul>
+${commands}
+</ul>
+<p><code>$T</code> is the admin-tools command in the Temporal runbook's "Day to day".</p>
+${FOOTER}`,
+        dropped: `${req.workflowId} (run ${req.runId}) parked at ${req.stage}: ${req.reason}`,
       };
     }
     default: {

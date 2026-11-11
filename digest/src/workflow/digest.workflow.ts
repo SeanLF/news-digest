@@ -6,6 +6,7 @@ import {
   condition,
   isCancellation,
   log,
+  patched,
   proxyActivities,
   setHandler,
   workflowInfo,
@@ -20,12 +21,14 @@ import type {
   GnewsDecode,
   LinkDecoder,
 } from "../activities/index.js";
+import type { ParkedStage } from "../ops/alerts.js";
 import { isCutoverHold } from "../ops/cutover-hold.js";
 import { mapBounded, MODEL_FANOUT_LIMIT } from "./bounded.js";
 import {
   MODEL_MAX_ATTEMPTS,
   NETWORK_MAX_ATTEMPTS,
   OPS_MAX_ATTEMPTS,
+  PARKED_ALERT_PATCH,
   PYTHON_TASK_QUEUE,
   RUN_TIMEOUT_HOURS,
   WEEKLY_RECAP_MAX_ATTEMPTS,
@@ -210,12 +213,22 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
   }
 
   try {
-    async function guarded<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    async function guarded<T>(stage: ParkedStage, fn: () => Promise<T>): Promise<T | undefined> {
       for (;;) {
         try {
           return await fn();
         } catch (e) {
           if (!(e instanceof ActivityFailure) || e.cause instanceof CancelledFailure) throw e;
+          if (retryDecisions.length === 0 && patched(PARKED_ALERT_PATCH))
+            await alertOn(() =>
+              Promise.resolve({
+                kind: "parked",
+                workflowId: workflowInfo().workflowId,
+                runId,
+                stage,
+                reason: causes(e),
+              }),
+            );
           await condition(() => retryDecisions.length > 0);
           if (retryDecisions.shift() === "abort") return undefined;
         }
@@ -236,7 +249,7 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
     const tagBatches = settled.map((s) => (s.status === "fulfilled" ? s.value : null));
     const [clusters, recap] = await Promise.all([once.joinClusters(runId, tagBatches, input.force), recapP]);
     await weeklyP;
-    const selected = await guarded(() => model.select(runId, clusters, recap, notes["select"], input));
+    const selected = await guarded("select", () => model.select(runId, clusters, recap, notes["select"], input));
     if (!selected) return await finish({ stories: 0, broadcast: "skipped" });
     const plan = await once.planFulltext(runId, selected, input.force);
     const fetch = async (): Promise<FulltextFetch> => {
@@ -269,7 +282,9 @@ async function runDigest(input: DigestInput, state: RunState): Promise<DigestOut
       });
     };
     const checked = topup.existing ?? (await once.storeFulltextTopup(runId, await fetchTopup(), input.force));
-    const report = await guarded(() => verdict.coherence(runId, drafts, checked, notes["coherence"], input.force));
+    const report = await guarded("coherence", () =>
+      verdict.coherence(runId, drafts, checked, notes["coherence"], input.force),
+    );
     const preheader = await preheaderP;
     if (!report) return await finish({ stories: 0, broadcast: "skipped" });
     const repair = await model.repair(runId, drafts, report, input.force);
