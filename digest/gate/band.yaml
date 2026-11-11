@@ -1,15 +1,18 @@
 # Same-day curation band. `make band` copies the DB to a scratch database, brings up local Temporal on
-# it, and runs this with --repeat 3. The thresholds are the top of the old system's band on the same day.
+# it, and runs this with --repeat 3. Pinned to prod run 347 (2026-11-04, $2.29 in production), which
+# must be in the dev stack's `digest` database (make db-clone, make dev-import). Measured 2026-11-11 on
+# Agent SDK 0.3.322, 3 reps: $1.86 / $1.92 / $2.60, 367 / 395 / 431 s, 13-17 stories. The thresholds
+# are the top of that band plus 25%, since three reps under-sample a 40% spread.
 description: same-day curation band, TypeScript workflow
 prompts: ["run {{run}} on {{date}}"]
 providers:
   - id: file://../dist/gate/workflow-provider.js
 tests:
-  - vars: { run: 300, date: "2026-09-18" }
+  - vars: { run: 347, date: "2026-11-04" }
     assert:
       - type: javascript
         value: JSON.parse(output).must_know.length > 0
       - type: cost
-        threshold: 6.08
+        threshold: 3.25
       - type: latency
-        threshold: 1035000
+        threshold: 540000

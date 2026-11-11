@@ -126,7 +126,7 @@ replay: ## Replay model stages of stored runs via promptfoo, each call on a copy
 	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
 	  $(PROMPTFOO_IN) eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
 
-band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (RUN=300 DATE=2026-09-18 REPS=3; model calls, ~$4/rep)
+band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (the run and date are pinned in digest/gate/band.yaml; REPS=3; model calls, ~$2.50/rep)
 	@stamp=band_$$(date -u +%Y%m%dT%H%M%SZ | tr 'A-Z' 'a-z'); \
 	$(COMPOSE) up -d --wait digest-pg && \
 	$(COMPOSE) exec -T digest-pg psql -q -U postgres -v ON_ERROR_STOP=1 -c "ALTER DATABASE digest ALLOW_CONNECTIONS false" \
