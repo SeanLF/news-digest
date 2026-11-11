@@ -197,8 +197,34 @@ describe("runStage records every call it makes, with the outcome it had", () => 
         numTurns: 3,
         toolCalls: 2,
         outcome: "ok",
+        responseModel: null,
       },
     ]);
+  });
+  it("records the models that ran, from the result's modelUsage, the costliest first", async () => {
+    const { run, rows } = recorded(
+      fakeQuery([
+        result({
+          modelUsage: { "claude-haiku-5-5": { costUSD: 0.001 }, "claude-sonnet-5-5": { costUSD: 0.4 } },
+        }),
+      ]),
+    );
+    await run;
+    expect(rows[0]?.model).toBe("claude-sonnet-5");
+    expect(rows[0]?.responseModel).toBe("claude-sonnet-5-5,claude-haiku-5-5");
+  });
+  it("an error result still names the model that ran", async () => {
+    const { run, rows } = recorded(
+      fakeQuery([
+        result({
+          subtype: "error_max_turns",
+          is_error: true,
+          modelUsage: { "claude-sonnet-5-5": { costUSD: 0.2 } },
+        }),
+      ]),
+    );
+    await expect(run).rejects.toThrow(/error_max_turns/);
+    expect(rows[0]).toMatchObject({ outcome: "error", responseModel: "claude-sonnet-5-5" });
   });
   it("a non-success result is recorded as an error with what it spent, before the stage throws", async () => {
     const { run, rows } = recorded(

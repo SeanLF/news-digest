@@ -93,6 +93,7 @@ describe("model_calls", () => {
       numTurns: 4,
       toolCalls: 6,
       outcome: "ok",
+      responseModel: "claude-sonnet-5-5",
       story: 2,
     });
     await recordUsage(db, {
@@ -107,18 +108,20 @@ describe("model_calls", () => {
       numTurns: 1,
       toolCalls: 0,
       outcome: "error",
+      responseModel: null,
     });
     expect(await runCost(db, 300, "2000-01-01 00:00:00")).toEqual({ costUsd: 0.75, calls: 2 });
     expect(await runCost(db, 300, "2999-01-01 00:00:00")).toEqual({ costUsd: 0, calls: 0 });
     expect(await db.one("SELECT cache_read_input_tokens AS c FROM model_calls WHERE stage='write'")).toEqual({ c: 7 });
     expect(
       await db.all(
-        "SELECT stage, request_model, effort, branch, outcome, num_turns, tool_calls FROM model_calls ORDER BY id",
+        "SELECT stage, request_model, response_model, effort, branch, outcome, num_turns, tool_calls FROM model_calls ORDER BY id",
       ),
     ).toEqual([
       {
         stage: "write",
         request_model: "claude-sonnet-5",
+        response_model: "claude-sonnet-5-5",
         effort: "(sdk default)",
         branch: "s02",
         outcome: "ok",
@@ -128,6 +131,7 @@ describe("model_calls", () => {
       {
         stage: "coherence",
         request_model: "claude-sonnet-5",
+        response_model: null,
         effort: "high",
         branch: null,
         outcome: "error",
@@ -151,6 +155,7 @@ describe("model_calls", () => {
       numTurns: 1,
       toolCalls: 0,
       outcome: "ok" as const,
+      responseModel: null,
       prompt,
     };
     await recordUsage(db, row);

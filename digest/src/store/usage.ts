@@ -16,6 +16,7 @@ export interface UsageRow {
   numTurns: number;
   toolCalls: number;
   outcome: CallOutcome;
+  responseModel: string | null;
   prompt?: Pick<StageSpec, "name" | "body" | "tools" | "thinking">;
   [detail: string]: unknown;
 }
@@ -42,8 +43,8 @@ async function promptSha256(db: Sql, row: UsageRow): Promise<string | null> {
 export async function recordUsage(db: Sql, row: UsageRow): Promise<void> {
   const t = row.tokens;
   await db.run(
-    `INSERT INTO model_calls (run_id, attempt_id, stage, branch, request_model, input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens, api_cost_usd, duration_ms, thinking, effort, prompt_sha256, outcome, num_turns, tool_calls)
-     VALUES ($1, (SELECT max(id) FROM run_attempts WHERE run_id = $1), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+    `INSERT INTO model_calls (run_id, attempt_id, stage, branch, request_model, input_tokens, output_tokens, cache_creation_input_tokens, cache_read_input_tokens, api_cost_usd, duration_ms, thinking, effort, prompt_sha256, outcome, num_turns, tool_calls, response_model)
+     VALUES ($1, (SELECT max(id) FROM run_attempts WHERE run_id = $1), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
     [
       row.runId,
       row.stage,
@@ -61,6 +62,7 @@ export async function recordUsage(db: Sql, row: UsageRow): Promise<void> {
       row.outcome,
       row.numTurns,
       row.toolCalls,
+      row.responseModel,
     ],
   );
 }

@@ -71,6 +71,11 @@ function numbersOf(usage: object | undefined): Record<string, number> {
   return out;
 }
 
+function modelsThatRan(usage: Record<string, { costUSD?: number }> | undefined): string | null {
+  const ran = Object.entries(usage ?? {}).toSorted(([, a], [, b]) => (b.costUSD ?? 0) - (a.costUSD ?? 0));
+  return ran.length ? ran.map(([model]) => model).join(",") : null;
+}
+
 const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig =>
   t === "adaptive" ? { type: "adaptive" } : { type: "disabled" };
 
@@ -146,6 +151,7 @@ export async function runStage(
       numTurns: result?.num_turns ?? 0,
       toolCalls: toolCalls.length,
       outcome,
+      responseModel: modelsThatRan(result?.modelUsage),
     });
   };
   const fail = async (outcome: CallOutcome, error: unknown): Promise<never> => {

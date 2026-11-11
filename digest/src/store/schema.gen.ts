@@ -85,6 +85,7 @@ export interface ModelCalls {
   prompt_sha256: string | null;
   recorded_at: Generated<string>;
   request_model: string;
+  response_model: string | null;
   run_id: number;
   stage: string;
   thinking: string | null;
