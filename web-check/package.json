@@ -3,13 +3,10 @@
   "description": "The pre-deploy web gate: pa11y-ci and Lighthouse CI",
   "private": true,
   "dependencies": {
-    "@lhci/cli": "0.15.1",
+    "@lhci/cli": "0.16.0",
     "pa11y-ci": "5.0.0"
   },
   "overrides": {
-    "lighthouse": "13.5.0",
-    "basic-ftp": "6.2.3",
-    "tmp": "0.2.7",
-    "uuid": "11.1.1"
+    "basic-ftp": "6.2.3"
   }
 }
