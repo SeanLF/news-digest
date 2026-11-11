@@ -58,11 +58,6 @@ export function healthcheck(
   };
 }
 
-export function stageDoneLine(row: { stage: string; story?: unknown; durationMs: number; costUsd: number }): string {
-  const branch = typeof row.story === "number" ? ` s${String(row.story).padStart(2, "0")}` : "";
-  return `${row.stage}${branch} done ${Math.floor(row.durationMs / 1000)}s $${row.costUsd.toFixed(4)}`;
-}
-
 function truncateUtf8(s: string, max: number): string {
   const bytes = Buffer.from(s, "utf8");
   if (bytes.length <= max) return s;

@@ -26,7 +26,6 @@ export interface RunHealth {
   repair_outcome: string | null;
   repair_detail: string | null;
   stories_dropped_at_write: number | null;
-  usage_rows_dropped: number | null;
   stale_figures?: number | null;
 }
 
@@ -43,12 +42,6 @@ const RULES: Rule[] = [
   ["ZERO_STORIES", (h) => h.shipped === 0, "the run completed but shipped no stories"],
   ["ZERO_RECIPIENTS", (h) => h.broadcasting && h.recipients === 0, "a digest was built but sent to nobody"],
   ["NO_USAGE_RECORDED", (h) => h.stages === 0, "no stage recorded a model call, so the curation phase left no trace"],
-  [
-    "USAGE_ROWS_LOST",
-    (h) => (h.usage_rows_dropped ?? 0) > 0,
-    (h) =>
-      `${py(h.usage_rows_dropped)} usage row(s) failed to persist; this run's per-stage cost/config picture is incomplete`,
-  ],
   [
     "DEGRADED_CLUSTERING",
     (h) => (h.batches_lost ?? 0) > 0,
@@ -108,7 +101,6 @@ export const REQUIRED_KEYS: ReadonlySet<string> = new Set([
   "threads_enabled",
   "batches_lost",
   "stories_dropped_at_write",
-  "usage_rows_dropped",
   "repair_outcome",
   "repair_detail",
   "title_only_fallback",
@@ -202,7 +194,7 @@ const textOf = (v: Json | undefined, key: string): string | null => {
 export async function getRunHealth(
   db: Sql,
   runId: number,
-  opts: { broadcasting: boolean; threadsEnabled: boolean; usageRowsDropped: number; dormantAfter?: number },
+  opts: { broadcasting: boolean; threadsEnabled: boolean; dormantAfter?: number },
 ): Promise<RunHealth> {
   const counts = (await db.one<{
     shipped: number;
@@ -264,7 +256,6 @@ export async function getRunHealth(
     thread_continuations: counts.thread_continuations,
     threads_available: counts.threads_available,
     broadcasting: opts.broadcasting,
-    usage_rows_dropped: opts.usageRowsDropped,
     threads_enabled: opts.threadsEnabled,
     batches_lost: num(extract(cluster, "batches_lost")),
     title_only_fallback: num(extract(cluster, "title_only_fallback")),

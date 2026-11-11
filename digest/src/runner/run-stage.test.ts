@@ -295,6 +295,18 @@ describe("runStage records every call it makes, with the outcome it had", () => 
     await expect(run).rejects.toThrow("0/3 articles extracted");
     expect(rows).toMatchObject([{ outcome: "invalid", costUsd: 0.2 }]);
   });
+  it("a usage row that cannot be written fails the stage, so no row is lost in silence", async () => {
+    const run = runStage(
+      spec,
+      { userMessage: "Begin.", inputDir: "/in" },
+      {
+        today: "2026-09-21",
+        query: fakeQuery([result({})]),
+        record: { onUsage: () => Promise.reject(new Error("db down")), stage: "coherence", runId: 300 },
+      },
+    );
+    await expect(run).rejects.toThrow("db down");
+  });
   it("a call the cancellation signal aborted is recorded as a timeout", async () => {
     const ac = new AbortController();
     const aborting = (({ options }: { options?: Options }) =>

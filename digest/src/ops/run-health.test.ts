@@ -26,7 +26,6 @@ const healthy = (over: Partial<RunHealth> = {}): RunHealth => ({
   fulltext_topup_tasks: 20,
   fulltext_topup_extracted: 14,
   fulltext_topup_outcome: "completed",
-  usage_rows_dropped: 0,
   repair_outcome: null,
   repair_detail: null,
   stale_figures: 0,
@@ -43,7 +42,6 @@ describe("violations", () => {
     ["ZERO_RECIPIENTS", { recipients: 0 }],
     ["NO_USAGE_RECORDED", { stages: 0 }],
     ["NO_ARTIFACTS", { artifacts: 0 }],
-    ["USAGE_ROWS_LOST", { usage_rows_dropped: 2 }],
     ["DEGRADED_CLUSTERING", { batches_lost: 1 }],
     ["STORIES_DROPPED_AT_WRITE", { stories_dropped_at_write: 1 }],
     ["BLANKED_WHY_IT_MATTERS", { blanked_why: 2 }],
@@ -68,7 +66,6 @@ describe("violations", () => {
           batches_lost: null,
           stories_dropped_at_write: null,
           blanked_why: null,
-          usage_rows_dropped: null,
           fulltext_tasks: null,
           fulltext_extracted: null,
         }),
@@ -112,7 +109,7 @@ describe("violations", () => {
     expect(violations(h as unknown as RunHealth)).toEqual([
       "MALFORMED_HEALTH: run health is missing ['batches_lost', 'threads_available']; invariants NOT evaluated",
     ]);
-    expect(REQUIRED_KEYS.size).toBe(18);
+    expect(REQUIRED_KEYS.size).toBe(17);
   });
 });
 
@@ -161,7 +158,7 @@ const artifact = (db: Db, name: string, content: string) =>
   db.run("INSERT INTO artifacts (run_id, name, content, sha256) VALUES (10, $1, $2, '')", [name, content]);
 
 describe("getRunHealth", () => {
-  const opts = { broadcasting: true, threadsEnabled: true, usageRowsDropped: 0 };
+  const opts = { broadcasting: true, threadsEnabled: true };
   it("reads the counts and the health artifacts of the run", async () => {
     const db = await runs();
     await artifact(db, "cluster_health.json", JSON.stringify({ batches_lost: 1, title_only_fallback: 38 }));
@@ -219,7 +216,6 @@ describe("getRunHealth", () => {
       thread_continuations: 1,
       threads_available: 1,
       broadcasting: true,
-      usage_rows_dropped: 0,
       threads_enabled: true,
       batches_lost: 1,
       title_only_fallback: 38,

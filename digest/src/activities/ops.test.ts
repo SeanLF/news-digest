@@ -87,8 +87,8 @@ describe("ops activities", () => {
       return Promise.resolve({ id: "em" });
     };
     const ops = opsActivities({ dbUrl: await db(), env, maxAttempts: 3, send });
-    await ops.alert({ kind: "archival", runId: 305, failed: ["thread_links"] });
-    expect(sent.map((e) => e.subject)).toEqual(["[Alert] Digest archival failed (thread_links)"]);
+    await ops.alert({ kind: "run-health", runId: 305, violations: ["ZERO_STORIES: x"] });
+    expect(sent.map((e) => e.subject)).toEqual(["[Alert] Run 305 completed but violated 1 invariant(s)"]);
   });
   it("a run-failed alert reads the day's broadcast state, so a send the workflow never heard back from is not called unsent", async () => {
     vi.spyOn(log, "info").mockImplementation(() => undefined);

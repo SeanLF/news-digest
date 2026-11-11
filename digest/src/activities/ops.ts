@@ -66,7 +66,6 @@ export function opsActivities(deps: OpsDeps) {
         const health = await getRunHealth(db, runId, {
           broadcasting,
           threadsEnabled: threadsEnabled(deps.env),
-          usageRowsDropped: 0,
           dormantAfter: threadsConfigFrom(deps.env).dormantAfter,
         });
         if (health.stale_figures) log.warn({ stage: "attribute", runId, staleFigures: health.stale_figures });

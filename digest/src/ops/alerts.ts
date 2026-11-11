@@ -5,7 +5,6 @@ import { ACCEPTED_BROADCAST_STATES, CLAIMED, clearClaimCommand } from "./broadca
 
 export type AlertRequest =
   | { kind: "run-health"; runId: number; violations: string[] }
-  | { kind: "archival"; runId: number | null; failed: string[] }
   | {
       kind: "source-health";
       failing: [sourceId: string, consecutive: number][];
@@ -46,19 +45,6 @@ post-run checks:</p>
 the logs. Start with <code>bin/analytics run run-reliability</code>.</p>
 ${FOOTER}`,
         dropped: `run ${req.runId} violated: ${req.violations.join("; ")}`,
-      };
-    }
-    case "archival": {
-      const steps = req.failed.join(", ");
-      return {
-        subject: `[Alert] Digest archival failed (${steps})`,
-        html: `<h2>News Digest Archival Alert</h2>
-<p>Trace/analytics archival failed for <strong>${htmlEscape(steps)}</strong> on run ${req.runId ?? "None"}.</p>
-<p>The digest still delivered (archival is fail-soft), but this run's reproducibility
-trace is incomplete. If this recurs, the eval golden set is silently rotting -- check
-the DB volume (disk/permissions/locks).</p>
-${FOOTER}`,
-        dropped: `archival failed for ${steps} on run ${req.runId ?? "None"}`,
       };
     }
     case "source-health": {

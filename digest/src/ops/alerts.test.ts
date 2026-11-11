@@ -50,11 +50,6 @@ describe("alertEmail", () => {
       "4/38 sources failed this run; persistently failing: the_hindu (5x), france24 (3x); started: france24; recovered: bbc",
     );
   });
-  it("archival names the steps and the run", () => {
-    const e = alertEmail({ kind: "archival", runId: 305, failed: ["thread_links", "thread_assignments"] });
-    expect(e.subject).toBe("[Alert] Digest archival failed (thread_links, thread_assignments)");
-    expect(e.dropped).toBe("archival failed for thread_links, thread_assignments on run 305");
-  });
   it("run-failed says whether the run timed out and escapes the error text", () => {
     const e = alertEmail({
       kind: "run-failed",

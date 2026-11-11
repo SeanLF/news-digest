@@ -114,7 +114,6 @@ export async function readPreSend(
   const health = await getRunHealth(db, runId, {
     broadcasting: true,
     threadsEnabled: opts.threadsEnabled,
-    usageRowsDropped: 0,
     ...(opts.dormantAfter !== undefined ? { dormantAfter: opts.dormantAfter } : {}),
   });
   return {

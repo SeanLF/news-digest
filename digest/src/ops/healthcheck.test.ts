@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { log } from "../log.js";
-import { healthcheck, stageDoneLine } from "./healthcheck.js";
+import { healthcheck } from "./healthcheck.js";
 
 type Seen = { url: string; method: string; body: string | undefined; ua: string | null; signal: boolean };
 function fakeFetch(outcome: "ok" | "throw" | "500" | "rate-limited" = "ok") {
@@ -22,15 +22,6 @@ function fakeFetch(outcome: "ok" | "throw" | "500" | "rate-limited" = "ok") {
 const PING_URL = "https://hc-ping.com/uuid-1/";
 afterEach(() => {
   vi.restoreAllMocks();
-});
-
-describe("stageDoneLine", () => {
-  it("says what orchestrate.py's per-stage /log line says, naming a WRITE branch as its sNN", () => {
-    expect(stageDoneLine({ stage: "select", durationMs: 61_999, costUsd: 0.51234 })).toBe("select done 61s $0.5123");
-    expect(stageDoneLine({ stage: "write", story: 3, durationMs: 41_000, costUsd: 0.07 })).toBe(
-      "write s03 done 41s $0.0700",
-    );
-  });
 });
 
 describe("healthcheck", () => {

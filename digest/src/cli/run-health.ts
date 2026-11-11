@@ -13,7 +13,6 @@ for (let run = first; run <= (last ?? first); run++) {
   const health = await getRunHealth(db, run, {
     broadcasting: process.argv.includes("--broadcasting"),
     threadsEnabled: threadsEnabled(),
-    usageRowsDropped: 0,
     dormantAfter: threadsConfigFrom(process.env).dormantAfter,
   });
   const text =

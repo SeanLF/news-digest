@@ -20,7 +20,7 @@ import { renderActivity } from "./render.js";
 import { envFrom, loadAssets } from "../render/render.js";
 import { repairActivity } from "./repair.js";
 import { MODEL_MAX_ATTEMPTS, OPS_MAX_ATTEMPTS, WEEKLY_RECAP_MAX_ATTEMPTS } from "../workflow/policy.js";
-import { healthcheck, stageDoneLine } from "../ops/healthcheck.js";
+import { healthcheck } from "../ops/healthcheck.js";
 import { opsActivities } from "./ops.js";
 import { weeklyRecapActivity } from "./weekly-recap.js";
 import { selectActivity } from "./select.js";
@@ -62,16 +62,12 @@ export function workerActivities(): Activities {
   const store = new ArtifactStore(dbUrl());
   const usageDb = openDb(dbUrl());
   const hc = healthcheck(process.env);
-  const log = async (row: UsageRow) => {
-    await recordUsage(usageDb, row);
-    void hc.log(stageDoneLine(row));
-  };
   const deps = {
     store,
     agentsDir: agentsDir(),
     heartbeat: safeHeartbeat,
     signal: safeSignal,
-    onUsage: log,
+    onUsage: (row: UsageRow) => recordUsage(usageDb, row),
     log: (m: string) => void hc.log(m),
   };
   return {
