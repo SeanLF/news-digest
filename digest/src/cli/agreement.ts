@@ -1,25 +1,18 @@
-import { readFileSync } from "node:fs";
-import { selfAgreement } from "../gate/band.js";
-import { disagreements } from "../gate/score.js";
-import { parseVerdicts, type JudgeVerdict } from "../gate/verdict.js";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { judgeReport } from "../gate/judge-report.js";
+import type { Plant } from "../gate/plant.js";
 
-const file = process.argv[2];
-if (!file) throw new Error("usage: agreement <promptfoo results.json>");
-const doc = JSON.parse(readFileSync(file, "utf8")) as {
-  results: { results: { provider: { id: string; label?: string }; response?: { output?: string } }[] };
-};
-if (!Array.isArray(doc.results?.results)) throw new Error(`${file}: not a promptfoo results file (no results.results)`);
-const runs = new Map<string, JudgeVerdict[][]>();
-for (const r of doc.results.results) {
-  const name = r.provider.label ?? r.provider.id;
-  const out = r.response?.output;
-  if (!out) continue;
-  runs.set(name, [...(runs.get(name) ?? []), parseVerdicts(out)]);
+const [fixture, clean, planted, out] = process.argv.slice(2);
+if (!fixture || !clean || !planted)
+  throw new Error("usage: agreement <fixture-dir> <clean results.json> <planted results.json> [report.json]");
+const read = (f: string): unknown => JSON.parse(readFileSync(f, "utf8"));
+const { plants } = read(join(fixture, "planted", "plants.json")) as { plants: Plant[] };
+const report = judgeReport(read(clean), read(planted), plants);
+const text = JSON.stringify(report, null, 2);
+if (out) writeFileSync(out, `${text}\n`);
+console.log(text);
+if (report.verdict !== "pass") {
+  console.error("judges: the negative control failed, so no score from this run counts");
+  process.exit(1);
 }
-if (runs.size < 2) throw new Error(`${file}: expected two judges with outputs, found ${runs.size}`);
-const [a, b] = [...runs.keys()];
-const report = {
-  judges: Object.fromEntries([...runs].map(([n, rs]) => [n, { reps: rs.length, ...selfAgreement(rs) }])),
-  disagreements: a && b ? disagreements(runs.get(a)![0]!, runs.get(b)![0]!) : [],
-};
-console.log(JSON.stringify(report, null, 2));

@@ -6,6 +6,7 @@ export interface Plant {
   kind: "wrong-number" | "absent-specific";
   original: string;
   planted: string;
+  marker: string;
 }
 
 function rng(seed: number): () => number {
@@ -34,16 +35,18 @@ export function plantDefects(draft: Selections, seed: number, n: number): { draf
     const m = NUMBER.exec(original);
     let planted: string;
     let kind: Plant["kind"];
+    let marker: string;
     if (m) {
-      const num = Number(m[0].replaceAll(",", ""));
-      planted = original.replace(NUMBER, String(num * 2 + 1));
+      marker = String(Number(m[0].replaceAll(",", "")) * 2 + 1);
+      planted = original.replace(NUMBER, marker);
       kind = "wrong-number";
     } else {
-      planted = `${original} The measure was announced in Geneva.`;
+      marker = "Geneva";
+      planted = `${original} The measure was announced in ${marker}.`;
       kind = "absent-specific";
     }
     story[field] = planted;
-    plants.push({ storyIndex: i, field, kind, original, planted });
+    plants.push({ storyIndex: i, field, kind, original, planted, marker });
   }
   return { draft: out, plants };
 }

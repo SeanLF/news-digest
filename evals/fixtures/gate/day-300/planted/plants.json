@@ -1,0 +1,29 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 1,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "A yen that weakens even as the BoJ hikes suggests markets see Japan still lagging the Fed and ECB on rates; analysts warn that gap could keep pushing the currency down and import costs up, undermining the same inflation fight the rate rise is meant to win.",
+      "planted": "A yen that weakens even as the BoJ hikes suggests markets see Japan still lagging the Fed and ECB on rates; analysts warn that gap could keep pushing the currency down and import costs up, undermining the same inflation fight the rate rise is meant to win. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 4,
+      "field": "why_it_matters",
+      "kind": "wrong-number",
+      "original": "The seizure, the first against Western-owned assets since 2023, suggests companies that stayed in Russia no longer have assurance against nationalization, raising the risk calculus for any Western multinational still operating there.",
+      "planted": "The seizure, the first against Western-owned assets since 4047 suggests companies that stayed in Russia no longer have assurance against nationalization, raising the risk calculus for any Western multinational still operating there.",
+      "marker": "4047"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "wrong-number",
+      "original": "Bank of Japan raises rates to 31-year high of 1.25%, but yen falls anyway",
+      "planted": "Bank of Japan raises rates to 63-year high of 1.25%, but yen falls anyway",
+      "marker": "63"
+    }
+  ]
+}

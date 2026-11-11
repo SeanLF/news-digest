@@ -1,0 +1,29 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 1,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Iran is offering a nuclear channel while keeping Hormuz shut and attacking shipping, so it holds its main leverage over oil prices even as talks move. Washington has said nuclear issues must be part of any first round, so the two sides disagree on the order of talks.",
+      "planted": "Iran is offering a nuclear channel while keeping Hormuz shut and attacking shipping, so it holds its main leverage over oil prices even as talks move. Washington has said nuclear issues must be part of any first round, so the two sides disagree on the order of talks. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 4,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns.",
+      "planted": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz",
+      "planted": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ]
+}

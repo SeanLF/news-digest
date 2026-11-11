@@ -1,0 +1,29 @@
+{
+  "seed": 5,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Washington is publicly calling the war over while quietly moving aircraft out of British bases, which suggests its own planners still fear Iranian retaliation even as markets price in de-escalation.",
+      "planted": "Washington is publicly calling the war over while quietly moving aircraft out of British bases, which suggests its own planners still fear Iranian retaliation even as markets price in de-escalation. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "summary",
+      "kind": "wrong-number",
+      "original": "France summoned Iran's ambassador on Tuesday, a day after accusing the Revolutionary Guards of cyberattacks that raised temperatures in supermarket fridges across the country on Oct. 11 and 12. Foreign Minister Jean-Noël Barrot said Paris would seek European sanctions and take other measures, some undisclosed, that it deems proportionate. The Paris prosecutor has opened an investigation into the IRGC cyber unit Shahid Kaveh and has requested international arrest warrants for two of its officials. France says the attacks hit nearly 700 sites; Iran routinely denies such operations.",
+      "planted": "France summoned Iran's ambassador on Tuesday, a day after accusing the Revolutionary Guards of cyberattacks that raised temperatures in supermarket fridges across the country on Oct. 23 and 12. Foreign Minister Jean-Noël Barrot said Paris would seek European sanctions and take other measures, some undisclosed, that it deems proportionate. The Paris prosecutor has opened an investigation into the IRGC cyber unit Shahid Kaveh and has requested international arrest warrants for two of its officials. France says the attacks hit nearly 700 sites; Iran routinely denies such operations.",
+      "marker": "23"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "US, Russian and Ukrainian negotiators open Abu Dhabi talks, with Washington pushing a new European security framework",
+      "planted": "US, Russian and Ukrainian negotiators open Abu Dhabi talks, with Washington pushing a new European security framework The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ]
+}

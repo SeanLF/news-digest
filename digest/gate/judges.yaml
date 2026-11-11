@@ -1,6 +1,7 @@
 # Two whole-digest judges from two families (spec §7.2), each run --repeat 5 on the same digest so
-# its self-agreement is known before any score counts. Run with `make judges`; then
-# `node dist/cli/agreement.js <output.json>` for the agreement and disagreement figures.
+# its self-agreement is known, and on the fixture's planted copy (planted/, plantDefects) as the
+# negative control: a judge must name the planted specifics (control.ts) before any score counts.
+# Run with `make judges`, which runs this file twice, once per copy, then dist/cli/agreement.js.
 description: whole-digest judges, band first
 prompts: [file://../dist/gate/judge-prompt.js]
 providers:

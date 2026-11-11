@@ -37,6 +37,8 @@ describe("plantDefects", () => {
     for (const p of plants) {
       expect(p.kind).toBe("wrong-number");
       expect(p.planted.replace(/\d[\d,]*/g, "#")).toBe(p.original.replace(/\d[\d,]*/g, "#"));
+      expect(p.planted).toContain(p.marker);
+      expect(p.original.replaceAll(",", "")).not.toMatch(new RegExp(`(?<!\\d)${p.marker}(?!\\d)`));
     }
   });
   it("a field with no number gets an absent specific appended", () => {
@@ -54,6 +56,7 @@ describe("plantDefects", () => {
     const { plants } = plantDefects(noNumbers, 3, 1);
     expect(plants[0]!.kind).toBe("absent-specific");
     expect(plants[0]!.planted.startsWith(plants[0]!.original)).toBe(true);
+    expect(plants[0]!.marker).toBe("Geneva");
   });
   it("refuses more plants than there are fields instead of looping", () => {
     expect(() => plantDefects(draft, 1, 7)).toThrow(/6 must_know fields/);

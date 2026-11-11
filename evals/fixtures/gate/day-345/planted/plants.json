@@ -1,0 +1,29 @@
+{
+  "seed": 5,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "wrong-number",
+      "original": "Trump has said the US will not attack before the Nov. 3 vote but has not ruled out strikes afterwards, so the draft has about a day of political cover before the pause may end; Iran says any new war could run longer than the last.",
+      "planted": "Trump has said the US will not attack before the Nov. 7 vote but has not ruled out strikes afterwards, so the draft has about a day of political cover before the pause may end; Iran says any new war could run longer than the last.",
+      "marker": "7"
+    },
+    {
+      "storyIndex": 2,
+      "field": "summary",
+      "kind": "wrong-number",
+      "original": "Prime Minister Bart De Wever went to the Royal Palace on Monday and was widely expected to offer his resignation, Belgian media reported, after late-night talks in his five-party coalition again failed to agree on next year's budget. The government has argued for months over €10bn ($11.2bn) in cuts and tax increases. De Tijd cited sources saying King Philippe was not expected to accept at once and could send him back for a last round of talks.",
+      "planted": "Prime Minister Bart De Wever went to the Royal Palace on Monday and was widely expected to offer his resignation, Belgian media reported, after late-night talks in his five-party coalition again failed to agree on next year's budget. The government has argued for months over €21bn ($11.2bn) in cuts and tax increases. De Tijd cited sources saying King Philippe was not expected to accept at once and could send him back for a last round of talks.",
+      "marker": "21"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "France opens attempted murder probe after petrol bomb hits police; school blockades resume",
+      "planted": "France opens attempted murder probe after petrol bomb hits police; school blockades resume The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ]
+}

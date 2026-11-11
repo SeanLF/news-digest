@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto";
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
-import { SelectionsSchema } from "../contracts/selections.js";
+import { htmlEscape } from "escape-goat";
+import { SelectionsSchema, type Selections } from "../contracts/selections.js";
+import { mentions } from "./control.js";
+import { plantDefects } from "./plant.js";
 
 export type Files = Record<string, string>;
 
@@ -14,6 +17,40 @@ function runRow(artifacts: Files): { id?: number; started_at?: string; git_sha?:
   if (!raw) return {};
   const doc = JSON.parse(raw) as { rows?: { id?: number; started_at?: string; git_sha?: string }[] };
   return doc.rows?.[0] ?? {};
+}
+
+const SEED_TRIES = 200;
+const jsonText = (s: string) => JSON.stringify(s).slice(1, -1);
+
+function shownText(s: Selections): string {
+  return [...s.must_know, ...s.should_know].flatMap((x) => [x.headline, x.summary, x.why_it_matters ?? ""]).join("\n");
+}
+
+export function plantedCopy(fixture: Files, seed: number, n: number): Files {
+  const html = fixture["digest.html"];
+  const sel = fixture["inputs/selections.json"];
+  const draft = fixture["inputs/draft_selections.json"];
+  if (html === undefined || sel === undefined || draft === undefined)
+    throw new Error("a planted copy needs digest.html, inputs/selections.json and inputs/draft_selections.json");
+  const selections = SelectionsSchema.parse(JSON.parse(sel));
+  const text = shownText(selections);
+  for (let s = seed; s < seed + SEED_TRIES; s++) {
+    const { draft: planted, plants } = plantDefects(selections, s, n);
+    if (!plants.every((p) => html.includes(htmlEscape(p.original)) && !mentions(text, p.marker))) continue;
+    let page = html;
+    let draftText = draft;
+    for (const p of plants) {
+      page = page.replaceAll(htmlEscape(p.original), htmlEscape(p.planted));
+      draftText = draftText.replaceAll(jsonText(p.original), jsonText(p.planted));
+    }
+    return {
+      "planted/digest.html": page,
+      "planted/inputs/selections.json": `${JSON.stringify(planted, null, 2)}\n`,
+      "planted/inputs/draft_selections.json": draftText,
+      "planted/plants.json": `${JSON.stringify({ seed: s, plants }, null, 2)}\n`,
+    };
+  }
+  throw new Error(`no seed in [${seed}, ${seed + SEED_TRIES}) plants ${n} defects into text the digest shows`);
 }
 
 export function fixtureFromRun(artifacts: Files): Files {
