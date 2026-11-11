@@ -145,7 +145,7 @@ describe("coherence activity", () => {
     expect(seen.files?.["articles_1.csv"]).toContain("[link]");
     expect(JSON.stringify(seen.files)).not.toContain("https://");
     expect(seen.options?.tools).toEqual(["Read"]);
-    expect(rows[0]?.unbackedFails).toBeNull();
+    expect(rows).toMatchObject([{ stage: "coherence", runId: 300, outcome: "ok", toolCalls: 1 }]);
     expect(await act(300, drafts, ft)).toEqual(p);
     expect(seen.n).toBe(1);
   });

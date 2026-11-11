@@ -90,6 +90,9 @@ describe("model_calls", () => {
       costUsd: 0.25,
       durationMs: 9,
       tokens: { input_tokens: 10, output_tokens: 3, cache_read_input_tokens: 7 },
+      numTurns: 4,
+      toolCalls: 6,
+      outcome: "ok",
       story: 2,
     });
     await recordUsage(db, {
@@ -101,13 +104,36 @@ describe("model_calls", () => {
       costUsd: 0.5,
       durationMs: 9,
       tokens: {},
+      numTurns: 1,
+      toolCalls: 0,
+      outcome: "error",
     });
     expect(await runCost(db, 300, "2000-01-01 00:00:00")).toEqual({ costUsd: 0.75, calls: 2 });
     expect(await runCost(db, 300, "2999-01-01 00:00:00")).toEqual({ costUsd: 0, calls: 0 });
     expect(await db.one("SELECT cache_read_input_tokens AS c FROM model_calls WHERE stage='write'")).toEqual({ c: 7 });
-    expect(await db.all("SELECT stage, request_model, effort, branch, outcome FROM model_calls ORDER BY id")).toEqual([
-      { stage: "write", request_model: "claude-sonnet-5", effort: "(sdk default)", branch: "s02", outcome: "ok" },
-      { stage: "coherence", request_model: "claude-sonnet-5", effort: "high", branch: null, outcome: "ok" },
+    expect(
+      await db.all(
+        "SELECT stage, request_model, effort, branch, outcome, num_turns, tool_calls FROM model_calls ORDER BY id",
+      ),
+    ).toEqual([
+      {
+        stage: "write",
+        request_model: "claude-sonnet-5",
+        effort: "(sdk default)",
+        branch: "s02",
+        outcome: "ok",
+        num_turns: 4,
+        tool_calls: 6,
+      },
+      {
+        stage: "coherence",
+        request_model: "claude-sonnet-5",
+        effort: "high",
+        branch: null,
+        outcome: "error",
+        num_turns: 1,
+        tool_calls: 0,
+      },
     ]);
   });
   it("versions the prompt by content hash, once per distinct prompt", async () => {
@@ -122,6 +148,9 @@ describe("model_calls", () => {
       costUsd: 0,
       durationMs: 1,
       tokens: {},
+      numTurns: 1,
+      toolCalls: 0,
+      outcome: "ok" as const,
       prompt,
     };
     await recordUsage(db, row);

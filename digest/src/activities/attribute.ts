@@ -144,6 +144,8 @@ export function attributeActivity(deps: AttributeDeps) {
         {
           today,
           runId,
+          record: { onUsage: deps.onUsage, stage: "attribute", runId },
+          accept: (out) => void Reply.parse(out.structured),
           outputSchema: replySchema(),
           maxBudgetUsd: PER_STORY_BUDGET_USD,
           ...(deps.query ? { query: deps.query } : {}),
@@ -151,18 +153,6 @@ export function attributeActivity(deps: AttributeDeps) {
           ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
         },
       );
-      await deps.onUsage?.({
-        model: spec.model,
-        thinking: spec.thinking,
-        prompt: spec,
-        effort: r.effort,
-        tokens: r.usage,
-        stage: "attribute",
-        runId,
-        costUsd: r.costUsd,
-        durationMs: r.durationMs,
-        numTurns: r.numTurns,
-      });
       return Reply.parse(r.structured);
     };
     const verdictsFrom = (reply: z.infer<typeof Reply>, job: Job) => {

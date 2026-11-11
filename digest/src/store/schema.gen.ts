@@ -78,6 +78,7 @@ export interface ModelCalls {
   id: Generated<number>;
   input_manifest: Json | null;
   input_tokens: Generated<number>;
+  num_turns: number | null;
   outcome: string | null;
   output_artifact: string | null;
   output_tokens: Generated<number>;
@@ -87,6 +88,7 @@ export interface ModelCalls {
   run_id: number;
   stage: string;
   thinking: string | null;
+  tool_calls: number | null;
 }
 
 export interface Prompts {

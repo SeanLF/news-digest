@@ -1,7 +1,8 @@
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { StageSpec } from "./prompt.js";
-import { runStage, type SdkQuery } from "./run-stage.js";
+import type { UsageRow } from "../store/usage.js";
+import { runStage, type SdkQuery, type StageResult } from "./run-stage.js";
 
 const spec: StageSpec = {
   name: "coherence",
@@ -145,5 +146,108 @@ describe("runStage", () => {
       /error_max_turns/,
     );
     await expect(call(fakeQuery([assistant([{ type: "text", text: "partial" }])]))).rejects.toThrow(/no result/);
+  });
+});
+
+const recorded = (
+  q: SdkQuery,
+  extra: { schema?: Record<string, unknown>; accept?: (r: StageResult) => void; signal?: AbortSignal } = {},
+) => {
+  const rows: UsageRow[] = [];
+  const run = runStage(
+    spec,
+    { userMessage: "Begin.", inputDir: "/in" },
+    {
+      today: "2026-09-21",
+      query: q,
+      record: { onUsage: (r) => void rows.push(r), stage: "coherence", runId: 300, detail: { story: 2 } },
+      ...(extra.schema ? { outputSchema: extra.schema } : {}),
+      ...(extra.accept ? { accept: extra.accept } : {}),
+      ...(extra.signal ? { signal: extra.signal } : {}),
+    },
+  );
+  return { run, rows };
+};
+const twoReads = assistant([
+  { type: "tool_use", id: "1", name: "Read", input: { file_path: "/in/a.csv" } },
+  { type: "tool_use", id: "2", name: "Read", input: { file_path: "/in/b.csv" } },
+]);
+
+describe("runStage records every call it makes, with the outcome it had", () => {
+  it("a success is ok, with its cost, tokens, turns, tool-call count, spec and branch detail", async () => {
+    const { run, rows } = recorded(
+      fakeQuery([
+        twoReads,
+        result({ total_cost_usd: 0.5, usage: { output_tokens: 10 }, duration_ms: 1200, num_turns: 3 }),
+      ]),
+    );
+    await run;
+    expect(rows).toEqual([
+      {
+        stage: "coherence",
+        runId: 300,
+        story: 2,
+        model: "claude-sonnet-5",
+        thinking: "adaptive",
+        prompt: spec,
+        effort: "(sdk default)",
+        tokens: { output_tokens: 10 },
+        costUsd: 0.5,
+        durationMs: 1200,
+        numTurns: 3,
+        toolCalls: 2,
+        outcome: "ok",
+      },
+    ]);
+  });
+  it("a non-success result is recorded as an error with what it spent, before the stage throws", async () => {
+    const { run, rows } = recorded(
+      fakeQuery([
+        twoReads,
+        result({
+          subtype: "error_max_budget_usd",
+          is_error: true,
+          total_cost_usd: 0.31,
+          usage: { output_tokens: 900 },
+          duration_ms: 4000,
+          num_turns: 7,
+        }),
+      ]),
+    );
+    await expect(run).rejects.toThrow(/error_max_budget_usd/);
+    expect(rows).toMatchObject([
+      { outcome: "error", costUsd: 0.31, tokens: { output_tokens: 900 }, durationMs: 4000, numTurns: 7, toolCalls: 2 },
+    ]);
+  });
+  it("a stream that ends with no result is recorded as an error with nothing spent", async () => {
+    const { run, rows } = recorded(fakeQuery([twoReads]));
+    await expect(run).rejects.toThrow(/no result/);
+    expect(rows).toMatchObject([{ outcome: "error", costUsd: 0, tokens: {}, numTurns: 0, toolCalls: 2 }]);
+  });
+  it("a success without the structured output the schema asked for is recorded as invalid", async () => {
+    const { run, rows } = recorded(fakeQuery([result({ total_cost_usd: 0.2 })]), { schema: { type: "object" } });
+    await expect(run).rejects.toThrow(/structured/);
+    expect(rows).toMatchObject([{ outcome: "invalid", costUsd: 0.2 }]);
+  });
+  it("output the caller's check rejects is recorded as invalid and the check's error is the stage's", async () => {
+    const { run, rows } = recorded(fakeQuery([result({ total_cost_usd: 0.2 })]), {
+      accept: () => {
+        throw new Error("0/3 articles extracted");
+      },
+    });
+    await expect(run).rejects.toThrow("0/3 articles extracted");
+    expect(rows).toMatchObject([{ outcome: "invalid", costUsd: 0.2 }]);
+  });
+  it("a call the cancellation signal aborted is recorded as a timeout", async () => {
+    const ac = new AbortController();
+    const aborting = (() =>
+      (async function* () {
+        yield twoReads;
+        ac.abort("deadline");
+        throw new Error("aborted");
+      })()) as unknown as SdkQuery;
+    const { run, rows } = recorded(aborting, { signal: ac.signal });
+    await expect(run).rejects.toThrow(/aborted/);
+    expect(rows).toMatchObject([{ outcome: "timeout", costUsd: 0, numTurns: 0, toolCalls: 2 }]);
   });
 });

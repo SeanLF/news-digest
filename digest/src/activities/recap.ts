@@ -45,26 +45,17 @@ export function recapActivity(deps: RecapDeps): (runId: number, force?: boolean)
       {
         today: await store.runDate(runId),
         runId,
+        record: { onUsage: deps.onUsage, stage: "recap", runId },
+        accept: (out) => {
+          if (!validRecap(out.text.trim())) throw new Error(`recap for run ${runId}: model returned an empty recap`);
+        },
         ...(deps.query ? { query: deps.query } : {}),
         ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
         ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
       },
     );
     deps.heartbeat?.();
-    await deps.onUsage?.({
-      model: spec.model,
-      thinking: spec.thinking,
-      prompt: spec,
-      effort: r.effort,
-      tokens: r.usage,
-      stage: "recap",
-      runId,
-      costUsd: r.costUsd,
-      durationMs: r.durationMs,
-      numTurns: r.numTurns,
-    });
     const text = r.text.trim();
-    if (!validRecap(text)) throw new Error(`recap for run ${runId}: model returned an empty recap`);
     return force ? await store.replace(runId, RECAP_OUTPUT, text) : await store.put(runId, RECAP_OUTPUT, text);
   };
 }

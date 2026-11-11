@@ -85,25 +85,16 @@ export function preheaderActivity(deps: PreheaderDeps) {
       {
         today: await store.runDate(runId),
         runId,
+        record: { onUsage: deps.onUsage, stage: "preheader", runId },
+        accept: (out) => {
+          if (!cleanPreheader(out.text)) throw new Error(`preheader for run ${runId}: nothing usable in the reply`);
+        },
         ...(deps.query ? { query: deps.query } : {}),
         ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
         ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
       },
     );
-    await deps.onUsage?.({
-      model: spec.model,
-      thinking: spec.thinking,
-      prompt: spec,
-      effort: r.effort,
-      tokens: r.usage,
-      stage: "preheader",
-      runId,
-      costUsd: r.costUsd,
-      durationMs: r.durationMs,
-      numTurns: r.numTurns,
-    });
     const line = cleanPreheader(r.text);
-    if (!line) throw new Error(`preheader for run ${runId}: nothing usable in the reply`);
     const doc = JSON.stringify({ input, line });
     return force ? await store.replace(runId, PREHEADER_OUTPUT, doc) : await store.put(runId, PREHEADER_OUTPUT, doc);
   };

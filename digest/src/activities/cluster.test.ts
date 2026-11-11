@@ -2,6 +2,7 @@ import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
+import type { UsageRow } from "../store/usage.js";
 import { freshDb } from "../store/test-db.js";
 import { buildExtractPrompt, clusterActivities, planBatches, type Article } from "./cluster.js";
 
@@ -40,8 +41,14 @@ async function setup(structured: unknown) {
   const store = new ArtifactStore(await freshDb([300]));
   await store.put(300, "articles_1.csv", CSV);
   const seen: { prompts: string[]; options?: Options } = { prompts: [] };
-  const acts = clusterActivities({ store, agentsDir: AGENTS, query: fakeQuery(structured, seen) });
-  return { store, seen, acts };
+  const rows: UsageRow[] = [];
+  const acts = clusterActivities({
+    store,
+    agentsDir: AGENTS,
+    query: fakeQuery(structured, seen),
+    onUsage: (r) => void rows.push(r),
+  });
+  return { store, seen, acts, rows };
 }
 
 describe("cluster activities", () => {
@@ -83,14 +90,20 @@ describe("cluster activities", () => {
     expect(await acts.extractBatch(300, batches[0]!)).toEqual(p);
     expect(seen.prompts.length).toBe(1);
   });
-  it("a batch with zero usable items is a retryable failure and stores nothing", async () => {
-    const { store, acts } = await setup({
+  it("a batch with zero usable items is a retryable failure, recorded invalid, and stores nothing", async () => {
+    const { store, acts, rows } = await setup({
       items: [{ article_id: "A1", entities: null, keywords: [], primary_event: null }],
     });
     await expect(acts.extractBatch(300, { index: 0, ids: ["A1", "A2", "A3"] })).rejects.toThrow(
       /0\/3 articles extracted/,
     );
     expect(await store.find(300, "cluster_tags_b0.json")).toBeUndefined();
+    expect(rows).toMatchObject([{ stage: "cluster-extract", batch: 0, outcome: "invalid", costUsd: 0.02 }]);
+  });
+  it("output that does not match the items schema is recorded invalid", async () => {
+    const { acts, rows } = await setup({ items: "none" });
+    await expect(acts.extractBatch(300, { index: 0, ids: ["A1"] })).rejects.toThrow(/items schema/);
+    expect(rows).toMatchObject([{ stage: "cluster-extract", outcome: "invalid" }]);
   });
   it("joins the batches into clusters, title-falls back the tagless minority, and records health", async () => {
     const { store, acts } = await setup({ items: [sweden("A1"), sweden("A2"), sweden("A4"), sweden("A5")] });

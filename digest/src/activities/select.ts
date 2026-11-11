@@ -85,12 +85,21 @@ export function selectActivity(deps: SelectDeps) {
       await recordOperatorNote(store, runId, "select", note);
       const message = `The input directory is ${dir}. Begin.${note ? `\n\nOperator note for this attempt: ${note}` : ""}`;
       deps.heartbeat?.();
+      const selected = (structured: unknown) => {
+        const parsed = SelectedSchema.safeParse(structured);
+        if (!parsed.success) throw new Error(`select for run ${runId}: output does not match the schema`);
+        const problems = checkSelected(parsed.data, known);
+        if (problems.length) throw new Error(`select for run ${runId}: ${problems.join("; ")}`);
+        return parsed.data;
+      };
       const r = await runStage(
         spec,
         { userMessage: message, inputDir: dir },
         {
           today: await store.runDate(runId),
           runId,
+          record: { onUsage: deps.onUsage, stage: "select", runId },
+          accept: (out) => void selected(out.structured),
           outputSchema: selectedJsonSchema(),
           ...(deps.query ? { query: deps.query } : {}),
           ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
@@ -98,24 +107,7 @@ export function selectActivity(deps: SelectDeps) {
         },
       );
       deps.heartbeat?.();
-      await deps.onUsage?.({
-        model: spec.model,
-        thinking: spec.thinking,
-        prompt: spec,
-        effort: r.effort,
-        tokens: r.usage,
-        stage: "select",
-        runId,
-        costUsd: r.costUsd,
-        durationMs: r.durationMs,
-        numTurns: r.numTurns,
-        toolCalls: r.toolCalls.length,
-      });
-      const parsed = SelectedSchema.safeParse(r.structured);
-      if (!parsed.success) throw new Error(`select for run ${runId}: output does not match the schema`);
-      const problems = checkSelected(parsed.data, known);
-      if (problems.length) throw new Error(`select for run ${runId}: ${problems.join("; ")}`);
-      const text = JSON.stringify(parsed.data, null, 2);
+      const text = JSON.stringify(selected(r.structured), null, 2);
       return force ? await store.replace(runId, SELECT_OUTPUT, text) : await store.put(runId, SELECT_OUTPUT, text);
     } finally {
       rmSync(dir, { recursive: true, force: true });

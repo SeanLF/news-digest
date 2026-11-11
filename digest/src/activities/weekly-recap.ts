@@ -74,25 +74,16 @@ export function weeklyRecapActivity(
         {
           today,
           runId,
+          record: { onUsage: deps.onUsage, stage: "weekly_recap", runId },
+          accept: (out) => {
+            if (!out.text.trim()) throw new Error("model returned an empty recap");
+          },
           ...(deps.query ? { query: deps.query } : {}),
           ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
           ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
         },
       );
-      await deps.onUsage?.({
-        model: spec.model,
-        thinking: spec.thinking,
-        prompt: spec,
-        effort: r.effort,
-        tokens: r.usage,
-        stage: "weekly_recap",
-        runId,
-        costUsd: r.costUsd,
-        durationMs: r.durationMs,
-        numTurns: r.numTurns,
-      });
       summary = r.text.trim();
-      if (!summary) throw new Error("model returned an empty recap");
     } catch (e) {
       if (deps.signal?.()?.aborted) throw e;
       if ((deps.attempt ?? currentAttempt)() < deps.maxAttempts) throw e;

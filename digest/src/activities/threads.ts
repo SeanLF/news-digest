@@ -264,25 +264,13 @@ export function threadsActivities(deps: ThreadsDeps) {
       {
         today: await store.runDate(runId),
         runId,
+        record: { onUsage: deps.onUsage, stage, runId, detail },
         signal: signal(ms),
         ...(deps.query ? { query: deps.query } : {}),
         ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
       },
     );
     deps.heartbeat?.();
-    await deps.onUsage?.({
-      model: s.model,
-      thinking: s.thinking,
-      prompt: s,
-      effort: r.effort,
-      tokens: r.usage,
-      stage,
-      runId,
-      costUsd: r.costUsd,
-      durationMs: r.durationMs,
-      numTurns: r.numTurns,
-      ...detail,
-    });
     return r.text;
   };
 

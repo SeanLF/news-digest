@@ -1,4 +1,3 @@
-import type { UsageRow } from "../store/usage.js";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -6,7 +5,7 @@ import { CoherenceReportSchema, coherenceReportJsonSchema, type CoherenceReport 
 import { assertNoUrls, scrubUrls } from "../contracts/ids.js";
 import { itemIds, normHeadline, resultMatches } from "../contracts/match.js";
 import { parseAgentSpec } from "../runner/prompt.js";
-import { runStage, type SdkQuery } from "../runner/run-stage.js";
+import { runStage, type OnUsage, type SdkQuery, type UsageRecord } from "../runner/run-stage.js";
 import type { ArtifactStore, Pointer } from "../store/artifacts.js";
 import type { StoryPlan } from "./index.js";
 import type { DraftStory } from "./write.js";
@@ -73,7 +72,7 @@ export interface CoherenceDeps {
   agentsDir: string;
   query?: SdkQuery;
   heartbeat?: () => void;
-  onUsage?: (row: UsageRow) => void | Promise<void>;
+  onUsage?: OnUsage;
 }
 
 export function coherenceActivity(deps: CoherenceDeps) {
@@ -99,28 +98,18 @@ export function coherenceActivity(deps: CoherenceDeps) {
       if (existingDraft && !sameDraft) await store.quarantine(runId, DRAFT_OUTPUT);
     }
     await recordOperatorNote(store, runId, "coherence", note);
-    const checked = await runChecker(deps, runId, draftText, note);
-    const { report: parsedReport, costUsd, durationMs, numTurns, toolCalls, unbacked } = checked;
-    await deps.onUsage?.({
-      model: checked.model,
-      thinking: checked.thinking,
-      prompt: checked.prompt,
-      effort: checked.effort,
-      tokens: checked.tokens,
+    const checked = await runChecker(deps, runId, draftText, {
       stage: "coherence",
-      runId,
-      costUsd,
-      durationMs,
-      numTurns,
-      toolCalls,
-      unbackedFails: unbacked,
+      ...(note ? { note } : {}),
+      accept: (report) => {
+        const gaps = uncovered(report, draft);
+        if (gaps.length)
+          throw new Error(
+            `coherence for run ${runId}: no result matches ${gaps.length} draft story(ies): ${gaps.slice(0, 3).join("; ")}`,
+          );
+      },
     });
-    const parsed = { data: parsedReport };
-    const gaps = uncovered(parsed.data, draft);
-    if (gaps.length)
-      throw new Error(
-        `coherence for run ${runId}: no result matches ${gaps.length} draft story(ies): ${gaps.slice(0, 3).join("; ")}`,
-      );
+    const parsed = { data: checked.report };
     const write = (name: string, text: string) =>
       force ? store.replace(runId, name, text) : store.put(runId, name, text);
     if (force || !sameDraft) await write(DRAFT_OUTPUT, draftText);
@@ -128,14 +117,22 @@ export function coherenceActivity(deps: CoherenceDeps) {
   };
 }
 
-export async function runChecker(deps: CoherenceDeps, runId: number, draftText: string, note?: string) {
+export async function runChecker(
+  deps: CoherenceDeps,
+  runId: number,
+  draftText: string,
+  call: { stage: string; note?: string; accept?: (report: CoherenceReport) => void },
+) {
   const { store } = deps;
   const corpus: [string, string][] = [];
   for (const n of (await store.names(runId))
     .filter((x) => /^articles_\d+\.csv$/.test(x) || x === "article_fulltext.json")
     .toSorted())
     corpus.push([n, await store.content(runId, n)]);
-  return checkDraft(deps, draftText, corpus, await store.runDate(runId), note, "read-loop", runId);
+  return checkDraft(deps, draftText, corpus, await store.runDate(runId), call.note, "read-loop", runId, {
+    record: { onUsage: deps.onUsage, stage: call.stage, runId },
+    ...(call.accept ? { accept: call.accept } : {}),
+  });
 }
 
 export async function checkDraft(
@@ -146,6 +143,7 @@ export async function checkDraft(
   note?: string,
   shape: CheckerShape = "read-loop",
   runId?: number,
+  call: { record?: UsageRecord; accept?: (report: CoherenceReport) => void } = {},
 ) {
   const dir = mkdtempSync(join(tmpdir(), "coherence-"));
   try {
@@ -169,26 +167,31 @@ export async function checkDraft(
         today,
         ...(runId === undefined ? {} : { runId }),
         outputSchema: coherenceReportJsonSchema(),
+        ...(call.record ? { record: call.record } : {}),
+        accept: (out) => {
+          const parsed = CoherenceReportSchema.safeParse(out.structured);
+          if (!parsed.success) throw new Error("coherence: report does not match the schema");
+          call.accept?.(parsed.data);
+        },
         ...(deps.query ? { query: deps.query } : {}),
         ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
         ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
       },
     );
     deps.heartbeat?.();
-    const parsed = CoherenceReportSchema.safeParse(r.structured);
-    if (!parsed.success) throw new Error("coherence: report does not match the schema");
+    const parsed = CoherenceReportSchema.parse(r.structured);
     return {
       model: spec.model,
       thinking: spec.thinking,
       effort: r.effort,
       prompt: sent,
       tokens: r.usage,
-      report: parsed.data,
+      report: parsed,
       costUsd: r.costUsd,
       durationMs: r.durationMs,
       numTurns: r.numTurns,
       toolCalls: r.toolCalls.length,
-      unbacked: shape === "inline-grep" ? unbackedFails(parsed.data, r.toolCalls) : null,
+      unbacked: shape === "inline-grep" ? unbackedFails(parsed, r.toolCalls) : null,
     };
   } finally {
     rmSync(dir, { recursive: true, force: true });

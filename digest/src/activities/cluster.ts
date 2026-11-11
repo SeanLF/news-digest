@@ -130,6 +130,19 @@ export function clusterActivities(deps: ClusterDeps) {
       assertNoUrls(prompt);
       const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "cluster-extract.md"), "utf8"));
       deps.heartbeat?.();
+      const extracted = (structured: unknown) => {
+        const parsed = ExtractItemsSchema.safeParse(structured);
+        if (!parsed.success)
+          throw new Error(`extract batch ${batch.index}: structured output did not match the items schema`);
+        const items = itemsForBatch(parsed.data.items, batch.ids)
+          .map((it) => ({ article_id: it.article_id, ...coerceTag(it) }))
+          .filter((it) => usable(it));
+        if (items.length === 0)
+          throw new Error(
+            `extract batch ${batch.index}: 0/${batch.ids.length} articles extracted (${parsed.data.items.length} items parsed)`,
+          );
+        return items;
+      };
       const r = await runStage(
         spec,
         { userMessage: prompt, inputDir: tmpdir() },
@@ -137,35 +150,15 @@ export function clusterActivities(deps: ClusterDeps) {
           today: await store.runDate(runId),
           runId,
           outputSchema: extractItemsJsonSchema(),
+          record: { onUsage: deps.onUsage, stage: "cluster-extract", runId, detail: { batch: batch.index } },
+          accept: (out) => void extracted(out.structured),
           ...(deps.query ? { query: deps.query } : {}),
           ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
           ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
         },
       );
       deps.heartbeat?.();
-      await deps.onUsage?.({
-        model: spec.model,
-        thinking: spec.thinking,
-        prompt: spec,
-        effort: r.effort,
-        tokens: r.usage,
-        stage: "cluster-extract",
-        runId,
-        batch: batch.index,
-        costUsd: r.costUsd,
-        durationMs: r.durationMs,
-        numTurns: r.numTurns,
-      });
-      const parsed = ExtractItemsSchema.safeParse(r.structured);
-      if (!parsed.success)
-        throw new Error(`extract batch ${batch.index}: structured output did not match the items schema`);
-      const items = itemsForBatch(parsed.data.items, batch.ids)
-        .map((it) => ({ article_id: it.article_id, ...coerceTag(it) }))
-        .filter((it) => usable(it));
-      if (items.length === 0)
-        throw new Error(
-          `extract batch ${batch.index}: 0/${batch.ids.length} articles extracted (${parsed.data.items.length} items parsed)`,
-        );
+      const items = extracted(r.structured);
       const text = JSON.stringify({ items } satisfies TagFile);
       return force ? await store.replace(runId, name, text) : await store.put(runId, name, text);
     },

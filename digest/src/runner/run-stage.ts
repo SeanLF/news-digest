@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { query, type Options, type SDKMessage, type ThinkingConfig } from "@anthropic-ai/claude-agent-sdk";
 import { instrument } from "@posthog/ai/claude-agent-sdk";
+import type { CallOutcome, UsageRow } from "../store/usage.js";
 import { posthog as posthogClient } from "../telemetry.js";
 import { renderBody, type StageSpec } from "./prompt.js";
 
@@ -19,6 +20,13 @@ export interface StageResult {
   effort: string;
 }
 export type SdkQuery = typeof query;
+export type OnUsage = (row: UsageRow) => void | Promise<void>;
+export interface UsageRecord {
+  onUsage: OnUsage | undefined;
+  stage: string;
+  runId: number;
+  detail?: Record<string, unknown>;
+}
 
 const posthogClaude = posthogClient ? instrument({ client: posthogClient, privacyMode: true }) : undefined;
 
@@ -57,6 +65,12 @@ function controllerFor(signal: AbortSignal): AbortController {
   return c;
 }
 
+function numbersOf(usage: object | undefined): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(usage ?? {})) if (typeof v === "number") out[k] = v;
+  return out;
+}
+
 const thinkingFor = (t: StageSpec["thinking"]): ThinkingConfig =>
   t === "adaptive" ? { type: "adaptive" } : { type: "disabled" };
 
@@ -71,6 +85,8 @@ export async function runStage(
     heartbeat?: () => void;
     signal?: AbortSignal;
     runId?: number;
+    record?: UsageRecord;
+    accept?: (r: StageResult) => void;
   },
 ): Promise<StageResult> {
   const q =
@@ -111,6 +127,31 @@ export async function runStage(
   const toolCalls: { name: string; target: string }[] = [];
   const texts: string[] = [];
   let result: Extract<SDKMessage, { type: "result" }> | undefined;
+  const effort = options.effort ?? "(sdk default)";
+  const started = Date.now();
+  const record = async (outcome: CallOutcome): Promise<void> => {
+    const rec = opts.record;
+    if (!rec?.onUsage) return;
+    await rec.onUsage({
+      stage: rec.stage,
+      runId: rec.runId,
+      ...rec.detail,
+      model: spec.model,
+      thinking: spec.thinking,
+      prompt: spec,
+      effort,
+      tokens: numbersOf(result?.usage),
+      costUsd: result?.total_cost_usd ?? 0,
+      durationMs: result?.duration_ms ?? Date.now() - started,
+      numTurns: result?.num_turns ?? 0,
+      toolCalls: toolCalls.length,
+      outcome,
+    });
+  };
+  const fail = async (outcome: CallOutcome, error: unknown): Promise<never> => {
+    await record(outcome);
+    throw error;
+  };
   const beat = opts.heartbeat;
   const timer = beat ? setInterval(beat, 30_000) : undefined;
   try {
@@ -126,24 +167,32 @@ export async function runStage(
         result = m;
       }
     }
+  } catch (e) {
+    return fail(opts.signal?.aborted ? "timeout" : "error", e);
   } finally {
     if (timer) clearInterval(timer);
   }
-  if (!result) throw new Error(`stage ${spec.name}: no result message`);
-  if (result.subtype !== "success" || result.is_error) throw new Error(`stage ${spec.name}: ${result.subtype}`);
+  if (!result) return fail("error", new Error(`stage ${spec.name}: no result message`));
+  if (result.subtype !== "success" || result.is_error)
+    return fail("error", new Error(`stage ${spec.name}: ${result.subtype}`));
   const structured = result.structured_output;
   if (opts.outputSchema && structured === undefined)
-    throw new Error(`stage ${spec.name}: success without structured output`);
-  const usage: Record<string, number> = {};
-  for (const [k, v] of Object.entries(result.usage)) if (typeof v === "number") usage[k] = v;
-  return {
+    return fail("invalid", new Error(`stage ${spec.name}: success without structured output`));
+  const out: StageResult = {
     text: (result.result || texts.join("\n")).trim(),
     ...(structured !== undefined ? { structured } : {}),
     toolCalls,
     costUsd: result.total_cost_usd,
-    usage,
+    usage: numbersOf(result.usage),
     durationMs: result.duration_ms,
     numTurns: result.num_turns,
-    effort: options.effort ?? "(sdk default)",
+    effort,
   };
+  try {
+    opts.accept?.(out);
+  } catch (e) {
+    return fail("invalid", e);
+  }
+  await record("ok");
+  return out;
 }

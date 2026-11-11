@@ -171,26 +171,14 @@ export function repairActivity(deps: RepairDeps) {
           {
             today: await store.runDate(runId),
             runId,
+            record: { onUsage: deps.onUsage, stage: "repair", runId },
+            accept: (out) => void RepairedSchema.parse(out.structured),
             outputSchema: z.toJSONSchema(RepairedSchema, { target: "draft-07" }),
             ...(deps.query ? { query: deps.query } : {}),
             ...(deps.heartbeat ? { heartbeat: deps.heartbeat } : {}),
             ...(deps.signal?.() ? { signal: deps.signal()! } : {}),
           },
         );
-        await deps.onUsage?.({
-          model: spec.model,
-          thinking: spec.thinking,
-          prompt: spec,
-          effort: r.effort,
-          tokens: r.usage,
-          stage: "repair",
-          runId,
-          costUsd: r.costUsd,
-          durationMs: r.durationMs,
-          numTurns: r.numTurns,
-          toolCalls: r.toolCalls.length,
-          unbackedFails: 0,
-        });
         repaired = RepairedSchema.parse(r.structured);
       } finally {
         rmSync(dir, { recursive: true, force: true });
@@ -205,21 +193,7 @@ export function repairActivity(deps: RepairDeps) {
           const p = byKey.get(key(s.sources.map((x) => x.article_id)));
           if (p) scoped[tier].push({ ...s, ...p });
         }
-      const checked = await runChecker(deps, runId, JSON.stringify(scoped, null, 2));
-      await deps.onUsage?.({
-        model: checked.model,
-        thinking: checked.thinking,
-        prompt: checked.prompt,
-        effort: checked.effort,
-        tokens: checked.tokens,
-        stage: "repair_recheck",
-        runId,
-        costUsd: checked.costUsd,
-        durationMs: checked.durationMs,
-        numTurns: checked.numTurns,
-        toolCalls: checked.toolCalls,
-        unbackedFails: checked.unbacked,
-      });
+      const checked = await runChecker(deps, runId, JSON.stringify(scoped, null, 2), { stage: "repair_recheck" });
       return write({ input, results: resolve(applied, checked.report, scoped), recheck: checked.report });
     } catch (e) {
       if (e instanceof CancelledFailure || deps.signal?.()?.aborted) throw e;

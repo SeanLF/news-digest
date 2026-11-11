@@ -232,6 +232,13 @@ export function writeActivities(deps: WriteDeps) {
         const spec = parseAgentSpec(readFileSync(join(deps.agentsDir, "write.md"), "utf8"));
         await recordOperatorNote(store, runId, "write", note);
         const message = `The input directory is ${dir}. Begin.${note ? `\n\nOperator note for this attempt: ${note}` : ""}`;
+        const written = (structured: unknown) => {
+          const parsed = BranchDraftSchema.safeParse(structured);
+          if (!parsed.success) throw new Error(`write s${plan.index}: output does not match the schema`);
+          const { story, problems, set_aside } = checkBranch(parsed.data, plan);
+          if (problems.length || !story) throw new Error(`write s${plan.index}: ${problems.join("; ")}`);
+          return { story, set_aside };
+        };
         deps.heartbeat?.();
         const r = await runStage(
           spec,
@@ -239,6 +246,8 @@ export function writeActivities(deps: WriteDeps) {
           {
             today: await store.runDate(runId),
             runId,
+            record: { onUsage: deps.onUsage, stage: "write", runId, detail: { story: plan.index } },
+            accept: (out) => void written(out.structured),
             outputSchema: z.toJSONSchema(BranchDraftSchema, { target: "draft-07" }),
             maxBudgetUsd: WRITE_BRANCH_BUDGET_USD,
             ...(deps.query ? { query: deps.query } : {}),
@@ -247,24 +256,7 @@ export function writeActivities(deps: WriteDeps) {
           },
         );
         deps.heartbeat?.();
-        await deps.onUsage?.({
-          model: spec.model,
-          thinking: spec.thinking,
-          prompt: spec,
-          effort: r.effort,
-          tokens: r.usage,
-          stage: "write",
-          runId,
-          story: plan.index,
-          costUsd: r.costUsd,
-          durationMs: r.durationMs,
-          numTurns: r.numTurns,
-          toolCalls: r.toolCalls.length,
-        });
-        const parsed = BranchDraftSchema.safeParse(r.structured);
-        if (!parsed.success) throw new Error(`write s${plan.index}: output does not match the schema`);
-        const { story, problems, set_aside } = checkBranch(parsed.data, plan);
-        if (problems.length || !story) throw new Error(`write s${plan.index}: ${problems.join("; ")}`);
+        const { story, set_aside } = written(r.structured);
         if (set_aside)
           log.warn({
             stage: "write",
