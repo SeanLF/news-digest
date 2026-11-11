@@ -11,6 +11,7 @@ import type { ArtifactStore } from "../store/artifacts.js";
 import { openDb, type RowOf, type Sql } from "../store/db.js";
 import type { Track } from "../telemetry.js";
 import type { DigestInput, DigestOutput } from "./index.js";
+import { EMAIL_OUTPUT } from "./render.js";
 
 export const SOURCES_HEADER = ["id", "name", "bias", "factuality", "perspective"] as const;
 export const FETCH_TIMEOUT_MS = 15_000;
@@ -240,9 +241,16 @@ export async function tellEnding(
 ): Promise<void> {
   if (!track) return;
   try {
-    const r = await db.one<{ articles_kept: number | null; cost_usd: number | null; duration_s: number | null }>(
-      "SELECT r.articles_kept, (SELECT sum(api_cost_usd) FROM model_calls WHERE run_id = r.id) AS cost_usd, extract(epoch FROM now() - r.started_at)::float AS duration_s FROM runs r WHERE r.id = $1",
-      [runId],
+    const r = await db.one<{
+      articles_kept: number | null;
+      cost_usd: number | null;
+      duration_s: number | null;
+      email_bytes: number | null;
+    }>(
+      `SELECT r.articles_kept, (SELECT sum(api_cost_usd) FROM model_calls WHERE run_id = r.id) AS cost_usd, extract(epoch FROM now() - r.started_at)::float AS duration_s,
+         (SELECT octet_length(content) FROM artifacts WHERE run_id = r.id AND name = $2 AND status = 'current') AS email_bytes
+       FROM runs r WHERE r.id = $1`,
+      [runId, EMAIL_OUTPUT],
     );
     track(event, {
       run_id: runId,
@@ -250,6 +258,7 @@ export async function tellEnding(
       articles_kept: r?.articles_kept ?? null,
       cost_usd: r?.cost_usd ?? null,
       duration_s: r?.duration_s ?? null,
+      email_bytes: r?.email_bytes ?? null,
       git_sha: process.env["GIT_SHA"] ?? null,
     });
   } catch (e) {

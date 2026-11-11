@@ -206,8 +206,9 @@ describe("finishRun", () => {
       outcome: "disabled",
     });
   });
-  it("tells PostHog how the run ended: outcome, stories, recipients, articles kept, cost, duration, build", async () => {
+  it("tells PostHog how the run ended: outcome, stories, recipients, articles kept, cost, duration, email bytes, build", async () => {
     const { url, store, db } = await setup();
+    await store.put(300, "email.html", "<p>café</p>");
     await db.exec(
       "INSERT INTO source_fetches (source_id, is_success, articles_fetched, articles_kept, run_id) VALUES ('a', true, 40, 30, 300)",
     );
@@ -232,8 +233,17 @@ describe("finishRun", () => {
       recipients: 12,
       articles_kept: 30,
       cost_usd: 0.75,
+      email_bytes: 12,
     });
     expect(typeof events[0]![1]["duration_s"]).toBe("number");
+  });
+  it("a run that rendered no email reports its email bytes as unknown", async () => {
+    const { url, store, db } = await setup();
+    await db.exec("INSERT INTO run_attempts (run_id, pipeline) VALUES (300, 'temporal')");
+    const events: Record<string, unknown>[] = [];
+    const run = runActivities({ store, dbUrl: url, sourcesFile: "/dev/null", track: (_e, p) => void events.push(p) });
+    await run.finishRun(300, { stories: 0, broadcast: "disabled", recipients: 0 });
+    expect(events[0]).toMatchObject({ email_bytes: null });
   });
   it("a retried ending (its record already written) sends no second event", async () => {
     const { url, store, db } = await setup();
