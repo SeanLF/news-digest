@@ -1,3 +1,5 @@
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import type { Client } from "@temporalio/client";
 import { describe, expect, it, vi } from "vitest";
 import { DEPLOYMENT_NAME, deploymentOptions, setCurrentVersion, waitingLine } from "./deployment.js";
@@ -66,5 +68,15 @@ describe("setCurrentVersion", () => {
       vi.useRealTimers();
     }
     expect(sets).toEqual(["build-z"]);
+  });
+});
+
+describe("deployment module", () => {
+  it("loads under Node's own ESM loader, as the built worker does, not only through vitest's interop", () => {
+    const r = spawnSync(process.execPath, [fileURLToPath(new URL("./deployment.ts", import.meta.url))], {
+      encoding: "utf8",
+    });
+    expect(r.stderr).not.toMatch(/SyntaxError/);
+    expect(r.status).toBe(0);
   });
 });

@@ -1,7 +1,9 @@
 import { isGrpcServiceError, type Client } from "@temporalio/client";
 import { decodeVersioningBehavior } from "@temporalio/common";
-import { temporal } from "@temporalio/proto";
+import proto from "@temporalio/proto";
 import type { WorkerDeploymentOptions } from "@temporalio/worker";
+
+const { temporal } = proto;
 
 export const DEPLOYMENT_NAME = "digest";
 
