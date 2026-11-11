@@ -1,4 +1,5 @@
-export type Criterion = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export const CRITERIA = 8;
+export type Criterion = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export interface JudgeVerdict {
   story: number;
   criterion: Criterion;
@@ -19,7 +20,7 @@ export function parseVerdicts(text: string): JudgeVerdict[] {
       typeof story !== "number" ||
       typeof criterion !== "number" ||
       criterion < 1 ||
-      criterion > 7 ||
+      criterion > CRITERIA ||
       typeof pass !== "boolean"
     )
       throw new Error(`judge verdict ${i} is malformed: ${JSON.stringify(raw)}`);

@@ -50,23 +50,28 @@ describe("judgeReport", () => {
       { label: "opus", cells: caughtBy },
       { label: "codex", cells: caughtBy },
     ]);
-    expect(judgeReport(clean, planted, [plant]).verdict).toBe("pass");
+    expect(judgeReport(clean, planted, [plant], 1).verdict).toBe("pass");
     const oneMisses = promptfoo([
       { label: "opus", cells: caughtBy },
       { label: "codex", cells: missedBy },
     ]);
-    const r = judgeReport(clean, oneMisses, [plant]);
+    const r = judgeReport(clean, oneMisses, [plant], 1);
     expect(r.verdict).toBe("fail");
     expect(r.control.codex).toMatchObject({ caught: 0, total: 1, pass: false });
   });
   it("fails a judge with no planted reps at all", () => {
-    const r = judgeReport(clean, promptfoo([{ label: "opus", cells: caughtBy }]), [plant]);
+    const r = judgeReport(clean, promptfoo([{ label: "opus", cells: caughtBy }]), [plant], 1);
     expect(r.control.codex?.pass).toBe(false);
     expect(r.verdict).toBe("fail");
   });
   it("reports each judge's band, pass rate, and the cells where the families' majorities differ", () => {
-    const r = judgeReport(clean, clean, [plant]);
-    expect(r.judges.opus).toMatchObject({ reps: 2, unreadable: 0, overall: 0.5, passRate: { overall: 0.75 } });
+    const r = judgeReport(clean, clean, [plant], 1);
+    expect(r.judges.opus).toMatchObject({
+      reps: 2,
+      unreadable: 0,
+      overall: 0.5,
+      passRate: { overall: 0.75, mustKnow: 1, briefs: 0.5 },
+    });
     expect(r.judges.codex).toMatchObject({ overall: 1, passRate: { overall: 0 } });
     expect(r.disagreements).toEqual([
       { story: 0, criterion: 1, votes: { opus: "2/2 pass", codex: "0/2 pass" }, reasons: { opus: "r", codex: "no" } },

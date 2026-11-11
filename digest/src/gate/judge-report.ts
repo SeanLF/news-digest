@@ -26,21 +26,29 @@ export function repsByJudge(doc: unknown): Map<string, Rep[]> {
   return reps;
 }
 
-function passRate(reps: JudgeVerdict[][]): { perCriterion: Record<number, number>; overall: number } {
+interface PassRate {
+  perCriterion: Record<number, number>;
+  overall: number;
+  mustKnow: number | null;
+  briefs: number | null;
+}
+const rate = ([p, n]: [number, number]) => (n ? p / n : null);
+function passRate(reps: JudgeVerdict[][], mustKnow: number): PassRate {
   const by: Record<number, [number, number]> = {};
-  let pass = 0;
-  let all = 0;
+  const all: [number, number] = [0, 0];
+  const mk: [number, number] = [0, 0];
+  const br: [number, number] = [0, 0];
   for (const rep of reps)
-    for (const v of rep) {
-      const c = (by[v.criterion] ??= [0, 0]);
-      c[0] += v.pass ? 1 : 0;
-      c[1] += 1;
-      pass += v.pass ? 1 : 0;
-      all += 1;
-    }
+    for (const v of rep)
+      for (const t of [(by[v.criterion] ??= [0, 0]), all, v.story < mustKnow ? mk : br]) {
+        t[0] += v.pass ? 1 : 0;
+        t[1] += 1;
+      }
   return {
-    perCriterion: Object.fromEntries(Object.entries(by).map(([k, [p, n]]) => [Number(k), p / n])),
-    overall: all ? pass / all : 0,
+    perCriterion: Object.fromEntries(Object.entries(by).map(([k, t]) => [Number(k), rate(t) ?? 0])),
+    overall: rate(all) ?? 0,
+    mustKnow: rate(mk),
+    briefs: rate(br),
   };
 }
 
@@ -74,7 +82,7 @@ export interface JudgeReport {
       unreadable: number;
       perCriterion: Record<number, number>;
       overall: number;
-      passRate: ReturnType<typeof passRate>;
+      passRate: PassRate;
     }
   >;
   disagreements: { story: number; criterion: number; votes: Record<string, string>; reasons: Record<string, string> }[];
@@ -82,7 +90,7 @@ export interface JudgeReport {
   verdict: "pass" | "fail";
 }
 
-export function judgeReport(clean: unknown, planted: unknown, plants: Plant[]): JudgeReport {
+export function judgeReport(clean: unknown, planted: unknown, plants: Plant[], mustKnow: number): JudgeReport {
   const cleanReps = repsByJudge(clean);
   const plantedReps = repsByJudge(planted);
   const names = [...cleanReps.keys()];
@@ -94,7 +102,7 @@ export function judgeReport(clean: unknown, planted: unknown, plants: Plant[]): 
       reps: reps.length,
       unreadable: (cleanReps.get(n)?.length ?? 0) - reps.length,
       ...selfAgreement(reps),
-      passRate: passRate(reps),
+      passRate: passRate(reps, mustKnow),
     };
   }
   const disagreements: JudgeReport["disagreements"] = [];

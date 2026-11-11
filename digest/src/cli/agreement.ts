@@ -8,7 +8,8 @@ if (!fixture || !clean || !planted)
   throw new Error("usage: agreement <fixture-dir> <clean results.json> <planted results.json> [report.json]");
 const read = (f: string): unknown => JSON.parse(readFileSync(f, "utf8"));
 const { plants } = read(join(fixture, "planted", "plants.json")) as { plants: Plant[] };
-const report = judgeReport(read(clean), read(planted), plants);
+const { must_know } = read(join(fixture, "inputs", "selections.json")) as { must_know: unknown[] };
+const report = judgeReport(read(clean), read(planted), plants, must_know.length);
 const text = JSON.stringify(report, null, 2);
 if (out) writeFileSync(out, `${text}\n`);
 console.log(text);
