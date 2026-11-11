@@ -40,6 +40,7 @@ describe("the judges' negative control", () => {
     expect(catches(seven, [v(1, 1, false, "0.7 is not in the sources")])).toBe(false);
     expect(catches(seven, [v(1, 1, false, "the Nov. 7 date is not in A3")])).toBe(true);
     expect(catches(seven, [v(1, 1, false, "7.4% is not in the sources")])).toBe(true);
+    expect(catches({ ...plant, marker: "21" }, [v(1, 1, false, '"€21bn": the source gives €10 billion')])).toBe(true);
   });
   it("scores every plant in every rep, and an unreadable rep catches nothing", () => {
     const hit = [v(1, 1, false, "117% unsupported"), v(0, 1, false, "Geneva is absent")];
