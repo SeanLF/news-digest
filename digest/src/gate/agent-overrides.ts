@@ -14,6 +14,11 @@ export function setFrontmatter(md: string, field: string, value: string): string
   return `---\n${lines.join("\n")}\n---\n${md.slice(m[0].length)}`;
 }
 
+export function overrideLabel(overrides: Overrides): string {
+  const o = Object.entries(overrides).flatMap(([s, f]) => Object.entries(f).map(([k, v]) => `${s}.${k}=${v}`));
+  return o.length ? `:${o.join(",")}` : "";
+}
+
 export function agentsWith(src: string, overrides: Overrides = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "agents-"));
   try {

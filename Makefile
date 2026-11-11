@@ -130,8 +130,9 @@ check-injections: ## Render every stored issue in the dev stack's database and l
 
 replay: ## Replay model stages of stored runs via promptfoo, each call on a copy of digest_clone (CONFIG=gate/replay.yaml or /app/data/x.yaml REPS=1 J=8; model calls; make db-clone first)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ)-$$$$; $(COMPOSE) up -d --wait digest-pg && \
-	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
-	  $(PROMPTFOO_IN) eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json
+	$(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) -e REPLAY_ADMIN_URL=postgres://postgres:digest@digest-pg:5432/postgres digest-replay \
+	  sh -c "$(PROMPTFOO_IN) eval -c $${CONFIG:-gate/replay.yaml} --repeat $${REPS:-1} -j $${J:-8} --no-cache -o /app/data/replay-$$stamp.json; s=\$$?; \
+	  node dist/cli/ledger.js --eval replay --config $${CONFIG:-gate/replay.yaml} --sha $(EVAL_SHA) /app/data/replay-$$stamp.json; exit \$$s"
 
 band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via promptfoo, on a copy of the dev stack's database (the run and date are pinned in digest/gate/band.yaml; REPS=3; model calls, ~$2.50/rep)
 	@stamp=band_$$(date -u +%Y%m%dT%H%M%SZ | tr 'A-Z' 'a-z'); \
@@ -141,7 +142,8 @@ band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via prom
 	$(COMPOSE) exec -T digest-pg psql -q -U postgres -c "ALTER DATABASE digest ALLOW_CONNECTIONS true"; test $$made = 0 && \
 	DIGEST_DB_NAME=$$stamp BROADCAST_ENABLED=false $(COMPOSE) up -d --build --wait digest-worker python-worker && \
 	$(COMPOSE) exec -T digest-worker node dist/cli/set-current.js && \
-	(cd digest && npm run build && BAND_DB=postgres://postgres:digest@127.0.0.1:$${DIGEST_PG_PORT:-5433}/$$stamp TEMPORAL_ADDRESS=127.0.0.1:$${TEMPORAL_PORT:-7233} $(PROMPTFOO) eval -c gate/band.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/$$stamp.json); status=$$?; \
+	(cd digest && npm run build && BAND_DB=postgres://postgres:digest@127.0.0.1:$${DIGEST_PG_PORT:-5433}/$$stamp TEMPORAL_ADDRESS=127.0.0.1:$${TEMPORAL_PORT:-7233} $(PROMPTFOO) eval -c gate/band.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/$$stamp.json; s=$$?; \
+	  node dist/cli/ledger.js --eval band --config gate/band.yaml --sha $(EVAL_SHA) ../data/$$stamp.json; exit $$s); status=$$?; \
 	$(COMPOSE) up -d --force-recreate digest-worker >/dev/null; exit $$status  # the worker goes back to the digest database, broadcast on
 
 judges: ## Two judge families on a gate fixture (FIXTURE=day-349, or e.g. day-305/python): REPS=5 on the digest, PLANTED_REPS=3 on its planted copy; a judge that misses the planted defects fails the run (model calls, ~$7)
@@ -152,7 +154,8 @@ judges: ## Two judge families on a gate fixture (FIXTURE=day-349, or e.g. day-30
 	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) || exit 2; \
 	  $(PROMPTFOO_IN) eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o $$out.json; \
 	  $(PROMPTFOO_IN) eval -c gate/judges.planted.yaml --repeat $${PLANTED_REPS:-3} -j 1 --no-cache -o $$out-planted.json; \
-	  node dist/cli/agreement.js ../evals/fixtures/gate/$$fx $$out.json $$out-planted.json $$out-report.json"
+	  node dist/cli/agreement.js ../evals/fixtures/gate/$$fx $$out.json $$out-planted.json $$out-report.json; rc=\$$?; v=fail; [ \$$rc = 0 ] && v=pass; \
+	  node dist/cli/ledger.js --eval judges --config gate/judges.yaml:$$fx --sha $(EVAL_SHA) --verdict \$$v --note data/$$(basename $$out)-report.json $$out.json $$out-planted.json; exit \$$rc"
 
 FIXTURE_ARTIFACTS = ^(articles_[0-9]+\.csv|selections\.json|draft_selections\.json|article_fulltext\.json|digest\.html)$$
 fixture: ## Export production run RUN=N as the judge fixture evals/fixtures/gate/day-N: its artifacts over bin/ops (read-only), URLs scrubbed from the inputs
@@ -163,7 +166,8 @@ fixture: ## Export production run RUN=N as the judge fixture evals/fixtures/gate
 	  node dist/cli/fixture.js export /app/data/fixture-raw/$(RUN) /app/evals/fixtures/gate/day-$(RUN)
 
 planted: ## COHERENCE planted-defect band on the new runner via promptfoo, in the worker container (REPS=3; ~$1/rep)
-	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(EVAL_RUN) $(PROMPTFOO_IN) eval -c gate/planted.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json
+	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); cfg=$${CONFIG:-gate/planted.yaml}; $(EVAL_RUN) sh -c "$(PROMPTFOO_IN) eval -c $$cfg --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json; s=\$$?; \
+	  node dist/cli/ledger.js --eval planted --config $$cfg --sha $(EVAL_SHA) ../data/planted-$$stamp.json; exit \$$s"
 
 fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved corpus via promptfoo, on the host (DIR=data/fulltext-fork-<stamp>)
 	@test -n "$(DIR)" || { echo "DIR=data/fulltext-fork-<stamp> is required"; exit 2; }
@@ -179,9 +183,14 @@ fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved c
 # judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here.
 CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
-JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(CURDIR)/digest/gate/judges.planted.yaml:/app/digest/gate/judges.planted.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
+JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(CURDIR)/digest/gate/judges.planted.yaml:/app/digest/gate/judges.planted.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
 # The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
 # scan): installed in the dev image for the in-container evals, and on the host for band and fulltext-fork.
-EVAL_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" digest-replay
+EVAL_RUN = $(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) digest-replay
+# What every eval container sees: the fixtures and experiment configs read-only, and the ledger
+# (evals/results/ledger.jsonl), which each eval target appends one line to: date, sha, config, verdict, cost.
+EVAL_MOUNTS = -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -v "$(CURDIR)/evals/experiments:/app/evals/experiments:ro" -v "$(CURDIR)/evals/results:/app/evals/results"
+# The commit an eval ran on, marked when digest/ or evals/ had uncommitted changes.
+EVAL_SHA = $(shell git rev-parse --short HEAD)$(shell git diff --quiet HEAD -- digest evals || echo +dirty)
 $(PROMPTFOO): evals/package-lock.json
 	cd evals && npm ci --no-audit --no-fund && touch $(PROMPTFOO)

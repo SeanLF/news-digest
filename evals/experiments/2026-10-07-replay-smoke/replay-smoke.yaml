@@ -1,0 +1,14 @@
+# make replay CONFIG=/app/evals/experiments/2026-10-07-replay-smoke/replay-smoke.yaml (make db-clone first; model calls)
+description: replay smoke, with a negative control (the impossible rule must fail)
+prompts: ["run {{run}}"]
+providers:
+  - id: file:///app/digest/dist/gate/replay-provider.js
+    label: select-haiku
+    config: { mode: select, overrides: { select: { model: claude-haiku-5-5 } } }
+tests:
+  - description: possible rule
+    vars: { run: 319, rule: { failed: { max: 0 }, mustAgree: { min: 0 } } }
+    assert: [{ type: javascript, value: "file:///app/digest/dist/gate/replay-assert.js" }]
+  - description: impossible rule (negative control)
+    vars: { run: 319, rule: { mustAgree: { min: 1.01 } } }
+    assert: [{ type: javascript, value: "file:///app/digest/dist/gate/replay-assert.js" }]

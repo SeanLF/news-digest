@@ -1,0 +1,10 @@
+# make replay CONFIG=/app/evals/experiments/2026-10-07-concurrency/attr.yaml (make db-clone first; model calls)
+description: concurrency probe, ATTRIBUTE on Haiku, run 319
+prompts: ["run {{run}}"]
+providers:
+  - id: file:///app/digest/dist/gate/replay-provider.js
+    label: attribute-haiku
+    config: { mode: attribute }
+tests:
+  - vars: { run: 319, rule: {} }
+    assert: [{ type: javascript, value: "file:///app/digest/dist/gate/replay-assert.js" }]

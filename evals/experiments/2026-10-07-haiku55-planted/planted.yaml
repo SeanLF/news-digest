@@ -1,0 +1,28 @@
+# digest/gate/planted.yaml with COHERENCE on claude-haiku-5-5 (2026-10-07; the scratch original pointed at
+# data/agents-haiku55 and the since-deleted docs/proposed fixture). In the worker container:
+# make planted CONFIG=/app/evals/experiments/2026-10-07-haiku55-planted/planted.yaml
+description: COHERENCE planted-defect band, Haiku 5.5
+prompts: ["planted278"]
+providers:
+  - id: file:///app/digest/dist/gate/checker-provider.js
+    label: inline-grep
+    config:
+      fixtureDir: /app/evals/fixtures/coherence-planted/planted278
+      today: "2026-08-28"
+      shape: inline-grep
+      overrides: { coherence: { model: claude-haiku-5-5 } }
+  - id: file:///app/digest/dist/gate/checker-provider.js
+    label: read-loop
+    config:
+      fixtureDir: /app/evals/fixtures/coherence-planted/planted278
+      today: "2026-08-28"
+      shape: read-loop
+      overrides: { coherence: { model: claude-haiku-5-5 } }
+tests:
+  - vars:
+      draft: /app/evals/fixtures/coherence-planted/planted278/draft_selections.json
+      key: /app/evals/fixtures/coherence-planted/planted278_key.json
+      maxFalseDrops: 3
+    assert:
+      - type: javascript
+        value: file:///app/digest/dist/gate/planted-assert.js

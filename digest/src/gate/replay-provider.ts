@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { rmSync } from "node:fs";
 import pg from "pg";
 import { ArtifactStore } from "../store/artifacts.js";
-import { agentsWith, type Overrides } from "./agent-overrides.js";
+import { agentsWith, overrideLabel, type Overrides } from "./agent-overrides.js";
 import { MODES, replay, type Mode } from "./stage-replay.js";
 
 interface Config {
@@ -42,10 +42,7 @@ export default class ReplayProvider {
     };
   }
   id(): string {
-    const o = Object.entries(this.config.overrides).flatMap(([s, f]) =>
-      Object.entries(f).map(([k, v]) => `${s}.${k}=${v}`),
-    );
-    return `replay:${this.config.mode}${o.length ? `:${o.join(",")}` : ""}`;
+    return `replay:${this.config.mode}${overrideLabel(this.config.overrides)}`;
   }
   async callApi(_prompt: string, context: { vars: { run: number | string } }) {
     const adminUrl = process.env["REPLAY_ADMIN_URL"];

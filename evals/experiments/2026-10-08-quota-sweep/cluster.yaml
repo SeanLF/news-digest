@@ -1,0 +1,19 @@
+# make replay CONFIG=/app/evals/experiments/2026-10-08-quota-sweep/cluster.yaml (make db-clone first; model calls)
+description: CLUSTER-EXTRACT Haiku vs Sonnet, runs 311-319
+prompts: ["run {{run}}"]
+providers:
+  - { id: "file:///app/digest/dist/gate/replay-provider.js", label: cluster-sonnet, config: { mode: cluster, overrides: { cluster-extract: { model: claude-sonnet-5-5 } } } }
+  - { id: "file:///app/digest/dist/gate/replay-provider.js", label: cluster-haiku, config: { mode: cluster } }
+defaultTest:
+  vars: { rule: {} }
+  assert: [{ type: javascript, value: "file:///app/digest/dist/gate/replay-assert.js" }]
+tests:
+  - vars: { run: 311 }
+  - vars: { run: 312 }
+  - vars: { run: 313 }
+  - vars: { run: 314 }
+  - vars: { run: 315 }
+  - vars: { run: 316 }
+  - vars: { run: 317 }
+  - vars: { run: 318 }
+  - vars: { run: 319 }
