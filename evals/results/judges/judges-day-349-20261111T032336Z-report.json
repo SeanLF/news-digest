@@ -1,0 +1,177 @@
+{
+  "judges": {
+    "claude-opus-5-5": {
+      "reps": 5,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 1,
+        "2": 0.9375,
+        "3": 1,
+        "4": 1,
+        "5": 0.8125,
+        "6": 1,
+        "7": 0.9375,
+        "8": 1
+      },
+      "overall": 0.9572649572649573,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.875,
+          "2": 0.975,
+          "3": 1,
+          "4": 1,
+          "5": 0.675,
+          "6": 0.9375,
+          "7": 0.975,
+          "8": 1
+        },
+        "overall": 0.9230769230769231,
+        "mustKnow": 0.915,
+        "briefs": 0.9272727272727272
+      }
+    },
+    "codex": {
+      "reps": 1,
+      "unreadable": 4,
+      "perCriterion": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 1,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.875,
+          "2": 0.875,
+          "3": 0.875,
+          "4": 1,
+          "5": 0.5625,
+          "6": 1,
+          "7": 0.9375,
+          "8": 1
+        },
+        "overall": 0.8803418803418803,
+        "mustKnow": 0.8,
+        "briefs": 0.922077922077922
+      }
+    }
+  },
+  "disagreements": [
+    {
+      "story": 0,
+      "criterion": 2,
+      "votes": {
+        "claude-opus-5-5": "3/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "4.4% is tied to the S&P 500, $2.5 trillion to the Nasdaq per Reuters, and \"worst day since April 2025\" to the S&P, all as the cited sources give them.",
+        "codex": "“The Nasdaq slid about 4%” misstates the Nasdaq decline in the cited closing reports, which give 5.5%."
+      }
+    },
+    {
+      "story": 0,
+      "criterion": 3,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Trump is president and the Democratic sweep matches the cited articles and the run date.",
+        "codex": "“Set to confirm the correction” presents an unresolved status after the cited closing report already confirms correction territory."
+      }
+    },
+    {
+      "story": 2,
+      "criterion": 2,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "The endorsements go to Eisenkot, the announcement to Herzog and the fraud claims to Netanyahu's camp, as sourced.",
+        "codex": "“The same votes Netanyahu and his allies have attacked with fraud allegations” conflates lawmakers’ recommendations with allegedly fraudulent election ballots."
+      }
+    },
+    {
+      "story": 3,
+      "criterion": 5,
+      "votes": {
+        "claude-opus-5-5": "3/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "The Melania Trump event is the setting for the Dmitriev visit, and the Kremlin remark is a direct response to Trump's 'all of Europe' comment.",
+        "codex": "“The Kremlin said Friday that Europe is struggling to decide who would represent it” adds a separate diplomatic statement to the White House meeting."
+      }
+    },
+    {
+      "story": 4,
+      "criterion": 3,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Trump is president and Democrats won both chambers, per the sources.",
+        "codex": "“Congress can now probe and block domestic policy” treats the incoming Democratic majority’s powers as already effective; cited reporting says Democrats act when they take control."
+      }
+    },
+    {
+      "story": 7,
+      "criterion": 7,
+      "votes": {
+        "claude-opus-5-5": "3/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Reads clean.",
+        "codex": "The displayed source title “Malaysia ex-PM Najib Razak set for house arrest after party pays fine to” is truncated."
+      }
+    },
+    {
+      "story": 10,
+      "criterion": 6,
+      "votes": {
+        "claude-opus-5-5": "0/5 pass",
+        "codex": "1/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "A collection of opinion and analysis pieces with no new event that day.",
+        "codex": "US-China trade negotiations and summit prospects are worth a brief."
+      }
+    },
+    {
+      "story": 13,
+      "criterion": 5,
+      "votes": {
+        "claude-opus-5-5": "4/5 pass",
+        "codex": "0/1 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "The watchdog's call is presented as tied to the trip.",
+        "codex": "“A US-based clergy abuse watchdog ... call for a truth commission” adds a separate advocacy announcement to the pope’s departure."
+      }
+    }
+  ],
+  "control": {
+    "claude-opus-5-5": {
+      "caught": 9,
+      "total": 9,
+      "recall": 1,
+      "pass": true
+    },
+    "codex": {
+      "caught": 0,
+      "total": 9,
+      "recall": 0,
+      "pass": false
+    }
+  },
+  "verdict": "fail"
+}

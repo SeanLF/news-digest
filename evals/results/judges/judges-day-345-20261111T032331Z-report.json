@@ -1,0 +1,93 @@
+{
+  "judges": {
+    "claude-opus-5-5": {
+      "reps": 5,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 1,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.8,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 0.6666666666666666,
+          "6": 1,
+          "7": 1,
+          "8": 1
+        },
+        "overall": 0.9259259259259259,
+        "mustKnow": 0.875,
+        "briefs": 0.9404761904761905
+      }
+    },
+    "codex": {
+      "reps": 2,
+      "unreadable": 3,
+      "perCriterion": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 1,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.8666666666666667,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 0.6666666666666666,
+          "6": 1,
+          "7": 1,
+          "8": 1
+        },
+        "overall": 0.9351851851851852,
+        "mustKnow": 0.875,
+        "briefs": 0.9523809523809523
+      }
+    }
+  },
+  "disagreements": [
+    {
+      "story": 14,
+      "criterion": 1,
+      "votes": {
+        "claude-opus-5-5": "0/5 pass",
+        "codex": "2/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "\"Ukraine evacuated nearly 200 civilians\" comes from an uncited Der Spiegel article; the cited sources give 167 (and nearly 800 in total).",
+        "codex": "The evacuation count, truce expiry, historical comparison and competing claims are supported."
+      }
+    }
+  ],
+  "control": {
+    "claude-opus-5-5": {
+      "caught": 9,
+      "total": 9,
+      "recall": 1,
+      "pass": true
+    },
+    "codex": {
+      "caught": 0,
+      "total": 9,
+      "recall": 0,
+      "pass": false
+    }
+  },
+  "verdict": "fail"
+}
