@@ -37,17 +37,24 @@ export function plantedCopy(fixture: Files, seed: number, n: number): Files {
   for (let s = seed; s < seed + SEED_TRIES; s++) {
     const { draft: planted, plants } = plantDefects(selections, s, n);
     if (!plants.every((p) => html.includes(htmlEscape(p.original)) && !mentions(text, p.marker))) continue;
+    if (new Set(plants.map((p) => `${p.storyIndex}:${p.marker}`)).size < plants.length) continue;
     let page = html;
     let draftText = draft;
-    for (const p of plants) {
+    const draftMisses: number[] = [];
+    plants.forEach((p, i) => {
       page = page.replaceAll(htmlEscape(p.original), htmlEscape(p.planted));
+      if (!draftText.includes(jsonText(p.original))) draftMisses.push(i);
       draftText = draftText.replaceAll(jsonText(p.original), jsonText(p.planted));
-    }
+    });
+    const others = Object.entries(fixture).filter(
+      ([k]) => k.startsWith("inputs/") && k !== "inputs/selections.json" && k !== "inputs/draft_selections.json",
+    );
     return {
+      ...Object.fromEntries(others.map(([k, v]) => [`planted/${k}`, v])),
       "planted/digest.html": page,
       "planted/inputs/selections.json": `${JSON.stringify(planted, null, 2)}\n`,
       "planted/inputs/draft_selections.json": draftText,
-      "planted/plants.json": `${JSON.stringify({ seed: s, plants }, null, 2)}\n`,
+      "planted/plants.json": `${JSON.stringify({ seed: s, plants, draft_misses: draftMisses }, null, 2)}\n`,
     };
   }
   throw new Error(`no seed in [${seed}, ${seed + SEED_TRIES}) plants ${n} defects into text the digest shows`);

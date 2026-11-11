@@ -34,6 +34,13 @@ describe("the judges' negative control", () => {
     expect(catches(big, [v(1, 1, false, "16001 is not in the sources")])).toBe(false);
     expect(catches(geneva, [v(0, 1, false, "No source says the measure was announced in geneva")])).toBe(true);
   });
+  it("does not take an article id or a longer decimal for the planted number", () => {
+    const seven = { ...plant, marker: "7" };
+    expect(catches(seven, [v(1, 1, false, "A7 does not say who won")])).toBe(false);
+    expect(catches(seven, [v(1, 1, false, "0.7 is not in the sources")])).toBe(false);
+    expect(catches(seven, [v(1, 1, false, "the Nov. 7 date is not in A3")])).toBe(true);
+    expect(catches(seven, [v(1, 1, false, "7.4% is not in the sources")])).toBe(true);
+  });
   it("scores every plant in every rep, and an unreadable rep catches nothing", () => {
     const hit = [v(1, 1, false, "117% unsupported"), v(0, 1, false, "Geneva is absent")];
     expect(controlResult([plant, geneva], [hit, hit, null])).toEqual({

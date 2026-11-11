@@ -6,7 +6,7 @@ export const CONTROL_MIN_RECALL = 0.8;
 const reEscape = (s: string) => s.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export function mentions(text: string, marker: string): boolean {
-  return new RegExp(`(?<!\\d)${reEscape(marker)}(?!\\d)`, "i").test(text.replaceAll(/(?<=\d),(?=\d{3})/g, ""));
+  return new RegExp(`(?<![\\w.])${reEscape(marker)}(?!\\w)`, "i").test(text.replaceAll(/(?<=\d),(?=\d{3})/g, ""));
 }
 
 export function catches(p: Plant, run: JudgeVerdict[]): boolean {

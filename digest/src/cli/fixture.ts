@@ -1,4 +1,4 @@
-import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fixtureFromRun, plantedCopy, type Files } from "../gate/fixture.js";
 
@@ -15,28 +15,14 @@ function readDir(dir: string): Files {
 function writeFiles(root: string, files: Files): void {
   for (const [rel, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, rel)), { recursive: true });
+    rmSync(join(root, rel), { force: true });
     writeFileSync(join(root, rel), text);
   }
 }
 
 export function plantFixture(dir: string, seed = PLANT_SEED, n = PLANTS): void {
-  const read = (rel: string) => readFileSync(join(dir, rel), "utf8");
-  const planted = plantedCopy(
-    {
-      "digest.html": read("digest.html"),
-      "inputs/selections.json": read("inputs/selections.json"),
-      "inputs/draft_selections.json": read("inputs/draft_selections.json"),
-    },
-    seed,
-    n,
-  );
-  writeFiles(dir, planted);
-  for (const name of readdirSync(join(dir, "inputs"))) {
-    const link = join(dir, "planted", "inputs", name);
-    if (planted[`planted/inputs/${name}`] !== undefined) continue;
-    rmSync(link, { force: true });
-    symlinkSync(join("..", "..", "inputs", name), link);
-  }
+  const inputs = Object.fromEntries(Object.entries(readDir(join(dir, "inputs"))).map(([k, v]) => [`inputs/${k}`, v]));
+  writeFiles(dir, plantedCopy({ "digest.html": readFileSync(join(dir, "digest.html"), "utf8"), ...inputs }, seed, n));
 }
 
 export function exportFixture(rawDir: string, outDir: string): void {

@@ -1,5 +1,5 @@
 {
-  "seed": 6,
+  "seed": 7,
   "plants": [
     {
       "storyIndex": 1,
@@ -10,20 +10,23 @@
       "marker": "Geneva"
     },
     {
-      "storyIndex": 4,
+      "storyIndex": 3,
       "field": "why_it_matters",
       "kind": "absent-specific",
-      "original": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns.",
-      "planted": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns. The measure was announced in Geneva.",
+      "original": "A deal Trump describes as covering all of Europe is being shaped in talks where, by the Kremlin's own account, Europeans have not settled who represents them, so terms could be set before they have a voice.",
+      "planted": "A deal Trump describes as covering all of Europe is being shaped in talks where, by the Kremlin's own account, Europeans have not settled who represents them, so terms could be set before they have a voice. The measure was announced in Geneva.",
       "marker": "Geneva"
     },
     {
-      "storyIndex": 1,
-      "field": "headline",
+      "storyIndex": 0,
+      "field": "why_it_matters",
       "kind": "absent-specific",
-      "original": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz",
-      "planted": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz The measure was announced in Geneva.",
+      "original": "The sell-off ties the AI trade to US politics: markets are pricing a Democratic Congress that could slow data centre building, the spending that had been propping up tech valuations.",
+      "planted": "The sell-off ties the AI trade to US politics: markets are pricing a Democratic Congress that could slow data centre building, the spending that had been propping up tech valuations. The measure was announced in Geneva.",
       "marker": "Geneva"
     }
+  ],
+  "draft_misses": [
+    0
   ]
 }

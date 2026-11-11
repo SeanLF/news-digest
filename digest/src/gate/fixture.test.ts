@@ -54,6 +54,20 @@ describe("plantedCopy", () => {
       }
     }
   });
+  it("never puts one marker twice on a story, so one verdict cannot catch two plants", () => {
+    for (let seed = 0; seed < 30; seed++) {
+      const { plants } = JSON.parse(plantedCopy(clean, seed, 3)["planted/plants.json"]!) as { plants: Plant[] };
+      const keys = plants.map((p) => `${p.storyIndex}:${p.marker}`);
+      expect(new Set(keys).size, `seed ${seed}`).toBe(keys.length);
+    }
+  });
+  it("records each plant the draft did not carry verbatim", () => {
+    const stale = { ...clean, "inputs/draft_selections.json": "{}" };
+    const doc = JSON.parse(plantedCopy(stale, 1, 2)["planted/plants.json"]!) as { draft_misses: number[] };
+    expect(doc.draft_misses).toEqual([0, 1]);
+    const fresh = JSON.parse(plantedCopy(clean, 1, 2)["planted/plants.json"]!) as { draft_misses: number[] };
+    expect(fresh.draft_misses).toEqual([]);
+  });
   it("is reproducible from the seed it records", () => {
     const a = plantedCopy(clean, 5, 2);
     expect(plantedCopy(clean, 5, 2)).toEqual(a);

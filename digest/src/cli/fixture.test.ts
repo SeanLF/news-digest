@@ -13,7 +13,7 @@ const selections = {
 const PAGE = "<h3>H 12</h3><p>S 3</p><p>W 2</p>";
 
 describe("fixture export", () => {
-  it("reads a directory of a run's artifacts and writes the fixture and its planted copy, again on a rerun", () => {
+  it("reads a directory of a run's artifacts and writes the fixture and its planted copy, every input a file of its own (search tools skip symlinks), again on a rerun", () => {
     const raw = mkdtempSync(join(tmpdir(), "raw-"));
     const out = join(mkdtempSync(join(tmpdir(), "fx-")), "day-349");
     const files: Record<string, string> = {
@@ -35,7 +35,7 @@ describe("fixture export", () => {
     ]);
     expect(readFileSync(join(out, "digest.html"), "utf8")).toBe(PAGE);
     expect(readdirSync(join(out, "planted")).toSorted()).toEqual(["digest.html", "inputs", "plants.json"]);
-    expect(lstatSync(join(out, "planted", "inputs", "articles_1.csv")).isSymbolicLink()).toBe(true);
+    expect(lstatSync(join(out, "planted", "inputs", "articles_1.csv")).isFile()).toBe(true);
     expect(readFileSync(join(out, "planted", "inputs", "articles_1.csv"), "utf8")).toBe(files["articles_1.csv"]);
     expect(lstatSync(join(out, "planted", "inputs", "selections.json")).isFile()).toBe(true);
     exportFixture(raw, out);
