@@ -377,6 +377,8 @@ describe("DigestWorkflow", () => {
       const feeds = {
         kind: "source-health" as const,
         failing: [["the_hindu", 4]] as [string, number][],
+        frozen: [] as [string, number][],
+        frozenDays: 12,
         failedThisRun: 1,
         totalSources: 3,
         threshold: 3,

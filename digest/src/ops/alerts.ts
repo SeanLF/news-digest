@@ -8,6 +8,8 @@ export type AlertRequest =
   | {
       kind: "source-health";
       failing: [sourceId: string, consecutive: number][];
+      frozen: [sourceId: string, days: number][];
+      frozenDays: number;
       failedThisRun: number;
       totalSources: number;
       threshold: number;
@@ -58,20 +60,40 @@ ${FOOTER}`,
     }
     case "source-health": {
       const listed = req.failing.map(([id, n]) => `  • ${htmlEscape(id)}: ${n} consecutive failures`).join("\n");
+      const stale = req.frozen.map(([id, d]) => `  • ${htmlEscape(id)}: nothing new for ${d} days`).join("\n");
       const changes = [
         ...(req.started.length ? [`<strong>${req.started.map(htmlEscape).join(", ")}</strong> started failing`] : []),
         ...(req.recovered.length ? [`${req.recovered.map(htmlEscape).join(", ")} recovered`] : []),
       ];
+      const dropped = [
+        `${req.failedThisRun}/${req.totalSources} sources failed this run`,
+        ...(req.failing.length
+          ? [`persistently failing: ${req.failing.map(([id, n]) => `${id} (${n}x)`).join(", ")}`]
+          : []),
+        ...(req.frozen.length ? [`frozen: ${req.frozen.map(([id, d]) => `${id} (${d} days)`).join(", ")}`] : []),
+        ...(req.started.length ? [`started: ${req.started.join(", ")}`] : []),
+        ...(req.recovered.length ? [`recovered: ${req.recovered.join(", ")}`] : []),
+      ];
       return {
-        subject: `[Alert] ${req.failing.length} RSS sources failing`,
+        subject: `[Alert] ${req.failing.length + req.frozen.length} RSS sources failing`,
         html: `<h2>News Digest Source Health Alert</h2>
 <p><strong>${req.failedThisRun}/${req.totalSources}</strong> sources failed this run.</p>
 <p>Since the last run: ${changes.join("; ")}.</p>
-<p>The following sources have failed ${req.threshold}+ times in a row:</p>
+${
+  req.failing.length
+    ? `<p>The following sources have failed ${req.threshold}+ times in a row:</p>
 <pre>${listed}</pre>
-<p>Consider checking these feeds or removing them from sources.json.</p>
+`
+    : ""
+}${
+          req.frozen.length
+            ? `<p>The following sources answer, but have served nothing new for ${req.frozenDays}+ days:</p>
+<pre>${stale}</pre>
+`
+            : ""
+        }<p>Consider checking these feeds or removing them from sources.json.</p>
 ${FOOTER}`,
-        dropped: `${req.failedThisRun}/${req.totalSources} sources failed this run; persistently failing: ${req.failing.map(([id, n]) => `${id} (${n}x)`).join(", ")}${req.started.length ? `; started: ${req.started.join(", ")}` : ""}${req.recovered.length ? `; recovered: ${req.recovered.join(", ")}` : ""}`,
+        dropped: dropped.join("; "),
       };
     }
     case "run-failed": {

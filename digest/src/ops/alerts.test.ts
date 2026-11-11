@@ -36,6 +36,8 @@ describe("alertEmail", () => {
         ["the_hindu", 5],
         ["france24", 3],
       ],
+      frozen: [],
+      frozenDays: 12,
       failedThisRun: 4,
       totalSources: 38,
       threshold: 3,
@@ -47,9 +49,28 @@ describe("alertEmail", () => {
     expect(e.html).toContain("<strong>4/38</strong> sources failed this run");
     expect(e.html).toContain("failed 3+ times in a row");
     expect(e.html).toContain("  • the_hindu: 5 consecutive failures");
+    expect(e.html).not.toContain("nothing new");
     expect(e.dropped).toBe(
       "4/38 sources failed this run; persistently failing: the_hindu (5x), france24 (3x); started: france24; recovered: bbc",
     );
+  });
+  it("source-health lists a frozen feed apart, by the days since it last brought a new article", () => {
+    const e = alertEmail({
+      kind: "source-health",
+      failing: [],
+      frozen: [["rest_of_world", 14]],
+      frozenDays: 12,
+      failedThisRun: 0,
+      totalSources: 38,
+      threshold: 3,
+      started: ["rest_of_world"],
+      recovered: [],
+    });
+    expect(e.subject).toBe("[Alert] 1 RSS sources failing");
+    expect(e.html).toContain("served nothing new for 12+ days");
+    expect(e.html).toContain("  • rest_of_world: nothing new for 14 days");
+    expect(e.html).not.toContain("times in a row");
+    expect(e.dropped).toBe("0/38 sources failed this run; frozen: rest_of_world (14 days); started: rest_of_world");
   });
   it("run-failed says whether the run timed out and escapes the error text", () => {
     const e = alertEmail({
