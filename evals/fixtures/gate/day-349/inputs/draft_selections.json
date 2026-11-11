@@ -1,0 +1,442 @@
+{
+  "must_know": [
+    {
+      "headline": "Tech rout spreads to Asia and Europe after S&P 500 falls 4.4% on fears of US AI curbs",
+      "summary": "Asian and European stocks fell on Friday after a Wall Street sell-off in which the S&P 500 dropped 4.4%, its worst day since April 2025, according to CBC. Investors fear tighter rules on AI and data centres after Democrats' sweep in the US midterms. Japan's Nikkei 225 and Topix fell nearly 6%, and the Nasdaq entered correction territory, with $2.5 trillion wiped off its value, according to Reuters.",
+      "why_it_matters": "The sell-off ties the AI trade to US politics: markets are pricing a Democratic Congress that could slow data centre building, the spending that had been propping up tech valuations.",
+      "sources": [
+        {
+          "article_id": "A85"
+        },
+        {
+          "article_id": "A176"
+        },
+        {
+          "article_id": "A436"
+        },
+        {
+          "article_id": "A441"
+        },
+        {
+          "article_id": "A197"
+        },
+        {
+          "article_id": "A202"
+        },
+        {
+          "article_id": "A178"
+        },
+        {
+          "article_id": "A428"
+        },
+        {
+          "article_id": "A10"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Financial Times",
+          "angle": "Reports that Donald Trump blamed voters for the tech rout, while futures suggested markets would stabilise at the US open.",
+          "bias": "Business press, centrist",
+          "article_id": "A178"
+        },
+        {
+          "source": "Financial Times",
+          "angle": "Says the sell-off is deep but not yet broad, cautioning against calling a market-wide collapse.",
+          "bias": "Business press, centrist",
+          "article_id": "A181"
+        }
+      ]
+    },
+    {
+      "headline": "Iran says it sent US a nuclear proposal via Qatar, but ties talks to seven demands as tankers are hit in Hormuz",
+      "summary": "Iran has sent Washington a nuclear proposal through Qatar, a senior Iranian official told Reuters, to be discussed only after the US meets Tehran's seven demands. The official said the US was reviewing it. Iran's top security official, Mohsen Rezaei, said Iran will neither reopen the Strait of Hormuz nor negotiate until those conditions are met. They include lifting sanctions, releasing frozen assets and war reparations. Iran also reported three more tankers damaged in Hormuz on Thursday.",
+      "why_it_matters": "Iran is offering a nuclear channel while keeping Hormuz shut and attacking shipping, so it holds its main leverage over oil prices, which Trump has said cost Republicans votes, even as talks move. Washington has said nuclear issues must be part of any first round, so the two sides disagree on the order of talks.",
+      "sources": [
+        {
+          "article_id": "A27"
+        },
+        {
+          "article_id": "A389"
+        },
+        {
+          "article_id": "A235"
+        },
+        {
+          "article_id": "A37"
+        },
+        {
+          "article_id": "A427"
+        },
+        {
+          "article_id": "A319"
+        },
+        {
+          "article_id": "A167"
+        },
+        {
+          "article_id": "A14"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "New York Times",
+          "angle": "Says Iran's willingness to re-engage on the nuclear issue suggests Qatar-led efforts to avert full-blown war have had some success.",
+          "bias": "Center-left",
+          "article_id": "A319"
+        },
+        {
+          "source": "Deutsche Welle",
+          "angle": "Reports that Iran's government says the US midterms will not change Washington's policy, while some officials and commentators see the Democratic win as blowback against the war.",
+          "bias": "Center",
+          "article_id": "A153"
+        }
+      ]
+    },
+    {
+      "headline": "Eisenkot wins 67 Knesset endorsements over Netanyahu; Herzog to name coalition-builder Sunday",
+      "summary": "Opposition leader Gadi Eisenkot of Yashar secured recommendations from 67 lawmakers, including Arab parties, after two days of talks with President Isaac Herzog. Herzog said he will announce on Sunday, Nov. 8, whom he will task with trying to form a government. The Globe and Mail reports that neither Eisenkot nor Netanyahu has a clear path to a majority.",
+      "why_it_matters": "Eisenkot's lead rests on Arab-party recommendations, the same votes Netanyahu and his allies have attacked with fraud allegations that election officials say could not have changed the result, so any coalition Eisenkot builds will be contested on legitimacy as well as numbers.",
+      "sources": [
+        {
+          "article_id": "A40"
+        },
+        {
+          "article_id": "A194"
+        },
+        {
+          "article_id": "A574"
+        },
+        {
+          "article_id": "A222"
+        },
+        {
+          "article_id": "A335"
+        },
+        {
+          "article_id": "A11"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "NYT",
+          "angle": "Netanyahu and allies allege Arab voters stole the election; election officials say any foul play under investigation could not have affected the result.",
+          "bias": "Center-left",
+          "article_id": "A335"
+        },
+        {
+          "source": "Globe and Mail",
+          "angle": "Stresses that neither Netanyahu nor Eisenkot has a clear path to a parliamentary majority, despite Eisenkot's lead in recommendations.",
+          "bias": "Center",
+          "article_id": "A222"
+        }
+      ]
+    },
+    {
+      "headline": "Trump predicts 'big' Russia deal covering 'all of Europe' after meeting Putin envoy Dmitriev",
+      "summary": "President Trump said Thursday he met Kirill Dmitriev, Russian President Putin's envoy, and predicted an imminent agreement covering Ukraine and \"all of Europe\". The remarks followed a White House event where first lady Melania Trump hosted Russian and Ukrainian officials to mark the Oleshky ceasefire, which ran from Oct. 27 to Nov. 1. On Friday the Kremlin said Europe was struggling to decide who would speak for it in any future security talks.",
+      "why_it_matters": "A deal Trump describes as covering all of Europe is being shaped in talks where, by the Kremlin's own account, Europeans have not settled who represents them, so terms could be set before they have a voice.",
+      "sources": [
+        {
+          "article_id": "A494"
+        },
+        {
+          "article_id": "A385"
+        },
+        {
+          "article_id": "A545"
+        },
+        {
+          "article_id": "A133"
+        },
+        {
+          "article_id": "A228"
+        },
+        {
+          "article_id": "A72"
+        },
+        {
+          "article_id": "A505"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "New York Times",
+          "angle": "Says Moscow and Kyiv both credit Mrs. Trump's team as the driving force behind the evacuation of Oleshky, and that both had reason to hand her a humanitarian win.",
+          "bias": "Center-left",
+          "article_id": "A328"
+        },
+        {
+          "source": "The Guardian",
+          "angle": "Presents the White House event as a ceremony in which both sides flattered the first lady while war continued in Kyiv and other cities.",
+          "bias": "Left",
+          "article_id": "A582"
+        },
+        {
+          "source": "Der Spiegel",
+          "angle": "Notes Trump recently wanted Russian help to import diesel, and says his turn to a political deal likely alarms Europeans.",
+          "bias": "Center-left",
+          "article_id": "A133"
+        }
+      ]
+    },
+    {
+      "headline": "Democrats plan Trump probes and eye 2028 as Trump keeps control of foreign policy",
+      "summary": "After Democrats took both the House and Senate in Tuesday's midterms, they are drawing up investigations into Trump family business dealings, the administration's handling of the Epstein case and ICE operations. The Guardian's live blog says Democrats have passed 250 House seats, with more races still being called. Reuters analysis says Trump is diminished in Washington but still commands foreign policy, and the 2028 presidential race is already opening up.",
+      "why_it_matters": "Congress can now probe and block domestic policy, but the foreign-policy powers that matter most to Ukraine, Iran and NATO stay with a weakened president who may respond with new excesses, as the Guardian editorial warns.",
+      "sources": [
+        {
+          "article_id": "A31"
+        },
+        {
+          "article_id": "A230"
+        },
+        {
+          "article_id": "A233"
+        },
+        {
+          "article_id": "A573"
+        },
+        {
+          "article_id": "A215"
+        },
+        {
+          "article_id": "A308"
+        },
+        {
+          "article_id": "A322"
+        },
+        {
+          "article_id": "A598"
+        },
+        {
+          "article_id": "A479"
+        },
+        {
+          "article_id": "A89"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "New York Times",
+          "angle": "Europeans feel private relief but show no official glee, because Ukraine, Iran and NATO still depend on Trump.",
+          "bias": "Mainstream, centre-left",
+          "article_id": "A308"
+        },
+        {
+          "source": "The Guardian",
+          "angle": "Voters have given Democrats new powers to constrain Trump, but the defeat could push him to new excesses.",
+          "bias": "Left-leaning",
+          "article_id": "A598"
+        },
+        {
+          "source": "Reuters (via Al-Monitor)",
+          "angle": "The Republican losses leave Trump diminished at home, yet he still holds the levers of foreign policy.",
+          "bias": "Centrist wire service",
+          "article_id": "A31"
+        }
+      ]
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Bank of England raises rates for first time since 2023 and says more may come",
+      "summary": "The Bank of England raised interest rates on Thursday, its first increase since 2023, and said further rises may follow, according to Reuters. The Wall Street Journal ties the move to the Iran war, which has lifted energy prices. It adds that prices have fallen since the US midterms raised hopes for an end to the war.",
+      "sources": [
+        {
+          "article_id": "A434"
+        },
+        {
+          "article_id": "A667"
+        }
+      ]
+    },
+    {
+      "headline": "Paraguay's Peña resigns over Ueno bank collapse; lawmakers impeach him and reportedly refuse the resignation",
+      "summary": "Paraguayan President Santiago Peña announced his resignation on Thursday after the collapse of the digital lender Ueno froze access to millions of accounts. The lower house voted to impeach him minutes later. Clarín reports the legislature declined to accept the resignation, so he must face an impeachment trial in the Senate, and he says he will appear and defend himself. Clarín also reports the attorney general opened three criminal cases over the bank's collapse.",
+      "sources": [
+        {
+          "article_id": "A410"
+        },
+        {
+          "article_id": "A212"
+        },
+        {
+          "article_id": "A305"
+        },
+        {
+          "article_id": "A92"
+        },
+        {
+          "article_id": "A93"
+        },
+        {
+          "article_id": "A94"
+        },
+        {
+          "article_id": "A495"
+        }
+      ]
+    },
+    {
+      "headline": "Malaysian court orders Najib moved to house arrest, but attorney general suspends transfer",
+      "summary": "A court issued an order moving jailed ex-PM Najib Razak to house arrest after his party UMNO paid a 50 million ringgit ($12m) fine, his lawyer said on Friday. The attorney general's chambers then said the transfer was temporarily suspended, and that Najib stays in prison while legal questions over his conditional royal pardon are clarified. Najib, jailed since 2022 over the 1MDB scandal, denies wrongdoing; UMNO used crowdfunding to pay the fine because his bank accounts are frozen, and the king agreed to the pardon in September.",
+      "sources": [
+        {
+          "article_id": "A1"
+        },
+        {
+          "article_id": "A104"
+        },
+        {
+          "article_id": "A299"
+        },
+        {
+          "article_id": "A354"
+        }
+      ]
+    },
+    {
+      "headline": "Defeated Brazilian candidate Flávio Bolsonaro says he will keep his escape secret; Milei adviser reportedly helped",
+      "summary": "Speaking from Miami, Flávio Bolsonaro told The New York Times he will take the secret of how he left Brazil \"to the grave\". He also questioned the election result after Lula's win and denied receiving help from other governments. The Times reported, citing three people involved, that a top adviser to Argentine President Javier Milei met him at an Argentine airport. It said his stolen-election claims are unfounded and his party is not challenging the results.",
+      "sources": [
+        {
+          "article_id": "A90"
+        },
+        {
+          "article_id": "A317"
+        },
+        {
+          "article_id": "A318"
+        }
+      ]
+    },
+    {
+      "headline": "Putin receives Iran's security chief Rezaei, who delivers a message from Supreme Leader Khamenei",
+      "summary": "Russian President Vladimir Putin met Mohsen Rezaei, secretary of Iran's Supreme National Security Council, at the Kremlin on Thursday. Rezaei delivered a letter from Supreme Leader Mojtaba Khamenei, whose contents he did not disclose. He said they discussed post-war regional security and a gas pipeline from Russia to Iran, and repeated that Tehran will not open the Strait of Hormuz or hold talks until the US meets seven conditions. Separately, the Guardian reported, citing leaked documents, that Russia arranged to supply Iran with 90 launchers for advanced guided missiles, and Der Spiegel said Moscow reportedly promised Tehran military equipment.",
+      "sources": [
+        {
+          "article_id": "A24"
+        },
+        {
+          "article_id": "A35"
+        },
+        {
+          "article_id": "A423"
+        },
+        {
+          "article_id": "A554"
+        },
+        {
+          "article_id": "A140"
+        },
+        {
+          "article_id": "A612"
+        }
+      ]
+    },
+    {
+      "headline": "Xi heads into Shenzhen Apec summit with US truce likely to be extended and a purged party elite",
+      "summary": "Trump and Xi are expected to meet at the Apec summit in Shenzhen later this month, and one Tsinghua scholar writing in the South China Morning Post expects their trade truce to be extended. The truce, agreed in South Korea last October, suspended US port fees on Chinese-built ships and Chinese rare-earth export controls. The New York Times says a China summit that also involved Putin would pose uncomfortable choices for Xi on Ukraine and nuclear arms limits. Meanwhile, The Diplomat reports that the party's fifth plenum, which closed Oct. 29, was missing 43 full members and 54 alternates, after 33 expulsions.",
+      "sources": [
+        {
+          "article_id": "A471"
+        },
+        {
+          "article_id": "A314"
+        },
+        {
+          "article_id": "A564"
+        }
+      ]
+    },
+    {
+      "headline": "Putin orders seizure of Japan Tobacco's Russian business; Tokyo demands reversal",
+      "summary": "President Putin ordered Russia to take control of Japan Tobacco's Russian assets, including its factories, and Japan has demanded Moscow reverse the move. Japan Tobacco runs the largest cigarette company in the Russian market, according to the Financial Times, and is the latest foreign firm to lose control of its operations in a widening Kremlin crackdown. The Wall Street Journal reports the move follows a Russian pattern of targeting Western firms over Ukraine and of punishing Tokyo.",
+      "sources": [
+        {
+          "article_id": "A179"
+        },
+        {
+          "article_id": "A296"
+        },
+        {
+          "article_id": "A429"
+        },
+        {
+          "article_id": "A525"
+        },
+        {
+          "article_id": "A671"
+        }
+      ]
+    },
+    {
+      "headline": "US extends suspension of export restrictions on Chinese firms",
+      "summary": "The US has extended its suspension of export restrictions on Chinese firms, according to Nikkei Asia. Separately, the Federal Communications Commission voted on Oct. 29 to stop recognising testing labs in China and other economies without a reciprocal recognition deal with the US, effective Dec. 1, 2028, an SCMP opinion piece says. FCC chairman Brendan Carr cited that about 82% of US equipment-authorisation applications last year involved testing firms in China.",
+      "sources": [
+        {
+          "article_id": "A275"
+        },
+        {
+          "article_id": "A478"
+        }
+      ]
+    },
+    {
+      "headline": "Pope Leo leaves for 12-day South America tour weeks after lung cancer surgery",
+      "summary": "Pope Leo XIV, 71, left on Friday for Uruguay, Argentina and Peru, his first major trip since part of a lung was removed last month. Reuters reports crowds in the millions are expected as the first US-born pope returns to a Catholic stronghold. A US-based clergy abuse watchdog used the eve of the visit to call for a truth commission on Church abuse in Peru.",
+      "sources": [
+        {
+          "article_id": "A59"
+        },
+        {
+          "article_id": "A103"
+        },
+        {
+          "article_id": "A138"
+        },
+        {
+          "article_id": "A304"
+        },
+        {
+          "article_id": "A311"
+        },
+        {
+          "article_id": "A312"
+        },
+        {
+          "article_id": "A361"
+        },
+        {
+          "article_id": "A524"
+        },
+        {
+          "article_id": "A527"
+        },
+        {
+          "article_id": "A550"
+        }
+      ]
+    },
+    {
+      "headline": "Meloni asks EU to settle who speaks for Europe in Ukraine talks after Stubb and Støre call Putin",
+      "summary": "Italian Prime Minister Giorgia Meloni wrote to EU Council President António Costa demanding a binding decision on who sits at the table for the EU in Ukraine peace talks, and with what mandate. She wants it discussed at next week's informal European Council in Dublin, with a formal decision at the Dec. 17-18 summit in Brussels. Costa replied that he would schedule time for the discussion. Rome had criticised an uncoordinated call to Putin in late October by Finland's President Alexander Stubb and Norway's Prime Minister Jonas Gahr Støre.",
+      "sources": [
+        {
+          "article_id": "A135"
+        }
+      ]
+    },
+    {
+      "headline": "OpenAI drops NDAs for data center projects after midterm vote against expansion",
+      "summary": "OpenAI announced new commitments to communities where it is working on data center projects, including stepping back from nondisclosure agreements, according to The Verge. The move follows this week's midterms, where The Verge says voters resoundingly voiced opposition to data center expansion.",
+      "sources": [
+        {
+          "article_id": "A647"
+        }
+      ]
+    }
+  ],
+  "preheader": ""
+}

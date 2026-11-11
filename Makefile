@@ -149,6 +149,14 @@ judges: ## Two judge families x5 (REPS=5) on a gate fixture (FIXTURE=day-300, or
 	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/#g" digest/gate/judges.yaml > digest/gate/judges.run.yaml; \
 	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) && $(PROMPTFOO_IN) eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json && node dist/cli/agreement.js ../data/judges-$$(echo $$fx | tr / -)-$$stamp.json"
 
+FIXTURE_ARTIFACTS = ^(articles_[0-9]+\.csv|selections\.json|draft_selections\.json|article_fulltext\.json|digest\.html)$$
+fixture: ## Export production run RUN=N as the judge fixture evals/fixtures/gate/day-N: its artifacts over bin/ops (read-only), URLs scrubbed from the inputs
+	@test -n "$(RUN)" || { echo "usage: make fixture RUN=349"; exit 2; }; raw=data/fixture-raw/$(RUN); mkdir -p $$raw && \
+	names=$$(bin/ops artifacts $(RUN) | jq -re '.rows[] | select(.status == "current") | .name' | grep -E '$(FIXTURE_ARTIFACTS)') && \
+	for n in $$names; do bin/ops artifact $(RUN) $$n > $$raw/$$n || exit 1; done && bin/ops run $(RUN) > $$raw/run.json && \
+	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures" digest-replay \
+	  node dist/cli/fixture.js export /app/data/fixture-raw/$(RUN) /app/evals/fixtures/gate/day-$(RUN)
+
 planted: ## COHERENCE planted-defect band on the new runner via promptfoo, in the worker container (REPS=3; ~$1/rep)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); $(EVAL_RUN) $(PROMPTFOO_IN) eval -c gate/planted.yaml --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json
 

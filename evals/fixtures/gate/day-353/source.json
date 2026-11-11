@@ -1,0 +1,16 @@
+{
+  "run": 353,
+  "date": "2026-11-10",
+  "git_sha": "5a1d9a9",
+  "artifacts": {
+    "article_fulltext.json": "sha256:c70937c54c09c66c32378e1e75b264551be1764ed7738e9a8115a23c4ac4b051",
+    "articles_1.csv": "sha256:8150d081f2922c034c3768c12d5bf0143341b05e5899d3d1830b9fa319c4078f",
+    "articles_2.csv": "sha256:ecc2155595ffa0d4beb9bb0301ecd6045d73456285c2723439e5ff2b2adc0ab3",
+    "articles_3.csv": "sha256:d321159e0b7d5576c0bfef0db16707a58e54e317c00a470006c8917f3e74f484",
+    "articles_4.csv": "sha256:2e086060ba0d6fc87f7cd22ac79a8eb7aeeaf3fbca748991497c34dcc8defa4e",
+    "articles_5.csv": "sha256:2b9b798a15dd71671922f46da360102f9c4334cf506f76938136872a1b057b8e",
+    "digest.html": "sha256:2ba41e65939b67ee29723e0b8417cec8f242780b1e9bcc73f8fc21b3a0ef1923",
+    "draft_selections.json": "sha256:fb4271da49884dc73927ab620bc2563793244629e6d1e1fc5265f8ad0134232f",
+    "selections.json": "sha256:0f7feb728f3189b829f74990c2b087be0de96922a636a6a6c1f78db261bc6022"
+  }
+}

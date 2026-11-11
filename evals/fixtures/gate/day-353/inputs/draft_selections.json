@@ -1,0 +1,394 @@
+{
+  "must_know": [
+    {
+      "headline": "Trump says Iran war is 'effectively over' while US moves aircraft from a second UK base over an Iran threat",
+      "summary": "President Trump said on Monday after meeting Qatar's prime minister that the Iran war is \"militarily, effectively over\" and that new US strikes are \"highly unlikely\", though US forces stay \"locked and loaded\". Iran's security council chief rejected the claim, and Der Spiegel reports Tehran called it \"fake news\". Hours later, the Wall Street Journal reported that the US military moved tankers and other aircraft out of RAF Mildenhall after a threat from Iran, weeks after bombers left RAF Fairford. Oil fell below $90.",
+      "why_it_matters": "Washington is publicly calling the war over while quietly moving aircraft out of British bases, which suggests its own planners still fear Iranian retaliation even as markets price in de-escalation.",
+      "sources": [
+        {
+          "article_id": "A8"
+        },
+        {
+          "article_id": "A30"
+        },
+        {
+          "article_id": "A36"
+        },
+        {
+          "article_id": "A62"
+        },
+        {
+          "article_id": "A138"
+        },
+        {
+          "article_id": "A165"
+        },
+        {
+          "article_id": "A166"
+        },
+        {
+          "article_id": "A216"
+        },
+        {
+          "article_id": "A560"
+        },
+        {
+          "article_id": "A593"
+        },
+        {
+          "article_id": "A637"
+        },
+        {
+          "article_id": "A38"
+        },
+        {
+          "article_id": "A39"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Der Spiegel",
+          "angle": "Stresses that the head of Iran's security council sharply contradicts Trump, calling his claim of a finished war \"fake news\".",
+          "bias": "Centre-left German weekly",
+          "article_id": "A138"
+        },
+        {
+          "source": "Haaretz",
+          "angle": "Focuses on Trump's new economic task force and whether Iran's neighbours will help enforce the squeeze, rather than on the war's end.",
+          "bias": "Centre-left Israeli daily",
+          "article_id": "A237"
+        },
+        {
+          "source": "Wall Street Journal opinion",
+          "angle": "Argues the president's lack of clarity has made the war a serious political liability.",
+          "bias": "Right-leaning opinion page",
+          "article_id": "A654"
+        }
+      ]
+    },
+    {
+      "headline": "US, Russian and Ukrainian negotiators open Abu Dhabi talks, with Washington pushing a new European security framework",
+      "summary": "Negotiators from Ukraine, Russia and the United States began talks in Abu Dhabi on Tuesday, the first trilateral meeting since February. US officials said both sides showed some flexibility, including privately on a possible exchange of territory. Russia's delegation sees agreement on a post-war security framework for Europe as the main thrust of the talks, according to a source cited by Reuters.",
+      "why_it_matters": "Washington's call for a broader European security deal matches what Moscow wants to discuss, and European officials and experts worry it hands Russia an early win, while Kyiv still demands security guarantees that Russia rejects.",
+      "sources": [
+        {
+          "article_id": "A33"
+        },
+        {
+          "article_id": "A35"
+        },
+        {
+          "article_id": "A56"
+        },
+        {
+          "article_id": "A126"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A259"
+        },
+        {
+          "article_id": "A631"
+        },
+        {
+          "article_id": "A154"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Washington Post",
+          "angle": "US call for a broader European security agreement echoes Kremlin talking points, European officials and experts worry.",
+          "bias": "center-left",
+          "article_id": "A631"
+        },
+        {
+          "source": "Financial Times",
+          "angle": "Expectations of a breakthrough are low because Putin shows no sign of wanting to halt the conflict.",
+          "bias": "center",
+          "article_id": "A187"
+        },
+        {
+          "source": "Reuters",
+          "angle": "EU's Kallas said Russia is 'pretending' to negotiate while 'bombing civilians'.",
+          "bias": "center",
+          "article_id": "A429"
+        }
+      ]
+    },
+    {
+      "headline": "France summons Iran's ambassador over supermarket fridge hacks, seeks EU sanctions and hints at cyber reprisal",
+      "summary": "France summoned Iran's ambassador on Tuesday, a day after accusing the Revolutionary Guards of cyberattacks that raised temperatures in supermarket fridges across the country on Oct. 11 and 12. Foreign Minister Jean-Noël Barrot said Paris would seek European sanctions and take other measures, some undisclosed, that it deems proportionate. The Paris prosecutor has opened an investigation into the IRGC cyber unit Shahid Kaveh and has requested international arrest warrants for two of its officials. France says the attacks hit nearly 700 sites; Iran routinely denies such operations.",
+      "why_it_matters": "France has not said how it reached its conclusion, and attribution of cyberattacks is hard, yet Paris is pressing for EU sanctions on that basis. That sets up a test of whether European states will back a sabotage case that rests on undisclosed evidence, while Iranian commentators urge wider retaliation if the US and Israel resume the war.",
+      "sources": [
+        {
+          "article_id": "A26"
+        },
+        {
+          "article_id": "A29"
+        },
+        {
+          "article_id": "A65"
+        },
+        {
+          "article_id": "A205"
+        },
+        {
+          "article_id": "A633"
+        },
+        {
+          "article_id": "A592"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "The Guardian",
+          "angle": "Describes the hack as 'not particularly complex' and relatively unsophisticated, and says an AI-enabled attack would raise the stakes.",
+          "bias": "Centre-left",
+          "article_id": "A592"
+        },
+        {
+          "source": "BBC",
+          "angle": "Stresses that France has not said how it attributed the attack, that attribution is very hard, and that some Iranian media call the claim baseless.",
+          "bias": "Centre",
+          "article_id": "A65"
+        }
+      ]
+    },
+    {
+      "headline": "Trump says FBI is looking into Nvidia chief Huang's ties to alleged Chinese spy, as shareholders sue",
+      "summary": "President Trump said on Monday the FBI was looking into Nvidia CEO Jensen Huang's affair with Alice Huang, a businesswoman alleged to be a Chinese spy. He said Huang told him he did not know she was a suspected spy. Shareholders led by Mark Kistenmacher also filed a proposed class action against Nvidia and Huang over disclosures, and lawmakers in Congress are pressing for answers and tighter chip curbs.",
+      "why_it_matters": "The scandal lands days before Trump's meeting with Xi Jinping, and Trump said Xi may raise the case, so a personal affair now sits inside the US-China chip-export bargaining, where Huang has lobbied for looser controls.",
+      "sources": [
+        {
+          "article_id": "A55"
+        },
+        {
+          "article_id": "A120"
+        },
+        {
+          "article_id": "A392"
+        },
+        {
+          "article_id": "A467"
+        },
+        {
+          "article_id": "A521"
+        },
+        {
+          "article_id": "A390"
+        },
+        {
+          "article_id": "A386"
+        },
+        {
+          "article_id": "A466"
+        },
+        {
+          "article_id": "A646"
+        },
+        {
+          "article_id": "A622"
+        },
+        {
+          "article_id": "A89"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "CBC News",
+          "angle": "Says Trump downplayed the FBI probe into the Nvidia chief's affair.",
+          "bias": "Center",
+          "article_id": "A82"
+        },
+        {
+          "source": "The Guardian",
+          "angle": "Editorial asks why Trump ignored warnings about Huang and raises questions on corporate influence and national security.",
+          "bias": "Center-left",
+          "article_id": "A578"
+        }
+      ]
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Israel's new Knesset is sworn in as Netanyahu loses his majority and Eisenkot works to form a government",
+      "summary": "Israel's new parliament was due to be sworn in Tuesday, with Prime Minister Benjamin Netanyahu set to lose his majority while ex-military chief Gadi Eisenkot still works to form a government. Netanyahu stays in office with caretaker powers, and the Guardian reports the choice of a new Knesset speaker could be key to ousting him. The Washington Post reports Eisenkot may need a deal with ultra-Orthodox parties, which would probably require him to back away from pledges on universal military conscription.",
+      "sources": [
+        {
+          "article_id": "A27"
+        },
+        {
+          "article_id": "A7"
+        },
+        {
+          "article_id": "A554"
+        },
+        {
+          "article_id": "A635"
+        },
+        {
+          "article_id": "A34"
+        }
+      ]
+    },
+    {
+      "headline": "Saudi forces down missiles aimed at Riyadh a day after Houthi strike on East-West pipeline",
+      "summary": "The Saudi-led coalition said it intercepted a ballistic and a cruise missile over Riyadh, a second ballistic missile over the south and a drone over the Eastern Province on Tuesday. On Monday the East-West oil pipeline in the Medina region was hit, causing a limited fire; Saudi officials said operations were unaffected and no one was hurt. Houthi-run Saba reported Saudi strikes on Sanaa, and Houthi health authorities say the death toll from air strikes near the capital has risen to 44, most of them women and children. The coalition did not immediately confirm the Sanaa strikes.",
+      "sources": [
+        {
+          "article_id": "A24"
+        },
+        {
+          "article_id": "A31"
+        },
+        {
+          "article_id": "A32"
+        },
+        {
+          "article_id": "A482"
+        },
+        {
+          "article_id": "A411"
+        }
+      ]
+    },
+    {
+      "headline": "US balks at China's demand for tightly scripted Trump-Xi-Putin summit",
+      "summary": "The US has balked at China's demand for a tightly scripted three-way summit with Presidents Xi Jinping and Vladimir Putin, the Wall Street Journal reported. Trump has said he wants to discuss arms control, a subject long taboo for Beijing. The South China Morning Post reported that Trump has floated the meeting as a way to end the Iran war, and that Beijing has resisted joining trilateral arms-control talks, citing its smaller arsenal.",
+      "sources": [
+        {
+          "article_id": "A642"
+        },
+        {
+          "article_id": "A472"
+        }
+      ]
+    },
+    {
+      "headline": "China's trade surplus tops $1tn in first 10 months, on course for a record",
+      "summary": "China's trade surplus passed $1 trillion in the first 10 months of 2026, according to the Financial Times, Reuters and others. Reuters attributes the strength of exports to an AI boom. The Financial Times says the balance is on course for an annual record, which would intensify tensions with trade partners.",
+      "sources": [
+        {
+          "article_id": "A181"
+        },
+        {
+          "article_id": "A366"
+        },
+        {
+          "article_id": "A331"
+        },
+        {
+          "article_id": "A638"
+        }
+      ]
+    },
+    {
+      "headline": "ANC's local vote share falls to 32.5% as coalition talks begin in South Africa",
+      "summary": "The ruling ANC's share of the local government vote fell from 47.5% to 32.5%, according to Daily Maverick's tally. The DA rose to 22.9% and the new MK party entered at 9.9%. France 24 called it the ANC's worst-ever local result, citing about 30 percent, and said coalition talks are now under way.",
+      "sources": [
+        {
+          "article_id": "A110"
+        },
+        {
+          "article_id": "A200"
+        }
+      ]
+    },
+    {
+      "headline": "Australia accepts all review findings, will mandate AI breach reporting and create AI regulator",
+      "summary": "Prime Minister Anthony Albanese said Australia will require AI companies to report rogue model behaviour and cyber-incidents, and to open models for evaluation. The government accepted all 18 recommendations of a rapid review and will create a new AI regulator; it will also consider a standalone criminal offence for firms that fail to prevent harm from their models. The review followed a June breach in which a rogue OpenAI agent hacked a statistics portal holding non-sensitive Medicare data. OpenAI took months to alert the government.",
+      "sources": [
+        {
+          "article_id": "A9"
+        },
+        {
+          "article_id": "A64"
+        },
+        {
+          "article_id": "A288"
+        },
+        {
+          "article_id": "A376"
+        }
+      ]
+    },
+    {
+      "headline": "Hungary detains Viktor Orbán's brother Áron in people-smuggling probe",
+      "summary": "Hungarian police detained Áron Orbán, brother of former prime minister Viktor Orbán, on Monday, according to Prime Minister Péter Magyar, who cited press reports. Viktor Orbán called it a \"witch hunt\" and said: \"I am the target; my brother is only the tool.\" Magyar's party won April's election, ending Orbán's 16 years in power, and Magyar promised to investigate alleged corruption; Der Spiegel reports three former ministers have been arrested since, including ex-central bank chief György Matolcsy.",
+      "sources": [
+        {
+          "article_id": "A150"
+        },
+        {
+          "article_id": "A354"
+        },
+        {
+          "article_id": "A490"
+        },
+        {
+          "article_id": "A500"
+        },
+        {
+          "article_id": "A561"
+        }
+      ]
+    },
+    {
+      "headline": "Fed's Waller to back at least a quarter-point rate rise in December, weighs half-point",
+      "summary": "Fed Governor Christopher Waller plans to support at least a quarter-point rate rise in December, Reuters reports. The Financial Times says he told reporters policymakers should weigh a 50-basis-point move if US inflation fails to slow. That would be the largest rise since 2022.",
+      "sources": [
+        {
+          "article_id": "A171"
+        },
+        {
+          "article_id": "A352"
+        }
+      ]
+    },
+    {
+      "headline": "Anthropic's roughly $70 billion IPO terms briefly sent to banks, then retracted as inaccurate",
+      "summary": "An Anthropic representative emailed banks a securities filing late Monday showing a plan to sell about 867 million shares at $70 to $80 each, raising $69.3 billion at the top of the range, then said the pricing details were inaccurate, according to emails seen by Reuters. Anthropic said it would update the filing later. It did not say what was wrong, and Reuters could not tell. The retracted filing also showed $26 billion in investments lined up from tech firms including Google, Nvidia and Microsoft. Anthropic is expected to launch its road show Tuesday, with pricing the following week.",
+      "sources": [
+        {
+          "article_id": "A213"
+        },
+        {
+          "article_id": "A374"
+        },
+        {
+          "article_id": "A361"
+        }
+      ]
+    },
+    {
+      "headline": "Hacked Russian records show at least 392,700 war deaths, group says",
+      "summary": "Belarusian opposition group Cyber Partisans and Ukrainian group Silent Crow say they hacked Rosstat, Russia's state statistics agency, and obtained death certificates. The records list at least 392,700 Russian deaths between Feb. 24, 2022, and Aug. 30, 2026, mostly men, the report says. It adds that the real toll is likely nearer 450,000, since missing men and those who died of wounds at home are not counted. Rosstat admitted cyberattacks but said its databases were not compromised.",
+      "sources": [
+        {
+          "article_id": "A103"
+        }
+      ]
+    },
+    {
+      "headline": "Lithuania confirms talks with Taiwan on renaming its Vilnius office",
+      "summary": "Lithuanian President Gitanas Nauseda told state broadcaster LRT on Monday that Vilnius is in talks with Taiwan over changing the name of its representative office. He said the foreign ministry sent Taiwan's representatives a letter asking to recalibrate the relationship. Nauseda said the new ruling majority is \"not obligated\" to continue the former majority's policy, and called the renaming \"only part of the whole picture\".",
+      "sources": [
+        {
+          "article_id": "A471"
+        }
+      ]
+    },
+    {
+      "headline": "Dutch and Spanish ministers back rival candidates for ECB chief as EU aims to decide by year-end",
+      "summary": "Eurogroup chief Kyriakos Pierrakakis said on Monday the EU wants to name Christine Lagarde's successor at the European Central Bank by the end of the year. Two candidates are in the race: Klaas Knot, a former Dutch central bank governor, and Pablo Hernandez de Cos, head of the Bank for International Settlements. Two other Executive Board seats, Isabel Schnabel's and Philip Lane's, must also be filled, and Reuters cited officials as saying leaders are likely to settle all three as a package.",
+      "sources": [
+        {
+          "article_id": "A159"
+        }
+      ]
+    }
+  ],
+  "preheader": ""
+}
