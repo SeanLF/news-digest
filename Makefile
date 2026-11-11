@@ -148,14 +148,14 @@ band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via prom
 
 judges: ## Two judge families on a gate fixture (FIXTURE=day-349, or e.g. day-305/python): REPS=5 on the digest, PLANTED_REPS=3 on its planted copy; a judge that misses the planted defects fails the run (model calls, ~$7)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); fx=$${FIXTURE:-day-349}; test -f evals/fixtures/gate/$$fx/planted/plants.json || { echo "no fixture evals/fixtures/gate/$$fx/{digest.html,inputs/,planted/}: make fixture RUN=N, or fixture.js plant on an older one"; exit 2; }; \
-	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/#g" digest/gate/judges.yaml > digest/gate/judges.run.yaml; \
-	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/planted/#g" digest/gate/judges.yaml > digest/gate/judges.planted.yaml; \
-	out=../data/judges-$$(echo $$fx | tr / -)-$$stamp; \
+	run=judges.$$(echo $$fx | tr / -).$$stamp; out=../data/judges-$$(echo $$fx | tr / -)-$$stamp; \
+	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/#g" digest/gate/judges.yaml > digest/gate/$$run.yaml; \
+	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/planted/#g" digest/gate/judges.yaml > digest/gate/$$run.planted.yaml; \
 	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) || exit 2; \
-	  $(PROMPTFOO_IN) eval -c gate/judges.run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o $$out.json; \
-	  $(PROMPTFOO_IN) eval -c gate/judges.planted.yaml --repeat $${PLANTED_REPS:-3} -j 1 --no-cache -o $$out-planted.json; \
+	  $(PROMPTFOO_IN) eval -c gate/$$run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o $$out.json; \
+	  $(PROMPTFOO_IN) eval -c gate/$$run.planted.yaml --repeat $${PLANTED_REPS:-3} -j 1 --no-cache -o $$out-planted.json; \
 	  node dist/cli/agreement.js ../evals/fixtures/gate/$$fx $$out.json $$out-planted.json $$out-report.json; rc=\$$?; v=fail; [ \$$rc = 0 ] && v=pass; \
-	  node dist/cli/ledger.js --eval judges --config gate/judges.yaml:$$fx --sha $(EVAL_SHA) --verdict \$$v --note data/$$(basename $$out)-report.json $$out.json $$out-planted.json; exit \$$rc"
+	  node dist/cli/ledger.js --eval judges --config gate/judges.yaml:$$fx --sha $(EVAL_SHA) --verdict \$$v --note data/$$(basename $$out)-report.json $$out.json $$out-planted.json; exit \$$rc"; rc=$$?; rm -f digest/gate/$$run.yaml digest/gate/$$run.planted.yaml; exit $$rc
 
 FIXTURE_ARTIFACTS = ^(articles_[0-9]+\.csv|selections\.json|draft_selections\.json|article_fulltext\.json|digest\.html)$$
 fixture: ## Export production run RUN=N as the judge fixture evals/fixtures/gate/day-N: its artifacts over bin/ops (read-only), URLs scrubbed from the inputs
@@ -180,10 +180,11 @@ fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved c
 # PROMPTFOO_EVAL_TIMEOUT_MS bounds each judgement, so a stuck judge fails its test.
 # The Codex CLI the judge runs, installed per run at a pinned version with its platform binary named
 # explicitly: npx's own resolution sometimes drops that optional dependency (npm/cli#4828), and the
-# judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here.
+# judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here. Each make judges writes its configs under a name of its
+# own (digest/gate/judges.<fixture>.<stamp>*.yaml) and mounts those, so runs on several fixtures go in parallel.
 CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
-JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(CURDIR)/digest/gate/judges.planted.yaml:/app/digest/gate/judges.planted.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
+JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) -v "$(CURDIR)/digest/gate/$$run.yaml:/app/digest/gate/$$run.yaml:ro" -v "$(CURDIR)/digest/gate/$$run.planted.yaml:/app/digest/gate/$$run.planted.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
 # The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
 # scan): installed in the dev image for the in-container evals, and on the host for band and fulltext-fork.
 EVAL_RUN = $(COMPOSE) run --rm --build --no-deps $(EVAL_MOUNTS) digest-replay

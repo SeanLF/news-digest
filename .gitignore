@@ -36,7 +36,6 @@ digest/dist
 digest/bundle
 digest/sbom.cdx.json
 
-# make judges writes the fixture-specific configs here
-digest/gate/judges.run.yaml
-digest/gate/judges.planted.yaml
+# make judges writes each run's fixture-specific configs here
+digest/gate/judges.*.yaml
 
