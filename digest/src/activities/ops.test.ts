@@ -24,11 +24,17 @@ afterEach(async () => {
 });
 
 describe("ops activities", () => {
-  it("checkRunHealth returns a run-health alert for a violating run and logs the coherence failure kinds", async () => {
+  it("checkRunHealth returns a run-health alert for a violating run and logs the coherence failure kinds and stale figures", async () => {
     const logSpy = vi.spyOn(log, "info").mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(log, "warn").mockImplementation(() => undefined);
     vi.spyOn(log, "error").mockImplementation(() => undefined);
     const path = await db();
     const store = new ArtifactStore(path);
+    await store.put(
+      305,
+      "attribution.json",
+      JSON.stringify({ input: "x", stories: { k: { stale: [{ text: "a" }, { text: "b" }] } } }),
+    );
     await store.put(
       305,
       "coherence_report.json",
@@ -51,6 +57,7 @@ describe("ops activities", () => {
       runId: 305,
       failureKinds: { contradicted: 0, unsupported: 1, unlabelled: 0 },
     });
+    expect(warnSpy).toHaveBeenCalledWith({ stage: "attribute", runId: 305, staleFigures: 2 });
   });
   it("checkRunHealth is best-effort: a database it cannot read returns no alert instead of failing the run", async () => {
     const err = vi.spyOn(log, "error").mockImplementation(() => undefined);

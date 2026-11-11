@@ -12,6 +12,8 @@ export type AlertRequest =
       failedThisRun: number;
       totalSources: number;
       threshold: number;
+      started: string[];
+      recovered: string[];
     }
   | {
       kind: "run-failed";
@@ -61,15 +63,20 @@ ${FOOTER}`,
     }
     case "source-health": {
       const listed = req.failing.map(([id, n]) => `  • ${htmlEscape(id)}: ${n} consecutive failures`).join("\n");
+      const changes = [
+        ...(req.started.length ? [`<strong>${req.started.map(htmlEscape).join(", ")}</strong> started failing`] : []),
+        ...(req.recovered.length ? [`${req.recovered.map(htmlEscape).join(", ")} recovered`] : []),
+      ];
       return {
         subject: `[Alert] ${req.failing.length} RSS sources failing`,
         html: `<h2>News Digest Source Health Alert</h2>
 <p><strong>${req.failedThisRun}/${req.totalSources}</strong> sources failed this run.</p>
+<p>Since the last run: ${changes.join("; ")}.</p>
 <p>The following sources have failed ${req.threshold}+ times in a row:</p>
 <pre>${listed}</pre>
 <p>Consider checking these feeds or removing them from sources.json.</p>
 ${FOOTER}`,
-        dropped: `${req.failedThisRun}/${req.totalSources} sources failed this run; persistently failing: ${req.failing.map(([id, n]) => `${id} (${n}x)`).join(", ")}`,
+        dropped: `${req.failedThisRun}/${req.totalSources} sources failed this run; persistently failing: ${req.failing.map(([id, n]) => `${id} (${n}x)`).join(", ")}${req.started.length ? `; started: ${req.started.join(", ")}` : ""}${req.recovered.length ? `; recovered: ${req.recovered.join(", ")}` : ""}`,
       };
     }
     case "run-failed": {

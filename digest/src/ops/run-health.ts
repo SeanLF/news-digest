@@ -82,12 +82,6 @@ const RULES: Rule[] = [
       `fulltext top-up extracted 0 of ${py(h.fulltext_topup_tasks)} cited articles (worker ${h.fulltext_topup_outcome || "unknown"}); the checker read their summaries only`,
   ],
   [
-    "STALE_FIGURE",
-    (h) => (h.stale_figures ?? 0) > 0,
-    (h) =>
-      `${py(h.stale_figures ?? 0)} claim(s) give a figure that a cited article published later reports differently; the story may be out of date (attribution.json, stale)`,
-  ],
-  [
     "REPAIR_SPEC_ERROR",
     (h) => h.repair_outcome === "spec_error",
     (h) =>

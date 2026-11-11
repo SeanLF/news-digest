@@ -4,7 +4,7 @@ import { freshDb } from "../store/test-db.js";
 import { feedHealthAlert } from "./feed-health.js";
 
 async function seed(rows: [source: string, success: number, minutesAgo: number, runId: number][]): Promise<Db> {
-  const db = openDb(await freshDb([300, 301]));
+  const db = openDb(await freshDb([299, 300, 301]));
   for (const [s, ok, ago, run] of rows)
     await db.run(
       "INSERT INTO source_fetches (source_id, is_success, fetched_at, run_id) VALUES ($1, $2, now() - make_interval(mins => $3), $4)",
@@ -39,6 +39,43 @@ describe("feedHealthAlert", () => {
       failedThisRun: 3,
       totalSources: 4,
       threshold: 3,
+      started: ["france24"],
+      recovered: [],
+    });
+  });
+  it("is silent when the failing set is the one the previous run already reported, longer streaks or not", async () => {
+    const db = await seed([
+      ["the_hindu", 0, 1, 301],
+      ["the_hindu", 0, 1440, 300],
+      ["the_hindu", 0, 2880, 299],
+      ["the_hindu", 0, 4320, 299],
+      ["bbc", 1, 1, 301],
+      ["bbc", 1, 1440, 300],
+    ]);
+    expect(await feedHealthAlert(db, 300, ["the_hindu", "bbc"], 3)).toMatchObject({ failing: [["the_hindu", 3]] });
+    expect(await feedHealthAlert(db, 301, ["the_hindu", "bbc"], 3)).toBeNull();
+  });
+  it("alerts when a source joins the failing set, naming it and any that recovered", async () => {
+    const db = await seed([
+      ["the_hindu", 1, 1, 301],
+      ["the_hindu", 0, 1440, 300],
+      ["the_hindu", 0, 2880, 299],
+      ["the_hindu", 0, 4320, 299],
+      ["bbc", 0, 1, 301],
+      ["bbc", 0, 1440, 300],
+      ["bbc", 0, 2880, 299],
+      ["france24", 0, 1, 301],
+      ["france24", 0, 1440, 300],
+      ["france24", 0, 2880, 299],
+      ["france24", 0, 4320, 299],
+    ]);
+    expect(await feedHealthAlert(db, 301, ["the_hindu", "bbc", "france24"], 3)).toMatchObject({
+      failing: [
+        ["france24", 4],
+        ["bbc", 3],
+      ],
+      started: ["bbc"],
+      recovered: ["the_hindu"],
     });
   });
   it("leaves out a parked source: its failures are history, not news", async () => {

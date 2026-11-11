@@ -346,6 +346,8 @@ describe("DigestWorkflow", () => {
         failedThisRun: 1,
         totalSources: 3,
         threshold: 3,
+        started: ["the_hindu"],
+        recovered: [],
       };
       const health = { kind: "run-health" as const, runId: 1, violations: ["ZERO_STORIES: x"] };
       const { calls, acts } = recorder({

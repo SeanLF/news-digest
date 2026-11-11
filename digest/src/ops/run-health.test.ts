@@ -51,9 +51,11 @@ describe("violations", () => {
     ["FULLTEXT_TOPUP_TOTAL_LOSS", { fulltext_topup_extracted: 0 }],
     ["REPAIR_SPEC_ERROR", { repair_outcome: "spec_error" }],
     ["NO_THREAD_CONTINUATIONS", { thread_continuations: 0 }],
-    ["STALE_FIGURE", { stale_figures: 1 }],
   ] as [string, Partial<RunHealth>][])("%s fires on its trigger", (code, broken) => {
     expect(codes(healthy(broken))).toEqual([code]);
+  });
+  it("a stale figure is no invariant: four of six sampled on 2026-11-10 were not out of date", () => {
+    expect(violations(healthy({ stale_figures: 3 }))).toEqual([]);
   });
   it("zero recipients is silent when the run was not broadcasting, and an unknown count is not zero", () => {
     expect(violations(healthy({ recipients: 0, broadcasting: false }))).toEqual([]);

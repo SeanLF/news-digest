@@ -69,6 +69,7 @@ export function opsActivities(deps: OpsDeps) {
           usageRowsDropped: 0,
           dormantAfter: threadsConfigFrom(deps.env).dormantAfter,
         });
+        if (health.stale_figures) log.warn({ stage: "attribute", runId, staleFigures: health.stale_figures });
         if (health.dropped_continuations)
           log.warn(
             `Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`,

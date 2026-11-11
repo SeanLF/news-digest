@@ -38,12 +38,17 @@ describe("alertEmail", () => {
       failedThisRun: 4,
       totalSources: 38,
       threshold: 3,
+      started: ["france24"],
+      recovered: ["bbc"],
     });
     expect(e.subject).toBe("[Alert] 2 RSS sources failing");
+    expect(e.html).toContain("Since the last run: <strong>france24</strong> started failing; bbc recovered.");
     expect(e.html).toContain("<strong>4/38</strong> sources failed this run");
     expect(e.html).toContain("failed 3+ times in a row");
     expect(e.html).toContain("  • the_hindu: 5 consecutive failures");
-    expect(e.dropped).toBe("4/38 sources failed this run; persistently failing: the_hindu (5x), france24 (3x)");
+    expect(e.dropped).toBe(
+      "4/38 sources failed this run; persistently failing: the_hindu (5x), france24 (3x); started: france24; recovered: bbc",
+    );
   });
   it("archival names the steps and the run", () => {
     const e = alertEmail({ kind: "archival", runId: 305, failed: ["thread_links", "thread_assignments"] });
