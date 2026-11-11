@@ -172,7 +172,7 @@ fulltext-fork: $(PROMPTFOO) ## Fulltext fork: every extractor arm over a saved c
 # The Codex CLI the judge runs, installed per run at a pinned version with its platform binary named
 # explicitly: npx's own resolution sometimes drops that optional dependency (npm/cli#4828), and the
 # judge then fails with "Unable to locate Codex CLI binaries". judges.yaml points codex_path_override here.
-CODEX_VERSION = 0.167.1
+CODEX_VERSION = 0.156.1
 CODEX_INSTALL = arch=\$$(uname -m | sed 's/aarch64/arm64/;s/x86_64/x64/') && npm i --silent --prefix /tmp/cx @openai/codex@$(CODEX_VERSION) @openai/codex-linux-\$$arch@npm:@openai/codex@$(CODEX_VERSION)-linux-\$$arch && test -x /tmp/cx/node_modules/.bin/codex
 JUDGE_RUN = $(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" -v "$(CURDIR)/digest/gate/judges.run.yaml:/app/digest/gate/judges.run.yaml:ro" -v "$(HOME)/.codex/auth.json:/run/codex-auth.json:ro" -e CODEX_HOME=/tmp/codex -e PROMPTFOO_EVAL_TIMEOUT_MS=1200000 digest-judge
 # The eval runner, pinned by evals/package-lock.json (its own lock: its advisories stay out of the deploy's
