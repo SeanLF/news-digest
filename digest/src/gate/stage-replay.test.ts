@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -26,6 +27,7 @@ async function selectInputs(run: number, withClusters = true): Promise<ArtifactS
 
 const hangs: SdkQuery = (({ options }: { options?: Options }) =>
   (async function* () {
+    yield initMessage(options);
     await new Promise((_, reject) =>
       options?.abortController?.signal.addEventListener("abort", () =>
         reject(new Error("aborted by the replay's timeout")),
@@ -79,8 +81,9 @@ describe("stage replay", () => {
   });
 
   it("a model call that fails is a result, with what a run would have done", async () => {
-    const fails: SdkQuery = (() =>
+    const fails: SdkQuery = (({ options }: { options?: Options }) =>
       (async function* () {
+        yield initMessage(options);
         yield {
           type: "result",
           subtype: "error_max_structured_output_retries",

@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
@@ -49,6 +50,7 @@ describe("preheader activity", () => {
       seen.prompt = prompt;
       if (options) seen.options = options;
       return (function* () {
+        yield initMessage(options);
         yield {
           type: "result",
           subtype: "success",

@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -123,6 +124,7 @@ async function setup(structured: unknown) {
     seen.selected = readFileSync(join(d, "selected.json"), "utf8");
     if (existsSync(join(d, "issue_budget.txt"))) seen.budget = readFileSync(join(d, "issue_budget.txt"), "utf8");
     return (function* () {
+      yield initMessage(options);
       yield {
         type: "result",
         subtype: "success",

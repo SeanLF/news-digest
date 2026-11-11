@@ -1,5 +1,6 @@
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
+import { initMessage } from "./fake-init.js";
 import type { StageSpec } from "./prompt.js";
 import type { UsageRow } from "../store/usage.js";
 import { runStage, type SdkQuery, type StageResult } from "./run-stage.js";
@@ -16,6 +17,7 @@ function fakeQuery(messages: SDKMessage[], seen?: { options?: Options }): SdkQue
   return (({ options }: { prompt: string; options?: Options }) => {
     if (seen && options) seen.options = options;
     return (function* () {
+      yield initMessage(options);
       yield* messages;
     })();
   }) as unknown as SdkQuery;
@@ -91,9 +93,42 @@ describe("runStage", () => {
       { today: "2026-09-21", query: fakeQuery([result({})], seen) },
     );
     expect(seen.options?.tools).toEqual([]);
-    expect(seen.options?.disallowedTools).toEqual(expect.arrayContaining(["Read", "Grep", "Bash"]));
+    expect(seen.options?.disallowedTools).toBeUndefined();
   });
-  it("passes model, cwd, thinking, the tool base set, allowed and disallowed tools, and the schema through to the SDK options", async () => {
+  it("fails the stage when the SDK offers a tool the spec does not list", async () => {
+    const offersBash = (({ options }: { options?: Options }) =>
+      (function* () {
+        yield initMessage(options, ["Bash", "Grep", "Read"]);
+        yield result({});
+      })()) as unknown as SdkQuery;
+    await expect(call(offersBash)).rejects.toThrow(/offered \[Bash, Grep, Read\].*allows \[Grep, Read\]/);
+  });
+  it("fails the stage when the SDK withholds a tool the spec lists", async () => {
+    const readOnly = (({ options }: { options?: Options }) =>
+      (function* () {
+        yield initMessage(options, ["Read"]);
+        yield result({});
+      })()) as unknown as SdkQuery;
+    await expect(call(readOnly)).rejects.toThrow(/offered \[Read\]/);
+  });
+  it("expects the StructuredOutput tool alongside the spec's when a schema is requested", async () => {
+    const r = await call(fakeQuery([result({ structured_output: {} })]), { type: "object" });
+    expect(r.structured).toEqual({});
+    const noStructured = (({ options }: { options?: Options }) =>
+      (function* () {
+        yield initMessage(options, ["Grep", "Read"]);
+        yield result({ structured_output: {} });
+      })()) as unknown as SdkQuery;
+    await expect(call(noStructured, { type: "object" })).rejects.toThrow(/allows \[Grep, Read, StructuredOutput\]/);
+  });
+  it("fails the stage when no init message says which tools were offered", async () => {
+    const silent = (() =>
+      (function* () {
+        yield result({});
+      })()) as unknown as SdkQuery;
+    await expect(call(silent)).rejects.toThrow(/no init message/);
+  });
+  it("passes model, cwd, thinking, the tool base set, allowed tools and the schema through to the SDK options", async () => {
     const seen: { options?: Options } = {};
     await call(fakeQuery([result({ structured_output: {} })], seen), { type: "object" });
     expect(seen.options?.model).toBe("claude-sonnet-5");
@@ -101,10 +136,6 @@ describe("runStage", () => {
     expect(seen.options?.thinking).toEqual({ type: "adaptive" });
     expect(seen.options?.tools).toEqual(["Read", "Grep"]);
     expect(seen.options?.allowedTools).toEqual(["Read", "Grep"]);
-    expect(seen.options?.disallowedTools).toEqual(
-      expect.arrayContaining(["Write", "Edit", "Bash", "WebFetch", "WebSearch"]),
-    );
-    expect(seen.options?.disallowedTools).not.toContain("Read");
     expect(seen.options?.outputFormat).toEqual({ type: "json_schema", schema: { type: "object" } });
     expect(seen.options?.settings).toEqual({ permissions: { blockReadsOutsideWorkingDirectories: true } });
     expect(seen.options?.maxBudgetUsd).toBeUndefined();
@@ -129,7 +160,7 @@ describe("runStage", () => {
       { userMessage: "Begin.", inputDir: "/in" },
       { today: "2026-09-21", query: fakeQuery([assistant([]), assistant([]), result({})]), heartbeat: () => beats++ },
     );
-    expect(beats).toBe(3);
+    expect(beats).toBe(4);
   });
   it("omits outputFormat when no schema is requested and falls back to the assistant text", async () => {
     const seen: { options?: Options } = {};
@@ -266,8 +297,9 @@ describe("runStage records every call it makes, with the outcome it had", () => 
   });
   it("a call the cancellation signal aborted is recorded as a timeout", async () => {
     const ac = new AbortController();
-    const aborting = (() =>
+    const aborting = (({ options }: { options?: Options }) =>
       (async function* () {
+        yield initMessage(options);
         yield twoReads;
         ac.abort("deadline");
         throw new Error("aborted");

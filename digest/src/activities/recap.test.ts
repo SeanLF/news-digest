@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
@@ -13,6 +14,7 @@ function fakeQuery(text: string, calls: { n: number; prompt?: string; options?: 
     calls.prompt = prompt;
     if (options) calls.options = options;
     return (function* () {
+      yield initMessage(options);
       yield {
         type: "result",
         subtype: "success",
@@ -53,7 +55,7 @@ describe("recap activity", () => {
     expect(calls.options?.tools).toEqual([]);
     expect(calls.options?.model).toBe("claude-haiku-5-5");
     expect(calls.options?.systemPrompt).not.toContain("Read tool");
-    expect(beats.length).toBe(3);
+    expect(beats.length).toBe(4);
   });
   it("is idempotent on output: a valid archived recap is returned without a model call", async () => {
     const { store, calls, recap } = await setup();

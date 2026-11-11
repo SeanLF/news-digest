@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { log } from "../log.js";
@@ -15,6 +16,7 @@ function fakeQuery(reply: string | Error, calls: Calls): SdkQuery {
     calls.prompt = prompt;
     if (options) calls.options = options;
     return (function* () {
+      yield initMessage(options);
       if (reply instanceof Error) throw reply;
       yield {
         type: "result",

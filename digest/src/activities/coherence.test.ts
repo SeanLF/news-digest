@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { UsageRow } from "../store/usage.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { readdirSync, readFileSync } from "node:fs";
@@ -85,6 +86,7 @@ async function setup(report: unknown, toolCalls: { name: string; target: string 
         readdirSync(options.cwd).map((f) => [f, readFileSync(join(options.cwd!, f), "utf8")]),
       );
     return (function* () {
+      yield initMessage(options);
       yield {
         type: "assistant",
         message: {

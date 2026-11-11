@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import type { SdkQuery } from "../runner/run-stage.js";
 import { ArtifactStore } from "../store/artifacts.js";
@@ -138,6 +139,7 @@ function model(opts: { patch?: unknown; recheckPass?: boolean; fail?: Error }): 
     const isRepair = JSON.stringify(options?.systemPrompt ?? "").includes("correction editor");
     calls.push(isRepair ? "repair" : "recheck");
     return (function* () {
+      yield initMessage(options);
       if (opts.fail) throw opts.fail;
       yield isRepair
         ? ok(opts.patch)

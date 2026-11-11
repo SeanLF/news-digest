@@ -30,28 +30,6 @@ export interface UsageRecord {
 
 const posthogClaude = posthogClient ? instrument({ client: posthogClient, privacyMode: true }) : undefined;
 
-const BUILTIN = [
-  "Read",
-  "Grep",
-  "Glob",
-  "Write",
-  "Edit",
-  "MultiEdit",
-  "Bash",
-  "WebFetch",
-  "WebSearch",
-  "Task",
-  "NotebookEdit",
-  "TodoWrite",
-  "ExitPlanMode",
-  "BashOutput",
-  "KillBash",
-  "SlashCommand",
-  "ListMcpResources",
-  "ReadMcpResource",
-  "ReadMcpResourceDir",
-] as const;
-
 function targetOf(name: string, input: unknown): string {
   const inp = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   const v = name === "Grep" ? inp["pattern"] : inp["file_path"];
@@ -120,7 +98,6 @@ export async function runStage(
     cwd: input.inputDir,
     tools: [...allowed],
     allowedTools: [...allowed],
-    disallowedTools: BUILTIN.filter((t) => !allowed.includes(t)),
     permissionMode: "acceptEdits",
     thinking: thinkingFor(spec.thinking),
     ...(spec.effort ? { effort: spec.effort } : {}),
@@ -129,6 +106,8 @@ export async function runStage(
     ...(opts.maxBudgetUsd !== undefined ? { maxBudgetUsd: opts.maxBudgetUsd } : {}),
     ...(opts.outputSchema ? { outputFormat: { type: "json_schema", schema: opts.outputSchema } } : {}),
   };
+  const expectedTools = [...allowed, ...(opts.outputSchema ? ["StructuredOutput"] : [])].toSorted();
+  let offered: string[] | undefined;
   const toolCalls: { name: string; target: string }[] = [];
   const texts: string[] = [];
   let result: Extract<SDKMessage, { type: "result" }> | undefined;
@@ -163,7 +142,13 @@ export async function runStage(
   try {
     for await (const m of q({ prompt: input.userMessage, options })) {
       beat?.();
-      if (m.type === "assistant") {
+      if (m.type === "system" && m.subtype === "init") {
+        offered = [...m.tools].toSorted();
+        if (offered.join() !== expectedTools.join())
+          throw new Error(
+            `stage ${spec.name}: the SDK offered [${offered.join(", ")}], the spec allows [${expectedTools.join(", ")}]`,
+          );
+      } else if (m.type === "assistant") {
         for (const block of m.message.content) {
           if (block.type === "tool_use")
             toolCalls.push({ name: block.name, target: targetOf(block.name, block.input) });
@@ -178,6 +163,8 @@ export async function runStage(
   } finally {
     if (timer) clearInterval(timer);
   }
+  if (!offered)
+    return fail("error", new Error(`stage ${spec.name}: no init message, so the tools offered are unknown`));
   if (!result) return fail("error", new Error(`stage ${spec.name}: no result message`));
   if (result.subtype !== "success" || result.is_error)
     return fail("error", new Error(`stage ${spec.name}: ${result.subtype}`));

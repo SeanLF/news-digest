@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,6 +22,7 @@ function fakeQuery(
     seen.files = readdirSync(cwd).toSorted();
     seen.articles = readFileSync(join(cwd, "articles_1.csv"), "utf8");
     return (function* () {
+      yield initMessage(options);
       yield {
         type: "result",
         subtype: "success",

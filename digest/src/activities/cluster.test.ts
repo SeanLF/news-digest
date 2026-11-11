@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
@@ -15,6 +16,7 @@ function fakeQuery(structured: unknown, seen: { prompts: string[]; options?: Opt
     seen.prompts.push(prompt);
     if (options) seen.options = options;
     return (function* () {
+      yield initMessage(options);
       yield {
         type: "result",
         subtype: "success",

@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -47,6 +48,7 @@ function fakeQuery(answers: Partial<Record<Stage, unknown[]>>, calls: Call[]): S
     calls.push({ stage, prompt, options });
     const next = answers[stage]?.shift();
     return (async function* () {
+      yield initMessage(options);
       await Promise.resolve();
       if (next instanceof Error) throw next;
       if (next === undefined) throw new Error(`no scripted answer for ${stage}`);

@@ -1,3 +1,4 @@
+import { initMessage } from "../runner/fake-init.js";
 import type { Options, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 import { describe, expect, it } from "vitest";
 import type { SdkQuery } from "../runner/run-stage.js";
@@ -17,6 +18,7 @@ function replying(...replies: Record<string, Verdict[]>[]) {
     const reply = replies[Math.min(prompts.length - 1, replies.length - 1)] ?? {};
     const structured = { articles: Object.entries(reply).map(([article_id, verdicts]) => ({ article_id, verdicts })) };
     return (function* () {
+      yield initMessage(o);
       yield {
         type: "result",
         subtype: "success",
