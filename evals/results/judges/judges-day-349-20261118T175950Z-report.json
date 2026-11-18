@@ -1,0 +1,129 @@
+{
+  "judges": {
+    "claude-opus-5-5": {
+      "reps": 5,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 0.875,
+        "2": 0.9375,
+        "3": 0.9375,
+        "4": 1,
+        "5": 0.875,
+        "6": 0.9375,
+        "7": 0.9375,
+        "8": 1
+      },
+      "overall": 0.9316239316239316,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.8734177215189873,
+          "2": 0.9620253164556962,
+          "3": 0.9873417721518988,
+          "4": 1,
+          "5": 0.6835443037974683,
+          "6": 0.9746835443037974,
+          "7": 0.9746835443037974,
+          "8": 1
+        },
+        "overall": 0.9256055363321799,
+        "mustKnow": 0.91,
+        "briefs": 0.9338624338624338
+      }
+    },
+    "codex": {
+      "reps": 2,
+      "unreadable": 3,
+      "perCriterion": {
+        "1": 0.9375,
+        "2": 0.9375,
+        "3": 0.9375,
+        "4": 1,
+        "5": 0.9375,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 0.9658119658119658,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.84375,
+          "2": 0.84375,
+          "3": 0.90625,
+          "4": 1,
+          "5": 0.59375,
+          "6": 1,
+          "7": 0.9375,
+          "8": 1
+        },
+        "overall": 0.8803418803418803,
+        "mustKnow": 0.8,
+        "briefs": 0.922077922077922
+      }
+    }
+  },
+  "disagreements": [
+    {
+      "story": 2,
+      "criterion": 2,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Bindings are correct.",
+        "codex": "“the same votes Netanyahu and his allies have attacked with fraud allegations” conflates parliamentary recommendations with the electorate’s ballots."
+      }
+    },
+    {
+      "story": 4,
+      "criterion": 3,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Matches the post-midterm state in the sources.",
+        "codex": "“Congress can now probe and block domestic policy” prematurely treats the incoming Democratic majority as already exercising its new control."
+      }
+    },
+    {
+      "story": 7,
+      "criterion": 7,
+      "votes": {
+        "claude-opus-5-5": "3/5 pass",
+        "codex": "0/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Reads clean.",
+        "codex": "The displayed source title “Malaysia ex-PM Najib Razak set for house arrest after party pays fine to” ends mid-phrase."
+      }
+    },
+    {
+      "story": 13,
+      "criterion": 5,
+      "votes": {
+        "claude-opus-5-5": "5/5 pass",
+        "codex": "0/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "One trip; the watchdog call is tied to the visit.",
+        "codex": "“A US-based clergy abuse watchdog ... call for a truth commission” adds a separate advocacy announcement to the tour departure."
+      }
+    }
+  ],
+  "control": {
+    "claude-opus-5-5": {
+      "caught": 9,
+      "total": 9,
+      "recall": 1,
+      "pass": true
+    },
+    "codex": {
+      "caught": 0,
+      "total": 9,
+      "recall": 0,
+      "pass": false
+    }
+  },
+  "verdict": "fail"
+}

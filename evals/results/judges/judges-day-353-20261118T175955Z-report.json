@@ -1,0 +1,93 @@
+{
+  "judges": {
+    "claude-opus-5-5": {
+      "reps": 2,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 1,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.875,
+          "2": 0.9375,
+          "3": 1,
+          "4": 1,
+          "5": 0.875,
+          "6": 1,
+          "7": 1,
+          "8": 1
+        },
+        "overall": 0.9568965517241379,
+        "mustKnow": 0.875,
+        "briefs": 0.9880952380952381
+      }
+    },
+    "codex": {
+      "reps": 2,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 0.9375,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 0.9913793103448276,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.78125,
+          "2": 0.9375,
+          "3": 1,
+          "4": 1,
+          "5": 0.875,
+          "6": 1,
+          "7": 1,
+          "8": 1
+        },
+        "overall": 0.9439655172413793,
+        "mustKnow": 0.828125,
+        "briefs": 0.9880952380952381
+      }
+    }
+  },
+  "disagreements": [
+    {
+      "story": 0,
+      "criterion": 1,
+      "votes": {
+        "claude-opus-5-5": "2/2 pass",
+        "codex": "0/2 pass"
+      },
+      "reasons": {
+        "claude-opus-5-5": "Qatar/Saudi appeals, 'militarily, effectively over', the security chief's 'fake news' remark, the second UK base and the de-escalation pricing all appear in A36, A39, A62, A138, A8, A30 and A560.",
+        "codex": "“Rejected Trump's claim that the war is effectively over, calling it ‘fake news’” is unsupported: the quoted rejection concerned imaginary negotiations."
+      }
+    }
+  ],
+  "control": {
+    "claude-opus-5-5": {
+      "caught": 3,
+      "total": 3,
+      "recall": 1,
+      "pass": true
+    },
+    "codex": {
+      "caught": 0,
+      "total": 3,
+      "recall": 0,
+      "pass": false
+    }
+  },
+  "verdict": "fail"
+}
