@@ -7,3 +7,10 @@
 {"date":"2026-11-18T18:01:51Z","sha":"eb77b283","eval":"judges","config":"gate/judges.yaml:day-353","verdict":"fail","cost_usd":3.85,"calls":6,"note":"data/judges-day-353-20261118T175955Z-report.json"}
 {"date":"2026-11-18T18:01:52Z","sha":"eb77b283","eval":"judges","config":"gate/judges.yaml:day-345","verdict":"pass","cost_usd":3.35,"calls":6,"note":"data/judges-day-345-20261118T175955Z-report.json"}
 {"date":"2026-11-18T18:01:38Z","sha":"eb77b283","eval":"judges","config":"gate/judges.yaml:day-349","verdict":"fail","cost_usd":9.94,"calls":16,"note":"data/judges-day-349-20261118T175950Z-report.json"}
+{"date":"2026-11-18T19:47:48Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-360","verdict":"fail","cost_usd":2.45,"calls":2,"note":"data/judges-day-360-20261118T194140Z-report.json"}
+{"date":"2026-11-18T19:48:00Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-357","verdict":"fail","cost_usd":2.57,"calls":2,"note":"data/judges-day-357-20261118T194131Z-report.json"}
+{"date":"2026-11-18T19:47:47Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-358","verdict":"fail","cost_usd":2.93,"calls":2,"note":"data/judges-day-358-20261118T194134Z-report.json"}
+{"date":"2026-11-18T19:48:01Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-356","verdict":"fail","cost_usd":2.26,"calls":2,"note":"data/judges-day-356-20261118T194128Z-report.json"}
+{"date":"2026-11-18T19:47:51Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-355","verdict":"fail","cost_usd":3.11,"calls":2,"note":"data/judges-day-355-20261118T194125Z-report.json"}
+{"date":"2026-11-18T19:47:59Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-361","verdict":"fail","cost_usd":2.82,"calls":2,"note":"data/judges-day-361-20261118T194143Z-report.json"}
+{"date":"2026-11-18T19:47:46Z","sha":"546ec4d4","eval":"judges","config":"gate/judges.yaml:day-354","verdict":"fail","cost_usd":3.15,"calls":2,"note":"data/judges-day-354-20261118T194122Z-report.json"}

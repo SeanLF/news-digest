@@ -1,0 +1,44 @@
+{
+  "judges": {
+    "claude-opus-5-5": {
+      "reps": 1,
+      "unreadable": 0,
+      "perCriterion": {
+        "1": 1,
+        "2": 1,
+        "3": 1,
+        "4": 1,
+        "5": 1,
+        "6": 1,
+        "7": 1,
+        "8": 1
+      },
+      "overall": 1,
+      "passRate": {
+        "perCriterion": {
+          "1": 0.7333333333333333,
+          "2": 1,
+          "3": 1,
+          "4": 1,
+          "5": 0.8,
+          "6": 1,
+          "7": 1,
+          "8": 1
+        },
+        "overall": 0.9351851851851852,
+        "mustKnow": 0.8333333333333334,
+        "briefs": 0.9642857142857143
+      }
+    }
+  },
+  "disagreements": [],
+  "control": {
+    "claude-opus-5-5": {
+      "caught": 3,
+      "total": 3,
+      "recall": 1,
+      "pass": true
+    }
+  },
+  "verdict": "fail"
+}

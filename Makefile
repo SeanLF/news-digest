@@ -146,14 +146,14 @@ band: $(PROMPTFOO) ## Same-day curation band of the TypeScript workflow via prom
 	  node dist/cli/ledger.js --eval band --config gate/band.yaml --sha $(EVAL_SHA) ../data/$$stamp.json; exit $$s); status=$$?; \
 	$(COMPOSE) up -d --force-recreate digest-worker >/dev/null; exit $$status  # the worker goes back to the digest database, broadcast on
 
-judges: ## Two judge families on a gate fixture (FIXTURE=day-349, or e.g. day-305/python): REPS=5 on the digest, PLANTED_REPS=3 on its planted copy; a judge that misses the planted defects fails the run (model calls, ~$7)
+judges: ## Two judge families on a gate fixture (FIXTURE=day-349, or e.g. day-305/python): REPS=5 on the digest, PLANTED_REPS=3 on its planted copy, PROVIDERS=claude for one family (a diagnostic: the gate needs both); a judge that misses the planted defects fails the run (model calls, ~$7)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); fx=$${FIXTURE:-day-349}; test -f evals/fixtures/gate/$$fx/planted/plants.json || { echo "no fixture evals/fixtures/gate/$$fx/{digest.html,inputs/,planted/}: make fixture RUN=N, or fixture.js plant on an older one"; exit 2; }; \
 	run=judges.$$(echo $$fx | tr / -).$$stamp; out=../data/judges-$$(echo $$fx | tr / -)-$$stamp; \
 	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/#g" digest/gate/judges.yaml > digest/gate/$$run.yaml; \
 	sed "s#fixtures/gate/day-300/#fixtures/gate/$$fx/planted/#g" digest/gate/judges.yaml > digest/gate/$$run.planted.yaml; \
 	$(JUDGE_RUN) sh -c "mkdir -p /tmp/codex && cp /run/codex-auth.json /tmp/codex/auth.json && $(CODEX_INSTALL) || exit 2; \
-	  $(PROMPTFOO_IN) eval -c gate/$$run.yaml --repeat $${REPS:-5} -j 1 --no-cache -o $$out.json; \
-	  $(PROMPTFOO_IN) eval -c gate/$$run.planted.yaml --repeat $${PLANTED_REPS:-3} -j 1 --no-cache -o $$out-planted.json; \
+	  $(PROMPTFOO_IN) eval -c gate/$$run.yaml --repeat $${REPS:-5} -j 1 --no-cache $${PROVIDERS:+--filter-providers $$PROVIDERS} -o $$out.json; \
+	  $(PROMPTFOO_IN) eval -c gate/$$run.planted.yaml --repeat $${PLANTED_REPS:-3} -j 1 --no-cache $${PROVIDERS:+--filter-providers $$PROVIDERS} -o $$out-planted.json; \
 	  node dist/cli/agreement.js ../evals/fixtures/gate/$$fx $$out.json $$out-planted.json $$out-report.json; rc=\$$?; v=fail; [ \$$rc = 0 ] && v=pass; \
 	  node dist/cli/ledger.js --eval judges --config gate/judges.yaml:$$fx --sha $(EVAL_SHA) --verdict \$$v --note data/$$(basename $$out)-report.json $$out.json $$out-planted.json; exit \$$rc"; rc=$$?; rm -f digest/gate/$$run.yaml digest/gate/$$run.planted.yaml; exit $$rc
 
