@@ -39,11 +39,11 @@ export async function loadArticles(store: ArtifactStore, runId: number): Promise
   for (const name of (await store.names(runId)).filter((n) => /^articles_\d+\.csv$/.test(n))) {
     const p = await store.find(runId, name);
     if (!p) continue;
-    const rows = parse(await store.get(p), {
+    const rows = parse<Record<string, string>>(await store.get(p), {
       columns: true,
       skip_empty_lines: true,
       relax_column_count: true,
-    }) as Record<string, string>[];
+    });
     for (const r of rows)
       if (r["article_id"])
         out.push({

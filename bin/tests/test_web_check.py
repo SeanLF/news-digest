@@ -249,7 +249,7 @@ def test_a_failing_tool_fails_the_gate(stub_main, monkeypatch):
 
 def test_web_check_overrides_were_judged_against_these_parents():
     """Canary for web-check/package.json's overrides, each forced past its parent's range:
-    basic-ftp 6.2.3, since get-uri (under lhci's proxy-agent) still resolves 5.x, inside
+    basic-ftp 6.2.3, since get-uri 8.0.1 (under lhci 0.16.1's proxy-agent) still resolves 5.x, inside
     GHSA-c475-qrg2-pj4r (<=6.2.0). lhci 0.16.0 pins lighthouse 13.6.0, takes uuid ^14 and no
     longer pulls tmp, so those three overrides went with it. When Dependabot moves a parent, check
     whether each override is still needed (drop it if the new range admits a fixed version), rerun
@@ -257,7 +257,7 @@ def test_web_check_overrides_were_judged_against_these_parents():
     root = Path(__file__).resolve().parents[2] / "web-check"
     lock = json.loads((root / "package-lock.json").read_text())["packages"]
     parents = {name: lock[f"node_modules/{name}"]["version"] for name in ("@lhci/cli", "pa11y-ci")}
-    assert parents == {"@lhci/cli": "0.16.0", "pa11y-ci": "5.0.0"}
+    assert parents == {"@lhci/cli": "0.16.1", "pa11y-ci": "5.0.0"}
     overrides = json.loads((root / "package.json").read_text())["overrides"]
     installed = {
         (k.rsplit("node_modules/", 1)[1], v["version"])

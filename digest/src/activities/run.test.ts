@@ -8,6 +8,13 @@ import { openDb } from "../store/db.js";
 import { freshDb } from "../store/test-db.js";
 import { runActivities } from "./run.js";
 
+type Acts = ReturnType<typeof runActivities>;
+type Started = Awaited<ReturnType<Acts["startRun"]>>;
+
+function startIn(env: MockActivityEnvironment, acts: Acts, input: Parameters<Acts["startRun"]>[0]): Promise<Started> {
+  return env.run<[], Started, () => Promise<Started>>(() => acts.startRun(input));
+}
+
 const RSS = `<rss version="2.0"><channel><title>T</title>
 <item><title>Old</title><link>https://f.test/old</link><pubDate>Thu, 18 Sep 2026 08:00:00 GMT</pubDate></item>
 <item><title>New</title><link>https://f.test/new</link><pubDate>Thu, 18 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>`;
@@ -143,7 +150,7 @@ describe("run lifecycle", () => {
   it("finishing a run closes this execution's attempt", async () => {
     const { db, acts } = await setup();
     const env = new MockActivityEnvironment({ workflowExecution: { workflowId: "digest-x", runId: "exec-9" } });
-    const { runId } = (await env.run(() => acts.startRun({ runDate: "2026-09-19" }))) as { runId: number };
+    const { runId } = await startIn(env, acts, { runDate: "2026-09-19" });
     await env.run(() => acts.finishRun(runId, { stories: 3, broadcast: "sent", recipients: 2 }));
     expect(
       await db.one("SELECT status, ended_at IS NOT NULL AS ended FROM run_attempts WHERE workflow_run_id='exec-9'"),
@@ -158,16 +165,16 @@ describe("run lifecycle", () => {
       "INSERT INTO runs (id, started_at, status) VALUES (11, '2026-09-24 10:25:00', 'failed'); INSERT INTO issues (issue_date, revision, run_id, html) VALUES ('2026-09-24', 1, 11, '')",
     );
     await store.put(11, "sources.csv", "id,name,bias,factuality,perspective\nf,F,center,high,global\n");
-    const forced = (await new MockActivityEnvironment({
-      workflowExecution: { workflowId: "digest-2026-09-24", runId: "exec-f" },
-    }).run(() => acts.startRun({ runDate: "2026-09-24", force: true }))) as Awaited<ReturnType<typeof acts.startRun>>;
+    const forced = await startIn(
+      new MockActivityEnvironment({ workflowExecution: { workflowId: "digest-2026-09-24", runId: "exec-f" } }),
+      acts,
+      { runDate: "2026-09-24", force: true },
+    );
     expect(forced.lastRun).toBe("2026-09-23 10:25:00");
     const env = new MockActivityEnvironment({
       workflowExecution: { workflowId: "digest-2026-09-24", runId: "exec-r" },
     });
-    const resumed = (await env.run(() => acts.startRun({ runDate: "2026-09-24", resumeRun: 11 }))) as Awaited<
-      ReturnType<typeof acts.startRun>
-    >;
+    const resumed = await startIn(env, acts, { runDate: "2026-09-24", resumeRun: 11 });
     expect(resumed.lastRun).toBe("2026-09-23 10:25:00");
     await env.run(() => acts.finishRun(11, { stories: 3, broadcast: "sent", recipients: 2 }));
     expect(await db.one("SELECT status, outcome FROM runs WHERE id=11")).toEqual({
@@ -232,9 +239,7 @@ describe("run lifecycle", () => {
         workflowExecution: { workflowId: "digest-scheduled", runId: "exec-1" },
       });
       await expect(env.run(() => acts.startRun({ runDate: "" }))).rejects.toThrow(/worker lost/);
-      const retried = (await env.run(() => acts.startRun({ runDate: "" }))) as Awaited<
-        ReturnType<typeof acts.startRun>
-      >;
+      const retried = await startIn(env, acts, { runDate: "" });
       const db = openDb(url);
       expect(await db.all("SELECT id FROM runs")).toEqual([{ id: retried.runId }]);
       expect(await db.all("SELECT run_id, workflow_run_id FROM run_attempts")).toEqual([
