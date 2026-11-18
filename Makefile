@@ -165,6 +165,10 @@ fixture: ## Export production run RUN=N as the judge fixture evals/fixtures/gate
 	$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures" digest-replay \
 	  node dist/cli/fixture.js export /app/data/fixture-raw/$(RUN) /app/evals/fixtures/gate/day-$(RUN)
 
+grounding: ## Check each number, date and name a gate fixture's digest shows against that story's own cited articles; prints the unsupported ones as JSON (FIXTURE=day-349 or day-349/planted; advisory, no model calls)
+	@$(COMPOSE) run --rm --build --no-deps -v "$(CURDIR)/evals/fixtures:/app/evals/fixtures:ro" digest-replay \
+	  node dist/cli/grounding.js /app/evals/fixtures/gate/$${FIXTURE:-day-349}
+
 planted: ## COHERENCE planted-defect band on the new runner via promptfoo, in the worker container (REPS=3; ~$1/rep)
 	@stamp=$$(date -u +%Y%m%dT%H%M%SZ); cfg=$${CONFIG:-gate/planted.yaml}; $(EVAL_RUN) sh -c "$(PROMPTFOO_IN) eval -c $$cfg --repeat $${REPS:-3} -j 1 --no-cache -o ../data/planted-$$stamp.json; s=\$$?; \
 	  node dist/cli/ledger.js --eval planted --config $$cfg --sha $(EVAL_SHA) ../data/planted-$$stamp.json; exit \$$s"
