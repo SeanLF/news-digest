@@ -62,12 +62,12 @@ describe("fulltext", () => {
     });
     expect((await acts.planFulltext(300, sel)).existing).toBeDefined();
   });
-  it("an attempt the fetcher's deadline cut short is planned again on a resume", async () => {
+  it.each(["deadline", "killed"])("an attempt cut short (%s) is planned again on a resume", async (outcome) => {
     const { store, sel, acts } = await setup();
     await acts.storeFulltext(300, {
       tasks: 3,
       results: { A1: "Body text that came back in time." },
-      outcome: "deadline",
+      outcome,
     });
     const plan = await acts.planFulltext(300, sel);
     expect(plan.tasks).toHaveLength(3);

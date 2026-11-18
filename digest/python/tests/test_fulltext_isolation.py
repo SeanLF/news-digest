@@ -86,21 +86,30 @@ def _serving(routes: dict[str, bytes]):
         thread.join(timeout=5)
 
 
-def _collect(urls: dict[str, str], *, deadline_s: float = 2, max_doc_chars: int = 0, exempt: bool = True):
+def _collect(urls: dict[str, str], *, deadline_s: float = 30, max_doc_chars: int = 0, exempt: bool = True):
     """The production path, with the loopback test server exempted by exact address unless `exempt`
-    is off: the fetch refuses loopback otherwise (test_fetch_guard.py)."""
+    is off: the fetch refuses loopback otherwise (test_fetch_guard.py).
+
+    The default budget is generous on purpose: the child's interpreter start and trafilatura
+    import count against the hard bound, and under a loaded CI box they alone can take seconds.
+    A test that returns as soon as its work is done pays nothing for it; only the tests about the
+    bound itself ask for a tight one."""
     allow = frozenset((urlsplit(u).hostname, urlsplit(u).port) for u in urls.values()) if exempt else frozenset()
     return fulltext._collect_isolated(
         list(urls.items()), max_chars=4000, deadline_s=deadline_s, max_doc_chars=max_doc_chars, allow=allow
     )
 
 
-@pytest.fixture(autouse=True)
-def _tight_bounds(monkeypatch):
-    monkeypatch.setattr(settings, "FULLTEXT_KILL_GRACE_S", 2)
+# The outcomes of a step whose fetch was cut short. Neither is in SETTLED in
+# digest/src/activities/fulltext.ts, so either makes a resume plan the fetch again.
+_CUT_SHORT = frozenset({"deadline", "killed"})
 
 
 class TestTheWorkerCannotOutliveItsBound:
+    @pytest.fixture(autouse=True)
+    def _tight_bounds(self, monkeypatch):
+        monkeypatch.setattr(settings, "FULLTEXT_KILL_GRACE_S", 2)
+
     def test_a_worker_that_never_returns_is_killed(self, caplog):
         """The primitive, with no network and no parser: a child that ignores every deadline is
         killed by the parent and the step returns."""
@@ -135,7 +144,7 @@ class TestTheWorkerCannotOutliveItsBound:
         with _serving({"/slow": _slow_document()}) as base:
             start = time.monotonic()
             with caplog.at_level("WARNING"):
-                results, outcome = _collect({"A1": f"{base}/slow"})
+                results, outcome = _collect({"A1": f"{base}/slow"}, deadline_s=2)
             elapsed = time.monotonic() - start
             settled = _cpu_seconds()
             time.sleep(3.0)
@@ -144,7 +153,10 @@ class TestTheWorkerCannotOutliveItsBound:
         assert elapsed < hard + 10, f"the bound did not hold: {elapsed:.1f}s for a {hard}s budget"
         assert leaked < 0.5, f"{leaked:.2f} CPU-seconds still being burned after the step returned"
         assert results == {}  # nothing extracted: the CSV floor, as designed
-        assert outcome == "deadline"  # cut short, so a resume fetches it again
+        assert outcome in _CUT_SHORT, (
+            f"{outcome!r}: the worker's own deadline and the parent's kill race under CPU load, and "
+            "either one leaves the run unsettled, so a resume fetches it again"
+        )
 
     def test_a_slow_fetch_costs_the_soft_deadline_not_the_hard_one(self, monkeypatch):
         """The kill is the backstop, not the mechanism. A worker that hits its own deadline hands
@@ -154,7 +166,7 @@ class TestTheWorkerCannotOutliveItsBound:
         monkeypatch.setattr(settings, "FULLTEXT_KILL_GRACE_S", 8)
         with _serving({"/slow": _slow_document(), "/ok": _normal_document()}) as base:
             start = time.monotonic()
-            results, _outcome = _collect({"A1": f"{base}/ok", "A2": f"{base}/slow"})
+            results, _outcome = _collect({"A1": f"{base}/ok", "A2": f"{base}/slow"}, deadline_s=2)
             elapsed = time.monotonic() - start
 
         assert set(results) == {"A1"}
@@ -164,7 +176,7 @@ class TestTheWorkerCannotOutliveItsBound:
         """A killed worker must not cost the articles that already succeeded. The worker emits each
         result as it completes, so whatever reached the parent before the kill is kept."""
         with _serving({"/slow": _slow_document(), "/ok": _normal_document()}) as base:
-            results, _outcome = _collect({"A1": f"{base}/ok", "A2": f"{base}/slow"})
+            results, _outcome = _collect({"A1": f"{base}/ok", "A2": f"{base}/slow"}, deadline_s=2)
 
         assert set(results) == {"A1"}
         assert "bridge repair" in results["A1"]
