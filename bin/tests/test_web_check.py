@@ -249,8 +249,8 @@ def test_a_failing_tool_fails_the_gate(stub_main, monkeypatch):
 
 def test_web_check_overrides_were_judged_against_these_parents():
     """Canary for web-check/package.json's overrides, each forced past its parent's range:
-    basic-ftp 6.2.3, since get-uri 8.0.1 (under lhci 0.16.1's proxy-agent) still resolves 5.x, inside
-    GHSA-c475-qrg2-pj4r (<=6.2.0). lhci 0.16.0 pins lighthouse 13.6.0, takes uuid ^14 and no
+    basic-ftp 6.2.4, since get-uri 8.0.1 (under lhci 0.16.1's proxy-agent) still resolves 5.x, inside
+    GHSA-c475-qrg2-pj4r (<=6.2.0) and GHSA-5pm8-86m8-9m6r (<=6.2.3). lhci 0.16.0 pins lighthouse 13.6.0, takes uuid ^14 and no
     longer pulls tmp, so those three overrides went with it. When Dependabot moves a parent, check
     whether each override is still needed (drop it if the new range admits a fixed version), rerun
     `make web-check`, then update this pin."""
