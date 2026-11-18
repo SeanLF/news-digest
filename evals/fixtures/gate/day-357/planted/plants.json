@@ -1,0 +1,30 @@
+{
+  "seed": 5,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Beijing is being asked to host both leaders at once, and Deutsche Welle reports it is weighing the risk to its image, so the optics may favor Moscow while Ukraine and Europe sit outside the room.",
+      "planted": "Beijing is being asked to host both leaders at once, and Deutsche Welle reports it is weighing the risk to its image, so the optics may favor Moscow while Ukraine and Europe sit outside the room. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "summary",
+      "kind": "wrong-number",
+      "original": "At least 25 seafarers have been killed in and around the Strait of Hormuz since the US-Israeli war on Iran began in February, UN official Khaled Khiari told the Security Council on Friday. Iranian authorities said on Saturday that three oil tankers hit mines in \"unauthorised\" or \"restricted\" areas of the strait and caught fire. Iran's Revolutionary Guards earlier said two tankers hit mines. The US military says it has cleared the main routes and the strait is open, but UKMTO puts traffic about 65 percent below pre-war levels.",
+      "planted": "At least 51 seafarers have been killed in and around the Strait of Hormuz since the US-Israeli war on Iran began in February, UN official Khaled Khiari told the Security Council on Friday. Iranian authorities said on Saturday that three oil tankers hit mines in \"unauthorised\" or \"restricted\" areas of the strait and caught fire. Iran's Revolutionary Guards earlier said two tankers hit mines. The US military says it has cleared the main routes and the strait is open, but UKMTO puts traffic about 65 percent below pre-war levels.",
+      "marker": "51"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "EU names five-nation team plus Brussels to speak for Europe in Ukraine talks with Russia",
+      "planted": "EU names five-nation team plus Brussels to speak for Europe in Ukraine talks with Russia The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}

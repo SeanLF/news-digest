@@ -1,0 +1,30 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Washington is pressing Moscow to admit Europe to the talks while Russia's chief negotiator rules out both an EU role and land swaps, so the envoys carry a proposal into the Kremlin that its own negotiator has already dismissed.",
+      "planted": "Washington is pressing Moscow to admit Europe to the talks while Russia's chief negotiator rules out both an EU role and land swaps, so the envoys carry a proposal into the Kremlin that its own negotiator has already dismissed. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Huang can be removed \"with or without cause\" by a majority vote of directors, but analysts flag key-man risk because he drives major decisions and has no named successor, so the board must weigh a governance breach against losing the person investors see as holding the AI trade together.",
+      "planted": "Huang can be removed \"with or without cause\" by a majority vote of directors, but analysts flag key-man risk because he drives major decisions and has no named successor, so the board must weigh a governance breach against losing the person investors see as holding the AI trade together. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Iran threatens US bases in Europe if jets launch strikes from them, as Israel reportedly readies an attack",
+      "planted": "Iran threatens US bases in Europe if jets launch strikes from them, as Israel reportedly readies an attack The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}

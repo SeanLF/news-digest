@@ -1,0 +1,1130 @@
+{
+  "must_know": [
+    {
+      "headline": "Trump lands in Shenzhen as Xi and Putin vow a multipolar order ahead of Thursday's three-way summit",
+      "summary": "US President Donald Trump arrived in the Chinese city of Shenzhen on Wednesday, where Xi Jinping personally greeted him, according to the South China Morning Post. Xi and Russian President Vladimir Putin had met earlier and pledged to push a multipolar world, and both criticised Western protectionism and sanctions. Trump, Xi and Putin are due to hold a trilateral meeting on the sidelines of the APEC summit on Thursday.",
+      "why_it_matters": "Xi has put Trump and Putin in one room on Chinese soil after publicly aligning with Putin against Western sanctions, so any outcome will be read against that backdrop by US allies who are already uneasy about what Washington might concede. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A501"
+        },
+        {
+          "article_id": "A197"
+        },
+        {
+          "article_id": "A384"
+        },
+        {
+          "article_id": "A17"
+        },
+        {
+          "article_id": "A507"
+        },
+        {
+          "article_id": "A238"
+        },
+        {
+          "article_id": "A4"
+        },
+        {
+          "article_id": "A696"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Al Jazeera",
+          "angle": "Analysts expect few concrete outcomes from the Trump-Xi talks, with rivalry between the two powers unresolved.",
+          "bias": "Center-left",
+          "article_id": "A4"
+        },
+        {
+          "source": "Wall Street Journal (opinion)",
+          "angle": "Frames the meeting as Trump meeting an 'anti-U.S. axis' and says allies worry what he might give up to get a trilateral pact.",
+          "bias": "Center-right",
+          "article_id": "A696"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Trump landed in Shenzhen Wednesday",
+          "supported_by": [
+            "A501",
+            "A197",
+            "A384",
+            "A4"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Xi and Putin vow multipolar world",
+          "supported_by": [
+            "A17",
+            "A507"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Three-way summit on Thursday",
+          "supported_by": [
+            "A501",
+            "A197",
+            "A507",
+            "A238",
+            "A4",
+            "A696"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Xi personally greeted Trump, per South China Morning Post",
+          "supported_by": [
+            "A501",
+            "A4"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Xi and Putin criticised Western protectionism and sanctions",
+          "supported_by": [
+            "A384",
+            "A17",
+            "A4"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trilateral meeting on APEC sidelines Thursday",
+          "supported_by": [
+            "A501",
+            "A197",
+            "A507",
+            "A238",
+            "A4",
+            "A696"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Allies uneasy about what Washington might concede",
+          "supported_by": [
+            "A238",
+            "A696"
+          ]
+        }
+      ],
+      "cluster_id": "APEC Shenzhen summit Xi Trump Putin trilateral talks"
+    },
+    {
+      "headline": "Iran fires at Kuwait and Bahrain after US strikes missile site on Qeshm Island The measure was announced in Geneva.",
+      "summary": "Iran said it targeted US drone and missile sites at Kuwait's Ali Al Salem base overnight, after US fighter jets struck an Iranian missile launch site on Qeshm Island on Tuesday. Kuwait and Bahrain said they repelled the attacks. Reuters called it Iran's first attack on Kuwait since September. Bahrain said it intercepted Iranian attacks for a third time in a week.",
+      "why_it_matters": "A US strike meant as a limited reply to attacks on a Bahrain radar drew a second Gulf host state into the exchange within hours, while Qatari-Iranian talks on narrowing gaps were under way; each round now gives both sides a fresh reason to answer in kind.",
+      "sources": [
+        {
+          "article_id": "A27"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A96"
+        },
+        {
+          "article_id": "A114"
+        },
+        {
+          "article_id": "A421"
+        },
+        {
+          "article_id": "A242"
+        },
+        {
+          "article_id": "A205"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Reuters via Al-Monitor",
+          "angle": "Stresses that the attacks show obstacles to diplomacy; cites a US official saying the Qeshm strike answered Iranian attacks on US personnel, while Iranian media said it caused no damage.",
+          "bias": "Wire service, neutral",
+          "article_id": "A27"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Iran fires at Kuwait and Bahrain",
+          "supported_by": [
+            "A27",
+            "A28",
+            "A114",
+            "A242",
+            "A205"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "US struck missile site on Qeshm Island",
+          "supported_by": [
+            "A27",
+            "A28",
+            "A96",
+            "A114",
+            "A421",
+            "A205"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran targeted US sites at Ali Al Salem base",
+          "supported_by": [
+            "A27",
+            "A28",
+            "A114"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "First Iranian attack on Kuwait since September (Reuters)",
+          "supported_by": [
+            "A27",
+            "A114"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Bahrain intercepted attacks third time in a week",
+          "supported_by": [
+            "A27",
+            "A114"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Qatari-Iranian talks on narrowing gaps on Tuesday",
+          "supported_by": [
+            "A27",
+            "A114",
+            "A242"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "US strike responded to Iranian attacks on US assets",
+          "supported_by": [
+            "A27",
+            "A28",
+            "A96",
+            "A114"
+          ]
+        }
+      ],
+      "cluster_id": "Iran strikes Kuwait after US Qeshm Island strikes"
+    },
+    {
+      "headline": "Ukraine collapses section of Crimean Bridge in missile and drone strike days before Putin meets Trump and Xi",
+      "summary": "Ukraine destroyed the central road section of the Crimean Bridge overnight, and its military says no vehicle can cross. The rail line is damaged but still standing, and Russia's transport ministry said some rail services resumed. Zelensky called it an \"unprecedented operation\" weeks in the making, carried out in seven stages with drones and Flamingo and Neptune cruise missiles. The Kremlin said it would rebuild the bridge \"better than before\".",
+      "why_it_matters": "The strike hits the road link Russia uses to move troops toward the front and lands just as Putin heads into a summit with the US and Chinese presidents, handing Kyiv a visible counterpoint to his hoped-for moment in the spotlight.",
+      "sources": [
+        {
+          "article_id": "A58"
+        },
+        {
+          "article_id": "A71"
+        },
+        {
+          "article_id": "A229"
+        },
+        {
+          "article_id": "A538"
+        },
+        {
+          "article_id": "A338"
+        },
+        {
+          "article_id": "A327"
+        },
+        {
+          "article_id": "A90"
+        },
+        {
+          "article_id": "A149"
+        },
+        {
+          "article_id": "A435"
+        },
+        {
+          "article_id": "A60"
+        },
+        {
+          "article_id": "A69"
+        },
+        {
+          "article_id": "A138"
+        },
+        {
+          "article_id": "A150"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Reuters",
+          "angle": "Reports a company's claim that European-made Ruta missiles were the only foreign weapons used in the strike.",
+          "bias": "center",
+          "article_id": "A435"
+        },
+        {
+          "source": "BBC",
+          "angle": "Pairs the strike with Russian missile hits on two Kyiv bridges the same night, a crater on the Northern bridge and traffic disruption, framing it as a battle of the bridges.",
+          "bias": "center",
+          "article_id": "A60"
+        },
+        {
+          "source": "Der Spiegel",
+          "angle": "Presents Zelensky's images of the damage as a show of strength before the Trump-Putin meeting.",
+          "bias": "center-left",
+          "article_id": "A149"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Section of Crimean Bridge collapsed in missile and drone strike",
+          "supported_by": [
+            "A58",
+            "A71",
+            "A229",
+            "A538",
+            "A327",
+            "A90",
+            "A149",
+            "A435",
+            "A60",
+            "A69",
+            "A138",
+            "A150"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Two days before Putin meets Trump and Xi",
+          "supported_by": [
+            "A538",
+            "A90"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Road section destroyed, no vehicle can cross",
+          "supported_by": [
+            "A58",
+            "A71",
+            "A229",
+            "A538",
+            "A90",
+            "A149"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Rail damaged but standing; some rail services resumed",
+          "supported_by": [
+            "A58",
+            "A71",
+            "A229",
+            "A90"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Seven stages, Flamingo and Neptune missiles",
+          "supported_by": [
+            "A58",
+            "A71",
+            "A229",
+            "A150"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Kremlin: rebuild better than before",
+          "supported_by": [
+            "A58",
+            "A71",
+            "A229",
+            "A90"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Bridge is route for Russian troops to the front",
+          "supported_by": [
+            "A58",
+            "A229",
+            "A149",
+            "A138"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Timing could cloud Putin's moment in spotlight",
+          "supported_by": [
+            "A58",
+            "A538",
+            "A90",
+            "A149",
+            "A60"
+          ]
+        }
+      ],
+      "cluster_id": "Ukrainian attack partially collapses Crimean Bridge"
+    },
+    {
+      "headline": "World court to rule Thursday on whether Myanmar committed genocide against Rohingya",
+      "summary": "The International Court of Justice is due on Thursday to deliver its judgment in the case The Gambia filed against Myanmar on November 11, 2019. The Gambia alleges Myanmar broke the 1948 Genocide Convention through military \"clearance operations\" against the Rohingya that began in 2016 and escalated in August 2017. Myanmar denies genocide and says it was targeting a military uprising by insurgents. More than 1.2 million Rohingya refugees remain in Bangladesh, most in camps in Cox's Bazar.",
+      "why_it_matters": "A genocide finding would also settle how the court judges \"intent\", and the US and Israel reportedly fear that precedent could be used later in a case over Gaza, which is why fears are growing of US sanctions on ICJ judges, as the US has already imposed on ICC judges. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A11"
+        },
+        {
+          "article_id": "A343"
+        },
+        {
+          "article_id": "A606"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Al Jazeera",
+          "angle": "Focuses on Rohingya refugees in Bangladesh hoping for recognition, while noting a ruling may do little to change their lives soon because Myanmar remains in civil war under the same military.",
+          "bias": "Humanitarian, refugee-centred framing",
+          "article_id": "A11"
+        },
+        {
+          "source": "The Guardian",
+          "angle": "Focuses on the geopolitical stakes: fears of US sanctions on ICJ judges, including ad hoc judge Navi Pillay, and a precedent that could affect a future ruling on Israel in Gaza.",
+          "bias": "Geopolitical, critical of US pressure on the court",
+          "article_id": "A606"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "ICJ ruling due Thursday on Myanmar genocide",
+          "supported_by": [
+            "A11",
+            "A343",
+            "A606"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "The Gambia filed case on November 11, 2019",
+          "supported_by": [
+            "A11"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Clearance operations began 2016, escalated August 2017",
+          "supported_by": [
+            "A11",
+            "A606"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Myanmar denies genocide, cites insurgent uprising",
+          "supported_by": [
+            "A606"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "More than 1.2 million Rohingya in Bangladesh, mostly Cox's Bazar",
+          "supported_by": [
+            "A11"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "US and Israel fear intent precedent for Gaza case",
+          "supported_by": [
+            "A606"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Fears of US sanctions on ICJ judges; ICC judges sanctioned",
+          "supported_by": [
+            "A606"
+          ]
+        }
+      ],
+      "cluster_id": "Rohingya ICJ genocide case verdict"
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Rubio says no imminent threat to Washington after CNN reports Iranian dirty-bomb plot",
+      "summary": "Secretary of State Marco Rubio said there is no imminent threat to Washington after a CNN report that Iran may plan a \"dirty bomb\" attack on the US capital. President Donald Trump said the US takes the possibility \"very seriously\" and warned Iran would \"pay a price the likes of which no country has ever paid before\" if a threat exists. Tehran called the report \"baseless\" and said it was an attempt to manufacture legitimacy for continuing the war, now in its ninth month.",
+      "sources": [
+        {
+          "article_id": "A447"
+        },
+        {
+          "article_id": "A196"
+        },
+        {
+          "article_id": "A236"
+        },
+        {
+          "article_id": "A68"
+        },
+        {
+          "article_id": "A162"
+        },
+        {
+          "article_id": "A528"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Rubio says no imminent threat to Washington",
+          "supported_by": [
+            "A447"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump takes it 'very seriously'",
+          "supported_by": [
+            "A196",
+            "A236",
+            "A68",
+            "A162"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump: 'pay a price the likes of which no country has ever paid'",
+          "supported_by": [
+            "A236",
+            "A162"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Tehran called report baseless, manufacturing legitimacy for war",
+          "supported_by": [
+            "A236",
+            "A68",
+            "A162"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "War now in its ninth month",
+          "supported_by": [
+            "A528"
+          ]
+        }
+      ],
+      "cluster_id": "Iran dirty bomb Washington attack report"
+    },
+    {
+      "headline": "Nvidia doubles revenue to over $115bn, faces SEC probe as Huang agrees to testify to Congress",
+      "summary": "Nvidia reported third-quarter revenue of more than $115 billion, double a year earlier, in its first earnings report since Jensen Huang resigned as CEO. The Wall Street Journal reported the company faces an SEC probe after his exit, and Huang has agreed to appear before US congressional committees in December. Board chair Harvey Jones said Nvidia does not intend to reinstate Huang and promised a fast CEO search, with CFO Colette Kress serving as interim chief.",
+      "sources": [
+        {
+          "article_id": "A534"
+        },
+        {
+          "article_id": "A416"
+        },
+        {
+          "article_id": "A305"
+        },
+        {
+          "article_id": "A517"
+        },
+        {
+          "article_id": "A413"
+        },
+        {
+          "article_id": "A673"
+        },
+        {
+          "article_id": "A671"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Revenue doubled to over $115bn",
+          "supported_by": [
+            "A534",
+            "A671"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "SEC probe per WSJ",
+          "supported_by": [
+            "A416"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Huang agrees to testify to Congress",
+          "supported_by": [
+            "A305",
+            "A517",
+            "A673",
+            "A671"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Huang to appear before congressional committees in December",
+          "supported_by": [
+            "A305",
+            "A517",
+            "A673",
+            "A671"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Chair Harvey Jones: no intent to reinstate Huang",
+          "supported_by": [
+            "A534",
+            "A413",
+            "A673",
+            "A671"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Fast CEO search promised",
+          "supported_by": [
+            "A413",
+            "A671"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "CFO Colette Kress interim CEO",
+          "supported_by": [
+            "A671"
+          ]
+        }
+      ],
+      "cluster_id": "Jensen Huang Nvidia CEO departure board interim CEO Colette Kress"
+    },
+    {
+      "headline": "Israel's Knesset elects Eisenkot ally Matan Kahana speaker, defeating Netanyahu's camp",
+      "summary": "Israel's parliament on Tuesday elected Matan Kahana, a lawmaker from Gadi Eisenkot's party, as speaker. He comes from the camp opposed to caretaker Prime Minister Benjamin Netanyahu. The speaker can advance bills from Eisenkot's bloc, such as an investigation of the Oct. 7, 2023, Hamas attack, and the bloc has pledged to undo some of Netanyahu's contentious policies. Netanyahu's party has claimed the Oct. 27 election was \"stolen\" by Arab-led parties, after heavy losses.",
+      "sources": [
+        {
+          "article_id": "A31"
+        },
+        {
+          "article_id": "A32"
+        },
+        {
+          "article_id": "A143"
+        },
+        {
+          "article_id": "A212"
+        },
+        {
+          "article_id": "A225"
+        },
+        {
+          "article_id": "A356"
+        },
+        {
+          "article_id": "A582"
+        },
+        {
+          "article_id": "A609"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Kahana elected speaker, Eisenkot ally",
+          "supported_by": [
+            "A31",
+            "A32",
+            "A143",
+            "A225",
+            "A356",
+            "A582",
+            "A609"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Elected Tuesday",
+          "supported_by": [
+            "A31",
+            "A32",
+            "A225",
+            "A582",
+            "A609"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Netanyahu caretaker prime minister",
+          "supported_by": [
+            "A31",
+            "A32",
+            "A225",
+            "A582",
+            "A609"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Speaker can advance Oct 7 inquiry bills",
+          "supported_by": [
+            "A31",
+            "A225",
+            "A582",
+            "A609"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Likud claims Oct 27 election 'stolen' by Arab-led parties",
+          "supported_by": [
+            "A31",
+            "A212",
+            "A582"
+          ]
+        }
+      ],
+      "cluster_id": "Israeli parliament elects Netanyahu-opposed speaker"
+    },
+    {
+      "headline": "US official says Ukraine's deep strikes in Russia fail; German minister calls criticism 'stupid'",
+      "summary": "Elbridge Colby, a US defence official, told a meeting of Ukraine's allies at NATO headquarters in Brussels that spectacular strikes far behind the front have not helped end the war or stop Russia's advance. German Defence Minister Boris Pistorius called it \"quite stupid\" to criticise attacks on military targets in Russia. NATO chief Mark Rutte backed Ukraine's right to hit logistics hubs, and diplomats linked Colby's remarks to Ukraine's latest attack on the Crimean bridge.",
+      "sources": [
+        {
+          "article_id": "A146"
+        },
+        {
+          "article_id": "A420"
+        },
+        {
+          "article_id": "A604"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Colby criticised Ukraine's deep strikes",
+          "supported_by": [
+            "A146",
+            "A420",
+            "A604"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Colby spoke at Ukraine allies meeting at NATO HQ Brussels",
+          "supported_by": [
+            "A146"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Pistorius: 'quite stupid' to criticise",
+          "supported_by": [
+            "A146",
+            "A420",
+            "A604"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Rutte backed hitting logistics hubs",
+          "supported_by": [
+            "A146"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Diplomats linked remarks to Crimean bridge attack",
+          "supported_by": [
+            "A146"
+          ]
+        }
+      ],
+      "cluster_id": "US criticism of Ukrainian strikes inside Russia"
+    },
+    {
+      "headline": "Russia reportedly demands NATO pull troops and bases back to 1997 positions",
+      "summary": "Russian negotiators in Abu Dhabi presented a document dated November 10 that calls for NATO to withdraw its troops and bases to where they stood in 1997, The New York Times reports, according to Deutsche Welle. It also reportedly demands an end to Western arms deliveries to Ukraine. Russia is not explicitly demanding that eastern members leave the alliance, only that NATO end its military presence there. Polish Prime Minister Donald Tusk, Bulgarian Prime Minister Rumen Radev and Estonian Prime Minister Kristen Michal rejected any Russian say in Europe's security order.",
+      "sources": [
+        {
+          "article_id": "A158"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "NATO withdraw to 1997 positions",
+          "supported_by": [
+            "A158"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Document dated November 10 presented in Abu Dhabi",
+          "supported_by": [
+            "A158"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Not explicitly demanding eastern members leave",
+          "supported_by": [
+            "A158"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Tusk, Radev, Michal rejected Russian say",
+          "supported_by": [
+            "A158"
+          ]
+        }
+      ],
+      "cluster_id": "Russia demands NATO roll back eastern expansion"
+    },
+    {
+      "headline": "US to end South Africa and Rwanda's AGOA trade access from Jan. 1, 2027",
+      "summary": "The Trump administration announced on Nov. 2 that it plans to end South Africa's and Rwanda's eligibility for AGOA, the US duty-free trade programme for sub-Saharan Africa, from Jan. 1, 2027. President Trump had signed a bill on Sept. 2 extending AGOA through the end of 2028. An Al Jazeera opinion piece argues the move shows Africa must speed up its own economic integration. It says South Africa is the programme's largest beneficiary, and that losing access can bring tariffs of 15 to 20 percent on some products.",
+      "sources": [
+        {
+          "article_id": "A19"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Termination from January 1, 2027",
+          "supported_by": [
+            "A19"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Announced Nov 2",
+          "supported_by": [
+            "A19"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump signed extension Sept 2 through 2028",
+          "supported_by": [
+            "A19"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "South Africa largest beneficiary",
+          "supported_by": [
+            "A19"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Tariffs of 15 to 20 percent on some products",
+          "supported_by": [
+            "A19"
+          ]
+        }
+      ],
+      "cluster_id": "Trump excludes South Africa Rwanda from AGOA"
+    },
+    {
+      "headline": "Ethiopian troops push Tigrayan forces toward Eritrean border, raising fears of wider war",
+      "summary": "Ethiopian forces have driven Tigrayan fighters toward the Eritrean border, and ACLED reports skirmishes at several sites. Ethiopian forces reportedly fired heavy artillery towards dwellings close to the Eritrean border town of Badme. Tigray-allied fighters launched an offensive on Sept. 23 aimed at toppling the government. Ethiopia and Eritrea cut diplomatic ties in October, and Ethiopia-Sudan relations have also worsened, according to Deutsche Welle.",
+      "sources": [
+        {
+          "article_id": "A160"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Ethiopian troops pushing Tigrayan forces toward Eritrean border",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "fears of wider/regional war",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "ACLED reports skirmishes at several locations",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "heavy artillery fired toward dwellings near Badme",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Tigray-allied offensive launched Sept. 23 to topple government",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Ethiopia and Eritrea cut diplomatic ties in October",
+          "supported_by": [
+            "A160"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Ethiopia-Sudan relations worsened, per Deutsche Welle",
+          "supported_by": [
+            "A160"
+          ]
+        }
+      ],
+      "cluster_id": "Ethiopia-Eritrea border clashes Tigray war fears"
+    },
+    {
+      "headline": "Turnout falls at French pay marches as strike take-up in state administration drops below 3%",
+      "summary": "Public and private sector workers marched in Paris and other French cities on Tuesday to demand higher wages. The CGT union counted 500,000 marchers nationwide; police counted 146,000. Reuters described the marches as largely peaceful with falling turnout, though clashes between radical groups and police broke out at the end in Paris. Only 2.59% of state administration staff struck, against about 10% on Nov. 5, according to a partial Public Accounts Ministry estimate.",
+      "sources": [
+        {
+          "article_id": "A101"
+        },
+        {
+          "article_id": "A458"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "State administration strike take-up below 3%",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "CGT counted 500,000; police 146,000",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Reuters: largely peaceful, falling turnout",
+          "supported_by": [
+            "A101",
+            "A458"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Clashes at end in Paris",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "2.59% struck versus about 10% on Nov. 5",
+          "supported_by": [
+            "A101"
+          ]
+        }
+      ],
+      "cluster_id": "France mass protests over wages and inflation"
+    },
+    {
+      "headline": "SoftBank's Son says missing Anthropic investment was a 'mistake' as IPO nears",
+      "summary": "SoftBank's Son called not backing Anthropic a mistake, the Financial Times and Nikkei Asia reported. The Japanese group had already begun investing in rival OpenAI. Anthropic's IPO is due this week, and the Financial Times says it is set to redraw venture capital's power rankings. The New York Times says the prospectus reads like dystopian science fiction.",
+      "sources": [
+        {
+          "article_id": "A184"
+        },
+        {
+          "article_id": "A286"
+        },
+        {
+          "article_id": "A171"
+        },
+        {
+          "article_id": "A357"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Son calls missing Anthropic investment a 'mistake'",
+          "supported_by": [
+            "A184",
+            "A286"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Anthropic IPO nearing",
+          "supported_by": [
+            "A171",
+            "A357"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "reported by Financial Times and Nikkei Asia",
+          "supported_by": [
+            "A286",
+            "A171"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "SoftBank had already begun investing in rival OpenAI",
+          "supported_by": [
+            "A184"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Anthropic IPO due this week",
+          "supported_by": [
+            "A357"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "FT: IPO set to redraw venture capital's power rankings",
+          "supported_by": [
+            "A171"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "NYT: prospectus reads like dystopian science fiction",
+          "supported_by": [
+            "A357"
+          ]
+        }
+      ],
+      "cluster_id": "Anthropic IPO venture capital power rankings"
+    },
+    {
+      "headline": "NSA classified network goes down as US tech outages spread; officials deny cyberattack",
+      "summary": "The NSA's classified internal network, NSANet, was disrupted on Tuesday. The agency said it had \"temporary degradation during scheduled routine maintenance\" and that mission-critical capabilities stayed fully operational. Secretary of State Marco Rubio said there was \"zero evidence\" the week's outages involving Microsoft, banks, Apple and flights are linked, and that the US is \"not under systemic attack\". House Democratic leader Hakeem Jeffries asked the administration to explain itself to Congress, and Trump said of the outages, \"It's fine.\"",
+      "sources": [
+        {
+          "article_id": "A35"
+        },
+        {
+          "article_id": "A56"
+        },
+        {
+          "article_id": "A79"
+        },
+        {
+          "article_id": "A119"
+        },
+        {
+          "article_id": "A585"
+        },
+        {
+          "article_id": "A584"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "NSA classified network outage Tuesday",
+          "supported_by": [
+            "A35",
+            "A56",
+            "A79",
+            "A119",
+            "A585",
+            "A584"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Officials deny cyberattack",
+          "supported_by": [
+            "A35",
+            "A56",
+            "A79",
+            "A119",
+            "A585",
+            "A584"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "NSA: 'temporary degradation during scheduled routine maintenance'",
+          "supported_by": [
+            "A35",
+            "A119",
+            "A585"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Rubio: 'zero evidence', 'not under systemic attack'",
+          "supported_by": [
+            "A56",
+            "A79",
+            "A119"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Jeffries asked administration to explain to Congress",
+          "supported_by": [
+            "A79"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump: 'It's fine'",
+          "supported_by": [
+            "A79",
+            "A119"
+          ]
+        }
+      ],
+      "cluster_id": "US tech outages wave public trust crisis"
+    }
+  ],
+  "preheader": "Iran fires at Kuwait and Bahrain after US strikes on Qeshm Island; Ukraine collapses part of the Crimean Bridge before Trump, Xi and Putin meet",
+  "not_covered_blurb": "We held back follow-ups on Hormuz shipping, Houthi gains in Yemen, Canada-China trade, Turkey's Sozcu TV seizure and new US chip curbs, plus smaller regional items, that lacked fresh developments or clear space against today's lead stories."
+}

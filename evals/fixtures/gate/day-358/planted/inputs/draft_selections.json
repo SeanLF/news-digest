@@ -1,0 +1,355 @@
+{
+  "must_know": [
+    {
+      "headline": "Iran claims second drone attack on US radar in Bahrain in three days as Trump weighs holding off on strikes",
+      "summary": "Iran's Revolutionary Guards said they launched six drones at a US air defence radar at Bahrain's Riffa Air Base on Sunday. Bahrain's military said it thwarted several Iranian \"aerial attacks\". It was the second such claim in three days; on Friday the US military said it shot down two Iranian drones and reported no damage. Reuters reported that Trump has told advisers he may hold off on attacking Iran if there are no new provocations from Tehran or the Houthis.",
+      "why_it_matters": "Trump's stated condition for restraint is \"no new provocations\", but Iran's Bahrain drone launches are now testing that line, and Saudi and Turkish leaders who urged him not to resume strikes are among those exposed to the fallout. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A4"
+        },
+        {
+          "article_id": "A123"
+        },
+        {
+          "article_id": "A241"
+        },
+        {
+          "article_id": "A374"
+        },
+        {
+          "article_id": "A417"
+        },
+        {
+          "article_id": "A481"
+        },
+        {
+          "article_id": "A35"
+        },
+        {
+          "article_id": "A263"
+        },
+        {
+          "article_id": "A410"
+        },
+        {
+          "article_id": "A158"
+        },
+        {
+          "article_id": "A32"
+        },
+        {
+          "article_id": "A483"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Al Jazeera",
+          "angle": "Reports the IRGC's claim of six drones at the radar, noting the US military has not yet commented. CENTCOM had denied Friday's claim of a destroyed radar, citing two downed drones.",
+          "bias": "Qatar-funded; often sympathetic to regional perspectives",
+          "article_id": "A4"
+        },
+        {
+          "source": "Wall Street Journal",
+          "angle": "Reports US estimates that Iran still has up to 2,500 missiles, countering Trump's assertions, and says this is part of the strike debate.",
+          "bias": "Center-right; business-oriented",
+          "article_id": "A483"
+        }
+      ]
+    },
+    {
+      "headline": "Zelensky says US asked if Ukraine would leave Donbas in return for NATO membership The measure was announced in Geneva.",
+      "summary": "Ukrainian President Volodymyr Zelensky said US negotiators asked whether Ukraine would withdraw from Donbas if it joined NATO, the first time the talks have linked NATO membership to territory. He said Kyiv is not ready to concede land, but would put the question to a national referendum if it got security guarantees, a strong army and reconstruction funds. A US official told the BBC that \"many ideas continue to be discussed\"; Washington has not confirmed his account.",
+      "why_it_matters": "Putin has long called Ukrainian NATO membership a red line, so an offer that trades it for land Russia has not fully taken puts the alliance question back in play, while Russia pushes for a wider European security deal first.",
+      "sources": [
+        {
+          "article_id": "A34"
+        },
+        {
+          "article_id": "A41"
+        },
+        {
+          "article_id": "A96"
+        },
+        {
+          "article_id": "A151"
+        },
+        {
+          "article_id": "A409"
+        },
+        {
+          "article_id": "A479"
+        },
+        {
+          "article_id": "A60"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "BBC",
+          "angle": "Stresses that the US has not confirmed Zelensky's account, citing an official who said many ideas continue to be discussed.",
+          "bias": "Mainstream public broadcaster",
+          "article_id": "A41"
+        },
+        {
+          "source": "Washington Post",
+          "angle": "Frames the claim against Russia's return to hard-line pre-invasion ultimatums on NATO at this week's talks.",
+          "bias": "Mainstream US daily",
+          "article_id": "A479"
+        }
+      ]
+    },
+    {
+      "headline": "Nvidia faces life after Huang as Musk warns of lost deals and US agencies trade blame",
+      "summary": "Elon Musk said Nvidia will lose \"critical\" deals without Jensen Huang, who stepped down as CEO this week over his relationship with Alice Huang, a suspected Chinese spy who ran Singapore firm Megaspeed. Megaspeed says she left the company in August 2025. The Straits Times, citing the New York Times, reports the paper first called Nvidia about her and Megaspeed in September 2025. Meanwhile the Treasury says it wanted to blacklist Megaspeed but the Commerce Department did not act.",
+      "why_it_matters": "Nvidia's chief carried the relationship for more than a year while the firm's Southeast Asian customer, Megaspeed, stayed off any US blacklist, so the scandal now exposes both a governance failure inside the company and a gap between Treasury and Commerce over export enforcement.",
+      "sources": [
+        {
+          "article_id": "A255"
+        },
+        {
+          "article_id": "A237"
+        },
+        {
+          "article_id": "A377"
+        },
+        {
+          "article_id": "A136"
+        },
+        {
+          "article_id": "A102"
+        },
+        {
+          "article_id": "A404"
+        },
+        {
+          "article_id": "A485"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Straits Times",
+          "angle": "Frames the affair through winners and losers, naming China hawks who want more export controls as the clearest winners.",
+          "bias": "Mainstream, Singapore-based",
+          "article_id": "A404"
+        },
+        {
+          "source": "Wall Street Journal",
+          "angle": "Focuses on the data-centre network in Southeast Asia that gave Chinese firms computing power and cover for alleged chip smuggling.",
+          "bias": "Mainstream, business-focused",
+          "article_id": "A485"
+        }
+      ]
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Moscow confirms Nov 19 Trump-Xi-Putin meeting as agenda stays unsettled and Xi stays wary",
+      "summary": "Kremlin spokesman Dmitry Peskov confirmed that the three leaders agreed to meet on Nov 19 in Shenzhen, on the sidelines of the APEC summit, after Washington announced it. Reuters, citing two people familiar with the planning, says no agenda or format has been set. The White House says Trump will raise nuclear arms reduction and Iran, while a US official said Ukraine belongs to a separate track that excludes China. Reuters says Xi is wary of Trump's improvised style and of arms control talks, and that Kyiv and Tokyo are uneasy about the meeting.",
+      "sources": [
+        {
+          "article_id": "A36"
+        },
+        {
+          "article_id": "A67"
+        },
+        {
+          "article_id": "A375"
+        },
+        {
+          "article_id": "A265"
+        },
+        {
+          "article_id": "A196"
+        },
+        {
+          "article_id": "A355"
+        }
+      ]
+    },
+    {
+      "headline": "US officials blame router work on old copper wiring for nationwide flight ground stop",
+      "summary": "Transportation Secretary Sean Duffy said a router installed by contractor L3Harris as it swapped old copper wiring for fibre began flooding other air traffic control systems, forcing the FAA's four-hour-plus ground stop on Friday. He said it is unclear whether contractor error or faulty equipment is to blame, and officials say they see no sign of a cyberattack. More than 5,000 US flights were cancelled on Saturday, and the FAA expects schedules to normalise by the end of Sunday.",
+      "sources": [
+        {
+          "article_id": "A5"
+        },
+        {
+          "article_id": "A42"
+        },
+        {
+          "article_id": "A57"
+        },
+        {
+          "article_id": "A250"
+        },
+        {
+          "article_id": "A312"
+        },
+        {
+          "article_id": "A393"
+        },
+        {
+          "article_id": "A253"
+        }
+      ]
+    },
+    {
+      "headline": "SpaceX catches Starship upper stage with tower arms after orbital flight, but booster recovery is aborted",
+      "summary": "SpaceX caught the Starship upper stage in mid-air with the mechanical arms of its Texas launch tower on Saturday, ending Flight 15. It is the first time the ship has been caught. The company had hoped to catch the booster too, but aborted that attempt over a guidance, navigation and control issue, and the Guardian reports the booster exploded. Clarín reports the ship made 14 orbits of Earth before its return.",
+      "sources": [
+        {
+          "article_id": "A129"
+        },
+        {
+          "article_id": "A53"
+        },
+        {
+          "article_id": "A396"
+        },
+        {
+          "article_id": "A425"
+        },
+        {
+          "article_id": "A64"
+        },
+        {
+          "article_id": "A249"
+        },
+        {
+          "article_id": "A133"
+        }
+      ]
+    },
+    {
+      "headline": "Israeli airstrike kills Hamas Rafah Brigade commander Samir Abu Younis despite Gaza ceasefire",
+      "summary": "Hamas and Israeli officials both confirmed that Samir Abu Younis, 53, commander of Hamas's Rafah Brigade, was killed in an Israeli airstrike in Gaza on Nov. 14. Hamas said he helped plan and oversee the Oct. 7, 2023, attack on Israel. A ceasefire between Israel and Hamas has held for months, but strikes have continued, according to Der Spiegel.",
+      "sources": [
+        {
+          "article_id": "A26"
+        },
+        {
+          "article_id": "A46"
+        },
+        {
+          "article_id": "A386"
+        },
+        {
+          "article_id": "A85"
+        }
+      ]
+    },
+    {
+      "headline": "Saudi coalition says it downed two Houthi missiles aimed at Riyadh and three drones over Eastern Province",
+      "summary": "The Saudi-led coalition said on Sunday it intercepted two Houthi ballistic missiles launched towards Riyadh and three drones in the Eastern Province. Fighting also intensified in Yemen's Marib and al-Jawf, and the International Organization for Migration says more than 340,000 people have been displaced since August. Saudi authorities say at least 26 people have been killed in suspected Houthi attacks in the kingdom since September 23, and the US Embassy in Riyadh issued a nationwide security alert on Saturday.",
+      "sources": [
+        {
+          "article_id": "A22"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A81"
+        },
+        {
+          "article_id": "A379"
+        }
+      ]
+    },
+    {
+      "headline": "Yemen government forces pull back from Bab el-Mandeb area, leaving Houthis in control",
+      "summary": "Southern forces fighting for Yemen's Saudi-backed government said on Sunday they are withdrawing from Dhubab Airport and the Bab el-Mandeb area, west of Taiz Governorate, and redeploying toward Aden. The retreat gives the Iran-aligned Houthis more leverage over the strait, a key route for Asia-Europe trade via the Suez Canal, while Iran continues to disrupt Hormuz. Government forces had launched a campaign in October to retake coastal areas after a Houthi push south in September.",
+      "sources": [
+        {
+          "article_id": "A27"
+        },
+        {
+          "article_id": "A369"
+        },
+        {
+          "article_id": "A236"
+        }
+      ]
+    },
+    {
+      "headline": "Netanyahu renews unity-government call, drops demand to lead it; Eisenkot calls it a 'trick'",
+      "summary": "Israel's caretaker prime minister, Benjamin Netanyahu, urged Gadi Eisenkot in a video on Saturday to form a national unity government of Jewish-majority parties, citing the Iranian nuclear threat. Eisenkot, who has until December 6 to form a government, dismissed the appeal, saying Netanyahu \"knows he lost the election\" and that \"these tricks don't work on me\". Eisenkot is pursuing a minority government that Arab and ultra-Orthodox lawmakers could allow through by abstaining, and the two sides' negotiating teams were due to meet Sunday.",
+      "sources": [
+        {
+          "article_id": "A24"
+        },
+        {
+          "article_id": "A31"
+        },
+        {
+          "article_id": "A66"
+        },
+        {
+          "article_id": "A130"
+        }
+      ]
+    },
+    {
+      "headline": "ASEAN summit opens in Manila amid protests, with Myanmar and energy supply on the agenda",
+      "summary": "Leaders of the 11-member Association of Southeast Asian Nations began arriving in Manila for the bloc's biggest event of the year, and were met by protesters condemning US policies. Police arrested at least 11 anti-Pax Silica protesters in a freedom park, according to Manila Police District spokesperson Philip Ines. ASEAN reaffirmed its engagement with Myanmar and said it seeks to advance its peace plan, and its special envoy said the bloc is not easing its approach. Friction persists on Myanmar and on haze, per Nikkei Asia, while energy disruption from the US-Israel war on Iran is a key issue for the import-dependent bloc, per Al Jazeera.",
+      "sources": [
+        {
+          "article_id": "A3"
+        },
+        {
+          "article_id": "A12"
+        },
+        {
+          "article_id": "A205"
+        },
+        {
+          "article_id": "A227"
+        },
+        {
+          "article_id": "A228"
+        },
+        {
+          "article_id": "A238"
+        },
+        {
+          "article_id": "A280"
+        }
+      ]
+    },
+    {
+      "headline": "Chinese and South Korean Arctic shipping to Europe rises, but ice and costs pose risks",
+      "summary": "Chinese and South Korean shipping through the Arctic Ocean to Europe has increased this year. Unpredictable ice, high costs and lapses in demand have exposed the challenges of the route, according to the South China Morning Post.",
+      "sources": [
+        {
+          "article_id": "A359"
+        }
+      ]
+    },
+    {
+      "headline": "Italy fines Meta €805m for accessing Android users' photos without clear consent",
+      "summary": "Italy's data protection authority fined Meta €805m (about $887m) for accessing Android users' photos and videos without their specific consent. The regulator said Meta did not properly inform about 20 million users that a Facebook app feature, which suggests gallery photos as post ideas, could reach their images. It gave Meta 60 days to disable the feature by default and seek consent separately; Meta said it will appeal and called the fine disproportionate.",
+      "sources": [
+        {
+          "article_id": "A49"
+        },
+        {
+          "article_id": "A258"
+        },
+        {
+          "article_id": "A420"
+        }
+      ]
+    },
+    {
+      "headline": "World court to rule this week on whether Myanmar committed genocide against Rohingya",
+      "summary": "The International Court of Justice will deliver a judgment this week on whether Myanmar committed genocide against the Rohingya, according to the Guardian. The court has never before found a state guilty of genocide, and the ruling will have implications for the case against Israel.",
+      "sources": [
+        {
+          "article_id": "A418"
+        }
+      ]
+    }
+  ],
+  "preheader": ""
+}

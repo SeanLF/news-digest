@@ -1,0 +1,30 @@
+{
+  "seed": 5,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Washington wants to tie a ceasefire to a wider European security settlement, but Russia is resisting the ceasefire itself. That leaves Kyiv and European capitals worried that Moscow gets a say in Europe's security without conceding a truce.",
+      "planted": "Washington wants to tie a ceasefire to a wider European security settlement, but Russia is resisting the ceasefire itself. That leaves Kyiv and European capitals worried that Moscow gets a say in Europe's security without conceding a truce. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "summary",
+      "kind": "wrong-number",
+      "original": "British counter-terrorism police arrested a senior US Army soldier, 41, near Gloucester on Tuesday on suspicion of assisting Russian intelligence. He was held under two sections of the National Security Act 2023 and is in custody at a London police station, where police can hold him up to 14 days without charge. He was reportedly serving with NATO's Allied Rapid Reaction Corps at Imjin Barracks. Police are searching two sites in Gloucestershire and say the case is unrelated to other counter-terror investigations.",
+      "planted": "British counter-terrorism police arrested a senior US Army soldier, 83 near Gloucester on Tuesday on suspicion of assisting Russian intelligence. He was held under two sections of the National Security Act 2023 and is in custody at a London police station, where police can hold him up to 14 days without charge. He was reportedly serving with NATO's Allied Rapid Reaction Corps at Imjin Barracks. Police are searching two sites in Gloucestershire and say the case is unrelated to other counter-terror investigations.",
+      "marker": "83"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Iran says Hormuz stays shut until US meets demands; IRGC reports ships hit mines",
+      "planted": "Iran says Hormuz stays shut until US meets demands; IRGC reports ships hit mines The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}

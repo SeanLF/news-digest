@@ -1,0 +1,343 @@
+{
+  "must_know": [
+    {
+      "headline": "Putin agrees to let Europe join next round of Ukraine talks, US envoys say; Moscow has not confirmed",
+      "summary": "US envoys Jared Kushner and Steve Witkoff said after meeting Putin in Moscow that Europe will join the next round of Russia-Ukraine talks, and Zelensky confirmed it in Dublin. Kushner said Putin is \"willing to give it a try\", but the Kremlin has not confirmed this, and Putin said Russia's position on the war and its territorial demand has not changed. Russia and Ukraine also agreed to what Kushner called the largest prisoner exchange of the war, with no numbers or date given. Europe has yet to agree on who will speak for it.",
+      "why_it_matters": "Europe gains the seat it wanted only while Moscow keeps its Donbas demand and its opposition to European peacekeepers, and EU leaders are still arguing over who should sit there, so the new format may add a third bargaining party without narrowing the gaps. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A1"
+        },
+        {
+          "article_id": "A56"
+        },
+        {
+          "article_id": "A102"
+        },
+        {
+          "article_id": "A182"
+        },
+        {
+          "article_id": "A316"
+        },
+        {
+          "article_id": "A638"
+        },
+        {
+          "article_id": "A312"
+        },
+        {
+          "article_id": "A137"
+        },
+        {
+          "article_id": "A192"
+        },
+        {
+          "article_id": "A553"
+        },
+        {
+          "article_id": "A204"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "New York Times",
+          "angle": "Stresses that Russia has not confirmed Europe's inclusion and that the envoys had to ask Putin for it.",
+          "bias": "Mainstream US, centre-left",
+          "article_id": "A316"
+        },
+        {
+          "source": "France 24",
+          "angle": "Zelensky warned European leaders to be wary of US-Russia talks on a broader security arrangement for the continent.",
+          "bias": "Mainstream European",
+          "article_id": "A204"
+        },
+        {
+          "source": "Al Jazeera",
+          "angle": "Notes hostilities continue unabated, with Russia reporting 1,198 Ukrainian drones intercepted overnight and Ukraine reporting a Kyiv hospital hit.",
+          "bias": "Qatar-funded, critical of Western policy",
+          "article_id": "A1"
+        }
+      ]
+    },
+    {
+      "headline": "Trump says US 'does not need' an Iran deal and tells Vance to drop talks, after Vance blames war for midterm loss The measure was announced in Geneva.",
+      "summary": "President Trump said on Truth Social that the US does not need a deal with Iran, saying \"we've got their money, hundreds of billions of dollars, and we've got their Strait.\" He told Vice President JD Vance to turn his \"complete and total\" attention to alleged corruption and crime in Democratic-run cities instead. Vance had blamed the Iran war for Republican midterm losses and had been exploring talks with Tehran. The Washington Post described the post as closing down Vance's negotiating effort.",
+      "why_it_matters": "The vice president's diplomatic channel is cut off just as Democrats, who won both chambers of Congress, take up the war, leaving the blockade as the only stated US policy while Iran threatens bases in Europe.",
+      "sources": [
+        {
+          "article_id": "A408"
+        },
+        {
+          "article_id": "A127"
+        },
+        {
+          "article_id": "A640"
+        },
+        {
+          "article_id": "A236"
+        },
+        {
+          "article_id": "A221"
+        },
+        {
+          "article_id": "A551"
+        },
+        {
+          "article_id": "A481"
+        },
+        {
+          "article_id": "A37"
+        },
+        {
+          "article_id": "A436"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Der Spiegel",
+          "angle": "Frames the post as Trump publicly rebuking Vance and settling a score after Vance's X post on the midterm loss.",
+          "bias": "Centre-left German weekly",
+          "article_id": "A127"
+        },
+        {
+          "source": "Wall Street Journal",
+          "angle": "Focuses on markets: oil rebounded from early losses and closed higher as the remarks put some risk premium back.",
+          "bias": "Centre-right, business-focused",
+          "article_id": "A649"
+        }
+      ]
+    },
+    {
+      "headline": "Nvidia's Huang resigns as CEO; Senate panel summons him and Commerce Secretary Lutnick",
+      "summary": "Jensen Huang quit Thursday as head of Nvidia after reports of extramarital affairs, including one with a woman alleged to be a Chinese spy. The Senate Banking Committee has summoned Huang and Commerce Secretary Howard Lutnick to testify and says both could face legal action if they do not appear. Trump said ex-Apple CEO Tim Cook should replace Huang, and Chinese AI shares fell Friday on fears of tighter US chip curbs.",
+      "why_it_matters": "A personal scandal has become an export-control fight: Huang had backed keeping sales open to China, so his exit and Lutnick's summons may strengthen the push in Congress to restrict chip sales, which is already hitting Chinese AI stocks. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A6"
+        },
+        {
+          "article_id": "A55"
+        },
+        {
+          "article_id": "A50"
+        },
+        {
+          "article_id": "A95"
+        },
+        {
+          "article_id": "A163"
+        },
+        {
+          "article_id": "A398"
+        },
+        {
+          "article_id": "A424"
+        },
+        {
+          "article_id": "A121"
+        },
+        {
+          "article_id": "A35"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Financial Times",
+          "angle": "Frames the exit as a policy turn: Huang had supported keeping sales open to China, and Chinese AI stocks are selling off on fears of tougher curbs.",
+          "bias": "Business press, markets-focused",
+          "article_id": "A163"
+        },
+        {
+          "source": "Reuters",
+          "angle": "Reports a Democratic senator wants an assessment of whether Nvidia is 'too big to fail', treating the firm as a systemic risk.",
+          "bias": "Wire service, neutral",
+          "article_id": "A424"
+        }
+      ]
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Iran's Guards claim strike on US early-warning radar in Bahrain, first Gulf attack claim since September",
+      "summary": "Iran's Revolutionary Guards said they targeted a US early-warning radar in Bahrain, in retaliation for what they called an air attack on a telecom tower in Sirik county, Hormozgan province. It is the first such claim against US military assets in a Gulf country since early September, according to Reuters. There was no immediate comment from the US or Bahrain, and the claim is unverified.",
+      "sources": [
+        {
+          "article_id": "A25"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A353"
+        },
+        {
+          "article_id": "A496"
+        },
+        {
+          "article_id": "A498"
+        }
+      ]
+    },
+    {
+      "headline": "Anthropic's IPO is about six times oversubscribed, Bloomberg News reports",
+      "summary": "Anthropic's initial public offering is about six times oversubscribed, according to a Bloomberg News report cited by Reuters.",
+      "sources": [
+        {
+          "article_id": "A376"
+        }
+      ]
+    },
+    {
+      "headline": "COP31 leaders split on fossil fuels, finance and electrification as talks turn to negotiators",
+      "summary": "Two days of leaders' speeches at the COP31 climate talks in Turkey ended with clashing demands. Small island states pleaded for urgent emissions cuts, European leaders backed expanding electrification, developing countries asked for more finance, and fossil fuel producers said oil, gas and coal should stay in use. Australia's Chris Bowen, who leads negotiations, said his job is to steer consensus, and a UN report last month found the world is on course to break the 1.5C Paris limit.",
+      "sources": [
+        {
+          "article_id": "A96"
+        },
+        {
+          "article_id": "A229"
+        },
+        {
+          "article_id": "A474"
+        },
+        {
+          "article_id": "A326"
+        },
+        {
+          "article_id": "A558"
+        }
+      ]
+    },
+    {
+      "headline": "Rebel attacks scatter Ebola patients in Congo as MSF says outbreak 'remains out of control'",
+      "summary": "Islamist rebels killed 66 civilians, including three health workers, and destroyed three clinics in Cantine-Aloya last week, and attacks have continued, the WHO says. Workers are still searching for three confirmed Ebola patients and more than 1,000 contacts who fled. The outbreak has infected more than 11,100 people and killed more than 5,430 in six months, making it the second-biggest on record. Médecins Sans Frontières says front-line staff lack fuel, phones, protective gear and wages.",
+      "sources": [
+        {
+          "article_id": "A207"
+        },
+        {
+          "article_id": "A309"
+        },
+        {
+          "article_id": "A319"
+        }
+      ]
+    },
+    {
+      "headline": "Eisenkot would inherit a strained US alliance if he unseats Netanyahu, analysts say",
+      "summary": "Gadi Eisenkot, the former military chief tasked with forming Israel's next government, would face a deep rift with Washington if he becomes prime minister, the New York Times reports. President Trump said this month he would cut billions of dollars in annual military aid by year's end, and ex-ambassador Michael Oren says Israel now has \"no recourse\" in Congress. Le Monde reports that Eisenkot, the son of immigrants born in Casablanca and Marrakech, is drawing interest in Morocco, since he could be Israel's first prime minister of Moroccan origin.",
+      "sources": [
+        {
+          "article_id": "A310"
+        },
+        {
+          "article_id": "A273"
+        }
+      ]
+    },
+    {
+      "headline": "Belgium says evidence points to Iran in fridge cyberattacks, stops short of blaming Tehran",
+      "summary": "Belgian Interior Minister Bernard Quintin told Parliament that evidence \"could potentially\" point to Iran in the Nov. 2 attacks on supermarket refrigeration systems, but said he wanted to stay \"diplomatically cautious\". Dozens of Belgian stores reported failures, and similar problems hit stores in eight other European countries. France has already blamed Iran's Revolutionary Guards for an October incident and wants more EU sanctions. The Wall Street Journal describes the fridge and tanker attacks as part of an Iranian push to cause physical-world disruption.",
+      "sources": [
+        {
+          "article_id": "A521"
+        },
+        {
+          "article_id": "A646"
+        }
+      ]
+    },
+    {
+      "headline": "US officer held in UK as Russian spy suspect is named, expected to be charged within days",
+      "summary": "Lt. Col. Brandon Tyner, 41, a US Army officer arrested Tuesday in Britain on suspicion of spying for Russia, is expected to be charged in the UK on Sunday or Monday, US officials said. They said he was caught in a sting, and that no information reached Russia. After the British charges, the Army intends to prosecute him under the US military justice system. The Kremlin denies any link.",
+      "sources": [
+        {
+          "article_id": "A216"
+        },
+        {
+          "article_id": "A324"
+        },
+        {
+          "article_id": "A657"
+        }
+      ]
+    },
+    {
+      "headline": "Ukraine says its drones hit Russian corvette in Gulf of Finland, in first Baltic strike on a ship in open waters",
+      "summary": "Finland confirmed a Russian warship was attacked in the Gulf of Finland on Wednesday. Ukraine's SBU said it targeted the Naro-Fominsk, a Buyan-M corvette, during a wider drone operation against the Ust-Luga oil depot. The BBC says it is thought to be the first Ukrainian drone strike on a Russian ship in a part of the Baltic open to civilian shipping. Finland's foreign minister said the Baltic remained safe, and damage to the ship is unclear.",
+      "sources": [
+        {
+          "article_id": "A60"
+        },
+        {
+          "article_id": "A407"
+        },
+        {
+          "article_id": "A131"
+        }
+      ]
+    },
+    {
+      "headline": "Global oil market swings to surplus as Gulf shipments rebound, IEA says",
+      "summary": "The Financial Times reports that global oil markets have swung to surplus as Gulf shipments rebound, with IEA analysts warning it will take months to rebuild stockpiles depleted by the conflict.",
+      "sources": [
+        {
+          "article_id": "A164"
+        }
+      ]
+    },
+    {
+      "headline": "Google debuts Gemini smartglasses from $395, challenging Meta's Ray-Ban",
+      "summary": "Google unveiled its first Gemini-powered smartglasses on Thursday, starting at $395, built with Samsung, Gentle Monster and Warby Parker. Google is stressing privacy, but Reuters reports privacy fears still loom as Warby Parker bets on the glasses for growth. Le Monde notes the launch enters a market dominated by Ray-Ban Meta, and one expert it cites says tougher competition should push makers to do more on privacy.",
+      "sources": [
+        {
+          "article_id": "A49"
+        },
+        {
+          "article_id": "A430"
+        },
+        {
+          "article_id": "A269"
+        }
+      ]
+    },
+    {
+      "headline": "SpaceX and Tesla merger talks progress, Bloomberg reports",
+      "summary": "Merger talks between SpaceX and Tesla have progressed, Bloomberg News reported, according to Reuters. Separately, Reuters reported that SpaceX plans to invest more than $74 billion in AI campuses in Texas and Arizona.",
+      "sources": [
+        {
+          "article_id": "A379"
+        },
+        {
+          "article_id": "A397"
+        }
+      ]
+    },
+    {
+      "headline": "Spain's interim parliament passes one of two housing decrees 35-34 as Sánchez courts a disillusioned left",
+      "summary": "Spain's interim lower house ratified one of two housing decrees 35-34 a day after the country's first general strike in 14 years. It extends eviction protections for vulnerable tenants until 2030, bars firms from buying property below 70% of its value, and adds a 10% tax on tourist rentals. A second decree, which would have made leases automatically renewable, failed 34-35. The conservative Popular Party says it will repeal the measures if it wins the Nov. 29 election, and Reuters reports Prime Minister Pedro Sánchez is struggling to rally left-wing voters.",
+      "sources": [
+        {
+          "article_id": "A215"
+        },
+        {
+          "article_id": "A83"
+        },
+        {
+          "article_id": "A411"
+        },
+        {
+          "article_id": "A497"
+        },
+        {
+          "article_id": "A346"
+        },
+        {
+          "article_id": "A152"
+        }
+      ]
+    }
+  ],
+  "preheader": ""
+}

@@ -1,0 +1,30 @@
+{
+  "seed": 5,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Trump goes into the China leg with his own team split: he said some advisers want friendly ties with Beijing and others want \"a blowup\", while a Globe and Mail analysis argues his midterm losses give Xi little reason to make concessions.",
+      "planted": "Trump goes into the China leg with his own team split: he said some advisers want friendly ties with Beijing and others want \"a blowup\", while a Globe and Mail analysis argues his midterm losses give Xi little reason to make concessions. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "summary",
+      "kind": "wrong-number",
+      "original": "The Commerce Department's Bureau of Industry and Security issued a rule on Monday that requires licences for advanced chip shipments to Singapore, Malaysia, Thailand, Indonesia and Brazil. It says the five carry a higher-than-normal risk of diversion to China. Chinese firms barred from buying top GPUs had been able to rent them legally at data centres in those countries. The rule takes effect 90 days after it is posted to the Federal Register. Singapore said it is studying the measure, and Asian stocks fell.",
+      "planted": "The Commerce Department's Bureau of Industry and Security issued a rule on Monday that requires licences for advanced chip shipments to Singapore, Malaysia, Thailand, Indonesia and Brazil. It says the five carry a higher-than-normal risk of diversion to China. Chinese firms barred from buying top GPUs had been able to rent them legally at data centres in those countries. The rule takes effect 181 days after it is posted to the Federal Register. Singapore said it is studying the measure, and Asian stocks fell.",
+      "marker": "181"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Iran and Oman discuss securing Hormuz shipping lanes as tankers are reportedly hit by mines",
+      "planted": "Iran and Oman discuss securing Hormuz shipping lanes as tankers are reportedly hit by mines The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}

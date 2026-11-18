@@ -1,0 +1,16 @@
+{
+  "run": 354,
+  "date": "2026-11-11",
+  "git_sha": "28d2eb9",
+  "artifacts": {
+    "article_fulltext.json": "sha256:066d7e94b30e4cd3305c2c9a16b854f0d7b879d5adeefc5c531ae35573264ecd",
+    "articles_1.csv": "sha256:169e441ff8dba2137b5edbe604c02e707f220325733c654199cc675e25418ee6",
+    "articles_2.csv": "sha256:cc695e843a46e2e01ee40fc73c4d1b1ba0ae12f5ceb33d34615bba84f92e2d5a",
+    "articles_3.csv": "sha256:40fb11ac760c14ff322b61b92e2e6b66d5465abcb7cd13c5347f5d112ea4476a",
+    "articles_4.csv": "sha256:e2cbf37a3afc6508472b81688955689d52b384d0fb9c7b3d92696ea6710355da",
+    "articles_5.csv": "sha256:f476ec777ad3a7b652f832e83c008528ad72a2942bfc7513cdf4b4e18eb5c768",
+    "digest.html": "sha256:f6e966fcde727bfd4605ce7e55f2bb90fc9b826fad27369d87bdaaa264a83e69",
+    "draft_selections.json": "sha256:19415614b85bebaeba3f2a2af935da47e5a205a53335509df4d0a8d22b19072f",
+    "selections.json": "sha256:e79c7ce28b172c30b4caa0b90eb2b63d8b11d8f79fd47880f0417bc75bc21033"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Europe gains the seat it wanted only while Moscow keeps its Donbas demand and its opposition to European peacekeepers, and EU leaders are still arguing over who should sit there, so the new format may add a third bargaining party without narrowing the gaps.",
+      "planted": "Europe gains the seat it wanted only while Moscow keeps its Donbas demand and its opposition to European peacekeepers, and EU leaders are still arguing over who should sit there, so the new format may add a third bargaining party without narrowing the gaps. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "A personal scandal has become an export-control fight: Huang had backed keeping sales open to China, so his exit and Lutnick's summons may strengthen the push in Congress to restrict chip sales, which is already hitting Chinese AI stocks.",
+      "planted": "A personal scandal has become an export-control fight: Huang had backed keeping sales open to China, so his exit and Lutnick's summons may strengthen the push in Congress to restrict chip sales, which is already hitting Chinese AI stocks. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Trump says US 'does not need' an Iran deal and tells Vance to drop talks, after Vance blames war for midterm loss",
+      "planted": "Trump says US 'does not need' an Iran deal and tells Vance to drop talks, after Vance blames war for midterm loss The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}

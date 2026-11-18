@@ -1,0 +1,1078 @@
+{
+  "must_know": [
+    {
+      "headline": "Abu Dhabi talks enter second day with no ceasefire movement as Russia resists a truce",
+      "summary": "Russian, Ukrainian and US officials began a second day of talks in Abu Dhabi on Wednesday. Ukraine's President Volodymyr Zelensky said day one, which ran nearly four hours, was largely about humanitarian issues such as prisoner exchanges and the return of captive civilians. Le Monde reported that Russia stayed reluctant on a ceasefire, while Zelensky called the debate \"constructive\" and said he was happy with messages from US envoys. These are the first talks since February.",
+      "why_it_matters": "Washington wants to tie a ceasefire to a wider European security settlement, but Russia is resisting the ceasefire itself. That leaves Kyiv and European capitals worried that Moscow gets a say in Europe's security without conceding a truce. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A514"
+        },
+        {
+          "article_id": "A227"
+        },
+        {
+          "article_id": "A260"
+        },
+        {
+          "article_id": "A313"
+        },
+        {
+          "article_id": "A676"
+        },
+        {
+          "article_id": "A589"
+        },
+        {
+          "article_id": "A199"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Le Monde",
+          "angle": "Says the talks are headed for an impasse, with the Russian side reluctant on a ceasefire.",
+          "bias": "Centre-left French daily",
+          "article_id": "A260"
+        },
+        {
+          "source": "Wall Street Journal",
+          "angle": "Says the US overture to Russia on European security sparks alarm; US officials say ceasefire work must proceed alongside talks on Europe's future security.",
+          "bias": "Centre-right, business-focused",
+          "article_id": "A676"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Second day of talks began Wednesday in Abu Dhabi",
+          "supported_by": [
+            "A514",
+            "A227",
+            "A313",
+            "A589",
+            "A199"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Day one lasted nearly four hours",
+          "supported_by": [
+            "A227",
+            "A313"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Talks largely about humanitarian issues, prisoner exchanges, captive civilians",
+          "supported_by": [
+            "A514",
+            "A227",
+            "A313"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Le Monde: Russia reluctant on ceasefire; Zelensky called debate constructive",
+          "supported_by": [
+            "A514",
+            "A227",
+            "A260",
+            "A313",
+            "A589"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Zelensky happy with US envoys' approach",
+          "supported_by": [
+            "A589",
+            "A199"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "First talks since February",
+          "supported_by": [
+            "A514",
+            "A227",
+            "A313",
+            "A589"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Russia resists a truce",
+          "supported_by": [
+            "A514",
+            "A260"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "US says ceasefire work must proceed alongside Europe security talks",
+          "supported_by": [
+            "A676"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Fears Washington and Moscow could reach broader European deal",
+          "supported_by": [
+            "A676",
+            "A589"
+          ]
+        }
+      ],
+      "cluster_id": "Ukraine-Russia peace talks Abu Dhabi territorial concessions"
+    },
+    {
+      "headline": "Iran says Hormuz stays shut until US meets demands; IRGC reports ships hit mines The measure was announced in Geneva.",
+      "summary": "Iranian official Mohsen Rezaei denied talks with the US and said the Strait of Hormuz will stay closed until Tehran's demands are met. He called reports of negotiations and a planned meeting with JD Vance \"pure lies and fabrications\", saying Iran still awaits a clear US response. The IRGC said at least three ships hit mines and caught fire in the strait.",
+      "why_it_matters": "Mines in the strait mean a truce on paper would not reopen the shipping lane quickly, and Iran has tied reopening to US concessions, so shipping stays hostage to the talks that Tehran says are not happening.",
+      "sources": [
+        {
+          "article_id": "A9"
+        },
+        {
+          "article_id": "A237"
+        },
+        {
+          "article_id": "A370"
+        },
+        {
+          "article_id": "A678"
+        },
+        {
+          "article_id": "A280"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "WSJ",
+          "angle": "Frames it as a military contest: the US and Iran are fighting for control of the strait, striking islands in the waterway in recent days.",
+          "bias": "Center",
+          "article_id": "A678"
+        },
+        {
+          "source": "Reuters",
+          "angle": "Frames it through markets: oil steadied as the Hormuz attacks blunted hopes for an Iran truce.",
+          "bias": "Center",
+          "article_id": "A370"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Rezaei denied talks, Hormuz closed until demands met",
+          "supported_by": [
+            "A9",
+            "A237"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "'pure lies and fabrications' about talks and planned Vance meeting",
+          "supported_by": [
+            "A9",
+            "A237"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "IRGC said at least three ships hit mines and caught fire",
+          "supported_by": [
+            "A9"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Iran ties reopening to US meeting its conditions",
+          "supported_by": [
+            "A9",
+            "A237"
+          ]
+        }
+      ],
+      "cluster_id": "Iran denies US talks, keeps Hormuz shut over mines"
+    },
+    {
+      "headline": "UK police arrest 41-year-old US Army soldier at NATO corps on suspicion of spying for Russia",
+      "summary": "British counter-terrorism police arrested a senior US Army soldier, 83 near Gloucester on Tuesday on suspicion of assisting Russian intelligence. He was held under two sections of the National Security Act 2023 and is in custody at a London police station, where police can hold him up to 14 days without charge. He was reportedly serving with NATO's Allied Rapid Reaction Corps at Imjin Barracks. Police are searching two sites in Gloucestershire and say the case is unrelated to other counter-terror investigations.",
+      "why_it_matters": "The suspect worked inside a multinational NATO headquarters, so any leak could reach 20 allies' forces, not just the US. The arrest also comes as US aircraft left British bases over separate Iran-linked threats, leaving Washington dealing with two security problems on UK soil at once.",
+      "sources": [
+        {
+          "article_id": "A65"
+        },
+        {
+          "article_id": "A82"
+        },
+        {
+          "article_id": "A118"
+        },
+        {
+          "article_id": "A154"
+        },
+        {
+          "article_id": "A193"
+        },
+        {
+          "article_id": "A212"
+        },
+        {
+          "article_id": "A225"
+        },
+        {
+          "article_id": "A319"
+        },
+        {
+          "article_id": "A404"
+        },
+        {
+          "article_id": "A501"
+        },
+        {
+          "article_id": "A556"
+        },
+        {
+          "article_id": "A670"
+        },
+        {
+          "article_id": "A674"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "CBC News",
+          "angle": "Places the arrest against rising European warnings of Russian sabotage, espionage and drone incursions, and stresses it appears separate from the Iran-linked plot at RAF Fairford.",
+          "bias": "center",
+          "article_id": "A82"
+        },
+        {
+          "source": "BBC",
+          "angle": "Focuses on the legal detail and official statements, including the FBI chief's 'no tolerance' message and the counterintelligence chief's warning about insider threats.",
+          "bias": "center",
+          "article_id": "A65"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Senior US Army soldier, 41, arrested near Gloucester Tuesday",
+          "supported_by": [
+            "A65",
+            "A82",
+            "A118",
+            "A154",
+            "A193",
+            "A212",
+            "A225",
+            "A319",
+            "A501",
+            "A556",
+            "A670",
+            "A674"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Held under two sections of National Security Act 2023",
+          "supported_by": [
+            "A65",
+            "A82",
+            "A118",
+            "A212",
+            "A225",
+            "A556"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Custody at London police station; up to 14 days without charge",
+          "supported_by": [
+            "A65",
+            "A82",
+            "A118",
+            "A154",
+            "A212",
+            "A319"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Serving with NATO ARRC at Imjin Barracks",
+          "supported_by": [
+            "A65",
+            "A82",
+            "A674"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Searches at two Gloucestershire locations; unrelated to other counter-terror probes",
+          "supported_by": [
+            "A65",
+            "A82",
+            "A154",
+            "A212",
+            "A225",
+            "A556"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "ARRC made up of forces from 20 nations",
+          "supported_by": [
+            "A82"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "US aircraft removed from British bases over Iran-linked threats",
+          "supported_by": [
+            "A82",
+            "A212",
+            "A225",
+            "A501",
+            "A556"
+          ]
+        }
+      ],
+      "cluster_id": "US soldier arrested in UK for spying for Russia"
+    },
+    {
+      "headline": "Congo's Ebola cases pass 11,000 with 5,387 deaths as Kenya discharges its last patient",
+      "summary": "Confirmed Ebola cases in Democratic Republic of Congo have passed 11,000, government data showed, with 5,387 deaths reported. Al Jazeera calls it the country's largest outbreak, and NPR calls it the deadliest. Separately, Kenya discharged its last Ebola patient on Wednesday, starting a 42-day countdown to being declared free of the disease, Health Minister Aden Duale said.",
+      "why_it_matters": "Kenya can only be declared disease-free after 42 days with no new cases, while Congo's outbreak is still growing, so the risk of renewed spread across the border persists.",
+      "sources": [
+        {
+          "article_id": "A20"
+        },
+        {
+          "article_id": "A111"
+        },
+        {
+          "article_id": "A267"
+        },
+        {
+          "article_id": "A308"
+        },
+        {
+          "article_id": "A433"
+        },
+        {
+          "article_id": "A517"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Al Jazeera",
+          "angle": "Says authorities are struggling to contain the largest Ebola outbreak in DRC history, citing delayed detection and conflict.",
+          "bias": "Mixed",
+          "article_id": "A20"
+        },
+        {
+          "source": "NPR",
+          "angle": "Calls it Congo's deadliest outbreak and frames the 11,000 figure as a stark measure of its severity.",
+          "bias": "Center-left",
+          "article_id": "A308"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "11,042 cases and 5,387 deaths in Congo",
+          "supported_by": [
+            "A20",
+            "A111",
+            "A308"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Al Jazeera calls it the largest outbreak; NPR deadliest",
+          "supported_by": []
+        },
+        {
+          "field": "summary",
+          "text": "Kenya discharged last patient Wednesday, 42-day countdown, Minister Aden Duale",
+          "supported_by": [
+            "A517"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Congo outbreak continuing to spread",
+          "supported_by": [
+            "A20",
+            "A111",
+            "A267",
+            "A308"
+          ]
+        }
+      ],
+      "cluster_id": "Congo Ebola outbreak cases surpass 11,000"
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "US indicts three alleged Iran-backed operatives over September RAF Fairford plot",
+      "summary": "The US Justice Department charged three men, including one already jailed in New York, over a September plot at Britain's RAF Fairford base, which US forces have used in operations against Iran. Prosecutors say Mohammad Baqer Saad Dawood al-Saadi passed coded messages through phone calls to family from jail, and that co-defendant Mohammad Ali al-Hassani directed men to drive vans, some holding fuel barrels, to the base. The eight-count indictment also covers other plots tied to Iran's Revolutionary Guard and Kataeb Hezbollah; Iran has denied any role, and Al-Saadi's lawyers have called the coded-message claim speculative.",
+      "sources": [
+        {
+          "article_id": "A34"
+        },
+        {
+          "article_id": "A36"
+        },
+        {
+          "article_id": "A18"
+        },
+        {
+          "article_id": "A58"
+        },
+        {
+          "article_id": "A81"
+        },
+        {
+          "article_id": "A205"
+        },
+        {
+          "article_id": "A221"
+        },
+        {
+          "article_id": "A551"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Three men charged, one already jailed in New York",
+          "supported_by": [
+            "A34",
+            "A36",
+            "A18",
+            "A58",
+            "A81",
+            "A205",
+            "A221",
+            "A551"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Al-Saadi passed coded messages via phone calls to family from jail",
+          "supported_by": [
+            "A34",
+            "A36",
+            "A18",
+            "A58",
+            "A81",
+            "A205",
+            "A221",
+            "A551"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Al-Hassani directed vans, some with fuel barrels, to base",
+          "supported_by": [
+            "A34",
+            "A58",
+            "A205",
+            "A551"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Eight-count indictment, IRGC and Kataeb Hezbollah plots",
+          "supported_by": [
+            "A34",
+            "A36",
+            "A58",
+            "A81",
+            "A205",
+            "A221",
+            "A551"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran denied role; lawyers called coded-message claim speculative",
+          "supported_by": [
+            "A36",
+            "A58",
+            "A81",
+            "A221"
+          ]
+        }
+      ],
+      "cluster_id": "Iran-linked plot to attack RAF Fairford base charges"
+    },
+    {
+      "headline": "Senior Senate Republican calls on Nvidia's Huang to resign as lawmakers push China chip rules",
+      "summary": "A senior Republican on the Senate banking panel called on Nvidia CEO Jensen Huang to resign, Reuters reported. Other US lawmakers are pushing for new China chip rules after the allegations about Huang's ties to a suspected Chinese spy. Separately, Reuters reported that a Chinese university bought Nvidia H200 chips despite a US blacklist.",
+      "sources": [
+        {
+          "article_id": "A362"
+        },
+        {
+          "article_id": "A402"
+        },
+        {
+          "article_id": "A361"
+        },
+        {
+          "article_id": "A523"
+        },
+        {
+          "article_id": "A541"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Senior Republican on Senate banking panel calls on Huang to resign",
+          "supported_by": [
+            "A362"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Lawmakers push China chip rules after Huang allegations",
+          "supported_by": [
+            "A402",
+            "A523",
+            "A541"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Chinese university bought Nvidia H200 despite US blacklist",
+          "supported_by": [
+            "A361",
+            "A523"
+          ]
+        }
+      ],
+      "cluster_id": "Nvidia lawsuit over ties to alleged Chinese spy Alice Huang"
+    },
+    {
+      "headline": "US consumer prices rise for third straight month, and Fed officials open door to quicker rate hikes",
+      "summary": "Reuters reported that US consumer prices rose briskly for a third straight month, that Fed officials opened the door to a quicker round of rate hikes, and that Wall Street ended lower while the dollar gained.",
+      "sources": [
+        {
+          "article_id": "A426"
+        },
+        {
+          "article_id": "A419"
+        },
+        {
+          "article_id": "A440"
+        },
+        {
+          "article_id": "A383"
+        },
+        {
+          "article_id": "A363"
+        },
+        {
+          "article_id": "A416"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Consumer prices rose third straight month",
+          "supported_by": [
+            "A426"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Fed officials open door to quicker rate hikes",
+          "supported_by": [
+            "A419"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Wall Street ended lower, dollar gained",
+          "supported_by": [
+            "A440",
+            "A383"
+          ]
+        }
+      ],
+      "cluster_id": "US consumer price inflation October report"
+    },
+    {
+      "headline": "US Army unit in Germany awaits word as Pentagon weighs major drawdown in Europe",
+      "summary": "A U.S. Army unit in Germany does not know what comes next as the Pentagon considers a major drawdown of forces in Europe, according to The New York Times.",
+      "sources": [
+        {
+          "article_id": "A327"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Army unit in Germany unsure as Pentagon considers major drawdown, per NYT",
+          "supported_by": [
+            "A327"
+          ]
+        }
+      ],
+      "cluster_id": "Pentagon reviews major drawdown of US troops in Europe"
+    },
+    {
+      "headline": "Trump and Xi to meet in Shenzhen as trade disputes over farm goods and rare earths linger",
+      "summary": "U.S. President Donald Trump and Chinese leader Xi Jinping are set to meet at the Apec summit in Shenzhen next week, but observers expect few tangible deliverables, with major outcomes likely to wait for the G20. Ahead of the talks, U.S. Trade Representative Jamieson Greer and Treasury Secretary Scott Bessent urged Vice-Premier He Lifeng on a Friday video call to honour China's commitments on agricultural goods and rare earth exports. Beijing had said a day earlier that Washington must first implement reciprocal tariff cuts covering US$30 billion of products on each side before it buys more American farm goods.",
+      "sources": [
+        {
+          "article_id": "A491"
+        },
+        {
+          "article_id": "A484"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Trump and Xi to meet at Apec next week; few deliverables, G20",
+          "supported_by": [
+            "A491",
+            "A484"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Greer and Bessent urged He Lifeng on Friday video call",
+          "supported_by": [
+            "A484"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Beijing demanded reciprocal tariff cuts on US$30 billion of products",
+          "supported_by": [
+            "A484"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Meeting in Shenzhen",
+          "supported_by": [
+            "A484"
+          ]
+        }
+      ],
+      "cluster_id": "Xi-Trump Apec summit preparations and trade commitments"
+    },
+    {
+      "headline": "Anthropic launches IPO roadshow, offering 825 million shares at $70–$78 for up to $1.4tn valuation",
+      "summary": "Anthropic filed an updated prospectus to sell 825 million shares at up to $78 each, raising up to $64.4bn and valuing it at about $1.4tn fully diluted (about $1tn undiluted). It will also raise $26bn in a private placement from cornerstone investors including Google, Nvidia and AMD. The terms are lower than the $80, 867 million-share version briefly sent to banks on Monday; the Financial Times reports bankers are preparing to raise the valuation to $1.5tn, and investors once discussed up to $2tn.",
+      "sources": [
+        {
+          "article_id": "A89"
+        },
+        {
+          "article_id": "A210"
+        },
+        {
+          "article_id": "A436"
+        },
+        {
+          "article_id": "A175"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "825 million shares at $70-$78",
+          "supported_by": [
+            "A89",
+            "A210"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Raise up to $64.4bn; $1.4tn diluted, about $1tn undiluted",
+          "supported_by": [
+            "A89",
+            "A210",
+            "A436"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "$26bn private placement with Google, Nvidia, AMD",
+          "supported_by": [
+            "A89"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Earlier version $80, 867 million shares circulated Monday",
+          "supported_by": [
+            "A89"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "FT: bankers preparing to raise valuation to $1.5tn",
+          "supported_by": [
+            "A89",
+            "A175"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Investors once discussed up to $2tn",
+          "supported_by": [
+            "A89"
+          ]
+        }
+      ],
+      "cluster_id": "Anthropic IPO valuation and investor demand"
+    },
+    {
+      "headline": "Spain holds first general strike in 14 years over housing costs",
+      "summary": "Millions of Spanish workers went on strike on Wednesday, setting up picket lines in stormy weather to demand action on the housing affordability crisis and rising living costs. The walkout comes less than three weeks before a snap national election that could catapult the far right to power. Young people describe being stuck in the family home or paying high rents for tiny rooms, such as $500 for 5 square metres.",
+      "sources": [
+        {
+          "article_id": "A196"
+        },
+        {
+          "article_id": "A307"
+        },
+        {
+          "article_id": "A356"
+        },
+        {
+          "article_id": "A496"
+        },
+        {
+          "article_id": "A519"
+        },
+        {
+          "article_id": "A17"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "First general strike in 14 years",
+          "supported_by": [
+            "A196",
+            "A307",
+            "A356",
+            "A496",
+            "A519"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Picket lines in stormy weather",
+          "supported_by": [
+            "A496",
+            "A519"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Less than three weeks before snap election that could bring far right to power",
+          "supported_by": [
+            "A196",
+            "A307",
+            "A496",
+            "A519",
+            "A17"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "$500 for 5 square metres",
+          "supported_by": [
+            "A17"
+          ]
+        }
+      ],
+      "cluster_id": "Spain general strike over housing crisis"
+    },
+    {
+      "headline": "Over 100 Indonesian lawmakers sign petition to impeach vice president Gibran a day after he offers to resign",
+      "summary": "More than 100 lawmakers from several parties signed a petition on Wednesday saying Vice President Gibran Rakabuming Raka no longer meets the requirements for office, opening the way to impeachment. Gibran, son of former president Joko Widodo, told President Prabowo Subianto on Tuesday that he intends to resign, the presidential office said. Last month the Constitutional Court and the Supreme Court ruled that his education documents did not meet election requirements. The Supreme Court has ordered the education ministry to withdraw his annulled equivalence certificate. The episode comes amid a widening rift between Prabowo and Widodo.",
+      "sources": [
+        {
+          "article_id": "A107"
+        },
+        {
+          "article_id": "A360"
+        },
+        {
+          "article_id": "A275"
+        },
+        {
+          "article_id": "A311"
+        },
+        {
+          "article_id": "A289"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "More than 100 lawmakers signed petition Wednesday",
+          "supported_by": [
+            "A107",
+            "A360"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Gibran told Prabowo Tuesday he intends to resign",
+          "supported_by": [
+            "A107",
+            "A275",
+            "A311",
+            "A289"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Constitutional and Supreme Court rulings last month on education documents",
+          "supported_by": [
+            "A107",
+            "A311"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Supreme Court ordered withdrawal of equivalence certificate",
+          "supported_by": [
+            "A107"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Widening rift between Prabowo and Widodo",
+          "supported_by": [
+            "A107",
+            "A311"
+          ]
+        }
+      ],
+      "cluster_id": "Indonesian VP Gibran resignation plan and impeachment threat"
+    },
+    {
+      "headline": "Kenyan domestic worker in Saudi Arabia sentenced to 100 lashes for giving birth outside marriage",
+      "summary": "A Kenyan migrant worker in Saudi Arabia has reportedly been sentenced to 100 lashes after giving birth outside marriage, and rights groups have condemned the punishment as an \"act of violence\". The New York Times says the case shows that the kingdom's promised reforms do not always match its justice system, with unmarried women, particularly foreign workers, facing unique risks.",
+      "sources": [
+        {
+          "article_id": "A592"
+        },
+        {
+          "article_id": "A326"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Kenyan domestic worker sentenced to 100 lashes",
+          "supported_by": [
+            "A592",
+            "A326"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Rights groups condemned as 'act of violence'",
+          "supported_by": [
+            "A592"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "NYT: reforms don't always match justice system; foreign workers face perils",
+          "supported_by": [
+            "A592",
+            "A326"
+          ]
+        }
+      ],
+      "cluster_id": "Gulf states expand military cooperation due to Iran war"
+    },
+    {
+      "headline": "Leaders open COP31 speeches as US, France, Germany, Japan, Italy and Canada skip top-level attendance",
+      "summary": "Scores of world leaders began rapid-fire speeches at COP31 in Antalya, Turkey, on Wednesday, with talks set to run through Thursday. UN chief António Guterres told them the climate crisis is \"outrunning us\". The US has skipped the talks for a second year, and France, Germany, Japan, Italy and Canada did not send their top leaders. Negotiators from nearly 200 countries are weighing a Turkish-backed goal to lift electricity's share of global energy use to 35% by 2035, which critics say may do little to curb warming. Separately, South Africa and other developing nations failed to get a dedicated agenda item for tripling adaptation finance.",
+      "sources": [
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A352"
+        },
+        {
+          "article_id": "A132"
+        },
+        {
+          "article_id": "A265"
+        },
+        {
+          "article_id": "A597"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Leaders' speeches began Wednesday, run through Thursday, Antalya",
+          "supported_by": [
+            "A28",
+            "A352",
+            "A265"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Guterres: climate crisis 'outrunning us'",
+          "supported_by": [
+            "A28"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "US skipped second year; France, Germany, Japan, Italy, Canada no top leaders",
+          "supported_by": [
+            "A28",
+            "A352",
+            "A265"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Electricity share goal 35% by 2035; critics say little effect",
+          "supported_by": [
+            "A28",
+            "A352"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Triple adaptation finance failed to get own agenda item",
+          "supported_by": [
+            "A132"
+          ]
+        }
+      ],
+      "cluster_id": "COP31 UN climate summit Turkey"
+    },
+    {
+      "headline": "China rejects Carney's interference concerns before Xi meeting",
+      "summary": "Prime Minister Mark Carney said on Tuesday he would tell Chinese President Xi Jinping later this month that China and other countries should not interfere in Canada's internal affairs. China dismissed the concerns on Wednesday, ahead of the leaders' meeting at a summit. Carney also said Canadians will learn the name of their new ambassador to China \"in very short order\".",
+      "sources": [
+        {
+          "article_id": "A422"
+        },
+        {
+          "article_id": "A561"
+        },
+        {
+          "article_id": "A502"
+        },
+        {
+          "article_id": "A87"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Carney said Tuesday he'd tell Xi no interference in Canada's affairs",
+          "supported_by": [
+            "A422",
+            "A561",
+            "A502",
+            "A87"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "China dismissed concerns Wednesday",
+          "supported_by": [
+            "A502"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "New ambassador named 'in very short order'",
+          "supported_by": [
+            "A87"
+          ]
+        }
+      ],
+      "cluster_id": "Carney names new ambassador to China"
+    },
+    {
+      "headline": "Rubio says US no longer needs major combat operations in Iran, as Brent falls below $90",
+      "summary": "Secretary of State Marco Rubio said US economic pressure is doing enough damage to Tehran's leadership that major combat operations are no longer needed. Brent crude fell below $90 for the first time since August, after Trump called the war nearly over in military terms, according to Clarín. Analysts warn of a risk of renewed escalation, and the New York Times reports top Trump aides are clashing over how to end the war, weighing escalation, narrower strikes and diplomacy.",
+      "sources": [
+        {
+          "article_id": "A331"
+        },
+        {
+          "article_id": "A418"
+        },
+        {
+          "article_id": "A543"
+        },
+        {
+          "article_id": "A101"
+        },
+        {
+          "article_id": "A330"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Rubio: no need for major combat operations",
+          "supported_by": [
+            "A331",
+            "A418",
+            "A543"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Brent below $90 first time since August",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump called war nearly over militarily",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Analysts warn of renewed escalation",
+          "supported_by": [
+            "A101"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "NYT: Trump aides clash over ending war",
+          "supported_by": [
+            "A330"
+          ]
+        }
+      ],
+      "cluster_id": "US-Iran war strategy debate and shift away from major combat"
+    }
+  ],
+  "preheader": "Abu Dhabi talks stall as Russia resists a truce; Iran keeps Hormuz shut and reports ships hit mines",
+  "not_covered_blurb": "We left out Israel's coalition haggling, the Kraków shooting fallout, France's fridge-hack follow-ups, Houthi–Yemen exchanges and Ukraine's EU path, which lacked major new developments against today's bigger stories."
+}

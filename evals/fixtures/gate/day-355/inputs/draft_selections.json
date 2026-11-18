@@ -1,0 +1,379 @@
+{
+  "must_know": [
+    {
+      "headline": "US envoys meet Putin in Moscow after Abu Dhabi talks yield prisoner swap but no breakthrough",
+      "summary": "Jared Kushner and Steve Witkoff arrived in Moscow on Thursday for talks with Vladimir Putin, then plan to travel to Dublin to meet Ukraine's Volodymyr Zelensky. Two days of US-mediated Russia-Ukraine talks in Abu Dhabi ended Wednesday with an agreed large prisoner exchange, though neither side gave a figure. Russian negotiator Vladimir Medinsky said Moscow sees no possibility of territorial swaps and no EU role in the process for now.",
+      "why_it_matters": "Washington is pressing Moscow to admit Europe to the talks while Russia's chief negotiator rules out both an EU role and land swaps, so the envoys carry a proposal into the Kremlin that its own negotiator has already dismissed.",
+      "sources": [
+        {
+          "article_id": "A2"
+        },
+        {
+          "article_id": "A52"
+        },
+        {
+          "article_id": "A476"
+        },
+        {
+          "article_id": "A205"
+        },
+        {
+          "article_id": "A193"
+        },
+        {
+          "article_id": "A286"
+        },
+        {
+          "article_id": "A34"
+        },
+        {
+          "article_id": "A406"
+        },
+        {
+          "article_id": "A295"
+        },
+        {
+          "article_id": "A367"
+        },
+        {
+          "article_id": "A486"
+        },
+        {
+          "article_id": "A611"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Washington Post",
+          "angle": "Says the talks exposed a deepening split between US and European visions of how to approach Russia.",
+          "bias": "Center",
+          "article_id": "A611"
+        },
+        {
+          "source": "Reuters",
+          "angle": "Reports Zelensky saying progress in the talks hinges on how the US approaches Russia.",
+          "bias": "Center",
+          "article_id": "A367"
+        },
+        {
+          "source": "Reuters",
+          "angle": "Reports the Russian negotiator citing some progress while seeing no EU role in the process for now.",
+          "bias": "Center",
+          "article_id": "A406"
+        }
+      ]
+    },
+    {
+      "headline": "Iran threatens US bases in Europe if jets launch strikes from them, as Israel reportedly readies an attack",
+      "summary": "Iran's security chief Mohsen Rezaei said that if the US attacks, Iran will target distant places it has not hit before, including US bases in Europe whose jets are used in strikes. Iran's chief negotiator, Ghalibaf, said Iran is open to a deal if Washington drops \"excessive demands\" and that the \"ball is in the US court\". Israeli media report that Israel's security cabinet ordered the military to step up preparations for a possible attack on Iran.",
+      "why_it_matters": "President Trump has called the war practically over, yet Tehran is widening the list of places it says it would hit, so a new US strike could draw in European host countries that have no say in the decision.",
+      "sources": [
+        {
+          "article_id": "A217"
+        },
+        {
+          "article_id": "A129"
+        },
+        {
+          "article_id": "A8"
+        },
+        {
+          "article_id": "A19"
+        },
+        {
+          "article_id": "A21"
+        },
+        {
+          "article_id": "A561"
+        },
+        {
+          "article_id": "A1"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "The Guardian",
+          "angle": "Senior Iranian officials believe the US is planning either more strikes or tighter sanctions, and a regime adviser says Tehran could be forced into pre-emptive strikes if the stalemate continues.",
+          "bias": "Centre-left",
+          "article_id": "A561"
+        },
+        {
+          "source": "Al Jazeera",
+          "angle": "Asks whether US overseas bases, from the UK to the Gulf, have become liabilities now that Iran has changed the calculation.",
+          "bias": "Qatar-funded, critical of US policy",
+          "article_id": "A1"
+        }
+      ]
+    },
+    {
+      "headline": "Nvidia board meets on ousting CEO Huang after report of second affair; shares fall",
+      "summary": "Nvidia's board met late Wednesday to decide whether to remove CEO Jensen Huang, a source told Reuters, and no outcome had been reported by Thursday morning. The meeting followed a New York Times report that Huang had a relationship with Kimberly Powell, an executive who reports to him, days after he admitted an affair with Alice Huang, who U.S. officials say is a Chinese spy. Nvidia shares fell about 8% in after-hours trading and more than 6% ahead of the Thursday Wall Street open.",
+      "why_it_matters": "Huang can be removed \"with or without cause\" by a majority vote of directors, but analysts flag key-man risk because he drives major decisions and has no named successor, so the board must weigh a governance breach against losing the person investors see as holding the AI trade together.",
+      "sources": [
+        {
+          "article_id": "A109"
+        },
+        {
+          "article_id": "A186"
+        },
+        {
+          "article_id": "A198"
+        },
+        {
+          "article_id": "A151"
+        },
+        {
+          "article_id": "A498"
+        },
+        {
+          "article_id": "A499"
+        },
+        {
+          "article_id": "A490"
+        },
+        {
+          "article_id": "A487"
+        },
+        {
+          "article_id": "A331"
+        },
+        {
+          "article_id": "A363"
+        },
+        {
+          "article_id": "A181"
+        },
+        {
+          "article_id": "A495"
+        },
+        {
+          "article_id": "A326"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "France 24",
+          "angle": "China says the U.S. is fabricating spy narratives to justify a technology \"blockade\", and denies spying on Huang.",
+          "bias": "Beijing's official position, relayed by a French outlet",
+          "article_id": "A181"
+        },
+        {
+          "source": "Straits Times",
+          "angle": "Tech allies call Huang \"irreplaceable\" and warn that losing him would help China in the AI race.",
+          "bias": "Pro-Huang industry framing",
+          "article_id": "A495"
+        },
+        {
+          "source": "Reuters",
+          "angle": "House Republicans want Huang to testify and have floated a subpoena over the spy allegations.",
+          "bias": "Congressional national-security framing",
+          "article_id": "A363"
+        }
+      ]
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Russia's ambassador to the US, Alexander Darchiev, dies in Moscow at 66",
+      "summary": "Russia's foreign ministry said Darchiev died on Wednesday, calling his death \"sudden\". Spokeswoman Maria Zakharova later said he died of a chronic illness and warned media against \"unnecessary conspiracy theories\". He took up the Washington post in March 2025, after it had been vacant since October 2024.",
+      "sources": [
+        {
+          "article_id": "A130"
+        },
+        {
+          "article_id": "A92"
+        },
+        {
+          "article_id": "A610"
+        },
+        {
+          "article_id": "A297"
+        },
+        {
+          "article_id": "A460"
+        }
+      ]
+    },
+    {
+      "headline": "Xi says Taiwan 'reunification' must happen, a week before he meets Trump in Shenzhen",
+      "summary": "Chinese President Xi Jinping said on Thursday that \"the tide of history cannot be stopped\" and that \"complete reunification\" with Taiwan will be realised. He reaffirmed \"peaceful reunification\" and \"one country, two systems\" and did not mention force, which China has never renounced. Taiwan's Mainland Affairs Council rejected the model and said the wording was \"not much different from the past\". Taiwan also reported 29 Chinese military aircraft on a \"joint combat readiness patrol\" around the island.",
+      "sources": [
+        {
+          "article_id": "A98"
+        },
+        {
+          "article_id": "A5"
+        },
+        {
+          "article_id": "A332"
+        }
+      ]
+    },
+    {
+      "headline": "Indonesia's vice president Gibran resigns; Prabowo accepts and must nominate two replacements",
+      "summary": "Vice President Gibran Rakabuming Raka, 39, handed his resignation to parliament on Thursday after the Constitutional Court and the Supreme Court ruled that his overseas education documents did not meet election requirements. President Prabowo Subianto said he accepted it with a \"heavy heart\". Prabowo must nominate two candidates, and the People's Consultative Assembly has 60 days to choose one. Gibran's father, former president Joko Widodo, said the family would keep backing Prabowo's government, though BBC reports signs the Prabowo–Widodo alliance is fraying.",
+      "sources": [
+        {
+          "article_id": "A11"
+        },
+        {
+          "article_id": "A57"
+        },
+        {
+          "article_id": "A101"
+        },
+        {
+          "article_id": "A293"
+        },
+        {
+          "article_id": "A394"
+        }
+      ]
+    },
+    {
+      "headline": "Saudi Arabia says Houthi missiles fell near Mecca; group denies targeting the holy city",
+      "summary": "Saudi air defences intercepted Houthi missiles and drones fired toward Riyadh, Mecca and other regions on Wednesday, the Saudi-led coalition said. Saudi civil defence said debris from two intercepted ballistic missiles fell in a village in Mecca province. Houthi spokesperson Yahya Saree denied targeting Mecca, saying the group hit a pumping station in Yanbu and targeted Riyadh's airport. Saudi Arabia did not confirm the Yanbu claim. The World Health Organization says fighting since August 1 has displaced more than 320,000 people in Yemen, with 2,098 killed and 9,657 wounded as of Nov. 8.",
+      "sources": [
+        {
+          "article_id": "A17"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A35"
+        },
+        {
+          "article_id": "A108"
+        },
+        {
+          "article_id": "A345"
+        },
+        {
+          "article_id": "A393"
+        },
+        {
+          "article_id": "A488"
+        },
+        {
+          "article_id": "A508"
+        }
+      ]
+    },
+    {
+      "headline": "Israeli strike on Nasser Hospital in southern Gaza kills six, including a surgeon",
+      "summary": "An Israeli airstrike hit a building at Nasser Hospital in Khan Younis early Thursday, killing at least six people, including a surgeon, and wounding about 20, Gaza civil defence said. Israel said it was targeting a Hamas commander and other militants, and said Hamas had set up a command center at the complex; Hamas called the attack a \"heinous crime targeting a civilian medical facility.\" Gaza's health officials say at least 1,600 Palestinians have been killed in Israeli attacks since the ceasefire agreement.",
+      "sources": [
+        {
+          "article_id": "A26"
+        },
+        {
+          "article_id": "A51"
+        },
+        {
+          "article_id": "A284"
+        },
+        {
+          "article_id": "A301"
+        },
+        {
+          "article_id": "A202"
+        },
+        {
+          "article_id": "A107"
+        }
+      ]
+    },
+    {
+      "headline": "India bypasses its own rules to buy Israeli phone-hacking technology, Al Jazeera reports",
+      "summary": "India's surveillance capabilities reportedly reach beyond cloning phones to accessing cloud-based data held by tech giants.",
+      "sources": [
+        {
+          "article_id": "A3"
+        }
+      ]
+    },
+    {
+      "headline": "TSMC board approves up to $1bn in stakes in OpenAI and Anthropic",
+      "summary": "TSMC's board approved up to $500 million in OpenAI preferred stock and $500 million in Anthropic common shares, to be bought at Anthropic's expected IPO price, according to Reuters as cited by Ars Technica. Analysts warned the deal is another case of circular financing among investors, suppliers and customers, which makes real AI demand harder to judge. Anthropic is pressing ahead with its listing even as the broader AI trade weakens, the Financial Times reported.",
+      "sources": [
+        {
+          "article_id": "A41"
+        },
+        {
+          "article_id": "A171"
+        },
+        {
+          "article_id": "A380"
+        }
+      ]
+    },
+    {
+      "headline": "Chinese AI firms rush to lock in Nvidia chips as spy scandal fuels fear of US curbs",
+      "summary": "Chinese AI firms are rushing to secure Nvidia chip capacity amid fears of new US restrictions after the spy scandal, Reuters reported in an exclusive. Senior Democratic senators urged the administration to preserve Nvidia export records, and Axios reported that Commerce Secretary Lutnick stalled a Trump crackdown on diversion of Nvidia chips to China. A trader, Christian Lamarco, 31, had published a 40-page exposé on Nvidia's China ties in May.",
+      "sources": [
+        {
+          "article_id": "A327"
+        },
+        {
+          "article_id": "A336"
+        },
+        {
+          "article_id": "A361"
+        },
+        {
+          "article_id": "A484"
+        }
+      ]
+    },
+    {
+      "headline": "Zelensky says new Starshield speed limits are helping Russia kill Ukrainians",
+      "summary": "President Volodymyr Zelensky said Ukrainian units have recorded \"systematic\" speed restrictions on the Starshield military satellite service for several days, along the whole front line. He said the network does not work above 161 kph (100 mph), which hampers interception of fast Russian jet-powered drones, and that Ukraine is seeking answers from the US side. Starshield is the military version of SpaceX's Starlink; a similar cap in mid-October was lifted on October 24, and a Ukrainian official said the issue was not raised at the Abu Dhabi talks and it is unclear who made the decision.",
+      "sources": [
+        {
+          "article_id": "A180"
+        },
+        {
+          "article_id": "A466"
+        },
+        {
+          "article_id": "A182"
+        },
+        {
+          "article_id": "A527"
+        }
+      ]
+    },
+    {
+      "headline": "Tanzanian opposition leader Tundu Lissu avoids death penalty, faces four years in prison for incitement",
+      "summary": "Tundu Lissu, who faced possible death by hanging in a treason trial, now faces four years in prison for incitement to unrest, and Deutsche Welle asks what the verdict means for Tanzania's democracy.",
+      "sources": [
+        {
+          "article_id": "A146"
+        }
+      ]
+    },
+    {
+      "headline": "Nordic countries to work toward common defence deal, Norway says",
+      "summary": "Norway, Sweden, Denmark, Finland and Iceland will work toward a common defence deal, Norway said on Nov. 12. The aim is to boost NATO's overall ability to deter and defend. The available report gives no further detail on the terms or timetable.",
+      "sources": [
+        {
+          "article_id": "A469"
+        }
+      ]
+    },
+    {
+      "headline": "EU Commission proposes Digital Fairness Act to curb loot boxes, dark patterns and undisclosed influencer ads",
+      "summary": "The European Commission published a draft Digital Fairness Act on Wednesday. It would ban manipulative design, require influencers to disclose ads, let users switch off addictive features such as endless scrolling and autoplay, and restrict gambling-like game features for minors. Violators could face fines of up to 6% of worldwide annual turnover, but the draft must still pass the European Parliament and the Council, and gaming groups have called its loot-box and virtual-currency limits \"unworkable, unjustified and disproportionate\".",
+      "sources": [
+        {
+          "article_id": "A602"
+        },
+        {
+          "article_id": "A627"
+        }
+      ]
+    }
+  ],
+  "preheader": ""
+}

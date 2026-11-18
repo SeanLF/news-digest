@@ -1,0 +1,32 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Trump's stated condition for restraint is \"no new provocations\", but Iran's Bahrain drone launches are now testing that line, and Saudi and Turkish leaders who urged him not to resume strikes are among those exposed to the fallout.",
+      "planted": "Trump's stated condition for restraint is \"no new provocations\", but Iran's Bahrain drone launches are now testing that line, and Saudi and Turkish leaders who urged him not to resume strikes are among those exposed to the fallout. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 2,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Nvidia's chief carried the relationship for more than a year while Megaspeed stayed off any US blacklist, so the scandal now exposes both a governance failure inside the company and a gap between Treasury and Commerce over export enforcement.",
+      "planted": "Nvidia's chief carried the relationship for more than a year while Megaspeed stayed off any US blacklist, so the scandal now exposes both a governance failure inside the company and a gap between Treasury and Commerce over export enforcement. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Zelensky says US asked if Ukraine would leave Donbas in return for NATO membership",
+      "planted": "Zelensky says US asked if Ukraine would leave Donbas in return for NATO membership The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": [
+    1
+  ]
+}

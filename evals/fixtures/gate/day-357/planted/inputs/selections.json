@@ -1,0 +1,958 @@
+{
+  "must_know": [
+    {
+      "headline": "Trump to meet Xi and Putin in Shenzhen on Nov 19 for first three-way summit, White House says",
+      "summary": "The White House says President Trump will hold a three-way meeting with Chinese President Xi Jinping and Russian President Vladimir Putin on the sidelines of the APEC forum in Shenzhen on Thursday, Nov 19. Trump plans to raise nuclear-arms reduction and the Iran war, a spokeswoman said. Der Spiegel reports he does not mean to focus on Ukraine, and German Chancellor Friedrich Merz has asked Trump for 'no surprises' from his talks with Putin.",
+      "why_it_matters": "Beijing is being asked to host both leaders at once, and Deutsche Welle reports it is weighing the risk to its image, so the optics may favor Moscow while Ukraine and Europe sit outside the room. The measure was announced in Geneva.",
+      "sources": [
+        {
+          "article_id": "A24"
+        },
+        {
+          "article_id": "A28"
+        },
+        {
+          "article_id": "A56"
+        },
+        {
+          "article_id": "A121"
+        },
+        {
+          "article_id": "A351"
+        },
+        {
+          "article_id": "A450"
+        },
+        {
+          "article_id": "A458"
+        },
+        {
+          "article_id": "A138"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Deutsche Welle",
+          "angle": "Says China must tread carefully: the optics favor Moscow, and Beijing risks its image by hosting the meeting.",
+          "bias": "Public broadcaster, European",
+          "article_id": "A138"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Trump, Xi and Putin three-way summit in Shenzhen",
+          "supported_by": [
+            "A24",
+            "A28",
+            "A56",
+            "A121",
+            "A458",
+            "A138"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Meeting date of Nov 19",
+          "supported_by": [
+            "A450",
+            "A458"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Trump to raise nuclear-arms reduction, spokeswoman said",
+          "supported_by": [
+            "A24",
+            "A28",
+            "A56",
+            "A121",
+            "A458",
+            "A138"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran war also on Trump's agenda",
+          "supported_by": [
+            "A24",
+            "A28",
+            "A56",
+            "A121",
+            "A458",
+            "A138"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Der Spiegel: Trump not expected to focus on Ukraine",
+          "supported_by": [
+            "A24",
+            "A28",
+            "A56",
+            "A121",
+            "A458",
+            "A138"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Merz asked Trump for 'no surprises'",
+          "supported_by": [
+            "A121",
+            "A351"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "DW: Beijing weighing risk to its image as host",
+          "supported_by": [
+            "A138"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Optics favor Moscow",
+          "supported_by": [
+            "A138"
+          ]
+        }
+      ],
+      "cluster_id": "Trump Xi Putin trilateral summit at APEC China"
+    },
+    {
+      "headline": "EU names five-nation team plus Brussels to speak for Europe in Ukraine talks with Russia The measure was announced in Geneva.",
+      "summary": "EU leaders agreed on Friday that Germany, France, Britain, Italy and Poland, along with EU institutions, will represent Europe in Ukraine talks with Russia, European Council President Antonio Costa said. EU officials said the envoys are likely to be national security advisers. Moscow says Europeans can join if they show \"readiness to contribute\", and U.S. envoy Jared Kushner said Russia had agreed to include Europe.",
+      "why_it_matters": "Europe won its seat only after settling an internal fight over who speaks for it, while Russia has attached a condition to its attendance that it alone gets to judge.",
+      "sources": [
+        {
+          "article_id": "A177"
+        },
+        {
+          "article_id": "A123"
+        },
+        {
+          "article_id": "A285"
+        },
+        {
+          "article_id": "A342"
+        },
+        {
+          "article_id": "A491"
+        },
+        {
+          "article_id": "A595"
+        },
+        {
+          "article_id": "A372"
+        },
+        {
+          "article_id": "A202"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Germany, France, Britain, Italy, Poland plus EU institutions represent Europe",
+          "supported_by": [
+            "A177",
+            "A123",
+            "A285",
+            "A342",
+            "A491",
+            "A595"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Costa announced it Friday",
+          "supported_by": [
+            "A177",
+            "A123",
+            "A285",
+            "A491",
+            "A595"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Envoys likely national security advisers",
+          "supported_by": [
+            "A491"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Moscow: Europeans can join if they show readiness to contribute",
+          "supported_by": [
+            "A491",
+            "A372",
+            "A202"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Kushner said Russia agreed to include Europe",
+          "supported_by": [
+            "A202"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Internal fight over who speaks for Europe settled first",
+          "supported_by": [
+            "A177",
+            "A123",
+            "A285",
+            "A342",
+            "A491",
+            "A595"
+          ]
+        }
+      ],
+      "cluster_id": "Europe seat at Ukraine-Russia peace talks"
+    },
+    {
+      "headline": "UN says 25 seafarers killed near Hormuz since February as Iran reports three more tankers hit mines",
+      "summary": "At least 51 seafarers have been killed in and around the Strait of Hormuz since the US-Israeli war on Iran began in February, UN official Khaled Khiari told the Security Council on Friday. Iranian authorities said on Saturday that three oil tankers hit mines in \"unauthorised\" or \"restricted\" areas of the strait and caught fire. Iran's Revolutionary Guards earlier said two tankers hit mines. The US military says it has cleared the main routes and the strait is open, but UKMTO puts traffic about 65 percent below pre-war levels.",
+      "why_it_matters": "Iran says the strait stays closed until the US ends its naval blockade and meets other demands, while Washington says the lanes are clear. Ships caught between those two claims are now the ones hitting mines, and the UN says the cost is passing to energy, insurance and fertiliser markets.",
+      "sources": [
+        {
+          "article_id": "A10"
+        },
+        {
+          "article_id": "A392"
+        }
+      ],
+      "reporting_varies": [
+        {
+          "source": "Al Jazeera",
+          "angle": "Leads with the UN toll of 25 seafarers killed and IMO data on 136 incidents. It sets Iran's demands against the US claim that the strait is clear.",
+          "bias": "Qatar-funded international broadcaster",
+          "article_id": "A10"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "At least 25 seafarers killed since war began in February",
+          "supported_by": [
+            "A10"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Khiari told Security Council on Friday",
+          "supported_by": [
+            "A10"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran said three tankers hit mines in restricted areas",
+          "supported_by": [
+            "A10"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "IRGC said two tankers hit mines",
+          "supported_by": [
+            "A392"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "US says routes cleared; UKMTO traffic 65 percent below pre-war",
+          "supported_by": [
+            "A10"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "Iran demands end to US naval blockade before opening strait",
+          "supported_by": [
+            "A10"
+          ]
+        },
+        {
+          "field": "why_it_matters",
+          "text": "UN cites energy, insurance and fertiliser costs",
+          "supported_by": [
+            "A10"
+          ]
+        }
+      ],
+      "cluster_id": "Hormuz shipping mine attacks and seafarer deaths"
+    }
+  ],
+  "should_know": [
+    {
+      "headline": "Turkey and Qatar sign mutual defence pact, pledging a unified stance against any attack",
+      "summary": "Turkey and Qatar signed a mutual defence agreement in Istanbul on Friday, after President Erdogan met Qatar's emir, Sheikh Tamim bin Hamad Al Thani. The deal commits them to a common position against any external armed attack on either country. It also covers consultations on threats, joint exercises, defence-industry cooperation and personnel training. Reported communique text did not say what would trigger the pact or what a joint response would involve; analysts told Al Jazeera it aims to deter attacks, not build an offensive alliance. It follows an August Turkey-Pakistan-Saudi Arabia defence pact, ratified by Turkey's parliament last week.",
+      "sources": [
+        {
+          "article_id": "A31"
+        },
+        {
+          "article_id": "A36"
+        },
+        {
+          "article_id": "A179"
+        },
+        {
+          "article_id": "A5"
+        },
+        {
+          "article_id": "A493"
+        },
+        {
+          "article_id": "A380"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Mutual defence pact signed, unified stance against attack",
+          "supported_by": [
+            "A31",
+            "A36",
+            "A179",
+            "A5",
+            "A493",
+            "A380"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Signed in Istanbul Friday after Erdogan met the emir",
+          "supported_by": [
+            "A31",
+            "A36",
+            "A179",
+            "A5",
+            "A493"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Consultations, joint exercises, defence industry, personnel training",
+          "supported_by": [
+            "A31",
+            "A36",
+            "A179",
+            "A5",
+            "A493"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Communique did not say what would trigger the pact",
+          "supported_by": [
+            "A5"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Analysts: aims to deter, not offensive alliance",
+          "supported_by": [
+            "A5"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "August Turkey-Pakistan-Saudi pact ratified last week",
+          "supported_by": [
+            "A31",
+            "A36",
+            "A179",
+            "A493"
+          ]
+        }
+      ],
+      "cluster_id": "Turkey-Qatar mutual defence pact"
+    },
+    {
+      "headline": "Bessent blames Lutnick's Commerce Department for delay in blacklisting Nvidia customer Megaspeed",
+      "summary": "Treasury Secretary Scott Bessent said on CNBC that Treasury, State, Defence and the U.S. trade representative had favoured adding Singapore-based Megaspeed to the export control list for months. \"Commerce has the pen,\" he said, referring to the department led by Howard Lutnick. The public rebuke follows Nvidia CEO Jensen Huang's resignation over an affair with Megaspeed's chief, who U.S. intelligence reportedly suspects of spying for China; Lutnick is due to testify to the Senate Banking Committee in December.",
+      "sources": [
+        {
+          "article_id": "A60"
+        },
+        {
+          "article_id": "A80"
+        },
+        {
+          "article_id": "A192"
+        },
+        {
+          "article_id": "A356"
+        },
+        {
+          "article_id": "A433"
+        },
+        {
+          "article_id": "A294"
+        },
+        {
+          "article_id": "A264"
+        },
+        {
+          "article_id": "A466"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Bessent blames Commerce for delay in blacklisting Megaspeed",
+          "supported_by": [
+            "A60",
+            "A80",
+            "A192",
+            "A356",
+            "A433",
+            "A466"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Treasury, State, Defence and USTR favoured listing for months",
+          "supported_by": [
+            "A60",
+            "A80",
+            "A192",
+            "A466"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "'Commerce has the pen' quote",
+          "supported_by": [
+            "A60",
+            "A80",
+            "A192",
+            "A466"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Huang resigned over affair with Megaspeed's chief",
+          "supported_by": [
+            "A80",
+            "A192",
+            "A294",
+            "A466"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "U.S. intelligence suspects she is a Chinese spy",
+          "supported_by": [
+            "A60",
+            "A80",
+            "A192",
+            "A294",
+            "A466"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Lutnick to testify to Senate Banking Committee in December",
+          "supported_by": [
+            "A60",
+            "A192",
+            "A466"
+          ]
+        }
+      ],
+      "cluster_id": "Nvidia chip export scandal Bessent blames Lutnick"
+    },
+    {
+      "headline": "IAEA says it is 'increasingly concerned' about Isfahan enrichment plant it has never inspected",
+      "summary": "The UN nuclear watchdog said in a confidential report seen by Reuters and the AP that it is \"increasingly concerned\" about the Isfahan Fuel Enrichment Plant, which Iran declared on June 12, 2025 but has not let inspectors visit. The IAEA said it does not know the plant's exact location, status or whether it holds nuclear material. Iran has not let inspectors back to any bombed site, and says the problem will not ease until \"root causes\" are addressed. The agency also cites a 440.9 kg stockpile of uranium enriched up to 60 per cent.",
+      "sources": [
+        {
+          "article_id": "A84"
+        },
+        {
+          "article_id": "A207"
+        },
+        {
+          "article_id": "A378"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "IAEA 'increasingly concerned' about Isfahan enrichment plant",
+          "supported_by": [
+            "A84",
+            "A207",
+            "A378"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "plant has not been inspected by the IAEA",
+          "supported_by": [
+            "A84",
+            "A207"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "confidential report seen by Reuters and the AP",
+          "supported_by": [
+            "A84",
+            "A207"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran declared the plant on June 12, 2025",
+          "supported_by": [
+            "A84",
+            "A207"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "IAEA does not know location, status or whether nuclear material is present",
+          "supported_by": [
+            "A84"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran has not let inspectors return to any bombed nuclear facility",
+          "supported_by": [
+            "A84"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Iran says problem won't resolve until 'root causes' addressed",
+          "supported_by": [
+            "A84"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "440.9 kg stockpile enriched up to 60 per cent",
+          "supported_by": [
+            "A84"
+          ]
+        }
+      ],
+      "cluster_id": "IAEA concern over Iran Isfahan enrichment plant"
+    },
+    {
+      "headline": "Democratic senators order Musk to preserve records on Ukraine's Starlink access as Zelensky says curbs persist",
+      "summary": "Democratic US senators have told Elon Musk to preserve all records tied to SpaceX's restrictions on Ukraine's use of its Starlink and Starshield satellite services. President Volodymyr Zelensky said on Friday that speed restrictions remain on Starshield, hampering Ukraine's military, and that Kyiv has been given no clear reason for the new curbs. Ukraine's Defense Ministry said it had asked SpaceX and the US Defense Department for an explanation.",
+      "sources": [
+        {
+          "article_id": "A322"
+        },
+        {
+          "article_id": "A438"
+        },
+        {
+          "article_id": "A477"
+        },
+        {
+          "article_id": "A497"
+        },
+        {
+          "article_id": "A597"
+        },
+        {
+          "article_id": "A550"
+        },
+        {
+          "article_id": "A377"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Democratic senators told Musk to preserve Starlink records",
+          "supported_by": [
+            "A322",
+            "A438"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Zelensky said Friday speed restrictions remain on Starshield",
+          "supported_by": [
+            "A477",
+            "A497",
+            "A597",
+            "A550",
+            "A377"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "No clear reason given for new curbs",
+          "supported_by": [
+            "A497"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Defense Ministry asked SpaceX and Pentagon for explanation",
+          "supported_by": [
+            "A497",
+            "A597"
+          ]
+        }
+      ],
+      "cluster_id": "Starlink service restriction hits Ukraine drone operations"
+    },
+    {
+      "headline": "Ukraine and Russia trade energy strikes as Kyiv races to repair plants before winter",
+      "summary": "Ukrainian drones hit at least nine major Russian refineries between Oct. 30 and Nov. 11, knocking out 36% of Russia's refining capacity, according to defense manufacturer Fire Point. Reuters separately put the cut in operational capacity at roughly 30%. In Ukraine, technicians are racing to repair power plants wrecked by Russian missiles before winter. On Friday, Russian strikes killed one person in Zaporizhzhia and two in Odesa, regional officials said.",
+      "sources": [
+        {
+          "article_id": "A219"
+        },
+        {
+          "article_id": "A383"
+        },
+        {
+          "article_id": "A498"
+        },
+        {
+          "article_id": "A483"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "At least nine refineries hit Oct 30-Nov 11, 36% per Fire Point",
+          "supported_by": [
+            "A219"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Reuters put the cut at roughly 30%",
+          "supported_by": [
+            "A219"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Technicians racing to repair power plants before winter",
+          "supported_by": [
+            "A383",
+            "A498"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "One killed in Zaporizhzhia, two in Odesa on Friday",
+          "supported_by": [
+            "A483"
+          ]
+        }
+      ],
+      "cluster_id": "Ukrainian drone strikes on Russian oil refineries"
+    },
+    {
+      "headline": "Guterres, in farewell COP31 speech, urges 'drastic' emissions cuts as fossil-fuel fight stalls talks",
+      "summary": "UN Secretary-General António Guterres told COP31 in Antalya, Turkey, on Friday that the world needs an \"immediate and drastic reduction\" in emissions, and that \"you cannot build peace on a burning planet\". Talks go on after leaders left, with resistance to any deal that would limit or move away from fossil fuels, while host Turkey is pushing a plan to expand global electrification, which it says will cut emissions. A study found more than 100 companies and groups linked to fossil fuels are represented at the summit, with delegations outnumbering those of some vulnerable countries such as Nepal. Singapore also authorised its first carbon credit project in Rwanda and signed a pact with Bangladesh to explore carbon trading.",
+      "sources": [
+        {
+          "article_id": "A38"
+        },
+        {
+          "article_id": "A522"
+        },
+        {
+          "article_id": "A196"
+        },
+        {
+          "article_id": "A555"
+        },
+        {
+          "article_id": "A449"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "'Immediate and drastic reduction' quote",
+          "supported_by": []
+        },
+        {
+          "field": "summary",
+          "text": "'You cannot build peace on a burning planet'",
+          "supported_by": [
+            "A522"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Resistance to fossil fuel limits; Turkey electrification plan",
+          "supported_by": [
+            "A38",
+            "A196"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "100+ fossil-linked groups at COP31, outnumbering Nepal's delegation",
+          "supported_by": [
+            "A555"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Singapore first carbon credit project in Rwanda, Bangladesh pact",
+          "supported_by": [
+            "A449"
+          ]
+        },
+        {
+          "field": "headline",
+          "text": "Farewell COP31 speech",
+          "supported_by": [
+            "A522"
+          ]
+        }
+      ],
+      "cluster_id": "COP31 Antalya emissions cuts and fossil fuel divisions"
+    },
+    {
+      "headline": "Fed's Daly says rate rises likely as inflation worsens; policymakers float bigger December hike",
+      "summary": "San Francisco Fed's Daly said the Fed is likely to need to raise rates amid worsening inflation, according to Reuters. The Financial Times reported that policymakers have floated a bigger rate increase in December after strong jobs, growth and inflation data. Fed's Jefferson said he is taking his policy cues from inflation.",
+      "sources": [
+        {
+          "article_id": "A394"
+        },
+        {
+          "article_id": "A143"
+        },
+        {
+          "article_id": "A355"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Daly: Fed likely to need to raise rates amid worsening inflation",
+          "supported_by": [
+            "A394"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "FT: policymakers floated bigger December rate increase",
+          "supported_by": [
+            "A143"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Jefferson taking policy cues from inflation",
+          "supported_by": [
+            "A355"
+          ]
+        }
+      ],
+      "cluster_id": "Federal Reserve considers December rate hike"
+    },
+    {
+      "headline": "Carney says Canada and US make progress on trade deal; Bessent optimistic on Canada, Mexico pacts",
+      "summary": "Canadian Prime Minister Mark Carney said Canada and the US are making progress on a trade deal, while US Treasury Secretary Scott Bessent said he is optimistic about trade deals with Canada and Mexico.",
+      "sources": [
+        {
+          "article_id": "A311"
+        },
+        {
+          "article_id": "A382"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Carney: Canada, US make progress on trade deal",
+          "supported_by": [
+            "A311"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Bessent optimistic on trade deals with Canada and Mexico",
+          "supported_by": [
+            "A382"
+          ]
+        }
+      ],
+      "cluster_id": "Canada-US trade deal talks"
+    },
+    {
+      "headline": "Irish police defuse crude bomb in Dublin office building near leaders' summit dinner venue",
+      "summary": "Irish army bomb experts made safe a \"crude but viable\" explosive device at an office building on Merrion Square in central Dublin on Nov. 13, police said. World leaders had dined on the other side of the square the night before, during the European Political Community summit. Police gave no details on when the device was planted, and an investigation is under way.",
+      "sources": [
+        {
+          "article_id": "A470"
+        },
+        {
+          "article_id": "A327"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Crude but viable device made safe at Merrion Square office building Nov 13",
+          "supported_by": [
+            "A470"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Leaders dined on other side of square the night before at EPC summit",
+          "supported_by": [
+            "A470",
+            "A327"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "No details on when planted; investigation under way",
+          "supported_by": [
+            "A470"
+          ]
+        }
+      ],
+      "cluster_id": "Explosive device found in Ireland after world leaders dinner"
+    },
+    {
+      "headline": "Microsoft says all services restored after outage of more than 24 hours hit Outlook, Teams and Copilot",
+      "summary": "Microsoft said on Saturday that Outlook, Teams, Copilot and other services had fully recovered after a global outage that began on Nov. 12. The disruption hit businesses, governments, hospitals, schools and congressional offices in Washington. Microsoft blamed server issues, said it was not aware of any malicious activity, and said AI agents were not the cause; it also apologised as being \"deeply sorry\".",
+      "sources": [
+        {
+          "article_id": "A57"
+        },
+        {
+          "article_id": "A129"
+        },
+        {
+          "article_id": "A171"
+        },
+        {
+          "article_id": "A304"
+        },
+        {
+          "article_id": "A443"
+        },
+        {
+          "article_id": "A465"
+        },
+        {
+          "article_id": "A206"
+        }
+      ],
+      "claims": [
+        {
+          "field": "headline",
+          "text": "Services restored after more than 24-hour outage",
+          "supported_by": [
+            "A129",
+            "A171",
+            "A304",
+            "A465"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Outage began Nov 12",
+          "supported_by": [
+            "A465"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Hit businesses, governments, hospitals, schools, congressional offices",
+          "supported_by": [
+            "A57",
+            "A129",
+            "A171",
+            "A304",
+            "A443",
+            "A465",
+            "A206"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Server issues blamed; no known malicious activity",
+          "supported_by": [
+            "A57",
+            "A129",
+            "A171",
+            "A304",
+            "A443",
+            "A465"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Not caused by AI agents; 'deeply sorry'",
+          "supported_by": [
+            "A57",
+            "A171",
+            "A304",
+            "A443"
+          ]
+        }
+      ],
+      "cluster_id": "Microsoft global outage Outlook Teams recovery"
+    },
+    {
+      "headline": "Germany's parliament gives spy agencies powers for covert operations and sabotage abroad",
+      "summary": "The Bundestag passed an overhaul of intelligence law by 309 votes to 190, with 71 abstentions. It lets the BND foreign service run covert operations abroad, including sabotage, and lets the BfV domestic service act against threats, not just gather information. Interior Minister Alexander Dobrindt called it a \"reform of the century\"; the Left Party's Clara Bünger said it creates a new secret police.",
+      "sources": [
+        {
+          "article_id": "A63"
+        }
+      ],
+      "claims": [
+        {
+          "field": "summary",
+          "text": "Bundestag vote 309 in favour, 190 against, 71 abstentions",
+          "supported_by": [
+            "A63"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "BND covert operations abroad including sabotage",
+          "supported_by": [
+            "A63"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "BfV can act against threats, not just gather information",
+          "supported_by": [
+            "A63"
+          ]
+        },
+        {
+          "field": "summary",
+          "text": "Dobrindt 'reform of the century'; Bünger 'new secret police'",
+          "supported_by": [
+            "A63"
+          ]
+        }
+      ],
+      "cluster_id": "Germany expands intelligence powers against hybrid threats"
+    }
+  ],
+  "preheader": "Trump, Xi and Putin to meet in Shenzhen Nov 19; UN says 25 seafarers killed near Hormuz since February",
+  "not_covered_blurb": "We left out follow-ups on Ebola in Congo, Israel's post-election coalition politics, France's protests, the Anthropic IPO and AI-bubble worries, and Taiwan-area drills, as they lacked major new developments today."
+}

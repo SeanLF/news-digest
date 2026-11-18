@@ -1,0 +1,15 @@
+{
+  "run": 358,
+  "date": "2026-11-15",
+  "git_sha": "28d2eb9",
+  "artifacts": {
+    "article_fulltext.json": "sha256:06eb7b892b143e5433945bc87760038f5c0dd0c0482f75941da59706c44ab133",
+    "articles_1.csv": "sha256:2a037b9b599b16cc930a6c1f297732b53f11a93b502e83632c7f0e58dbcd61be",
+    "articles_2.csv": "sha256:54a914a6468a9f371385043e7885abb8392ebabd2460adadf692ac8ec4afb9ab",
+    "articles_3.csv": "sha256:c0fe19c2b80cc309e3d5cd4e1288c2ad14d07154e9b96fcd2ff0a94828e7a440",
+    "articles_4.csv": "sha256:102873d3ea1a86fd7774e9e8159b788ee386ed274d9e9afb0db181979bd6ed4e",
+    "digest.html": "sha256:3bab3f7ffcdba133994159200ff85b617c82d16ea3fbe3195cb487f556f3e60e",
+    "draft_selections.json": "sha256:65d726345e9110ecdfd88eb59929dc80f48c1ae687768d2907476f0b0a000adb",
+    "selections.json": "sha256:1c569c7bcccdd68c28e0de3730f72f5269d789220f6e7300b11e14573277a3da"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "seed": 6,
+  "plants": [
+    {
+      "storyIndex": 0,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "Xi has put Trump and Putin in one room on Chinese soil after publicly aligning with Putin against Western sanctions, so any outcome will be read against that backdrop by US allies who are already uneasy about what Washington might concede.",
+      "planted": "Xi has put Trump and Putin in one room on Chinese soil after publicly aligning with Putin against Western sanctions, so any outcome will be read against that backdrop by US allies who are already uneasy about what Washington might concede. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 3,
+      "field": "why_it_matters",
+      "kind": "absent-specific",
+      "original": "A genocide finding would also settle how the court judges \"intent\", and the US and Israel reportedly fear that precedent could be used later in a case over Gaza, which is why fears are growing of US sanctions on ICJ judges, as the US has already imposed on ICC judges.",
+      "planted": "A genocide finding would also settle how the court judges \"intent\", and the US and Israel reportedly fear that precedent could be used later in a case over Gaza, which is why fears are growing of US sanctions on ICJ judges, as the US has already imposed on ICC judges. The measure was announced in Geneva.",
+      "marker": "Geneva"
+    },
+    {
+      "storyIndex": 1,
+      "field": "headline",
+      "kind": "absent-specific",
+      "original": "Iran fires at Kuwait and Bahrain after US strikes missile site on Qeshm Island",
+      "planted": "Iran fires at Kuwait and Bahrain after US strikes missile site on Qeshm Island The measure was announced in Geneva.",
+      "marker": "Geneva"
+    }
+  ],
+  "draft_misses": []
+}
