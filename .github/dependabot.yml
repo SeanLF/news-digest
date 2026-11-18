@@ -15,7 +15,7 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
 
-  # bin/web-check's tools. The lighthouse override in its package.json is not Dependabot's to move.
+  # bin/web-check's tools.
   - package-ecosystem: npm
     directory: /web-check
     schedule:
@@ -33,6 +33,11 @@ updates:
       interval: weekly
     cooldown:
       default-days: 3
+    # promptfoo's codex-sdk provider accepts only ^0.156.1 (bin/tests/test_codex_judge_pins.py);
+    # the pin moves with promptfoo, by hand.
+    ignore:
+      - dependency-name: "@openai/codex-sdk"
+        versions: [">= 0.157.0"]
     groups:
       minor-and-patch:
         update-types: [minor, patch]
