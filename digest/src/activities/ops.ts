@@ -4,12 +4,14 @@ import { emailSender, resendClient, type SendEmail } from "../mail/resend.js";
 import { sendAlert, type AlertRequest } from "../ops/alerts.js";
 import { broadcastState } from "../ops/broadcast-state.js";
 import { feedHealthAlert } from "../ops/feed-health.js";
+import { groundRun } from "../ops/grounding-run.js";
 import { type Healthcheck, healthcheck } from "../ops/healthcheck.js";
 import { cutoverHold } from "../ops/cutover-hold.js";
 import { preSendFailures, readPreSend } from "../ops/pre-send.js";
 import { coherenceKindCounts, getRunHealth, threadsEnabled, violations } from "../ops/run-health.js";
 import { runDateIn } from "../store/artifacts.js";
-import { openDb, type RowOf } from "../store/db.js";
+import { openDb, type RowOf, type Sql } from "../store/db.js";
+import type { Track } from "../telemetry.js";
 import { threadsConfigFrom } from "./threads.js";
 
 export interface OpsDeps {
@@ -19,6 +21,8 @@ export interface OpsDeps {
   send?: SendEmail;
   fetch?: typeof fetch;
   healthcheck?: Healthcheck;
+  track?: Track;
+  sourceNames?: ReadonlyMap<string, string>;
 }
 
 const activityInfo = (): { attempt: number; key?: string } => {
@@ -31,6 +35,23 @@ const activityInfo = (): { attempt: number; key?: string } => {
 };
 
 export function opsActivities(deps: OpsDeps) {
+  const reportGrounding = async (db: Sql, runId: number): Promise<void> => {
+    try {
+      const report = await groundRun(db, runId, deps.sourceNames ?? new Map());
+      if (!report) return;
+      if (report.unsupported.length)
+        log.warn({ stage: "grounding", runId, checked: report.checked, unsupported: report.unsupported });
+      deps.track?.("digest_grounding", {
+        run_id: runId,
+        stories: report.stories,
+        checked: report.checked,
+        unsupported: report.unsupported.length,
+        names_unchecked: report.namesUnchecked.reduce((n, r) => n + r.names, 0),
+      });
+    } catch (e) {
+      log.error(`grounding check FAILED to run for run ${runId} (non-fatal): ${String(e)}`);
+    }
+  };
   const hc = deps.healthcheck ?? healthcheck(deps.env, deps.fetch);
   const send: SendEmail =
     deps.send ??
@@ -69,6 +90,7 @@ export function opsActivities(deps: OpsDeps) {
           dormantAfter: threadsConfigFrom(deps.env).dormantAfter,
         });
         if (health.stale_figures) log.warn({ stage: "attribute", runId, staleFigures: health.stale_figures });
+        await reportGrounding(db, runId);
         if (health.dropped_continuations)
           log.warn(
             `Run ${runId}: ${health.dropped_continuations} story/stories lost a proposed thread continuation to one already claimed this run, and shipped as new threads`,

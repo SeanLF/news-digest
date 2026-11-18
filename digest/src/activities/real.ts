@@ -30,6 +30,7 @@ import { threadsActivities, threadsConfigFrom } from "./threads.js";
 import { resendClient } from "../mail/resend.js";
 import { broadcastActivities, type Mail } from "./broadcast.js";
 import { track } from "../telemetry.js";
+import { sourceNamesFrom } from "../gate/grounding-inputs.js";
 import { recordActivities } from "./record.js";
 
 export const DEFAULT_AGENTS_DIR = "/app/digest/agents";
@@ -105,7 +106,14 @@ export function workerActivities(): Activities {
     }),
     ...runActivities({ store, dbUrl: dbUrl(), sourcesFile: sourcesFile(), track }),
     weeklyRecap: weeklyRecapActivity({ ...deps, dbUrl: dbUrl(), maxAttempts: WEEKLY_RECAP_MAX_ATTEMPTS }),
-    ...opsActivities({ dbUrl: dbUrl(), env: process.env, maxAttempts: OPS_MAX_ATTEMPTS, healthcheck: hc }),
+    ...opsActivities({
+      dbUrl: dbUrl(),
+      env: process.env,
+      maxAttempts: OPS_MAX_ATTEMPTS,
+      healthcheck: hc,
+      track,
+      sourceNames: sourceNamesFrom(readFileSync(sourcesFile(), "utf8")),
+    }),
     ...recordActivities({ store, dbUrl: dbUrl(), track }),
     ...broadcastActivities({
       store,

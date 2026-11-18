@@ -59,6 +59,54 @@ describe("ops activities", () => {
     });
     expect(warnSpy).toHaveBeenCalledWith({ stage: "attribute", runId: 305, staleFigures: 2 });
   });
+  it("checkRunHealth logs and tracks each shown specific the story's own cited articles do not contain", async () => {
+    vi.spyOn(log, "info").mockImplementation(() => undefined);
+    vi.spyOn(log, "error").mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(log, "warn").mockImplementation(() => undefined);
+    const path = await db();
+    const store = new ArtifactStore(path);
+    await store.put(
+      305,
+      "selections.json",
+      JSON.stringify({
+        must_know: [{ ...story("Oleshky truce ends", ["A1"]), why_it_matters: "" }],
+        should_know: [],
+        preheader: "p",
+      }),
+    );
+    await store.put(
+      305,
+      "articles_1.csv",
+      "article_id,source_id,title,published,summary\nA1,kyiv_post,Oleshky truce ends,2026-11-18,Ukraine evacuated 167 civilians from Oleshky.\n",
+    );
+    await store.put(
+      305,
+      "digest.html",
+      `<article><h3>Oleshky truce ends</h3><p class="lede">Ukraine evacuated nearly 200 civilians from Oleshky.</p></article>`,
+    );
+    const track = vi.fn();
+    const ops = opsActivities({ dbUrl: path, env, maxAttempts: 3, track, sourceNames: new Map() });
+    await ops.checkRunHealth(305, true);
+    const unsupported = [{ story: 0, field: "summary", specific: "200 civilians", kind: "number" }];
+    expect(warnSpy).toHaveBeenCalledWith({ stage: "grounding", runId: 305, checked: 4, unsupported });
+    expect(track).toHaveBeenCalledWith("digest_grounding", {
+      run_id: 305,
+      stories: 1,
+      checked: 4,
+      unsupported: 1,
+      names_unchecked: 0,
+    });
+  });
+  it("checkRunHealth skips grounding without failing when a run has no shown page", async () => {
+    vi.spyOn(log, "info").mockImplementation(() => undefined);
+    vi.spyOn(log, "error").mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(log, "warn").mockImplementation(() => undefined);
+    const track = vi.fn();
+    const ops = opsActivities({ dbUrl: await db(), env, maxAttempts: 3, track, sourceNames: new Map() });
+    await ops.checkRunHealth(305, true);
+    expect(track).not.toHaveBeenCalled();
+    expect(warnSpy.mock.calls.some(([o]) => (o as { stage?: string }).stage === "grounding")).toBe(false);
+  });
   it("checkRunHealth is best-effort: a database it cannot read returns no alert instead of failing the run", async () => {
     const err = vi.spyOn(log, "error").mockImplementation(() => undefined);
     const ops = opsActivities({ dbUrl: UNREACHABLE, env, maxAttempts: 3 });
