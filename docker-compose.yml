@@ -34,7 +34,7 @@ services:
   # starts empty; the tests drop what they make, since the container outlives a run. Not the dev stack's
   # product database, which is digest-pg below.
   ci-pg:
-    image: postgres:18.6-alpine3.24
+    image: postgres:18.7-alpine3.24
     tmpfs:
       - /var/lib/postgresql
     environment:
@@ -60,7 +60,7 @@ services:
   # goes to resend-fake and nowhere else: every dev-stack service names it as RESEND_BASE_URL with a dummy
   # key, and the client refuses real Resend without RESEND_LIVE=true (digest/src/resend/destination.ts).
   digest-pg:
-    image: postgres:18.6-alpine3.24
+    image: postgres:18.7-alpine3.24
     environment:
       - POSTGRES_PASSWORD=digest
       - POSTGRES_DB=digest
@@ -86,7 +86,7 @@ services:
   # After the migration, since it also grants on the tables a dev-import clone brings without grants. The
   # box's role has no password (socket only); here the site connects over the network, so it gets a dev one.
   digest-roles:
-    image: postgres:18.6-alpine3.24
+    image: postgres:18.7-alpine3.24
     depends_on: { digest-migrate: { condition: service_completed_successfully } }
     environment: [PGPASSWORD=digest]
     volumes: ["./digest/db/ops/digest_ro.sql:/roles/digest_ro.sql:ro"]
